@@ -29,11 +29,12 @@
             background-color: #f5f5f5;
             color: var(--dark-color);
             line-height: 1.6;
+            overflow: hidden;
         }
         
         .container {
             display: flex;
-            min-height: 100vh;
+            height: 100vh;
             max-width: 100%;
         }
         
@@ -43,8 +44,9 @@
             background: linear-gradient(to bottom, var(--gradient-start), var(--gradient-end));
             padding: 20px;
             box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-            overflow-y: auto;
+            overflow-y: auto; /* Add scrollbar to sidebar */
             border-right: 1px solid var(--border-color);
+            max-height: 100vh;
         }
         
         .main-content {
@@ -53,6 +55,7 @@
             display: flex;
             flex-direction: column;
             background-color: #fff;
+            overflow-y: auto;
         }
         
         h1 {
@@ -189,8 +192,7 @@
         }
         
         #plot-container {
-            flex: 1;
-            min-height: 500px;
+            height: 600px; /* Fixed height to match original */
             background-color: white;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.08);
@@ -475,6 +477,25 @@
         .badge-accent {
             background-color: var(--accent-color);
             color: white;
+        }
+
+        /* Customize scrollbar for the sidebar */
+        .sidebar::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .sidebar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #bbb;
+            border-radius: 10px;
+        }
+        
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: #999;
         }
     </style>
 </head>
@@ -861,6 +882,9 @@
             };
         }
         
+        // Store static layouts to prevent zoom reset
+        let savedLayout = null;
+        
         // Function to update the plot
         function updatePlot() {
             const vals = calculateValues();
@@ -1005,7 +1029,7 @@
                 {
                     x: displayPdMaxPos,
                     y: y1Max * 0.90,
-                    text: `FATmax<br>${appState.weight_based ? displayPdMaxPos.toFixed(1) : Math.round(displayPdMaxPos)} ${appState.weight_based ? "W·kg<sup>-1</sup>" : "W"}`,
+                    text: `FAT<sub>max</sub><br>${appState.weight_based ? displayPdMaxPos.toFixed(1) : Math.round(displayPdMaxPos)} ${appState.weight_based ? "W·kg<sup>-1</sup>" : "W"}`,
                     showarrow: false,
                     font: {color: '#666666'},
                     xanchor: "center"
@@ -1041,11 +1065,14 @@
                 }
             ];
             
+            // Fixed y-axis ranges for locked mode
+            const fixedYAxisRange = appState.weight_based ? [0, 100] : [0, 7500];
+            
             // Set axis ranges based on lock settings
             const xaxisRange = appState.lock_x_axis ? [0, 600] : [0, Math.max(...displayPower) * 1.05];
-            const yaxisRange = appState.lock_y_axis ? [0, y1Max] : [0, Math.max(...displayVO2ss_unlimited) * 1.1];
+            const yaxisRange = appState.lock_y_axis ? fixedYAxisRange : [0, Math.max(...displayVO2ss_unlimited) * 1.1];
             
-            // Create layout for the plot
+            // Create a new layout with proper ranges
             const layout = {
                 title: {
                     text: "V̇O₂<sub>SS</sub>, vLass, vLaox, PD and Lactate Accumulation",
@@ -1105,6 +1132,7 @@
                 hovermode: 'closest'
             };
             
+            // Always create a new plot to ensure consistency
             Plotly.newPlot('plot-container', traces, layout);
             
             // Update the values container
@@ -1282,21 +1310,41 @@
                 appState.curvilinear = this.checked;
                 elements.linearCeControl.style.display = appState.curvilinear ? 'none' : 'block';
                 elements.curvilinearCeControl.style.display = appState.curvilinear ? 'block' : 'none';
+                
+                // Reset the saved layout when changing curve type
+                savedLayout = null;
+                
                 updatePlot();
             });
             
             elements.weight_based.addEventListener('change', function() {
                 appState.weight_based = this.checked;
+                
+                // Reset the saved layout when changing to weight-based units
+                savedLayout = null;
+                
                 updatePlot();
             });
             
             elements.lock_y_axis.addEventListener('change', function() {
                 appState.lock_y_axis = this.checked;
+                
+                // Reset the saved layout when toggling axis lock
+                if (this.checked) {
+                    savedLayout = null;
+                }
+                
                 updatePlot();
             });
             
             elements.lock_x_axis.addEventListener('change', function() {
                 appState.lock_x_axis = this.checked;
+                
+                // Reset the saved layout when toggling axis lock
+                if (this.checked) {
+                    savedLayout = null;
+                }
+                
                 updatePlot();
             });
             

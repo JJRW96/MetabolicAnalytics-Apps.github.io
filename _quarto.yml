@@ -25,11 +25,9 @@ website:
     collapse-level: 3 #Ab welchem Level die Unterpunkt nicht mehr angezeigt werden. Bei 2 wird bspw. bei Energieumsatz die Unterpunkte eingeklappt
     contents:
        - Mader_Modell.qmd
-       - href: Test_App.html  # Hier Ihre App im Menü hinzufügen
-         text: "EPOC-Modell"
 
       
-lang: de
+lang: en
 number-sections: true
 bibliography: references.bib
 csl: apa.csl

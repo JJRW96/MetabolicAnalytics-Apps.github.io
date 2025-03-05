@@ -1,11 +1,7 @@
 ---
-title: "MetabolicAnalytics-ShinyLiveApps.github.io"
+title: "Sports Science Models & Applications"
 ---
 
-This is a Quarto website.
+This website provides interactive sports science tools and applications for exercise physiology analysis. The collection includes models for metabolic calculations, performance predictions.
 
-To learn more about Quarto websites visit <https://quarto.org/docs/websites>.
-
-```{r}
-1 + 1
-```
+Available applications help quantify physiological parameters and analyze the relationships between exercise intensity, metabolism, and athletic performance through evidence-based calculations and visual representations.

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Metabolic Simulation Model</title>
+    <title>Metabolic Simulation</title>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
@@ -29,21 +29,26 @@
             background-color: #f5f5f5;
             color: var(--dark-color);
             line-height: 1.6;
+            overflow: hidden;
         }
         
         .container {
             display: flex;
-            min-height: 100vh;
+            height: 100vh;
             max-width: 100%;
         }
         
         .sidebar {
             width: 350px;
+            flex-shrink: 0; /* Prevent sidebar from shrinking */
             background: linear-gradient(to bottom, var(--gradient-start), var(--gradient-end));
             padding: 20px;
             box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-            overflow-y: auto;
+            overflow-y: auto; /* Add scrollbar to sidebar */
             border-right: 1px solid var(--border-color);
+            max-height: 100vh;
+            position: relative;
+            z-index: 10;
         }
         
         .main-content {
@@ -52,6 +57,7 @@
             display: flex;
             flex-direction: column;
             background-color: #fff;
+            overflow-y: auto;
         }
         
         h1 {
@@ -86,6 +92,24 @@
         
         .slider-container {
             margin-bottom: 15px;
+        }
+        
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+        
+        .slider-label label {
+            flex-grow: 1;
+        }
+        
+        .slider-value {
+            min-width: 60px;
+            text-align: right;
+            font-weight: bold;
+            color: var(--primary-color);
         }
         
         .range-slider {
@@ -170,8 +194,7 @@
         }
         
         #plot-container {
-            flex: 1;
-            min-height: 500px;
+            height: 600px; /* Fixed height to match original */
             background-color: white;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.08);
@@ -220,14 +243,6 @@
             border-left: 4px solid var(--primary-color);
         }
         
-        .slider-value {
-            display: inline-block;
-            width: 60px;
-            text-align: right;
-            font-weight: bold;
-            color: var(--primary-color);
-        }
-        
         h4 {
             margin-top: 15px;
             color: var(--primary-color);
@@ -272,37 +287,6 @@
             font-size: 0.9rem;
         }
         
-        .collapsible {
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 5px 0;
-            background: none;
-            color: var(--dark-color);
-            text-align: left;
-            width: 100%;
-            margin: 0;
-            font-weight: 600;
-        }
-        
-        .collapsible:after {
-            content: '\002B';
-            font-weight: bold;
-            float: right;
-            margin-left: 5px;
-        }
-        
-        .active:after {
-            content: "\2212";
-        }
-        
-        .collapsible-content {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.2s ease-out;
-        }
-        
         .header-section {
             display: flex;
             justify-content: space-between;
@@ -337,14 +321,15 @@
             border-radius: 6px;
             padding: 10px;
             position: absolute;
-            z-index: 1;
-            bottom: 125%;
-            left: 50%;
-            transform: translateX(-50%);
+            z-index: 100;
+            right: -20px;
+            top: 30px;
+            margin-left: -100px;
             opacity: 0;
             transition: opacity 0.3s;
             font-size: 0.9rem;
             line-height: 1.4;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }
         
         .tooltip:hover .tooltiptext {
@@ -465,12 +450,42 @@
             background-color: var(--accent-color);
             color: white;
         }
+        
+        .parameter-row {
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .parameter-label {
+            flex-grow: 1;
+            font-size: 0.9rem;
+        }
+
+        /* Customize scrollbar for the sidebar */
+        .sidebar::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .sidebar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #bbb;
+            border-radius: 10px;
+        }
+        
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: #999;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="sidebar">
-            <h1>Metabolic Simulation Model</h1>
+            <h1>Metabolic Simulation</h1>
             
             <div class="control-group" id="ce-controls">
                 <div class="header-section">
@@ -485,24 +500,100 @@
                         <input type="checkbox" id="curvilinear" name="curvilinear">
                         <span class="checkmark"></span>
                         Curvilinear CE Relationship
+                        <div class="tooltip info-icon" style="margin-left: 5px;">ⓘ
+                            <span class="tooltiptext">Based on the curvilinear relationship between power output and energy expenditure described by Hintzy-Cloutier et al. (2003)</span>
+                        </div>
                     </label>
-                    <span class="badge badge-primary">Fig.1</span>
                 </div>
                 
                 <div id="linear-ce-control" class="slider-container">
-                    <label for="CEVO2">CE (ml·min<sup>-1</sup>·W<sup>-1</sup>): <span id="CEVO2-value" class="slider-value">11.0</span></label>
+                    <div class="slider-label">
+                        <label for="CEVO2">CE (ml·min<sup>-1</sup>·W<sup>-1</sup>):</label>
+                        <span id="CEVO2-value" class="slider-value">11.5</span>
+                    </div>
                     <input type="range" id="CEVO2" class="range-slider" min="8" max="15" value="11" step="0.1">
                 </div>
                 
                 <div id="curvilinear-ce-control" class="slider-container" style="display:none;">
-                    <label for="CE_range_start">CE Start (ml·min<sup>-1</sup>·W<sup>-1</sup>): <span id="CE_range_start-value" class="slider-value">11.0</span></label>
+                    <div class="slider-label">
+                        <label for="CE_range_start">CE Start (ml·min<sup>-1</sup>·W<sup>-1</sup>):</label>
+                        <span id="CE_range_start-value" class="slider-value">11.0</span>
+                    </div>
                     <input type="range" id="CE_range_start" class="range-slider" min="8" max="15" value="11" step="0.1">
                     
-                    <label for="CE_range_end">CE Target (ml·min<sup>-1</sup>·W<sup>-1</sup>): <span id="CE_range_end-value" class="slider-value">12.0</span></label>
+                    <div class="slider-label">
+                        <label for="CE_range_end">CE Target (ml·min<sup>-1</sup>·W<sup>-1</sup>):</label>
+                        <span id="CE_range_end-value" class="slider-value">12.0</span>
+                    </div>
                     <input type="range" id="CE_range_end" class="range-slider" min="8" max="15" value="12" step="0.1">
                 </div>
+            </div>
+            
+            <div class="control-group">
+                <div class="header-section">
+                    <div class="control-label">Cadence Dependency</div>
+                    <div class="tooltip info-icon">ⓘ
+                        <span class="tooltiptext">Incorporate cycling cadence effects as described in Dunst et al. (2025). This modifies metabolic parameters based on the pedaling rate.</span>
+                    </div>
+                </div>
                 
-                <div class="small-text">Based on Fig.1 from Dunst et al. paper showing the effect of cycling cadence on oxygen demand.</div>
+                <div class="checkbox-container">
+                    <label class="fancy-checkbox">
+                        <input type="checkbox" id="cadence_dependent" name="cadence_dependent">
+                        <span class="checkmark"></span>
+                        Enable Cadence Dependency
+                    </label>
+                </div>
+                
+                <div id="cadence-controls" style="display:none;">
+                    <div id="cadence-control" class="slider-container">
+                        <div class="slider-label">
+                            <label for="cadence">Cadence (rpm):</label>
+                            <span id="cadence-value" class="slider-value">90</span>
+                        </div>
+                        <input type="range" id="cadence" class="range-slider" min="20" max="200" value="80" step="1">
+                    </div>
+                    
+                    <div class="parameter-row">
+                        <div class="parameter-label">CE (CEVO<sub>2</sub>) Dependency:</div>
+                        <div class="tooltip info-icon">ⓘ
+                            <span class="tooltiptext">Formula: CEVO<sub>2</sub>(rpm) = 0.0004 · rpm² - 0.094 · rpm + 16.857. Research shows a U-shaped relationship between cadence and oxygen demand per watt.</span>
+                        </div>
+                        <span class="slider-value">✓</span>
+                    </div>
+                    
+                    <div class="parameter-row">
+                        <div class="parameter-label">VO<sub>2,Base</sub> Dependency:</div>
+                        <div class="tooltip info-icon">ⓘ
+                            <span class="tooltiptext">Formula: VO<sub>2,Base</sub>(rpm) = 0.172 · rpm² - 14.460 · rpm + 548.039. Research shows a U-shaped relationship between cadence and resting oxygen uptake.</span>
+                        </div>
+                        <span class="slider-value">✓</span>
+                    </div>
+                    
+                    <div class="checkbox-container">
+                        <label class="fancy-checkbox">
+                            <input type="checkbox" id="vo2max_dependent" name="vo2max_dependent">
+                            <span class="checkmark"></span>
+                            Include VO<sub>2,max</sub> Dependency
+                        </label>
+                        <div class="tooltip info-icon">ⓘ
+                            <span class="tooltiptext">Based on Fig.4 from the paper, VO<sub>2,max</sub> might also be slightly cadence-dependent, with optimal values around 80-90 rpm. This is an experimental feature.</span>
+                        </div>
+                    </div>
+                    
+                    <div class="checkbox-container">
+                        <label class="fancy-checkbox">
+                            <input type="checkbox" id="vlamax_dependent" name="vlamax_dependent">
+                            <span class="checkmark"></span>
+                            Include vLa<sub>max</sub> Dependency (Experimental)
+                        </label>
+                        <div class="tooltip info-icon">ⓘ
+                            <span class="tooltiptext">Formula: vLa<sub>max</sub>(rpm) = -0.0002 · rpm² + 0.00931 · rpm. The paper suggests this may not reflect true physiological processes but rather testing methodology limitations.</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="small-text">Based on the research from Dunst et al. (2025) showing how metabolic parameters vary with cycling cadence.</div>
             </div>
             
             <div class="control-group">
@@ -514,22 +605,34 @@
                 </div>
                 
                 <div class="slider-container">
-                    <label for="VO2max">V̇O₂max (ml·min<sup>-1</sup>): <span id="VO2max-value" class="slider-value">6000</span></label>
+                    <div class="slider-label">
+                        <label for="VO2max">V̇O<sub>2,max</sub> (ml·min<sup>-1</sup>):</label>
+                        <span id="VO2max-value" class="slider-value">6000</span>
+                    </div>
                     <input type="range" id="VO2max" class="range-slider" min="2000" max="7500" value="6000" step="10">
                 </div>
                 
                 <div class="slider-container">
-                    <label for="VO2max_kg">V̇O₂max (ml·min<sup>-1</sup>·kg<sup>-1</sup>): <span id="VO2max_kg-value" class="slider-value">66.67</span></label>
+                    <div class="slider-label">
+                        <label for="VO2max_kg">V̇O<sub>2,max</sub> (ml·min<sup>-1</sup>·kg<sup>-1</sup>):</label>
+                        <span id="VO2max_kg-value" class="slider-value">66.67</span>
+                    </div>
                     <input type="range" id="VO2max_kg" class="range-slider" min="30" max="100" value="66.67" step="0.01">
                 </div>
                 
                 <div class="slider-container">
-                    <label for="VO2Base">V̇O₂Base (ml·min<sup>-1</sup>): <span id="VO2Base-value" class="slider-value">400</span></label>
+                    <div class="slider-label">
+                        <label for="VO2Base">V̇O<sub>2,Base</sub> (ml·min<sup>-1</sup>):</label>
+                        <span id="VO2Base-value" class="slider-value">400</span>
+                    </div>
                     <input type="range" id="VO2Base" class="range-slider" min="200" max="800" value="400" step="10">
                 </div>
                 
                 <div class="slider-container">
-                    <label for="vLamax">vLamax (mmol·l<sup>-1</sup>·s<sup>-1</sup>): <span id="vLamax-value" class="slider-value">0.80</span></label>
+                    <div class="slider-label">
+                        <label for="vLamax">vLa<sub>max</sub> (mmol·l<sup>-1</sup>·s<sup>-1</sup>):</label>
+                        <span id="vLamax-value" class="slider-value">0.80</span>
+                    </div>
                     <input type="range" id="vLamax" class="range-slider" min="0.2" max="1.5" value="0.8" step="0.05">
                 </div>
                 
@@ -540,6 +643,55 @@
                         Weight-based Values
                     </label>
                 </div>
+            </div>
+            
+            <div class="control-group">
+                <div class="header-section">
+                    <div class="control-label">V̇O<sub>2,Base</sub> Calculation</div>
+                    <div class="tooltip info-icon">ⓘ
+                        <span class="tooltiptext">Calculate resting oxygen consumption based on anthropometric data.</span>
+                    </div>
+                </div>
+                
+                <div class="radio-group">
+                    <div class="control-label">Gender:</div>
+                    <div class="radio-option">
+                        <input type="radio" id="male" name="gender" value="male" checked>
+                        <label for="male">Male</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="female" name="gender" value="female">
+                        <label for="female">Female</label>
+                    </div>
+                </div>
+                
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <label for="body_mass">Body Mass (kg):</label>
+                        <span id="body_mass-value" class="slider-value">90.0</span>
+                    </div>
+                    <input type="range" id="body_mass" class="range-slider" min="40" max="120" value="90" step="0.1">
+                </div>
+                
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <label for="age">Age (years):</label>
+                        <span id="age-value" class="slider-value">28</span>
+                    </div>
+                    <input type="range" id="age" class="range-slider" min="18" max="100" value="28" step="1">
+                </div>
+                
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <label for="height">Height (cm):</label>
+                        <span id="height-value" class="slider-value">193</span>
+                    </div>
+                    <input type="range" id="height" class="range-slider" min="140" max="220" value="193" step="1">
+                </div>
+                
+                <button id="calculate_vo2base" type="button">Calculate V̇O<sub>2,Base</sub></button>
+                
+                <div class="small-text">Uses Harris-Benedict equation to estimate BMR, then converts to oxygen uptake.</div>
             </div>
             
             <div class="control-group">
@@ -565,46 +717,6 @@
                     This simulation is based on Mader's metabolic model as described in "Enhancing endurance performance predictions: the role of movement velocity in metabolic simulations demonstrated by cycling cadence" (Dunst et al., 2025).
                 </div>
             </div>
-            
-            <div class="control-group">
-                <button type="button" class="collapsible">V̇O₂Base Calculation ▼</button>
-                <div class="collapsible-content">
-                    <div class="tooltip info-icon" style="float:right;margin-top:10px;">ⓘ
-                        <span class="tooltiptext">Calculate resting oxygen consumption based on anthropometric data.</span>
-                    </div>
-                    
-                    <div class="radio-group">
-                        <div class="control-label">Gender:</div>
-                        <div class="radio-option">
-                            <input type="radio" id="male" name="gender" value="male" checked>
-                            <label for="male">Male</label>
-                        </div>
-                        <div class="radio-option">
-                            <input type="radio" id="female" name="gender" value="female">
-                            <label for="female">Female</label>
-                        </div>
-                    </div>
-                    
-                    <div class="slider-container">
-                        <label for="body_mass">Body Mass (kg): <span id="body_mass-value" class="slider-value">90.0</span></label>
-                        <input type="range" id="body_mass" class="range-slider" min="40" max="120" value="90" step="0.1">
-                    </div>
-                    
-                    <div class="slider-container">
-                        <label for="age">Age (years): <span id="age-value" class="slider-value">28</span></label>
-                        <input type="range" id="age" class="range-slider" min="18" max="100" value="28" step="1">
-                    </div>
-                    
-                    <div class="slider-container">
-                        <label for="height">Height (cm): <span id="height-value" class="slider-value">193</span></label>
-                        <input type="range" id="height" class="range-slider" min="140" max="220" value="193" step="1">
-                    </div>
-                    
-                    <button id="calculate_vo2base" type="button">Calculate V̇O₂Base</button>
-                    
-                    <div class="small-text">Uses Harris-Benedict equation to estimate BMR, then converts to oxygen uptake.</div>
-                </div>
-            </div>
         </div>
         
         <div class="main-content">
@@ -618,7 +730,7 @@
     <script>
         // App state management
         const appState = {
-            CEVO2: 11.0,
+            CEVO2: 11.5,
             CE_range: [11.0, 12.0],
             VO2max: 6000,
             VO2max_kg: 66.67,
@@ -629,6 +741,10 @@
             age: 28,
             height: 193,
             curvilinear: false,
+            cadence_dependent: false,
+            vo2max_dependent: false,
+            vlamax_dependent: false,
+            cadence: 90,
             weight_based: false,
             lock_y_axis: true,
             lock_x_axis: true,
@@ -660,6 +776,12 @@
             male: document.getElementById('male'),
             female: document.getElementById('female'),
             curvilinear: document.getElementById('curvilinear'),
+            cadence_dependent: document.getElementById('cadence_dependent'),
+            vo2max_dependent: document.getElementById('vo2max_dependent'),
+            vlamax_dependent: document.getElementById('vlamax_dependent'),
+            cadence: document.getElementById('cadence'),
+            cadenceValue: document.getElementById('cadence-value'),
+            cadenceControls: document.getElementById('cadence-controls'),
             weight_based: document.getElementById('weight_based'),
             lock_y_axis: document.getElementById('lock_y_axis'),
             lock_x_axis: document.getElementById('lock_x_axis'),
@@ -720,8 +842,55 @@
             return bestA;
         }
         
+        // Cadence-dependent functions from Dunst et al. paper
+        function calculateCadenceDependentCEVO2(cadence) {
+            // Formula from paper: CEVȮ2(PR) = 0.0004 * PR² - 0.094 * PR + 16.857
+            return 0.0004 * Math.pow(cadence, 2) - 0.094 * cadence + 16.857;
+        }
+        
+        function calculateCadenceDependentVO2Base(cadence) {
+            // Formula from paper: VȮ2Base(PR) = 0.172 * PR² - 14.460 * PR + 548.039
+            return 0.172 * Math.pow(cadence, 2) - 14.460 * cadence + 548.039;
+        }
+        
+        function calculateCadenceDependentVLamax(cadence, baseVLamax) {
+            // Formula from paper: vLamax(PR) = -0.0002 * PR² + 0.00931 * PR
+            // We need to scale this to match the current vLamax at the default cadence (90 rpm)
+            const scaleVLamax = baseVLamax / (-0.0002 * Math.pow(90, 2) + 0.00931 * 90);
+            return (-0.0002 * Math.pow(cadence, 2) + 0.00931 * cadence) * scaleVLamax;
+        }
+        
+        function calculateCadenceDependentVO2max(cadence, baseVO2max) {
+            // Based on Figure 4 in the paper - simplified approximation
+            // Optimal cadence around 85 rpm, with reduction at lower and higher cadences
+            const relVO2max = Math.max(0.85, Math.min(1.0, 0.85 + 0.15 * (1 - Math.pow((cadence - 85) / 100, 2))));
+            return baseVO2max * relVO2max;
+        }
+        
         // Main function to calculate metabolic values
         function calculateValues() {
+            let effectiveCEVO2 = appState.CEVO2;
+            let effectiveVO2Base = appState.VO2Base;
+            let effectiveVLamax = appState.vLamax;
+            let effectiveVO2max = appState.VO2max;
+            
+            // Apply cadence dependency if enabled
+            if (appState.cadence_dependent) {
+                // CE and VO2Base dependency are always applied when cadence dependency is enabled
+                effectiveCEVO2 = calculateCadenceDependentCEVO2(appState.cadence);
+                effectiveVO2Base = calculateCadenceDependentVO2Base(appState.cadence);
+                
+                // Optional vLamax dependency
+                if (appState.vlamax_dependent) {
+                    effectiveVLamax = calculateCadenceDependentVLamax(appState.cadence, appState.vLamax);
+                }
+                
+                // Optional VO2max dependency
+                if (appState.vo2max_dependent) {
+                    effectiveVO2max = calculateCadenceDependentVO2max(appState.cadence, appState.VO2max);
+                }
+            }
+            
             const CELaO2 = 0.02049 / appState.body_mass;
             const VolLa = 0.4;
             const ks1 = 0.0635;
@@ -729,10 +898,10 @@
             
             // Calculate max power with linear CE value
             const maxPower = appState.curvilinear ? 
-                ((appState.VO2max - appState.VO2Base) / appState.CE_range[0]) * 1.25 :
-                ((appState.VO2max - appState.VO2Base) / appState.CEVO2) * 1.25;
+                ((effectiveVO2max - effectiveVO2Base) / appState.CE_range[0]) * 1.7 :
+                ((effectiveVO2max - effectiveVO2Base) / effectiveCEVO2) * 1.7;
             
-            // Create power array
+            // Create power array (extended by 70% to ensure dotted lines reach further)
             const P = Array.from({length: Math.ceil(maxPower) + 1}, (_, i) => i);
             
             let VO2ss_unlimited;
@@ -740,25 +909,25 @@
             
             if (appState.curvilinear) {
                 // Calculate optimal coefficient for curvilinear relationship
-                aOpt = findOptimalA(appState.CE_range[0], appState.CE_range[1], appState.VO2max, appState.VO2Base);
+                aOpt = findOptimalA(appState.CE_range[0], appState.CE_range[1], effectiveVO2max, effectiveVO2Base);
                 
                 // Curvilinear VO2ss calculation
-                VO2ss_unlimited = P.map(p => aOpt * p * p + appState.CE_range[0] * p + appState.VO2Base);
+                VO2ss_unlimited = P.map(p => aOpt * p * p + appState.CE_range[0] * p + effectiveVO2Base);
             } else {
                 // Linear VO2ss calculation
-                VO2ss_unlimited = P.map(p => appState.CEVO2 * p + appState.VO2Base);
+                VO2ss_unlimited = P.map(p => effectiveCEVO2 * p + effectiveVO2Base);
             }
             
             // Find where VO2ss crosses VO2max
-            const crossIndices = VO2ss_unlimited.findIndex(v => v >= appState.VO2max);
+            const crossIndices = VO2ss_unlimited.findIndex(v => v >= effectiveVO2max);
             const crossPoint = crossIndices !== -1 ? crossIndices : VO2ss_unlimited.length;
             
             // Limit VO2ss to VO2max
-            const VO2ss = VO2ss_unlimited.map(v => Math.min(v, appState.VO2max));
+            const VO2ss = VO2ss_unlimited.map(v => Math.min(v, effectiveVO2max));
             
             // Calculate vLass
             const vLass = VO2ss.map(vo2 => 
-                appState.vLamax / (1 + ks2 * Math.pow((appState.VO2max - vo2)/(ks1 * vo2), 3/2))
+                effectiveVLamax / (1 + ks2 * Math.pow((effectiveVO2max - vo2)/(ks1 * vo2), 3/2))
             );
             
             // Calculate vLaox
@@ -816,7 +985,13 @@
                 pd_max_pos: pdMaxPos,
                 pd_zero_pos: pdZeroPos,
                 max_power: maxPower,
-                a_opt: aOpt
+                a_opt: aOpt,
+                effective_values: {
+                    CEVO2: effectiveCEVO2,
+                    VO2Base: effectiveVO2Base,
+                    vLamax: effectiveVLamax,
+                    VO2max: effectiveVO2max
+                }
             };
         }
         
@@ -824,22 +999,25 @@
         function updatePlot() {
             const vals = calculateValues();
             
-            const relVO2max = appState.VO2max / appState.body_mass;
+            // Calculate relative values based on body weight
+            const relVO2max = vals.effective_values.VO2max / appState.body_mass;
             const relPower = vals.P.map(p => p / appState.body_mass);
             const relVO2ss = vals.VO2ss.map(vo2 => vo2 / appState.body_mass);
             const relVO2ss_unlimited = vals.VO2ss_unlimited.map(vo2 => vo2 / appState.body_mass);
             const relPdMaxPos = vals.pd_max_pos / appState.body_mass;
             const relPdZeroPos = vals.pd_zero_pos / appState.body_mass;
             
+            // Choose display values based on weight-based setting
             const displayPower = appState.weight_based ? relPower : vals.P;
             const displayVO2ss = appState.weight_based ? relVO2ss : vals.VO2ss;
             const displayVO2ss_unlimited = appState.weight_based ? relVO2ss_unlimited : vals.VO2ss_unlimited;
-            const displayVO2max = appState.weight_based ? relVO2max : appState.VO2max;
+            const displayVO2max = appState.weight_based ? relVO2max : vals.effective_values.VO2max;
             const displayPdMaxPos = appState.weight_based ? relPdMaxPos : vals.pd_max_pos;
             const displayPdZeroPos = appState.weight_based ? relPdZeroPos : vals.pd_zero_pos;
             
             const y1Max = displayVO2max * 1.25;
-            const xMid = Math.max(...displayPower) / 2;
+            const xMax = Math.max(...displayPower);
+            const xMid = xMax / 2;
             
             // Create traces for the plot
             const traces = [];
@@ -848,7 +1026,7 @@
             traces.push({
                 x: displayPower,
                 y: Array(displayPower.length).fill(displayVO2max),
-                name: "V̇O₂max",
+                name: "V̇O<sub>2,max</sub>",
                 type: 'scatter',
                 mode: 'lines',
                 line: {color: '#CCCCCC', dash: 'dot', width: 1},
@@ -888,21 +1066,22 @@
                 traces.push({
                     x: displayPower.slice(0, vals.crossPoint),
                     y: displayVO2ss_unlimited.slice(0, vals.crossPoint),
-                    name: "V̇O₂ss",
+                    name: "V̇O<sub>2,SS</sub>",
                     type: 'scatter',
                     mode: 'lines',
-                    line: {color: '#2683C6', width: 3}
+                    line: {color: '#2683C6', width: 3},
+                    showlegend: true
                 });
                 
                 if (vals.crossPoint < displayPower.length) {
                     traces.push({
                         x: displayPower.slice(vals.crossPoint),
                         y: displayVO2ss_unlimited.slice(vals.crossPoint),
-                        name: "V̇O₂ss",
+                        name: "V̇O<sub>2,SS</sub> (extrapolated)",
                         type: 'scatter',
                         mode: 'lines',
-                        showlegend: false,
-                        line: {color: '#2683C6', dash: 'dash', width: 3}
+                        line: {color: '#2683C6', dash: 'dash', width: 3},
+                        showlegend: true
                     });
                 }
             }
@@ -911,22 +1090,24 @@
             traces.push({
                 x: displayPower,
                 y: vals.vLass_min,
-                name: "vLass",
+                name: "vLa<sub>ss</sub>",
                 type: 'scatter',
                 mode: 'lines',
                 yaxis: 'y2',
-                line: {color: '#EF5350', dash: 'dash', width: 2}
+                line: {color: '#EF5350', dash: 'dash', width: 2},
+                showlegend: true
             });
             
             // vLaox curve
             traces.push({
                 x: displayPower,
                 y: vals.vLaox_min,
-                name: "vLaox",
+                name: "vLa<sub>ox</sub>",
                 type: 'scatter',
                 mode: 'lines',
                 yaxis: 'y2',
-                line: {color: '#1CADE4', dash: 'dash', width: 2}
+                line: {color: '#1CADE4', dash: 'dash', width: 2},
+                showlegend: true
             });
             
             // PD curve
@@ -937,7 +1118,8 @@
                 type: 'scatter',
                 mode: 'lines',
                 yaxis: 'y2',
-                line: {color: "#42BA97", width: 3}
+                line: {color: "#42BA97", width: 3},
+                showlegend: true
             });
             
             // La accumulation curve
@@ -948,15 +1130,38 @@
                 type: 'scatter',
                 mode: 'lines',
                 yaxis: 'y2',
-                line: {color: '#C8133B', width: 3}
+                line: {color: '#C8133B', width: 3},
+                showlegend: true
             });
+            
+            // Prepare formula text based on model type and cadence dependency
+            let formulaText = '';
+            
+            if (appState.curvilinear) {
+                if (appState.weight_based) {
+                    formulaText = `V̇O<sub>2,SS</sub>(P) = ${vals.a_opt.toFixed(4)} · P² + ${vals.effective_values.CEVO2.toFixed(1)} · P + ${(vals.effective_values.VO2Base/appState.body_mass).toFixed(1)}`;
+                } else {
+                    formulaText = `V̇O<sub>2,SS</sub>(P) = ${vals.a_opt.toFixed(4)} · P² + ${vals.effective_values.CEVO2.toFixed(1)} · P + ${Math.round(vals.effective_values.VO2Base)}`;
+                }
+            } else {
+                if (appState.weight_based) {
+                    formulaText = `V̇O<sub>2,SS</sub>(P) = ${vals.effective_values.CEVO2.toFixed(1)} · P + ${(vals.effective_values.VO2Base/appState.body_mass).toFixed(1)}`;
+                } else {
+                    formulaText = `V̇O<sub>2,SS</sub>(P) = ${vals.effective_values.CEVO2.toFixed(1)} · P + ${Math.round(vals.effective_values.VO2Base)}`;
+                }
+            }
+            
+            // Add cadence info if cadence dependency is enabled
+            if (appState.cadence_dependent) {
+                formulaText += `<br>(at cadence: ${appState.cadence} rpm)`;
+            }
             
             // Annotations
             const annotations = [
                 {
                     x: xMid,
                     y: displayVO2max + (y1Max - displayVO2max) * 0.1,
-                    text: `V̇O₂max: ${relVO2max.toFixed(1)} ml·min<sup>-1</sup>·kg<sup>-1</sup>`,
+                    text: `V̇O<sub>2,max</sub>: ${relVO2max.toFixed(1)} ml·min<sup>-1</sup>·kg<sup>-1</sup>`,
                     showarrow: false,
                     font: {color: '#666666'},
                     xanchor: "center"
@@ -964,7 +1169,7 @@
                 {
                     x: displayPdMaxPos,
                     y: y1Max * 0.90,
-                    text: `FATmax<br>${appState.weight_based ? displayPdMaxPos.toFixed(1) : Math.round(displayPdMaxPos)} ${appState.weight_based ? "W·kg<sup>-1</sup>" : "W"}`,
+                    text: `FAT<sub>max</sub><br>${appState.weight_based ? displayPdMaxPos.toFixed(1) : Math.round(displayPdMaxPos)} ${appState.weight_based ? "W·kg<sup>-1</sup>" : "W"}`,
                     showarrow: false,
                     font: {color: '#666666'},
                     xanchor: "center"
@@ -978,42 +1183,40 @@
                     xanchor: "center"
                 },
                 {
-                    x: 0.01,
-                    y: 0.70,
-                    xref: "paper",
-                    yref: "paper",
-                    text: appState.curvilinear ? 
-                        (appState.weight_based ? 
-                            `V̇O₂<sub>SS</sub>(P) = ${vals.a_opt.toFixed(4)} · P² + ${appState.CE_range[0].toFixed(1)} · P + ${(appState.VO2Base/appState.body_mass).toFixed(1)}` :
-                            `V̇O₂<sub>SS</sub>(P) = ${vals.a_opt.toFixed(4)} · P² + ${appState.CE_range[0].toFixed(1)} · P + ${Math.round(appState.VO2Base)}`) :
-                        (appState.weight_based ? 
-                            `V̇O₂<sub>SS</sub>(P) = ${appState.CEVO2.toFixed(1)} · P + ${(appState.VO2Base/appState.body_mass).toFixed(1)}` :
-                            `V̇O₂<sub>SS</sub>(P) = ${appState.CEVO2.toFixed(1)} · P + ${Math.round(appState.VO2Base)}`),
+                    // Position at 25% of x-axis and same y-position as VO2max annotation
+                    x: xMax * 0.10,
+                    y: displayVO2max + (y1Max - displayVO2max) * 0.1,
+                    text: formulaText,
                     showarrow: false,
                     font: {
                         family: "Arial",
                         size: 12,
                         color: "#666666"
                     },
-                    xanchor: "left",
-                    yanchor: "bottom"
+                    xanchor: "center",
+                    yanchor: "middle"
                 }
             ];
             
-            // Set axis ranges based on lock settings
-            const xaxisRange = appState.lock_x_axis ? [0, 600] : [0, Math.max(...displayPower)];
-            const yaxisRange = appState.lock_y_axis ? [0, y1Max] : null;
+            // Fixed y-axis ranges for locked mode
+            const fixedYAxisRange = appState.weight_based ? [0, 100] : [0, 7500];
             
-            // Create layout for the plot
+            // Set axis ranges based on lock settings
+            const xaxisRange = appState.lock_x_axis ? 
+                (appState.weight_based ? [0, 600/appState.body_mass] : [0, 600]) : 
+                [0, Math.max(...displayPower) * 1.05];
+            const yaxisRange = appState.lock_y_axis ? fixedYAxisRange : [0, Math.max(...displayVO2ss_unlimited) * 1.1];
+            
+            // Create a new layout with proper ranges
             const layout = {
                 title: {
-                    text: "V̇O₂<sub>SS</sub>, vLass, vLaox, PD and Lactate Accumulation",
+                    text: "V̇O<sub>2,SS</sub>, vLa<sub>ss</sub>, vLa<sub>ox</sub>, PD and Lactate Accumulation",
                     font: {
                         size: 18,
                         color: '#2683C6'
                     }
                 },
-                margin: {l: 60, r: 60, t: 50, b: 50},
+                margin: {l: 60, r: 60, t: 60, b: 80}, // Increased top margin for legend
                 xaxis: {
                     title: {
                         text: `Power (${appState.weight_based ? "W·kg<sup>-1</sup>" : "W"})`,
@@ -1027,7 +1230,7 @@
                 },
                 yaxis: {
                     title: {
-                        text: `V̇O₂<sub>SS</sub> (${appState.weight_based ? "ml·min<sup>-1</sup>·kg<sup>-1</sup>" : "ml·min<sup>-1</sup>"})`,
+                        text: `V̇O<sub>2,SS</sub> (${appState.weight_based ? "ml·min<sup>-1</sup>·kg<sup>-1</sup>" : "ml·min<sup>-1</sup>"})`,
                         font: {
                             size: 14
                         }
@@ -1052,11 +1255,15 @@
                 },
                 showlegend: true,
                 legend: {
-                    x: 0.01,
-                    y: 0.99,
-                    bgcolor: 'rgba(255, 255, 255, 0.8)',
-                    bordercolor: 'rgba(0,0,0,0.1)',
-                    borderwidth: 1
+                    x: 0.5,
+                    y: 1.05, // Positionierung direkt unter dem Titel
+                    xanchor: 'center',
+                    yanchor: 'top',
+                    orientation: 'h',
+                    bgcolor: 'rgba(255, 255, 255, 0)',
+                    bordercolor: 'rgba(0,0,0,0)',
+                    borderwidth: 0,
+                    traceorder: 'normal'
                 },
                 annotations: annotations,
                 paper_bgcolor: 'rgba(255,255,255,0)',
@@ -1064,15 +1271,14 @@
                 hovermode: 'closest'
             };
             
-            Plotly.newPlot('plot-container', traces, layout);
+            // Create a new plot with consistent settings each time
+            Plotly.newPlot('plot-container', traces, layout, {
+                displayModeBar: true,
+                responsive: true
+            });
             
-            // Update the values container
+            // Update the values container with correct formatting
             updateValuesDisplay(vals);
-        }
-        
-        // Function to format power and VO2 values for display
-        function formatValue(value, isWeight) {
-            return isWeight ? value.toFixed(1) : Math.round(value);
         }
         
         // Function to update the values display
@@ -1111,24 +1317,43 @@
                 const vo2ssUnit = appState.weight_based ? "ml·min⁻¹·kg⁻¹" : "ml·min⁻¹";
                 
                 return `${positionName} (${powerValue.toFixed(1)} ${powerUnit}):\n` +
-                    `  V̇O₂ₛₛ: ${vo2ssValue.toFixed(2)} ${vo2ssUnit}\n` +
-                    `  vLass: ${vals.vLass_min[idx].toFixed(4)} mmol·l⁻¹·min⁻¹\n` +
-                    `  vLaox: ${vals.vLaox_min[idx].toFixed(4)} mmol·l⁻¹·min⁻¹\n` +
+                    `  V̇O<sub>2,SS</sub>: ${vo2ssValue.toFixed(2)} ${vo2ssUnit}\n` +
+                    `  vLa<sub>ss</sub>: ${vals.vLass_min[idx].toFixed(4)} mmol·l⁻¹·min⁻¹\n` +
+                    `  vLa<sub>ox</sub>: ${vals.vLaox_min[idx].toFixed(4)} mmol·l⁻¹·min⁻¹\n` +
                     `  PD: ${vals.PD_min[idx].toFixed(4)} mmol·l⁻¹·min⁻¹\n` +
                     `  La Accumulation: ${isNaN(vals.La_accum[idx]) ? '0.0000' : vals.La_accum[idx].toFixed(4)} mmol·l⁻¹\n`;
             };
             
-            const outputText = 
+            let outputText = "";
+            
+            // Add cadence info if enabled
+            if (appState.cadence_dependent) {
+                outputText += `Cadence: ${appState.cadence} rpm\n`;
+                outputText += `CE: ${vals.effective_values.CEVO2.toFixed(2)} ml·min⁻¹·W⁻¹, ` +
+                             `V̇O<sub>2,Base</sub>: ${Math.round(vals.effective_values.VO2Base)} ml·min⁻¹\n`;
+                
+                if (appState.vo2max_dependent) {
+                    outputText += `V̇O<sub>2,max</sub>: ${Math.round(vals.effective_values.VO2max)} ml·min⁻¹\n`;
+                }
+                
+                if (appState.vlamax_dependent) {
+                    outputText += `vLa<sub>max</sub>: ${vals.effective_values.vLamax.toFixed(2)} mmol·l⁻¹·s⁻¹\n`;
+                }
+                
+                outputText += `\n`;
+            }
+            
+            outputText += 
                 formatOutput("FATmax", pdMaxIdx) +
                 formatOutput("MLSS", pdZeroIdx) +
                 formatOutput("BLC ≈ 4.0", la4Idx);
             
-            elements.valuesContainer.textContent = outputText;
+            elements.valuesContainer.innerHTML = outputText;
         }
         
         // Function to show notification
         function showNotification(message, type = 'info') {
-            elements.notification.textContent = message;
+            elements.notification.innerHTML = message;
             elements.notification.className = 'notification ' + type;
             elements.notification.style.display = 'block';
             
@@ -1137,7 +1362,6 @@
             }, 5000);
         }
         
-        // Initialize
         function initialize() {
             // Set up event listeners for all sliders and inputs
             elements.CEVO2.addEventListener('input', function() {
@@ -1181,7 +1405,7 @@
                 elements.VO2BaseValue.textContent = appState.VO2Base.toFixed(0);
                 if (appState.calculated_vo2base !== null && 
                     appState.VO2Base !== appState.calculated_vo2base) {
-                    showNotification(`V̇O₂Base manually changed to ${appState.VO2Base} ml·min⁻¹ (Calculated value: ${appState.calculated_vo2base} ml·min⁻¹)`, 'warning');
+                    showNotification(`V̇O<sub>2,Base</sub> manually changed to ${appState.VO2Base} ml·min⁻¹ (Calculated value: ${appState.calculated_vo2base} ml·min⁻¹)`, 'warning');
                 }
                 updatePlot();
             });
@@ -1249,6 +1473,41 @@
                 updatePlot();
             });
             
+            elements.cadence_dependent.addEventListener('change', function() {
+                appState.cadence_dependent = this.checked;
+                elements.cadenceControls.style.display = appState.cadence_dependent ? 'block' : 'none';
+                updatePlot();
+                
+                if (this.checked) {
+                    // Show notification about cadence dependency
+                    showNotification(`Cadence dependency enabled at ${appState.cadence} rpm. Using model from Dunst et al. (2025) with CE = ${calculateCadenceDependentCEVO2(appState.cadence).toFixed(2)} ml·min⁻¹·W⁻¹ and V̇O<sub>2,Base</sub> = ${Math.round(calculateCadenceDependentVO2Base(appState.cadence))} ml·min⁻¹`, 'info');
+                }
+            });
+            
+            elements.vo2max_dependent.addEventListener('change', function() {
+                appState.vo2max_dependent = this.checked;
+                updatePlot();
+                
+                if (this.checked && appState.cadence_dependent) {
+                    showNotification(`V̇O<sub>2,max</sub> cadence dependency enabled. This feature is based on Fig.4 from Dunst et al. (2025).`, 'info');
+                }
+            });
+            
+            elements.vlamax_dependent.addEventListener('change', function() {
+                appState.vlamax_dependent = this.checked;
+                updatePlot();
+                
+                if (this.checked && appState.cadence_dependent) {
+                    showNotification(`vLa<sub>max</sub> cadence dependency enabled. The paper suggests this may reflect testing methodology rather than true physiological changes.`, 'warning');
+                }
+            });
+            
+            elements.cadence.addEventListener('input', function() {
+                appState.cadence = parseInt(this.value);
+                elements.cadenceValue.textContent = appState.cadence;
+                updatePlot();
+            });
+            
             elements.weight_based.addEventListener('change', function() {
                 appState.weight_based = this.checked;
                 updatePlot();
@@ -1272,23 +1531,9 @@
                 elements.VO2Base.value = vo2base;
                 elements.VO2BaseValue.textContent = vo2base;
                 
-                showNotification(`Calculated V̇O₂Base: ${vo2base} ml·min⁻¹`, 'info');
+                showNotification(`Calculated V̇O<sub>2,Base</sub>: ${vo2base} ml·min⁻¹`, 'info');
                 updatePlot();
             });
-            
-            // Set up collapsible sections
-            const coll = document.getElementsByClassName("collapsible");
-            for (let i = 0; i < coll.length; i++) {
-                coll[i].addEventListener("click", function() {
-                    this.classList.toggle("active");
-                    const content = this.nextElementSibling;
-                    if (content.style.maxHeight) {
-                        content.style.maxHeight = null;
-                    } else {
-                        content.style.maxHeight = content.scrollHeight + "px";
-                    }
-                });
-            }
             
             // Calculate initial VO2Base
             const kcalDay = calculateBMR(appState.gender, appState.body_mass, appState.height, appState.age);
