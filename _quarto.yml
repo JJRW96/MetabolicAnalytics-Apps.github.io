@@ -17,7 +17,7 @@ website:
     left: "Johannes Will, 2025"
       
   sidebar:
-    logo: "images/Logo.png"
+    logo: "images/Logo_1.png"
     pinned: false
     align: center
     style: "docked"
@@ -36,23 +36,23 @@ csl: apa.csl
 format:
   html: 
     grid:
-      sidebar-width: 250px
-      body-width: 1050px
-      margin-width: 200px
-      gutter-width: 1.5rem
+      sidebar-width: 200px
+      body-width: 1350px
+      margin-width: 50px
+      gutter-width: 1rem
       
     theme:
       light: cosmo
       dark: [cosmo, theme-dark.scss] # from https://github.com/sta210-s22/website/blob/main/_quarto.yml
     css: styles.css
-    toc: true
-    toc-expand: 3
-    toc-title: Inhalt auf dieser Seite
-    toc-location: right 
+    toc: false
+    # toc-expand: 3
+    # toc-title: Inhalt auf dieser Seite
+    # toc-location: right 
 
-    code-fold: true
-    code-tools: true
-    code-copy: true
+    code-fold: false
+    code-tools: false
+    code-copy: false
     code-overflow: wrap
     
     lightbox: true

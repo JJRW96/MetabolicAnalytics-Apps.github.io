@@ -3,1372 +3,1339 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D EPOC Model Visualization</title>
+    <title>Metabolic Simulation Model</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
-        body {
+        :root {
+            --primary-color: #2683C6;
+            --secondary-color: #42BA97;
+            --accent-color: #EF5350;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --border-color: #dee2e6;
+            --gradient-start: #f1f8ff;
+            --gradient-end: #ffffff;
+        }
+        
+        * {
+            box-sizing: border-box;
             margin: 0;
-            overflow: hidden;
-            font-family: 'Arial', sans-serif;
-            color: #333;
+            padding: 0;
+            font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        #container {
-            position: absolute;
-            width: 100%;
-            height: 100%;
+        
+        body {
+            background-color: #f5f5f5;
+            color: var(--dark-color);
+            line-height: 1.6;
         }
-        #gui-container {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: rgba(255, 255, 255, 0.8);
-            padding: 15px;
-            border-radius: 10px;
-            max-height: 95vh;
-            overflow-y: auto;
-            width: 300px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-        #stats-panel {
-            position: absolute;
-            bottom: 10px;
-            left: 10px;
-            background: rgba(255, 255, 255, 0.8);
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-        .tab-container {
+        
+        .container {
             display: flex;
-            margin-bottom: 10px;
+            min-height: 100vh;
+            max-width: 100%;
         }
-        .tab {
+        
+        .sidebar {
+            width: 350px;
+            flex-shrink: 0; /* Prevent sidebar from shrinking */
+            background: linear-gradient(to bottom, var(--gradient-start), var(--gradient-end));
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            overflow-y: auto;
+            border-right: 1px solid var(--border-color);
+        }
+        
+        .main-content {
             flex: 1;
-            padding: 8px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            background-color: #fff;
+        }
+        
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            font-size: 1.8rem;
             text-align: center;
-            background: #eee;
-            cursor: pointer;
-            border: 1px solid #ccc;
-            transition: all 0.3s;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border-color);
         }
-        .tab.active {
-            background: #4CAF50;
-            color: white;
-        }
-        .tab-content {
-            display: none;
-        }
-        .tab-content.active {
-            display: block;
-        }
-        .section {
+        
+        .control-group {
             margin-bottom: 15px;
             padding-bottom: 15px;
-            border-bottom: 1px solid #ddd;
+            border-bottom: 1px solid var(--border-color);
+            background-color: white;
+            border-radius: 6px;
+            padding: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
-        .section-title {
-            font-weight: bold;
-            margin-bottom: 8px;
+        
+        .control-group:last-child {
+            border-bottom: none;
         }
-        button {
-            background: #4CAF50;
-            color: white;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            margin: 5px 0;
-            transition: background 0.3s;
+        
+        .control-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: var(--dark-color);
         }
-        button:hover {
-            background: #45a049;
-        }
-        .loading {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 20px;
-            border-radius: 10px;
-            display: none;
-        }
+        
         .slider-container {
-            margin: 10px 0;
+            margin-bottom: 15px;
         }
+        
         .slider-label {
             display: flex;
             justify-content: space-between;
+            align-items: center;
+            width: 100%;
         }
-        .slider-label span:last-child {
+        
+        .slider-label label {
+            flex-grow: 1;
+        }
+        
+        .slider-value {
+            min-width: 60px;
+            text-align: right;
             font-weight: bold;
+            color: var(--primary-color);
         }
+        
+        .range-slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: linear-gradient(to right, #ddd, var(--primary-color));
+            outline: none;
+            margin: 10px 0;
+        }
+        
+        .range-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+        
+        .range-slider::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+        
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            cursor: pointer;
+        }
+        
+        .checkbox-container input {
+            margin-right: 10px;
+            cursor: pointer;
+        }
+        
         .radio-group {
             margin: 10px 0;
         }
+        
         .radio-option {
             margin: 5px 0;
-        }
-        #legend {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background: rgba(255, 255, 255, 0.8);
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-        .legend-item {
             display: flex;
             align-items: center;
-            margin: 5px 0;
+            cursor: pointer;
         }
-        .color-box {
-            width: 15px;
-            height: 15px;
+        
+        .radio-option input {
             margin-right: 10px;
+            cursor: pointer;
         }
-        .info-panel {
+        
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin-top: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        button:hover {
+            background-color: #1a6eae;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 5px rgba(0,0,0,0.15);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        #plot-container {
+            flex: 1;
+            min-height: 500px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+            padding: 5px;
+        }
+        
+        #values-container {
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            font-family: monospace;
+            white-space: pre-wrap;
+            height: 220px;
+            overflow-y: auto;
+            color: #444;
+            font-size: 0.92rem;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.2);
+            display: none;
+            max-width: 300px;
+            z-index: 1000;
+            animation: fadeIn 0.3s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .notification.warning {
+            border-left: 4px solid #ffc107;
+        }
+        
+        .notification.info {
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        h4 {
+            margin-top: 15px;
+            color: var(--primary-color);
+        }
+        
+        hr {
+            border: 0;
+            height: 1px;
+            background-color: var(--border-color);
+            margin: 15px 0;
+        }
+        
+        .dual-slider-container {
+            position: relative;
+            margin-bottom: 15px;
+        }
+        
+        .dual-slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: linear-gradient(to right, #ddd, var(--primary-color));
+            outline: none;
+            margin: 10px 0;
+        }
+        
+        .dual-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+            z-index: 2;
+        }
+        
+        .dual-slider-values {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+        }
+        
+        .collapsible {
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 0;
+            background: none;
+            color: var(--dark-color);
+            text-align: left;
+            width: 100%;
+            margin: 0;
+            font-weight: 600;
+        }
+        
+        .collapsible:after {
+            content: '\002B';
+            font-weight: bold;
+            float: right;
+            margin-left: 5px;
+        }
+        
+        .active:after {
+            content: "\2212";
+        }
+        
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.2s ease-out;
+        }
+        
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .info-icon {
+            color: var(--primary-color);
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background-color: rgba(38, 131, 198, 0.1);
+        }
+        
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 10px;
             position: absolute;
+            z-index: 1;
+            bottom: 125%;
             left: 50%;
             transform: translateX(-50%);
-            bottom: 10px;
-            background: rgba(255, 255, 255, 0.8);
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            text-align: center;
-            max-width: 600px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+        
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        .axis-controls {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: rgba(38, 131, 198, 0.05);
+            border-radius: 4px;
+        }
+        
+        .card-title {
+            margin-bottom: 10px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: var(--primary-color);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 5px;
+        }
+        
+        .fancy-checkbox {
+            display: inline-block;
+            position: relative;
+            padding-left: 30px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            user-select: none;
+        }
+        
+        .fancy-checkbox input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+            height: 0;
+            width: 0;
+        }
+        
+        .checkmark {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 20px;
+            width: 20px;
+            background-color: #eee;
+            border-radius: 3px;
+            transition: all 0.2s;
+        }
+        
+        .fancy-checkbox:hover input ~ .checkmark {
+            background-color: #ccc;
+        }
+        
+        .fancy-checkbox input:checked ~ .checkmark {
+            background-color: var(--primary-color);
+        }
+        
+        .checkmark:after {
+            content: "";
+            position: absolute;
+            display: none;
+        }
+        
+        .fancy-checkbox input:checked ~ .checkmark:after {
+            display: block;
+        }
+        
+        .fancy-checkbox .checkmark:after {
+            left: 7px;
+            top: 3px;
+            width: 5px;
+            height: 10px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+        
+        .small-text {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .model-info {
+            font-size: 0.9rem;
+            color: #666;
+            margin: 10px 0;
+            padding: 10px;
+            border-left: 3px solid var(--secondary-color);
+            background-color: rgba(66, 186, 151, 0.05);
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 3px 7px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border-radius: 12px;
+            margin-left: 5px;
+            vertical-align: middle;
+        }
+        
+        .badge-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .badge-secondary {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+        
+        .badge-accent {
+            background-color: var(--accent-color);
+            color: white;
         }
     </style>
 </head>
 <body>
-    <div id="container"></div>
-    
-    <div id="gui-container">
-        <div class="tab-container">
-            <div class="tab active" data-tab="model">Model</div>
-            <div class="tab" data-tab="data">Data</div>
-            <div class="tab" data-tab="fit">Fit</div>
-            <div class="tab" data-tab="rmr">RMR</div>
-        </div>
-        
-        <div id="model-tab" class="tab-content active">
-            <div class="section">
-                <div class="section-title">Model Parameters</div>
+    <div class="container">
+        <div class="sidebar">
+            <h1>Metabolic Simulation Model</h1>
+            
+            <div class="control-group" id="ce-controls">
+                <div class="header-section">
+                    <div class="control-label">Oxygen Demand Settings</div>
+                    <div class="tooltip info-icon">ⓘ
+                        <span class="tooltiptext">Defines how oxygen demand changes with power output, as shown in the paper by Dunst et al.</span>
+                    </div>
+                </div>
                 
-                <div class="slider-container">
-                    <div class="slider-label"><span>A</span><span id="a-value">2.20</span></div>
-                    <input type="range" id="a-slider" min="0" max="6" step="0.01" value="2.20">
+                <div class="checkbox-container">
+                    <label class="fancy-checkbox">
+                        <input type="checkbox" id="curvilinear" name="curvilinear">
+                        <span class="checkmark"></span>
+                        Curvilinear CE Relationship
+                    </label>
+                    <span class="badge badge-primary">Fig.1</span>
+                </div>
+                
+                <div id="linear-ce-control" class="slider-container">
+                    <div class="slider-label">
+                        <label for="CEVO2">CE (ml·min<sup>-1</sup>·W<sup>-1</sup>):</label>
+                        <span id="CEVO2-value" class="slider-value">11.0</span>
+                    </div>
+                    <input type="range" id="CEVO2" class="range-slider" min="8" max="15" value="11" step="0.1">
+                </div>
+                
+                <div id="curvilinear-ce-control" class="slider-container" style="display:none;">
+                    <div class="slider-label">
+                        <label for="CE_range_start">CE Start (ml·min<sup>-1</sup>·W<sup>-1</sup>):</label>
+                        <span id="CE_range_start-value" class="slider-value">11.0</span>
+                    </div>
+                    <input type="range" id="CE_range_start" class="range-slider" min="8" max="15" value="11" step="0.1">
+                    
+                    <div class="slider-label">
+                        <label for="CE_range_end">CE Target (ml·min<sup>-1</sup>·W<sup>-1</sup>):</label>
+                        <span id="CE_range_end-value" class="slider-value">12.0</span>
+                    </div>
+                    <input type="range" id="CE_range_end" class="range-slider" min="8" max="15" value="12" step="0.1">
+                </div>
+                
+                <div class="small-text">Based on Fig.1 from Dunst et al. paper showing the effect of cycling cadence on oxygen demand.</div>
+            </div>
+            
+            <div class="control-group">
+                <div class="header-section">
+                    <div class="control-label">Physiological Parameters</div>
+                    <div class="tooltip info-icon">ⓘ
+                        <span class="tooltiptext">Key physiological values used in Mader's metabolic model.</span>
+                    </div>
                 </div>
                 
                 <div class="slider-container">
-                    <div class="slider-label"><span>TauA</span><span id="taua-value">35.00</span></div>
-                    <input type="range" id="taua-slider" min="5" max="90" step="0.1" value="35">
+                    <div class="slider-label">
+                        <label for="VO2max">V̇O₂max (ml·min<sup>-1</sup>):</label>
+                        <span id="VO2max-value" class="slider-value">6000</span>
+                    </div>
+                    <input type="range" id="VO2max" class="range-slider" min="2000" max="7500" value="6000" step="10">
                 </div>
                 
                 <div class="slider-container">
-                    <div class="slider-label"><span>B</span><span id="b-value">0.80</span></div>
-                    <input type="range" id="b-slider" min="0" max="5" step="0.01" value="0.8">
+                    <div class="slider-label">
+                        <label for="VO2max_kg">V̇O₂max (ml·min<sup>-1</sup>·kg<sup>-1</sup>):</label>
+                        <span id="VO2max_kg-value" class="slider-value">66.67</span>
+                    </div>
+                    <input type="range" id="VO2max_kg" class="range-slider" min="30" max="100" value="66.67" step="0.01">
                 </div>
                 
                 <div class="slider-container">
-                    <div class="slider-label"><span>TauB</span><span id="taub-value">180.00</span></div>
-                    <input type="range" id="taub-slider" min="0" max="1800" step="0.1" value="180">
+                    <div class="slider-label">
+                        <label for="VO2Base">V̇O₂Base (ml·min<sup>-1</sup>):</label>
+                        <span id="VO2Base-value" class="slider-value">400</span>
+                    </div>
+                    <input type="range" id="VO2Base" class="range-slider" min="200" max="800" value="400" step="10">
                 </div>
                 
                 <div class="slider-container">
-                    <div class="slider-label"><span>C</span><span id="c-value">0.30</span></div>
-                    <input type="range" id="c-slider" min="0" max="3" step="0.01" value="0.3">
+                    <div class="slider-label">
+                        <label for="vLamax">vLamax (mmol·l<sup>-1</sup>·s<sup>-1</sup>):</label>
+                        <span id="vLamax-value" class="slider-value">0.80</span>
+                    </div>
+                    <input type="range" id="vLamax" class="range-slider" min="0.2" max="1.5" value="0.8" step="0.05">
                 </div>
                 
-                <div class="slider-container">
-                    <div class="slider-label"><span>O₂-Storage [l]</span><span id="o2-store-value">0.40</span></div>
-                    <input type="range" id="o2-store-slider" min="0" max="1" step="0.01" value="0.4">
-                </div>
-                
-                <div class="slider-container">
-                    <div class="slider-label"><span>Time Delay [s]</span><span id="t-delay-value">0</span></div>
-                    <input type="range" id="t-delay-slider" min="0" max="300" step="1" value="0">
-                </div>
-                
-                <div class="slider-container">
-                    <div class="slider-label"><span>VO₂ Rest [l·min⁻¹]</span><span id="vo2-rest-value">0.300</span></div>
-                    <input type="range" id="vo2-rest-slider" min="0" max="1" step="0.001" value="0.3">
-                </div>
-                
-                <div class="slider-container">
-                    <div class="slider-label"><span>VO₂ Reference (50W) [l·min⁻¹]</span><span id="vo2-ref-value">1.000</span></div>
-                    <input type="range" id="vo2-ref-slider" min="0" max="2" step="0.001" value="1.0">
+                <div class="checkbox-container">
+                    <label class="fancy-checkbox">
+                        <input type="checkbox" id="weight_based" name="weight_based">
+                        <span class="checkmark"></span>
+                        Weight-based Values
+                    </label>
                 </div>
             </div>
             
-            <div class="section">
-                <div class="section-title">Rest Simulation Range [s]</div>
-                <div class="slider-container">
-                    <div class="slider-label"><span>Start</span><span id="rest-sim-start-value">3600</span></div>
-                    <input type="range" id="rest-sim-start-slider" min="1200" max="7200" step="100" value="3600">
+            <div class="control-group">
+                <div class="axis-controls">
+                    <div class="card-title">Plot Controls</div>
+                    <div>
+                        <label class="fancy-checkbox">
+                            <input type="checkbox" id="lock_y_axis" name="lock_y_axis" checked>
+                            <span class="checkmark"></span>
+                            Lock Y-Axis
+                        </label>
+                    </div>
+                    <div>
+                        <label class="fancy-checkbox">
+                            <input type="checkbox" id="lock_x_axis" name="lock_x_axis" checked>
+                            <span class="checkmark"></span>
+                            Lock X-Axis
+                        </label>
+                    </div>
                 </div>
                 
-                <div class="slider-container">
-                    <div class="slider-label"><span>End</span><span id="rest-sim-end-value">4200</span></div>
-                    <input type="range" id="rest-sim-end-slider" min="1200" max="7200" step="100" value="4200">
+                <div class="model-info">
+                    This simulation is based on Mader's metabolic model as described in "Enhancing endurance performance predictions: the role of movement velocity in metabolic simulations demonstrated by cycling cadence" (Dunst et al., 2025).
                 </div>
-                
-                <button id="toggle-rest-sim">Show Rest Simulation</button>
+            </div>
+            
+            <div class="control-group">
+                <button type="button" class="collapsible">V̇O₂Base Calculation ▼</button>
+                <div class="collapsible-content">
+                    <div class="tooltip info-icon" style="float:right;margin-top:10px;">ⓘ
+                        <span class="tooltiptext">Calculate resting oxygen consumption based on anthropometric data.</span>
+                    </div>
+                    
+                    <div class="radio-group">
+                        <div class="control-label">Gender:</div>
+                        <div class="radio-option">
+                            <input type="radio" id="male" name="gender" value="male" checked>
+                            <label for="male">Male</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="female" name="gender" value="female">
+                            <label for="female">Female</label>
+                        </div>
+                    </div>
+                    
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <label for="body_mass">Body Mass (kg):</label>
+                            <span id="body_mass-value" class="slider-value">90.0</span>
+                        </div>
+                        <input type="range" id="body_mass" class="range-slider" min="40" max="120" value="90" step="0.1">
+                    </div>
+                    
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <label for="age">Age (years):</label>
+                            <span id="age-value" class="slider-value">28</span>
+                        </div>
+                        <input type="range" id="age" class="range-slider" min="18" max="100" value="28" step="1">
+                    </div>
+                    
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <label for="height">Height (cm):</label>
+                            <span id="height-value" class="slider-value">193</span>
+                        </div>
+                        <input type="range" id="height" class="range-slider" min="140" max="220" value="193" step="1">
+                    </div>
+                    
+                    <button id="calculate_vo2base" type="button">Calculate V̇O₂Base</button>
+                    
+                    <div class="small-text">Uses Harris-Benedict equation to estimate BMR, then converts to oxygen uptake.</div>
+                </div>
             </div>
         </div>
         
-        <div id="data-tab" class="tab-content">
-            <div class="section">
-                <div class="section-title">Sample Data</div>
-                <button id="load-data-without">Load Data without Post-load</button>
-                <button id="load-data-50w">Load Data with 50W Post-load</button>
-                <button id="upload-csv">Upload CSV</button>
-                <input type="file" id="csv-input" accept=".csv" style="display: none;">
-            </div>
-        </div>
-        
-        <div id="fit-tab" class="tab-content">
-            <div class="section">
-                <div class="section-title">Model Fitting</div>
-                
-                <div class="radio-group">
-                    <div class="section-title">Options:</div>
-                    
-                    <div class="radio-option">
-                        <input type="radio" id="fit-rest" name="fit-option" value="rest" checked>
-                        <label for="fit-rest">With VO₂ Rest</label>
-                    </div>
-                    
-                    <div class="radio-option">
-                        <input type="radio" id="fit-ref" name="fit-option" value="reference">
-                        <label for="fit-ref">With VO₂ Reference</label>
-                    </div>
-                </div>
-                
-                <div class="radio-group">
-                    <div class="radio-option">
-                        <input type="radio" id="three-steps" name="fit-steps" value="three_steps" checked>
-                        <label for="three-steps">3 Steps</label>
-                    </div>
-                    
-                    <div class="radio-option">
-                        <input type="radio" id="one-step" name="fit-steps" value="one_step">
-                        <label for="one-step">1 Step</label>
-                    </div>
-                </div>
-                
-                <button id="fit-all">Full Fit</button>
-                
-                <div class="section-title">Step by Step:</div>
-                <button id="fit-tau">1. Fit: Tau</button>
-                <button id="fit-slow">2. Fit: EPOC Slow</button>
-                <button id="fit-fast">3. Fit: EPOC Fast</button>
-            </div>
-        </div>
-        
-        <div id="rmr-tab" class="tab-content">
-            <div class="section">
-                <div class="section-title">RMR Calculation</div>
-                
-                <div class="radio-group">
-                    <div class="section-title">Gender:</div>
-                    
-                    <div class="radio-option">
-                        <input type="radio" id="male" name="gender" value="male" checked>
-                        <label for="male">Male</label>
-                    </div>
-                    
-                    <div class="radio-option">
-                        <input type="radio" id="female" name="gender" value="female">
-                        <label for="female">Female</label>
-                    </div>
-                </div>
-                
-                <div class="slider-container">
-                    <div class="slider-label"><span>Body Mass [kg]</span><span id="body-mass-value">90</span></div>
-                    <input type="range" id="body-mass-slider" min="40" max="150" step="1" value="90">
-                </div>
-                
-                <div class="slider-container">
-                    <div class="slider-label"><span>Body Height [cm]</span><span id="body-height-value">193</span></div>
-                    <input type="range" id="body-height-slider" min="140" max="220" step="1" value="193">
-                </div>
-                
-                <div class="slider-container">
-                    <div class="slider-label"><span>Age [years]</span><span id="age-value">27</span></div>
-                    <input type="range" id="age-slider" min="18" max="100" step="1" value="27">
-                </div>
-                
-                <div class="slider-container">
-                    <div class="slider-label"><span>RQ</span><span id="rq-value">0.77</span></div>
-                    <input type="range" id="rq-slider" min="0.7" max="1" step="0.01" value="0.77">
-                </div>
-                
-                <button id="calculate-vo2-rest">Calculate VO₂ Rest</button>
-            </div>
+        <div class="main-content">
+            <div id="plot-container"></div>
+            <div id="values-container"></div>
         </div>
     </div>
     
-    <div id="stats-panel">
-        <div><strong>WPCR:</strong> <span id="wpcr">-</span> kJ</div>
-        <div><strong>WPCR (corrected):</strong> <span id="wpcr-corrected">-</span> kJ</div>
-        <div><strong>R²:</strong> <span id="r-squared">-</span></div>
-        <div><strong>Model Equation:</strong></div>
-        <div id="equation">V̇O₂(t) = A·e^(-t/TauA) + B·e^(-t/TauB) + C</div>
-    </div>
+    <div id="notification" class="notification"></div>
     
-    <div id="legend">
-        <div class="section-title">Legend</div>
-        <div class="legend-item"><div class="color-box" style="background: #EF6F6A;"></div>Model Function</div>
-        <div class="legend-item"><div class="color-box" style="background: #42BA97;"></div>EPOC fast</div>
-        <div class="legend-item"><div class="color-box" style="background: #BB7693;"></div>EPOC slow</div>
-        <div class="legend-item"><div class="color-box" style="background: #1CADE4;"></div>C (Rest)</div>
-        <div class="legend-item"><div class="color-box" style="background: #2683C6;"></div>Data Points</div>
-        <div class="legend-item"><div class="color-box" style="background: rgba(0,131,143,0.6);"></div>O₂ Storage</div>
-    </div>
-    
-    <div class="info-panel">
-        <div class="section-title">3D EPOC Visualization</div>
-        <p>This 3D visualization represents the EPOC model for post-exercise oxygen consumption analysis. 
-        The 3D surface shows the model function, with EPOC fast and EPOC slow components visible as colored areas.
-        Navigate by dragging to rotate, scroll to zoom, and right-click to pan.</p>
-    </div>
-    
-    <div class="loading" id="loading-indicator">Processing...</div>
-
-    <script type="module">
-        import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.159.0/build/three.module.js';
-        import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.159.0/examples/jsm/controls/OrbitControls.js';
-        import Stats from 'https://cdn.jsdelivr.net/npm/three@0.159.0/examples/jsm/libs/stats.module.js';
-        import { GUI } from 'https://cdn.jsdelivr.net/npm/three@0.159.0/examples/jsm/libs/lil-gui.module.min.js';
-        import * as numeric from 'https://cdn.jsdelivr.net/npm/numeric@1.2.6/numeric.js';
-        import { LMSolver } from 'https://cdn.jsdelivr.net/npm/lm-solver@0.1.1/src/js/index.js';
-
-        // Sample data
-        const t_data = [3505.1, 3506.8, 3508.3, 3509.8, 3511.4, 3513.2, 3514.7, 3516.2, 3517.5, 3518.9, 3520.3, 3521.6, 3523.0, 3524.7, 3526.0, 3527.2, 3528.7, 3530.0, 3531.4, 3532.8, 3534.3, 3535.7, 3537.0, 3538.4, 3539.9, 3541.2, 3542.8, 3544.3, 3545.6, 3547.0, 3548.4, 3550.1, 3551.7, 3553.2, 3554.6, 3556.1, 3557.5, 3560.2, 3561.8, 3564.3, 3566.0, 3567.8, 3569.6, 3571.5, 3573.3, 3575.3, 3577.1, 3579.1, 3581.0, 3582.7, 3584.2, 3585.7, 3587.1, 3588.5, 3589.9, 3591.4, 3593.3, 3594.7, 3596.2, 3597.8, 3599.5, 3601.0, 3602.4, 3603.9, 3605.6, 3607.1, 3608.6, 3610.4, 3612.0, 3613.4, 3616.4, 3618.5, 3620.2, 3621.8, 3623.8, 3626.1, 3628.4, 3630.5, 3632.5, 3635.1, 3637.2, 3639.6, 3641.7, 3643.7, 3648.5, 3652.4, 3654.4, 3656.7, 3658.9, 3660.1, 3662.3, 3664.6, 3667.2, 3669.5, 3671.4, 3673.6, 3675.5, 3677.1, 3679.0, 3681.0, 3683.0, 3685.0, 3687.1, 3689.0, 3691.1, 3692.9, 3695.6, 3697.2, 3699.4, 3701.8, 3704.0, 3706.0, 3708.1, 3709.9, 3711.8, 3715.0, 3717.5, 3719.6, 3721.7, 3724.0, 3726.2, 3728.2, 3730.1, 3732.0, 3734.3, 3736.0, 3738.4, 3739.2, 3741.1, 3743.1, 3745.4, 3746.5, 3748.7, 3750.9, 3753.1, 3755.3, 3757.6, 3762.7, 3765.6, 3768.1, 3770.2, 3772.4, 3774.8, 3777.5, 3779.9, 3782.3, 3785.3, 3787.7, 3789.8, 3792.2, 3794.9, 3796.5, 3798.2, 3800.6, 3802.4, 3805.3, 3808.0, 3810.9, 3813.0, 3815.1, 3818.0, 3820.4, 3822.3, 3824.5, 3826.6, 3829.8, 3833.1, 3835.3, 3838.1, 3840.1, 3844.9, 3847.1, 3848.5, 3850.0, 3855.3, 3859.2, 3861.9, 3863.6, 3865.6, 3867.8, 3869.8, 3872.0, 3874.4, 3876.1, 3878.4, 3881.1, 3882.9, 3884.9, 3886.3, 3888.9, 3890.6, 3892.8, 3895.1, 3897.1, 3898.8, 3900.7, 3903.3, 3905.3, 3907.7, 3910.3, 3913.8, 3916.9, 3919.2, 3921.5, 3923.6, 3926.4, 3928.3, 3930.3, 3932.2, 3934.5, 3936.9, 3940.6, 3942.8, 3944.4, 3946.6, 3948.7, 3950.6, 3954.0, 3956.5, 3960.8, 3962.3, 3964.1, 3966.5, 3969.3, 3971.7, 3975.9, 3977.9, 3982.9, 3985.3, 3987.5, 3990.2, 3992.7, 3995.5, 3997.9, 4000.1, 4004.3, 4006.5, 4009.6, 4012.7, 4015.5, 4017.9, 4020.0, 4024.2, 4026.1, 4028.8, 4031.2, 4033.7, 4035.6, 4037.6, 4041.3, 4044.9, 4047.2, 4049.9, 4054.3, 4057.3, 4060.2, 4062.4, 4065.5, 4068.0, 4070.5, 4072.6, 4074.5, 4076.4, 4078.1, 4080.3, 4082.8, 4084.9];
-        const VO2_data = [4.3916, 4.33868, 4.29972, 4.26048, 4.25328, 4.22856, 4.18768, 4.16656, 4.118, 4.06268, 4.00452, 3.9486, 3.85204, 3.81448, 3.74268, 3.67572, 3.61052, 3.5468, 3.47268, 3.37056, 3.25912, 3.20024, 3.17932, 3.13008, 3.08712, 2.97636, 2.95052, 2.891, 2.82488, 2.72496, 2.6324, 2.55344, 2.45564, 2.38944, 2.32268, 2.2388, 2.16588, 2.09852, 1.99972, 1.9584, 1.87604, 1.81076, 1.74984, 1.70644, 1.66456, 1.64564, 1.59204, 1.53048, 1.47084, 1.4078, 1.40632, 1.34116, 1.29948, 1.26596, 1.23048, 1.22116, 1.19188, 1.19668, 1.16332, 1.153, 1.15444, 1.14004, 1.14976, 1.15704, 1.15192, 1.15128, 1.14088, 1.1228, 1.11288, 1.10284, 1.07976, 1.07524, 1.0516, 1.0596, 1.0478, 1.03064, 1.03404, 1.01436, 1.01996, 1.02592, 0.99788, 1.00092, 0.96684, 0.98036, 0.96396, 0.96056, 0.94256, 0.93244, 0.92228, 0.9068, 0.90336, 0.88984, 0.87968, 0.88288, 0.85096, 0.84, 0.83584, 0.83428, 0.82228, 0.82996, 0.8382, 0.831, 0.86264, 0.83748, 0.83664, 0.8596, 0.8622, 0.86216, 0.85472, 0.85588, 0.8374, 0.84796, 0.84512, 0.85952, 0.84476, 0.8158, 0.8146, 0.80048, 0.77164, 0.7736, 0.76624, 0.77088, 0.77992, 0.80724, 0.80412, 0.80112, 0.8068, 0.78476, 0.79444, 0.79072, 0.78772, 0.79112, 0.79316, 0.79112, 0.78536, 0.7758, 0.76944, 0.77496, 0.76204, 0.7836, 0.79964, 0.81584, 0.85324, 0.85488, 0.89108, 0.904, 0.89116, 0.87828, 0.86268, 0.8416, 0.84192, 0.83324, 0.8332, 0.83228, 0.83992, 0.8094, 0.79928, 0.80512, 0.811, 0.82524, 0.82652, 0.8246, 0.80908, 0.80036, 0.80152, 0.81324, 0.79372, 0.76376, 0.78108, 0.76332, 0.75032, 0.78964, 0.78632, 0.78452, 0.78252, 0.77932, 0.78952, 0.78984, 0.7888, 0.77604, 0.79476, 0.8106, 0.79136, 0.76844, 0.73712, 0.7374, 0.74148, 0.75156, 0.74932, 0.7288, 0.72612, 0.75984, 0.76316, 0.76744, 0.76004, 0.75084, 0.70948, 0.70316, 0.68816, 0.70184, 0.6916, 0.681, 0.67276, 0.66776, 0.66792, 0.65952, 0.64368, 0.67064, 0.67144, 0.68348, 0.67592, 0.65776, 0.63996, 0.64432, 0.6382, 0.62112, 0.58896, 0.6054, 0.57796, 0.58432, 0.59236, 0.60632, 0.62372, 0.63128, 0.63308, 0.6444, 0.6382, 0.64336, 0.64684, 0.65508, 0.66076, 0.63596, 0.60768, 0.62748, 0.62472, 0.6284, 0.64236, 0.66068, 0.65004, 0.67312, 0.67836, 0.69416, 0.66368, 0.65028, 0.629, 0.62796, 0.60816, 0.61548, 0.61224, 0.62336, 0.61552, 0.62804, 0.63852, 0.64872, 0.641, 0.633, 0.64456, 0.66328, 0.6502, 0.65676, 0.66388, 0.6542, 0.63828, 0.64624, 0.63272, 0.65072, 0.64964];
-
-        const t_data_50W = [2552.6, 2554.0, 2555.6, 2557.1, 2558.7, 2560.3, 2562.0, 2563.7, 2565.4, 2567.0, 2568.6, 2570.0, 2571.5, 2572.8, 2574.6, 2576.1, 2577.5, 2579.0, 2580.5, 2582.7, 2584.2, 2586.3, 2587.7, 2589.0, 2590.8, 2592.2, 2594.2, 2595.8, 2597.4, 2599.1, 2600.6, 2602.1, 2603.6, 2605.3, 2606.9, 2608.5, 2610.3, 2612.6, 2613.9, 2615.6, 2617.2, 2618.8, 2621.5, 2623.0, 2625.5, 2627.3, 2628.9, 2630.3, 2631.9, 2633.3, 2635.0, 2636.5, 2638.2, 2639.9, 2641.5, 2643.0, 2644.9, 2646.6, 2648.3, 2649.8, 2651.3, 2652.9, 2654.5, 2656.3, 2658.2, 2660.1, 2661.9, 2663.7, 2665.4, 2667.0, 2669.1, 2670.9, 2672.6, 2674.4, 2676.1, 2678.0, 2679.9, 2681.6, 2683.1, 2684.7, 2685.7, 2687.1, 2690.9, 2692.6, 2695.9, 2697.7, 2698.9, 2701.2, 2703.0, 2705.0, 2706.7, 2708.5, 2710.3, 2711.8, 2713.4, 2715.1, 2716.7, 2718.2, 2719.8, 2721.3, 2723.2, 2725.4, 2727.1, 2729.0, 2730.8, 2732.4, 2733.9, 2735.4, 2737.4, 2739.1, 2741.2, 2743.1, 2746.2, 2747.8, 2749.5, 2751.3, 2753.0, 2755.0, 2757.3, 2759.5, 2761.7, 2763.6, 2765.7, 2767.8, 2769.3, 2770.8, 2772.2, 2774.3, 2776.1, 2777.7, 2779.3, 2781.1, 2783.0, 2786.2, 2787.9, 2789.5, 2791.4, 2793.2, 2795.0, 2796.8, 2798.5, 2800.4, 2802.0, 2804.0, 2805.9, 2807.8, 2809.5, 2812.5, 2814.2, 2816.4, 2818.5, 2821.0, 2822.8, 2824.7, 2826.5, 2828.5, 2830.5, 2831.9, 2833.4, 2835.0, 2836.6, 2838.8, 2840.5, 2842.4, 2844.1, 2846.2, 2848.4, 2851.5, 2853.3, 2855.3, 2858.8, 2861.1, 2863.4, 2865.8, 2868.2, 2870.2, 2872.7, 2875.1, 2877.3, 2879.4, 2883.0, 2884.8, 2887.1, 2888.6, 2891.0, 2893.1, 2895.0, 2896.8, 2898.9, 2900.8, 2903.5, 2905.3, 2907.2, 2909.2, 2911.5, 2913.4, 2915.6, 2917.4, 2919.2, 2921.4, 2923.8, 2925.5, 2927.5, 2929.7, 2932.9, 2935.1, 2937.1, 2939.6, 2941.4, 2943.8, 2945.9, 2948.6, 2950.7, 2952.7, 2956.5, 2958.8, 2961.0, 2962.6, 2964.9, 2966.5, 2967.7, 2969.9, 2971.3, 2973.1, 2975.5, 2977.4, 2979.5, 2981.4, 2983.5, 2985.5, 2988.0, 2990.2, 2992.4, 2994.5, 2998.4, 3000.1, 3002.2, 3004.5, 3007.0, 3008.6, 3010.9, 3013.3, 3015.8, 3017.5, 3019.1, 3021.1, 3023.5, 3025.5, 3027.8, 3029.6, 3030.7, 3033.6, 3035.9, 3038.1, 3040.4, 3042.4, 3046.1, 3048.6, 3050.9, 3053.4, 3055.2, 3057.3, 3059.2, 3061.3, 3063.1, 3065.5, 3067.7, 3069.6, 3071.9, 3074.3, 3076.4, 3078.2, 3080.2, 3082.2, 3084.0, 3086.9, 3089.5, 3092.9, 3095.6, 3098.2, 3100.8, 3103.1, 3106.6, 3108.5, 3110.5, 3113.1, 3115.6, 3121.1, 3124.1, 3127.0, 3129.7, 3132.6, 3134.2, 3136.4, 3138.8, 3141.6, 3144.1, 3146.2, 3149.5, 3152.2, 3154.6, 3157.2, 3159.6];
-        const VO2_data_50W = [4.4001, 4.3817, 4.3121, 4.3409, 4.3439, 4.3299, 4.2480, 4.1318, 4.1017, 4.0326, 3.9826, 3.9325, 3.8651, 3.8096, 3.7446, 3.6772, 3.6132, 3.5336, 3.4854, 3.4446, 3.3776, 3.3045, 3.2331, 3.1704, 3.0984, 3.0216, 2.9686, 2.9386, 2.8810, 2.8061, 2.7353, 2.7127, 2.7239, 2.6456, 2.6377, 2.5957, 2.5540, 2.5138, 2.4619, 2.4145, 2.4251, 2.3901, 2.3788, 2.3462, 2.2943, 2.2786, 2.2648, 2.2418, 2.2427, 2.2392, 2.2386, 2.1912, 2.1595, 2.1360, 2.1111, 2.1224, 2.0777, 2.0514, 2.0310, 1.9780, 1.9727, 1.9440, 1.9551, 1.9516, 1.9462, 1.9169, 1.8937, 1.8818, 1.8560, 1.8333, 1.8018, 1.8064, 1.8136, 1.7820, 1.7528, 1.7488, 1.7494, 1.7520, 1.7599, 1.7941, 1.7951, 1.8142, 1.8182, 1.8387, 1.8880, 1.8747, 1.8848, 1.8750, 1.8730, 1.8576, 1.8532, 1.8552, 1.8566, 1.8779, 1.9174, 1.9636, 1.9640, 1.9728, 1.9767, 2.0114, 1.9866, 2.0298, 2.0401, 2.0414, 2.0417, 2.0099, 2.0261, 1.9837, 1.9544, 1.9402, 1.9313, 1.9273, 1.9265, 1.9295, 1.9441, 1.9727, 1.9943, 2.0044, 1.9720, 1.9654, 1.9225, 1.9068, 1.8688, 1.8623, 1.8394, 1.8563, 1.8187, 1.7995, 1.7750, 1.7498, 1.7746, 1.7715, 1.8122, 1.8389, 1.8352, 1.8090, 1.8296, 1.8238, 1.8328, 1.8290, 1.8123, 1.7960, 1.7923, 1.7896, 1.7622, 1.7592, 1.7674, 1.7858, 1.7950, 1.8137, 1.8496, 1.8495, 1.8664, 1.8851, 1.8865, 1.8747, 1.8502, 1.8631, 1.8322, 1.8341, 1.8650, 1.8490, 1.8762, 1.8531, 1.8437, 1.8368, 1.8438, 1.8350, 1.8540, 1.8645, 1.8486, 1.8179, 1.8006, 1.7843, 1.7765, 1.7372, 1.7319, 1.7322, 1.7202, 1.7160, 1.7033, 1.6818, 1.6498, 1.6551, 1.6361, 1.6277, 1.6271, 1.6044, 1.6204, 1.6176, 1.5965, 1.6116, 1.5948, 1.5813, 1.6099, 1.6333, 1.6588, 1.6799, 1.6902, 1.6858, 1.6819, 1.6689, 1.6550, 1.6356, 1.6488, 1.6722, 1.6864, 1.6533, 1.6580, 1.6782, 1.6916, 1.6921, 1.6927, 1.6946, 1.7046, 1.7356, 1.6985, 1.7132, 1.7104, 1.6868, 1.6894, 1.6880, 1.6834, 1.6632, 1.6246, 1.6189, 1.6194, 1.6530, 1.6906, 1.6982, 1.6821, 1.6484, 1.7026, 1.7012, 1.6998, 1.6902, 1.6894, 1.6715, 1.5961, 1.6080, 1.5906, 1.5955, 1.5864, 1.6033, 1.5882, 1.5746, 1.5551, 1.5417, 1.5668, 1.6209, 1.6475, 1.6627, 1.6290, 1.6070, 1.5852, 1.5877, 1.6354, 1.5954, 1.5910, 1.5767, 1.5835, 1.6019, 1.6368, 1.6969, 1.6874, 1.6751, 1.6753, 1.6987, 1.6867, 1.6964, 1.7220, 1.7142, 1.7196, 1.7078, 1.6907, 1.6628, 1.6343, 1.6318, 1.6129, 1.6256, 1.6123, 1.6096, 1.6335, 1.6262, 1.6195, 1.6204, 1.5709, 1.5486, 1.5559, 1.5600, 1.5710, 1.5819, 1.5609, 1.5808, 1.5985, 1.5951, 1.6267, 1.6258, 1.5771, 1.5974, 1.6163, 1.6230, 1.6052];
-
-        // Normalize t_data
-        const normalized_t_data = t_data.map(t => t - t_data[0]);
-        const normalized_t_data_50W = t_data_50W.map(t => t - t_data_50W[0]);
-
-        // Three.js setup
-        let scene, camera, renderer, controls;
-        let modelMesh, fastMesh, slowMesh, dataMesh, o2StorageMesh;
-        let currentData = null;
-        let showRestSim = false;
-        let tauEstimate = null;
-        let slowEstimates = null;
-        let maxRuheTSec = null;
-        let ruheSim = null;
-
-        // Model parameters
-        let params = {
-            A: 2.20,
-            TauA: 35,
-            B: 0.80,
-            TauB: 180,
-            C: 0.30,
-            O2_Store: 0.40,
-            t_delay: 0,
-            VO2_Ruhe: 0.30,
-            VO2_Referenz: 1.0,
-            restSimRange: {
-                start: 3600,
-                end: 4200
-            }
+    <script>
+        // App state management
+        const appState = {
+            CEVO2: 11.0,
+            CE_range: [11.0, 12.0],
+            VO2max: 6000,
+            VO2max_kg: 66.67,
+            VO2Base: 400,
+            vLamax: 0.8,
+            body_mass: 90.0,
+            gender: 'male',
+            age: 28,
+            height: 193,
+            curvilinear: false,
+            weight_based: false,
+            lock_y_axis: true,
+            lock_x_axis: true,
+            calculated_vo2base: null
         };
-
-        // Initialize Three.js scene
-        function init() {
-            // Create scene
-            scene = new THREE.Scene();
-            scene.background = new THREE.Color(0xf0f0f0);
-
-            // Create camera
-            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 5000);
-            camera.position.set(150, 150, 150);
-
-            // Create renderer
-            renderer = new THREE.WebGLRenderer({ antialias: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(window.devicePixelRatio);
-            document.getElementById('container').appendChild(renderer.domElement);
-
-            // Add orbit controls
-            controls = new OrbitControls(camera, renderer.domElement);
-            controls.enableDamping = true;
-            controls.dampingFactor = 0.05;
-            controls.screenSpacePanning = false;
-            controls.minDistance = 50;
-            controls.maxDistance = 500;
-
-            // Add ambient light
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-            scene.add(ambientLight);
-
-            // Add directional light
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-            directionalLight.position.set(10, 20, 10);
-            scene.add(directionalLight);
-
-            // Add grid helper
-            const gridHelper = new THREE.GridHelper(200, 20, 0x888888, 0x888888);
-            scene.add(gridHelper);
-
-            // Add axes helper
-            const axesHelper = new THREE.AxesHelper(100);
-            scene.add(axesHelper);
-
-            // Add coordinate labels
-            addCoordinateLabels();
-
-            // Create initial model visualization
-            updateModel();
-
-            // Handle window resize
-            window.addEventListener('resize', onWindowResize);
-
-            // Initialize UI event listeners
-            initUIEventListeners();
-
-            // Start animation loop
-            animate();
+        
+        // DOM elements
+        const elements = {
+            CEVO2: document.getElementById('CEVO2'),
+            CEVO2Value: document.getElementById('CEVO2-value'),
+            CE_range_start: document.getElementById('CE_range_start'),
+            CE_range_startValue: document.getElementById('CE_range_start-value'),
+            CE_range_end: document.getElementById('CE_range_end'),
+            CE_range_endValue: document.getElementById('CE_range_end-value'),
+            VO2max: document.getElementById('VO2max'),
+            VO2maxValue: document.getElementById('VO2max-value'),
+            VO2max_kg: document.getElementById('VO2max_kg'),
+            VO2max_kgValue: document.getElementById('VO2max_kg-value'),
+            VO2Base: document.getElementById('VO2Base'),
+            VO2BaseValue: document.getElementById('VO2Base-value'),
+            vLamax: document.getElementById('vLamax'),
+            vLamaxValue: document.getElementById('vLamax-value'),
+            body_mass: document.getElementById('body_mass'),
+            body_massValue: document.getElementById('body_mass-value'),
+            age: document.getElementById('age'),
+            ageValue: document.getElementById('age-value'),
+            height: document.getElementById('height'),
+            heightValue: document.getElementById('height-value'),
+            male: document.getElementById('male'),
+            female: document.getElementById('female'),
+            curvilinear: document.getElementById('curvilinear'),
+            weight_based: document.getElementById('weight_based'),
+            lock_y_axis: document.getElementById('lock_y_axis'),
+            lock_x_axis: document.getElementById('lock_x_axis'),
+            calculate_vo2base: document.getElementById('calculate_vo2base'),
+            linearCeControl: document.getElementById('linear-ce-control'),
+            curvilinearCeControl: document.getElementById('curvilinear-ce-control'),
+            plotContainer: document.getElementById('plot-container'),
+            valuesContainer: document.getElementById('values-container'),
+            notification: document.getElementById('notification')
+        };
+        
+        // Function to calculate basal metabolic rate (BMR)
+        function calculateBMR(gender, mass, height, age) {
+            if (gender === 'male') {
+                return 66.5 + (13.75 * mass) + (5.003 * height) - (6.775 * age);
+            } else {
+                return 655.1 + (9.563 * mass) + (1.850 * height) - (4.676 * age);
+            }
         }
-
-        function addCoordinateLabels() {
-            // Create canvas for x-axis label
-            const xCanvas = document.createElement('canvas');
-            xCanvas.width = 128;
-            xCanvas.height = 64;
-            const xCtx = xCanvas.getContext('2d');
-            xCtx.fillStyle = 'white';
-            xCtx.fillRect(0, 0, xCanvas.width, xCanvas.height);
-            xCtx.font = 'bold 24px Arial';
-            xCtx.fillStyle = 'red';
-            xCtx.textAlign = 'center';
-            xCtx.textBaseline = 'middle';
-            xCtx.fillText('Time [s]', xCanvas.width / 2, xCanvas.height / 2);
+        
+        // Function to calculate VO2Base from BMR
+        function calculateVO2Base(kcalDay, gender) {
+            const ka = 19.946;
+            const factor = gender === 'male' ? 1.287 : 1.278;
+            return (kcalDay / (24 * 60 * ka)) * 4.1868 * factor * 1000;
+        }
+        
+        // Function to find optimal 'a' coefficient for curvilinear relationship
+        function findOptimalA(startCE, targetCE, VO2max, VO2Base) {
+            const objective = function(a) {
+                const b = startCE;
+                const c = VO2Base - VO2max;
+                const discriminant = b*b - 4*a*c;
+                if (discriminant < 0) return 1e6;
+                const xIntersect = (-b + Math.sqrt(discriminant))/(2*a);
+                if (xIntersect <= 0) return 1e6;
+                const slopeAtIntersection = 2*a*xIntersect + startCE;
+                return Math.pow(slopeAtIntersection - targetCE, 2);
+            };
             
-            const xTexture = new THREE.CanvasTexture(xCanvas);
-            const xMaterial = new THREE.SpriteMaterial({ map: xTexture });
-            const xSprite = new THREE.Sprite(xMaterial);
-            xSprite.position.set(110, -5, 0);
-            xSprite.scale.set(20, 10, 1);
-            scene.add(xSprite);
-
-            // Create canvas for y-axis label
-            const yCanvas = document.createElement('canvas');
-            yCanvas.width = 128;
-            yCanvas.height = 64;
-            const yCtx = yCanvas.getContext('2d');
-            yCtx.fillStyle = 'white';
-            yCtx.fillRect(0, 0, yCanvas.width, yCanvas.height);
-            yCtx.font = 'bold 24px Arial';
-            yCtx.fillStyle = 'green';
-            yCtx.textAlign = 'center';
-            yCtx.textBaseline = 'middle';
-            yCtx.fillText('VO₂ [l·min⁻¹]', xCanvas.width / 2, xCanvas.height / 2);
+            // Simple optimization algorithm
+            let aMin = 0.001;
+            let aMax = 0.1;
+            let iterations = 100;
+            let step = (aMax - aMin) / iterations;
+            let bestA = aMin;
+            let bestError = objective(aMin);
             
-            const yTexture = new THREE.CanvasTexture(yCanvas);
-            const yMaterial = new THREE.SpriteMaterial({ map: yTexture });
-            const ySprite = new THREE.Sprite(yMaterial);
-            ySprite.position.set(-5, 50, 0);
-            ySprite.scale.set(20, 10, 1);
-            scene.add(ySprite);
-
-            // Create canvas for z-axis label
-            const zCanvas = document.createElement('canvas');
-            zCanvas.width = 128;
-            zCanvas.height = 64;
-            const zCtx = zCanvas.getContext('2d');
-            zCtx.fillStyle = 'white';
-            zCtx.fillRect(0, 0, zCanvas.width, zCanvas.height);
-            zCtx.font = 'bold 24px Arial';
-            zCtx.fillStyle = 'blue';
-            zCtx.textAlign = 'center';
-            zCtx.textBaseline = 'middle';
-            zCtx.fillText('Component', xCanvas.width / 2, xCanvas.height / 2);
-            
-            const zTexture = new THREE.CanvasTexture(zCanvas);
-            const zMaterial = new THREE.SpriteMaterial({ map: zTexture });
-            const zSprite = new THREE.Sprite(zMaterial);
-            zSprite.position.set(0, -5, 110);
-            zSprite.scale.set(20, 10, 1);
-            scene.add(zSprite);
-        }
-
-        function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        }
-
-        function animate() {
-            requestAnimationFrame(animate);
-            controls.update();
-            renderer.render(scene, camera);
-        }
-
-        function modelFunction(tSec, A, TauA, B, TauB, C, tDelay) {
-            const tAdjusted = tSec - tDelay;
-            if (tAdjusted < 0) return 0;
-            return A * Math.exp(-tAdjusted / TauA) + B * Math.exp(-tAdjusted / TauB) + C;
-        }
-
-        function createModelGeometry(maxTime = 600, segments = 100, zOffset = 0) {
-            const geometry = new THREE.PlaneGeometry(maxTime, 5, segments, 1);
-            const timeStep = maxTime / segments;
-            
-            // Update vertices based on the model function
-            const positions = geometry.attributes.position.array;
-            for (let i = 0; i < positions.length; i += 3) {
-                const timeIndex = Math.floor(i / 3) % (segments + 1);
-                const tSec = timeIndex * timeStep;
-                const value = modelFunction(
-                    tSec, 
-                    params.A, 
-                    params.TauA, 
-                    params.B, 
-                    params.TauB, 
-                    params.C, 
-                    params.t_delay
-                );
-                positions[i + 1] = value; // Set y value to model function output
-                positions[i + 2] = zOffset; // Set z offset
+            for (let i = 1; i <= iterations; i++) {
+                const a = aMin + i * step;
+                const error = objective(a);
+                if (error < bestError) {
+                    bestError = error;
+                    bestA = a;
+                }
             }
             
-            geometry.computeVertexNormals();
-            return geometry;
+            return bestA;
         }
-
-        function createFastComponent(maxTime = 600, segments = 100, zOffset = 20) {
-            const geometry = new THREE.PlaneGeometry(maxTime, 5, segments, 1);
-            const timeStep = maxTime / segments;
+        
+        // Main function to calculate metabolic values
+        function calculateValues() {
+            const CELaO2 = 0.02049 / appState.body_mass;
+            const VolLa = 0.4;
+            const ks1 = 0.0635;
+            const ks2 = Math.pow(1.1, 3);
             
-            // Update vertices based on the fast component
-            const positions = geometry.attributes.position.array;
-            for (let i = 0; i < positions.length; i += 3) {
-                const timeIndex = Math.floor(i / 3) % (segments + 1);
-                const tSec = timeIndex * timeStep;
-                const tAdjusted = tSec - params.t_delay;
-                const value = tAdjusted < 0 ? 0 : params.A * Math.exp(-tAdjusted / params.TauA);
-                positions[i + 1] = value;
-                positions[i + 2] = zOffset;
-            }
+            // Calculate max power with linear CE value
+            const maxPower = appState.curvilinear ? 
+                ((appState.VO2max - appState.VO2Base) / appState.CE_range[0]) * 1.25 :
+                ((appState.VO2max - appState.VO2Base) / appState.CEVO2) * 1.25;
             
-            geometry.computeVertexNormals();
-            return geometry;
-        }
-
-        function createSlowComponent(maxTime = 600, segments = 100, zOffset = 40) {
-            const geometry = new THREE.PlaneGeometry(maxTime, 5, segments, 1);
-            const timeStep = maxTime / segments;
+            // Create power array
+            const P = Array.from({length: Math.ceil(maxPower) + 1}, (_, i) => i);
             
-            // Update vertices based on the slow component
-            const positions = geometry.attributes.position.array;
-            for (let i = 0; i < positions.length; i += 3) {
-                const timeIndex = Math.floor(i / 3) % (segments + 1);
-                const tSec = timeIndex * timeStep;
-                const tAdjusted = tSec - params.t_delay;
-                const value = tAdjusted < 0 ? 0 : params.B * Math.exp(-tAdjusted / params.TauB);
-                positions[i + 1] = value;
-                positions[i + 2] = zOffset;
-            }
+            let VO2ss_unlimited;
+            let aOpt = null;
             
-            geometry.computeVertexNormals();
-            return geometry;
-        }
-
-        function createO2StorageGeometry(maxTime = 600, segments = 100, zOffset = 20) {
-            const timeStep = maxTime / segments;
-            const o2StoreTime = calculateO2StoreTime(params.O2_Store, params.A, params.TauA);
-            
-            const geometry = new THREE.PlaneGeometry(o2StoreTime, 5, Math.ceil(o2StoreTime / timeStep), 1);
-            
-            // Update vertices based on the fast component
-            const positions = geometry.attributes.position.array;
-            for (let i = 0; i < positions.length; i += 3) {
-                const timeIndex = Math.floor(i / 3) % (Math.ceil(o2StoreTime / timeStep) + 1);
-                const tSec = timeIndex * timeStep;
-                const tAdjusted = tSec - params.t_delay;
-                const value = tAdjusted < 0 ? 0 : params.A * Math.exp(-tAdjusted / params.TauA);
-                positions[i + 1] = value;
-                positions[i + 2] = zOffset;
-            }
-            
-            geometry.computeVertexNormals();
-            return geometry;
-        }
-
-        function calculateO2StoreTime(o2Store, A, TauA) {
-            // Binary search to find the time when the integral equals O2_Store * 60
-            const integralTarget = o2Store * 60;
-            let left = 0;
-            let right = 3600; // Arbitrary upper bound
-            
-            while (right - left > 0.1) {
-                const mid = (left + right) / 2;
-                const integral = A * TauA * (1 - Math.exp(-mid / TauA));
+            if (appState.curvilinear) {
+                // Calculate optimal coefficient for curvilinear relationship
+                aOpt = findOptimalA(appState.CE_range[0], appState.CE_range[1], appState.VO2max, appState.VO2Base);
                 
-                if (integral < integralTarget) {
-                    left = mid;
+                // Curvilinear VO2ss calculation
+                VO2ss_unlimited = P.map(p => aOpt * p * p + appState.CE_range[0] * p + appState.VO2Base);
+            } else {
+                // Linear VO2ss calculation
+                VO2ss_unlimited = P.map(p => appState.CEVO2 * p + appState.VO2Base);
+            }
+            
+            // Find where VO2ss crosses VO2max
+            const crossIndices = VO2ss_unlimited.findIndex(v => v >= appState.VO2max);
+            const crossPoint = crossIndices !== -1 ? crossIndices : VO2ss_unlimited.length;
+            
+            // Limit VO2ss to VO2max
+            const VO2ss = VO2ss_unlimited.map(v => Math.min(v, appState.VO2max));
+            
+            // Calculate vLass
+            const vLass = VO2ss.map(vo2 => 
+                appState.vLamax / (1 + ks2 * Math.pow((appState.VO2max - vo2)/(ks1 * vo2), 3/2))
+            );
+            
+            // Calculate vLaox
+            const vLaox = VO2ss_unlimited.map(vo2 => (CELaO2 * vo2) / (VolLa * 60));
+            
+            // Calculate pyruvate deficit
+            const PD = vLaox.map((ox, i) => ox - vLass[i]);
+            
+            // Convert to minutes for display
+            const vLass_min = vLass.map(v => v * 60);
+            const vLaox_min = vLaox.map(v => v * 60);
+            const PD_min = PD.map(p => p * 60);
+            
+            // Calculate lactate accumulation
+            const La_accum = [];
+            for (let i = 0; i < P.length; i++) {
+                if (i === 0) {
+                    La_accum.push(Math.max(0, (vLass[i] - vLaox[i])));
                 } else {
-                    right = mid;
+                    La_accum.push(La_accum[i-1] + Math.max(0, (vLass[i] - vLaox[i])));
                 }
             }
             
-            return (left + right) / 2;
-        }
-
-        function createDataPointsGeometry(data, zOffset = 60) {
-            if (!data || data.length === 0) return new THREE.BufferGeometry();
-            
-            const geometry = new THREE.BufferGeometry();
-            const vertices = [];
-            
-            for (let i = 0; i < data.length; i++) {
-                vertices.push(
-                    data[i].t_s, 
-                    data[i].VO2_t,
-                    zOffset
-                );
+            // Set initial values to NA
+            const startIdx = La_accum.findIndex(la => la > 0);
+            if (startIdx !== -1) {
+                for (let i = 0; i < startIdx; i++) {
+                    La_accum[i] = NaN;
+                }
             }
             
-            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-            return geometry;
-        }
-
-        function updateModel() {
-            // Remove existing meshes
-            if (modelMesh) scene.remove(modelMesh);
-            if (fastMesh) scene.remove(fastMesh);
-            if (slowMesh) scene.remove(slowMesh);
-            if (dataMesh) scene.remove(dataMesh);
-            if (o2StorageMesh) scene.remove(o2StorageMesh);
+            // Find important points
+            const pdMaxPos = P[PD_min.indexOf(Math.max(...PD_min))];
             
-            // Calculate maximum time for visualization
-            let maxTime = 600;
-            
-            if (currentData) {
-                const lastDataPoint = Math.max(...currentData.map(d => d.t_s));
-                maxTime = Math.max(600, lastDataPoint * 1.1);
+            // Find closest to zero (MLSS)
+            let minAbsPD = Infinity;
+            let pdZeroPos = 0;
+            for (let i = 0; i < PD_min.length; i++) {
+                const absPD = Math.abs(PD_min[i]);
+                if (absPD < minAbsPD) {
+                    minAbsPD = absPD;
+                    pdZeroPos = P[i];
+                }
             }
             
-            // Create model geometry
-            const modelGeometry = createModelGeometry(maxTime, 200, 0);
-            const modelMaterial = new THREE.MeshPhongMaterial({
-                color: 0xEF6F6A,
-                side: THREE.DoubleSide,
-                wireframe: false,
-                transparent: true,
-                opacity: 0.8
-            });
-            modelMesh = new THREE.Mesh(modelGeometry, modelMaterial);
-            scene.add(modelMesh);
+            return {
+                P,
+                VO2ss,
+                VO2ss_unlimited,
+                crossPoint,
+                vLass_min,
+                vLaox_min,
+                PD_min,
+                La_accum,
+                pd_max_pos: pdMaxPos,
+                pd_zero_pos: pdZeroPos,
+                max_power: maxPower,
+                a_opt: aOpt
+            };
+        }
+        
+        // Function to update the plot
+        function updatePlot() {
+            const vals = calculateValues();
             
-            // Create fast component geometry
-            const fastGeometry = createFastComponent(maxTime, 200, 20);
-            const fastMaterial = new THREE.MeshPhongMaterial({
-                color: 0x42BA97,
-                side: THREE.DoubleSide,
-                wireframe: false,
-                transparent: true,
-                opacity: 0.7
-            });
-            fastMesh = new THREE.Mesh(fastGeometry, fastMaterial);
-            scene.add(fastMesh);
+            const relVO2max = appState.VO2max / appState.body_mass;
+            const relPower = vals.P.map(p => p / appState.body_mass);
+            const relVO2ss = vals.VO2ss.map(vo2 => vo2 / appState.body_mass);
+            const relVO2ss_unlimited = vals.VO2ss_unlimited.map(vo2 => vo2 / appState.body_mass);
+            const relPdMaxPos = vals.pd_max_pos / appState.body_mass;
+            const relPdZeroPos = vals.pd_zero_pos / appState.body_mass;
             
-            // Create slow component geometry
-            const slowGeometry = createSlowComponent(maxTime, 200, 40);
-            const slowMaterial = new THREE.MeshPhongMaterial({
-                color: 0xBB7693,
-                side: THREE.DoubleSide,
-                wireframe: false,
-                transparent: true,
-                opacity: 0.7
-            });
-            slowMesh = new THREE.Mesh(slowGeometry, slowMaterial);
-            scene.add(slowMesh);
+            const displayPower = appState.weight_based ? relPower : vals.P;
+            const displayVO2ss = appState.weight_based ? relVO2ss : vals.VO2ss;
+            const displayVO2ss_unlimited = appState.weight_based ? relVO2ss_unlimited : vals.VO2ss_unlimited;
+            const displayVO2max = appState.weight_based ? relVO2max : appState.VO2max;
+            const displayPdMaxPos = appState.weight_based ? relPdMaxPos : vals.pd_max_pos;
+            const displayPdZeroPos = appState.weight_based ? relPdZeroPos : vals.pd_zero_pos;
             
-            // Create O2 storage geometry
-            const o2StorageGeometry = createO2StorageGeometry(maxTime, 200, 20);
-            const o2StorageMaterial = new THREE.MeshPhongMaterial({
-                color: 0x00838F,
-                side: THREE.DoubleSide,
-                wireframe: false,
-                transparent: true,
-                opacity: 0.6
-            });
-            o2StorageMesh = new THREE.Mesh(o2StorageGeometry, o2StorageMaterial);
-            scene.add(o2StorageMesh);
+            const y1Max = displayVO2max * 1.25;
+            const xMid = Math.max(...displayPower) / 2;
             
-            // Create data points geometry if data is available
-            if (currentData) {
-                const dataGeometry = createDataPointsGeometry(currentData, 60);
-                const dataMaterial = new THREE.PointsMaterial({
-                    color: 0x2683C6,
-                    size: 1.5,
-                    sizeAttenuation: true
+            // Create traces for the plot
+            const traces = [];
+            
+            // VO2max line
+            traces.push({
+                x: displayPower,
+                y: Array(displayPower.length).fill(displayVO2max),
+                name: "V̇O₂max",
+                type: 'scatter',
+                mode: 'lines',
+                line: {color: '#CCCCCC', dash: 'dot', width: 1},
+                showlegend: false
+            });
+            
+            // FATmax vertical line
+            if (displayPdMaxPos >= Math.min(...displayPower) && displayPdMaxPos <= Math.max(...displayPower)) {
+                traces.push({
+                    x: [displayPdMaxPos, displayPdMaxPos],
+                    y: [0, 20],
+                    name: "PD max",
+                    type: 'scatter',
+                    mode: 'lines',
+                    line: {color: '#CCCCCC', dash: 'dot', width: 1},
+                    showlegend: false,
+                    yaxis: 'y2'
                 });
-                dataMesh = new THREE.Points(dataGeometry, dataMaterial);
-                scene.add(dataMesh);
             }
             
-            // Create C (rest) line
-            const restLineGeometry = new THREE.PlaneGeometry(maxTime, 0.1, 1, 1);
-            const restLineMaterial = new THREE.MeshBasicMaterial({
-                color: 0x1CADE4,
-                side: THREE.DoubleSide
-            });
-            const restLineMesh = new THREE.Mesh(restLineGeometry, restLineMaterial);
-            restLineMesh.position.set(maxTime / 2, params.C, 80);
-            scene.add(restLineMesh);
-            
-            // Create two-tau vertical line
-            const twoTauTime = 2 * params.TauA;
-            const twoTauLineGeometry = new THREE.BoxGeometry(0.5, 5, 0.5);
-            const twoTauLineMaterial = new THREE.MeshBasicMaterial({ color: 0x808080 });
-            const twoTauLineMesh = new THREE.Mesh(twoTauLineGeometry, twoTauLineMaterial);
-            twoTauLineMesh.position.set(twoTauTime, 2.5, 0);
-            scene.add(twoTauLineMesh);
-            
-            // Update statistics
-            updateStatistics();
-        }
-
-        function updateStatistics() {
-            // Calculate WPCR (Work from Phosphocreatine)
-            const A = params.A;
-            const TauA = params.TauA;
-            const CE_max = 21.1307796;
-            
-            const VO2_fast = A * TauA / 60; // Integrated fast component in liters
-            const WPCR = VO2_fast * CE_max;
-            const WPCR_corrected = VO2_fast <= params.O2_Store ? 0 : (VO2_fast - params.O2_Store) * CE_max;
-            
-            // Update HTML elements with statistics
-            document.getElementById('wpcr').textContent = WPCR.toFixed(2);
-            document.getElementById('wpcr-corrected').textContent = WPCR_corrected.toFixed(2);
-            
-            // Calculate R² if data is available
-            if (currentData) {
-                const tDelay = params.t_delay;
-                const filteredData = currentData.filter(d => d.t_s >= tDelay).map(d => ({
-                    t_s: d.t_s - tDelay,
-                    VO2_t: d.VO2_t
-                }));
-                
-                // Predict values using model
-                const modelPredictions = filteredData.map(d => 
-                    modelFunction(d.t_s, params.A, params.TauA, params.B, params.TauB, params.C, 0)
-                );
-                
-                // Calculate SSR and SST
-                const mean = filteredData.reduce((sum, d) => sum + d.VO2_t, 0) / filteredData.length;
-                const SSR = filteredData.reduce((sum, d, i) => sum + Math.pow(d.VO2_t - modelPredictions[i], 2), 0);
-                const SST = filteredData.reduce((sum, d) => sum + Math.pow(d.VO2_t - mean, 2), 0);
-                
-                const rSquared = 1 - (SSR / SST);
-                document.getElementById('r-squared').textContent = rSquared.toFixed(3);
-            } else {
-                document.getElementById('r-squared').textContent = "-";
-            }
-            
-            // Update equation display
-            document.getElementById('equation').innerHTML = 
-                `V̇O₂(t) = ${params.A.toFixed(2)}·e<sup>-t/${params.TauA.toFixed(1)}</sup> + ${params.B.toFixed(2)}·e<sup>-t/${params.TauB.toFixed(1)}</sup> + ${params.C.toFixed(2)}`;
-        }
-
-        function initUIEventListeners() {
-            // Tab switching
-            document.querySelectorAll('.tab').forEach(tab => {
-                tab.addEventListener('click', () => {
-                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                    tab.classList.add('active');
-                    
-                    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-                    document.getElementById(tab.dataset.tab + '-tab').classList.add('active');
+            // MLSS vertical line
+            if (displayPdZeroPos >= Math.min(...displayPower) && displayPdZeroPos <= Math.max(...displayPower)) {
+                traces.push({
+                    x: [displayPdZeroPos, displayPdZeroPos],
+                    y: [0, 20],
+                    name: "PD = 0",
+                    type: 'scatter',
+                    mode: 'lines',
+                    line: {color: '#CCCCCC', dash: 'dot', width: 1},
+                    showlegend: false,
+                    yaxis: 'y2'
                 });
-            });
+            }
             
-            // Model parameter sliders
-            document.getElementById('a-slider').addEventListener('input', e => {
-                params.A = parseFloat(e.target.value);
-                document.getElementById('a-value').textContent = params.A.toFixed(2);
-                updateModel();
-            });
-            
-            document.getElementById('taua-slider').addEventListener('input', e => {
-                params.TauA = parseFloat(e.target.value);
-                document.getElementById('taua-value').textContent = params.TauA.toFixed(2);
-                updateModel();
-            });
-            
-            document.getElementById('b-slider').addEventListener('input', e => {
-                params.B = parseFloat(e.target.value);
-                document.getElementById('b-value').textContent = params.B.toFixed(2);
-                updateModel();
-            });
-            
-            document.getElementById('taub-slider').addEventListener('input', e => {
-                params.TauB = parseFloat(e.target.value);
-                document.getElementById('taub-value').textContent = params.TauB.toFixed(2);
-                updateModel();
-            });
-            
-            document.getElementById('c-slider').addEventListener('input', e => {
-                params.C = parseFloat(e.target.value);
-                document.getElementById('c-value').textContent = params.C.toFixed(2);
-                updateModel();
-            });
-            
-            document.getElementById('o2-store-slider').addEventListener('input', e => {
-                params.O2_Store = parseFloat(e.target.value);
-                document.getElementById('o2-store-value').textContent = params.O2_Store.toFixed(2);
-                updateModel();
-            });
-            
-            document.getElementById('t-delay-slider').addEventListener('input', e => {
-                params.t_delay = parseInt(e.target.value);
-                document.getElementById('t-delay-value').textContent = params.t_delay;
-                updateModel();
-            });
-            
-            document.getElementById('vo2-rest-slider').addEventListener('input', e => {
-                params.VO2_Ruhe = parseFloat(e.target.value);
-                document.getElementById('vo2-rest-value').textContent = params.VO2_Ruhe.toFixed(3);
-                updateModel();
-            });
-            
-            document.getElementById('vo2-ref-slider').addEventListener('input', e => {
-                params.VO2_Referenz = parseFloat(e.target.value);
-                document.getElementById('vo2-ref-value').textContent = params.VO2_Referenz.toFixed(3);
-                updateModel();
-            });
-            
-            document.getElementById('rest-sim-start-slider').addEventListener('input', e => {
-                params.restSimRange.start = parseInt(e.target.value);
-                document.getElementById('rest-sim-start-value').textContent = params.restSimRange.start;
+            // VO2ss curve
+            if (vals.crossPoint > 1) {
+                traces.push({
+                    x: displayPower.slice(0, vals.crossPoint),
+                    y: displayVO2ss_unlimited.slice(0, vals.crossPoint),
+                    name: "V̇O₂ss",
+                    type: 'scatter',
+                    mode: 'lines',
+                    line: {color: '#2683C6', width: 3}
+                });
                 
-                // Ensure start is less than end
-                if (params.restSimRange.start >= params.restSimRange.end) {
-                    params.restSimRange.end = params.restSimRange.start + 600;
-                    document.getElementById('rest-sim-end-slider').value = params.restSimRange.end;
-                    document.getElementById('rest-sim-end-value').textContent = params.restSimRange.end;
-                }
-                
-                updateModel();
-            });
-            
-            document.getElementById('rest-sim-end-slider').addEventListener('input', e => {
-                params.restSimRange.end = parseInt(e.target.value);
-                document.getElementById('rest-sim-end-value').textContent = params.restSimRange.end;
-                
-                // Ensure end is greater than start
-                if (params.restSimRange.end <= params.restSimRange.start) {
-                    params.restSimRange.start = params.restSimRange.end - 600;
-                    document.getElementById('rest-sim-start-slider').value = params.restSimRange.start;
-                    document.getElementById('rest-sim-start-value').textContent = params.restSimRange.start;
-                }
-                
-                updateModel();
-            });
-            
-            // Toggle rest simulation
-            document.getElementById('toggle-rest-sim').addEventListener('click', () => {
-                showRestSim = !showRestSim;
-                document.getElementById('toggle-rest-sim').textContent = showRestSim ? "Hide Rest Simulation" : "Show Rest Simulation";
-                updateModel();
-            });
-            
-            // Sample data buttons
-            document.getElementById('load-data-without').addEventListener('click', () => {
-                currentData = [];
-                for (let i = 0; i < normalized_t_data.length; i++) {
-                    currentData.push({
-                        t_s: normalized_t_data[i],
-                        VO2_t: VO2_data[i]
+                if (vals.crossPoint < displayPower.length) {
+                    traces.push({
+                        x: displayPower.slice(vals.crossPoint),
+                        y: displayVO2ss_unlimited.slice(vals.crossPoint),
+                        name: "V̇O₂ss",
+                        type: 'scatter',
+                        mode: 'lines',
+                        showlegend: false,
+                        line: {color: '#2683C6', dash: 'dash', width: 3}
                     });
                 }
-                updateModel();
-            });
-            
-            document.getElementById('load-data-50w').addEventListener('click', () => {
-                currentData = [];
-                for (let i = 0; i < normalized_t_data_50W.length; i++) {
-                    currentData.push({
-                        t_s: normalized_t_data_50W[i],
-                        VO2_t: VO2_data_50W[i]
-                    });
-                }
-                updateModel();
-            });
-            
-            // CSV upload
-            document.getElementById('upload-csv').addEventListener('click', () => {
-                document.getElementById('csv-input').click();
-            });
-            
-            document.getElementById('csv-input').addEventListener('change', e => {
-                if (e.target.files.length === 0) return;
-                
-                const file = e.target.files[0];
-                const reader = new FileReader();
-                
-                reader.onload = event => {
-                    try {
-                        const csv = event.target.result;
-                        const lines = csv.split('\n');
-                        const headers = lines[0].split(',');
-                        
-                        // Check if csv has t_s and VO2_t columns
-                        const tSIndex = headers.indexOf('t_s');
-                        const VO2TIndex = headers.indexOf('VO2_t');
-                        
-                        if (tSIndex === -1 || VO2TIndex === -1) {
-                            alert('CSV must contain columns named "t_s" and "VO2_t"');
-                            return;
-                        }
-                        
-                        const data = [];
-                        for (let i = 1; i < lines.length; i++) {
-                            if (lines[i].trim() === '') continue;
-                            
-                            const values = lines[i].split(',');
-                            const tS = parseFloat(values[tSIndex]);
-                            const VO2T = parseFloat(values[VO2TIndex]);
-                            
-                            if (!isNaN(tS) && !isNaN(VO2T)) {
-                                data.push({
-                                    t_s: tS,
-                                    VO2_t: VO2T
-                                });
-                            }
-                        }
-                        
-                        // Normalize t_s values
-                        const firstTS = data[0].t_s;
-                        data.forEach(d => d.t_s -= firstTS);
-                        
-                        currentData = data;
-                        updateModel();
-                    } catch (error) {
-                        alert('Error parsing CSV: ' + error.message);
-                    }
-                };
-                
-                reader.readAsText(file);
-            });
-            
-            // Fitting buttons
-            document.getElementById('fit-tau').addEventListener('click', fitTau);
-            document.getElementById('fit-slow').addEventListener('click', fitSlow);
-            document.getElementById('fit-fast').addEventListener('click', fitFast);
-            document.getElementById('fit-all').addEventListener('click', fitAll);
-            
-            // RMR calculation
-            document.getElementById('body-mass-slider').addEventListener('input', e => {
-                document.getElementById('body-mass-value').textContent = e.target.value;
-            });
-            
-            document.getElementById('body-height-slider').addEventListener('input', e => {
-                document.getElementById('body-height-value').textContent = e.target.value;
-            });
-            
-            document.getElementById('age-slider').addEventListener('input', e => {
-                document.getElementById('age-value').textContent = e.target.value;
-            });
-            
-            document.getElementById('rq-slider').addEventListener('input', e => {
-                document.getElementById('rq-value').textContent = e.target.value;
-            });
-            
-            document.getElementById('calculate-vo2-rest').addEventListener('click', calculateVO2Rest);
-        }
-
-        function fitTau() {
-            if (!currentData || document.getElementById('one-step').checked) return;
-            
-            const loadingIndicator = document.getElementById('loading-indicator');
-            loadingIndicator.style.display = 'block';
-            
-            setTimeout(() => {
-                try {
-                    const tDelay = params.t_delay;
-                    const C = document.getElementById('fit-rest').checked ? params.VO2_Ruhe : params.VO2_Referenz;
-                    
-                    // Filter data
-                    const filteredData = currentData.filter(d => d.t_s >= tDelay).map(d => ({
-                        t_s: d.t_s - tDelay,
-                        VO2_t: d.VO2_t
-                    }));
-                    
-                    // Define objective function for tau fitting
-                    const objectiveFunction = ([x, Tau]) => {
-                        return filteredData.map(d => d.VO2_t - (x * Math.exp(-d.t_s / Tau) + C));
-                    };
-                    
-                    // Initial parameters
-                    const initialParams = [
-                        Math.max(...filteredData.map(d => d.VO2_t)),
-                        45
-                    ];
-                    
-                    // Execute Levenberg-Marquardt algorithm
-                    const result = numeric.uncmin(
-                        params => numeric.sum(numeric.pow(objectiveFunction(params), 2)),
-                        initialParams,
-                        0.0001,
-                        { maxIterations: 1000 }
-                    );
-                    
-                    const [x, Tau] = result.solution;
-                    
-                    // Update parameters
-                    tauEstimate = Math.round(Tau * 10) / 10;
-                    
-                    params.A = Math.round(x * 100) / 100;
-                    params.TauA = tauEstimate;
-                    params.C = C;
-                    params.B = 0;
-                    params.TauB = 0;
-                    
-                    // Update sliders
-                    document.getElementById('a-slider').value = params.A;
-                    document.getElementById('a-value').textContent = params.A.toFixed(2);
-                    
-                    document.getElementById('taua-slider').value = params.TauA;
-                    document.getElementById('taua-value').textContent = params.TauA.toFixed(2);
-                    
-                    document.getElementById('c-slider').value = params.C;
-                    document.getElementById('c-value').textContent = params.C.toFixed(2);
-                    
-                    document.getElementById('b-slider').value = params.B;
-                    document.getElementById('b-value').textContent = params.B.toFixed(2);
-                    
-                    document.getElementById('taub-slider').value = params.TauB;
-                    document.getElementById('taub-value').textContent = params.TauB.toFixed(2);
-                    
-                    updateModel();
-                    
-                    // Show notification
-                    alert(`Tau fitting completed: TauA = ${tauEstimate}`);
-                } catch (error) {
-                    alert('Error during fitting: ' + error.message);
-                } finally {
-                    loadingIndicator.style.display = 'none';
-                }
-            }, 10);
-        }
-
-        function fitSlow() {
-            if (!currentData || !tauEstimate || document.getElementById('one-step').checked) return;
-            
-            const loadingIndicator = document.getElementById('loading-indicator');
-            loadingIndicator.style.display = 'block';
-            
-            setTimeout(() => {
-                try {
-                    const tDelay = params.t_delay;
-                    const VO2Basis = document.getElementById('fit-rest').checked ? params.VO2_Ruhe : params.VO2_Referenz;
-                    
-                    const tau2 = 2 * tauEstimate;
-                    const lastDataPoint = Math.max(...currentData.map(d => d.t_s));
-                    
-                    // Simulate rest data
-                    const ruheSimStart = params.restSimRange.start;
-                    const ruheSimEnd = params.restSimRange.end;
-                    
-                    const simPoints = Math.floor((ruheSimEnd - ruheSimStart) / 10);
-                    ruheSim = [];
-                    
-                    for (let i = 0; i < simPoints; i++) {
-                        const t = ruheSimStart + i * 10;
-                        ruheSim.push({
-                            t_s: t,
-                            VO2_t: VO2Basis
-                        });
-                    }
-                    
-                    maxRuheTSec = Math.max(...ruheSim.map(d => d.t_s));
-                    
-                    // Combine actual data with simulated rest data
-                    const combinedData = [...currentData, ...ruheSim];
-                    
-                    // Filter data
-                    const filteredData = combinedData
-                        .filter(d => d.t_s >= tDelay)
-                        .map(d => ({
-                            t_s: d.t_s - tDelay,
-                            VO2_t: d.VO2_t
-                        }))
-                        .filter(d => d.t_s >= tau2);
-                    
-                    // Define objective function for slow component fitting
-                    const objectiveFunction = ([B, TauB]) => {
-                        return filteredData.map(d => d.VO2_t - (B * Math.exp(-d.t_s / TauB) + VO2Basis));
-                    };
-                    
-                    // Initial parameters
-                    const initialParams = [0.5, 540]; // B, TauB
-                    
-                    // Execute Levenberg-Marquardt algorithm
-                    const result = numeric.uncmin(
-                        params => numeric.sum(numeric.pow(objectiveFunction(params), 2)),
-                        initialParams,
-                        0.0001,
-                        { maxIterations: 1000 }
-                    );
-                    
-                    const [B, TauB] = result.solution;
-                    
-                    // Update parameters
-                    slowEstimates = {
-                        B: Math.round(B * 100) / 100,
-                        TauB: Math.round(TauB * 10) / 10,
-                        C: VO2Basis
-                    };
-                    
-                    params.B = slowEstimates.B;
-                    params.TauB = slowEstimates.TauB;
-                    params.C = VO2Basis;
-                    
-                    // Update sliders
-                    document.getElementById('b-slider').value = params.B;
-                    document.getElementById('b-value').textContent = params.B.toFixed(2);
-                    
-                    document.getElementById('taub-slider').value = params.TauB;
-                    document.getElementById('taub-value').textContent = params.TauB.toFixed(2);
-                    
-                    document.getElementById('c-slider').value = params.C;
-                    document.getElementById('c-value').textContent = params.C.toFixed(2);
-                    
-                    updateModel();
-                    
-                    // Show notification
-                    alert(`Slow component fitting completed: B = ${slowEstimates.B}, TauB = ${slowEstimates.TauB}`);
-                } catch (error) {
-                    alert('Error during slow component fitting: ' + error.message);
-                } finally {
-                    loadingIndicator.style.display = 'none';
-                }
-            }, 10);
-        }
-
-        function fitFast() {
-            if (!currentData || !tauEstimate || !slowEstimates || document.getElementById('one-step').checked) return;
-            
-            const loadingIndicator = document.getElementById('loading-indicator');
-            loadingIndicator.style.display = 'block';
-            
-            setTimeout(() => {
-                try {
-                    const tDelay = params.t_delay;
-                    const ruheSimStart = params.restSimRange.start;
-                    
-                    if (!tauEstimate || !slowEstimates) {
-                        alert('Missing some estimates. Please run steps 1 and 2 first.');
-                        return;
-                    }
-                    
-                    // Filter data
-                    const filteredData = currentData
-                        .filter(d => d.t_s >= tDelay)
-                        .map(d => ({
-                            t_s: d.t_s - tDelay,
-                            VO2_t: d.VO2_t
-                        }))
-                        .filter(d => d.t_s < (ruheSimStart - tDelay));
-                    
-                    // Define model function with fixed slow component and C
-                    const modelFunc = (t, A, TauA) => {
-                        return A * Math.exp(-t / TauA) + slowEstimates.B * Math.exp(-t / slowEstimates.TauB) + slowEstimates.C;
-                    };
-                    
-                    // Define objective function
-                    const objectiveFunction = ([A, TauA]) => {
-                        return filteredData.map(d => d.VO2_t - modelFunc(d.t_s, A, TauA));
-                    };
-                    
-                    // Initial parameters
-                    const initialParams = [2.5, 42]; // A, TauA
-                    
-                    // Execute Levenberg-Marquardt algorithm
-                    const result = numeric.uncmin(
-                        params => numeric.sum(numeric.pow(objectiveFunction(params), 2)),
-                        initialParams,
-                        0.0001,
-                        { maxIterations: 1000 }
-                    );
-                    
-                    const [A, TauA] = result.solution;
-                    
-                    // Update parameters
-                    params.A = Math.round(A * 100) / 100;
-                    params.TauA = Math.round(TauA * 10) / 10;
-                    
-                    // Update sliders
-                    document.getElementById('a-slider').value = params.A;
-                    document.getElementById('a-value').textContent = params.A.toFixed(2);
-                    
-                    document.getElementById('taua-slider').value = params.TauA;
-                    document.getElementById('taua-value').textContent = params.TauA.toFixed(2);
-                    
-                    updateModel();
-                    
-                    // Show notification
-                    alert(`Fast component fitting completed: A = ${params.A}, TauA = ${params.TauA}`);
-                } catch (error) {
-                    alert('Error during fast component fitting: ' + error.message);
-                } finally {
-                    loadingIndicator.style.display = 'none';
-                }
-            }, 10);
-        }
-
-        function fitAll() {
-            if (document.getElementById('three-steps').checked) {
-                fitTau();
-                setTimeout(() => {
-                    fitSlow();
-                    setTimeout(() => {
-                        fitFast();
-                    }, 1000);
-                }, 1000);
-            } else if (document.getElementById('one-step').checked) {
-                const loadingIndicator = document.getElementById('loading-indicator');
-                loadingIndicator.style.display = 'block';
-                
-                setTimeout(() => {
-                    try {
-                        if (!currentData) {
-                            alert('Please load data first.');
-                            return;
-                        }
-                        
-                        const tDelay = params.t_delay;
-                        const C = document.getElementById('fit-rest').checked ? params.VO2_Ruhe : params.VO2_Referenz;
-                        
-                        // Best fit finder with multiple starting points
-                        let bestFit = null;
-                        let bestRSS = Infinity;
-                        
-                        for (let i = 0; i < 20; i++) {
-                            // Random starting values
-                            const A_start = Math.random() * 4.5 + 1.5; // 1.5 to 6
-                            const TauA_start = Math.random() * 70 + 20; // 20 to 90
-                            const B_start = Math.random() * 0.7 + 0.3; // 0.3 to 1.0
-                            const TauB_start = Math.random() * 600 + 300; // 300 to 900
-                            
-                            // Define objective function
-                            const objectiveFunction = ([A, TauA, B, TauB]) => {
-                                return currentData.map(d => 
-                                    d.VO2_t - modelFunction(d.t_s, A, TauA, B, TauB, C, tDelay)
-                                );
-                            };
-                            
-                            try {
-                                // Execute Levenberg-Marquardt algorithm
-                                const result = numeric.uncmin(
-                                    params => numeric.sum(numeric.pow(objectiveFunction(params), 2)),
-                                    [A_start, TauA_start, B_start, TauB_start],
-                                    0.0001,
-                                    { maxIterations: 500 }
-                                );
-                                
-                                const rss = result.f;
-                                
-                                if (rss < bestRSS) {
-                                    bestRSS = rss;
-                                    bestFit = result.solution;
-                                }
-                            } catch (e) {
-                                // Continue if an iteration fails
-                                continue;
-                            }
-                        }
-                        
-                        if (bestFit) {
-                            const [A, TauA, B, TauB] = bestFit;
-                            
-                            // Update parameters
-                            params.A = Math.round(A * 100) / 100;
-                            params.TauA = Math.round(TauA * 10) / 10;
-                            params.B = Math.round(B * 100) / 100;
-                            params.TauB = Math.round(TauB * 10) / 10;
-                            params.C = C;
-                            
-                            // Update sliders
-                            document.getElementById('a-slider').value = params.A;
-                            document.getElementById('a-value').textContent = params.A.toFixed(2);
-                            
-                            document.getElementById('taua-slider').value = params.TauA;
-                            document.getElementById('taua-value').textContent = params.TauA.toFixed(2);
-                            
-                            document.getElementById('b-slider').value = params.B;
-                            document.getElementById('b-value').textContent = params.B.toFixed(2);
-                            
-                            document.getElementById('taub-slider').value = params.TauB;
-                            document.getElementById('taub-value').textContent = params.TauB.toFixed(2);
-                            
-                            document.getElementById('c-slider').value = params.C;
-                            document.getElementById('c-value').textContent = params.C.toFixed(2);
-                            
-                            updateModel();
-                            
-                            // Show notification
-                            alert('One-step fitting completed successfully!');
-                        } else {
-                            alert('Fitting failed. Please try different initial values or use the three-step approach.');
-                        }
-                    } catch (error) {
-                        alert('Error during one-step fitting: ' + error.message);
-                    } finally {
-                        loadingIndicator.style.display = 'none';
-                    }
-                }, 10);
-            }
-        }
-
-        function calculateVO2Rest() {
-            const gender = document.getElementById('male').checked ? 'Männlich' : 'Weiblich';
-            const bodyMass = parseFloat(document.getElementById('body-mass-slider').value);
-            const bodyHeight = parseFloat(document.getElementById('body-height-slider').value);
-            const age = parseInt(document.getElementById('age-slider').value);
-            const rq = parseFloat(document.getElementById('rq-slider').value);
-            
-            // Calculate RMR (Harris-Benedict)
-            let bmr;
-            if (gender === 'Männlich') {
-                bmr = 66.5 + (13.75 * bodyMass) + (5.003 * bodyHeight) - (6.775 * age);
-            } else {
-                bmr = 655.1 + (9.563 * bodyMass) + (1.850 * bodyHeight) - (4.676 * age);
             }
             
-            // Convert BMR to VO2
-            const factor = gender === 'Männlich' ? 1.287 : 1.278;
-            const ka = 19.946; // Assumption for RQ = 0.77
-            const vo2Rest = (bmr / (24 * 60 * ka)) * 4.1868 * factor;
+            // vLass curve
+            traces.push({
+                x: displayPower,
+                y: vals.vLass_min,
+                name: "vLass",
+                type: 'scatter',
+                mode: 'lines',
+                yaxis: 'y2',
+                line: {color: '#EF5350', dash: 'dash', width: 2}
+            });
             
-            // Update VO2 Ruhe slider
-            params.VO2_Ruhe = Math.round(vo2Rest * 1000) / 1000;
-            document.getElementById('vo2-rest-slider').value = params.VO2_Ruhe;
-            document.getElementById('vo2-rest-value').textContent = params.VO2_Ruhe.toFixed(3);
+            // vLaox curve
+            traces.push({
+                x: displayPower,
+                y: vals.vLaox_min,
+                name: "vLaox",
+                type: 'scatter',
+                mode: 'lines',
+                yaxis: 'y2',
+                line: {color: '#1CADE4', dash: 'dash', width: 2}
+            });
             
-            updateModel();
+            // PD curve
+            traces.push({
+                x: displayPower,
+                y: vals.PD_min,
+                name: "PD",
+                type: 'scatter',
+                mode: 'lines',
+                yaxis: 'y2',
+                line: {color: "#42BA97", width: 3}
+            });
             
-            // Show notification
-            alert(`Calculated rest oxygen consumption: ${params.VO2_Ruhe.toFixed(3)} l/min`);
+            // La accumulation curve
+            traces.push({
+                x: displayPower,
+                y: vals.La_accum,
+                name: "La Accumulation",
+                type: 'scatter',
+                mode: 'lines',
+                yaxis: 'y2',
+                line: {color: '#C8133B', width: 3}
+            });
+            
+            // Annotations
+            const annotations = [
+                {
+                    x: xMid,
+                    y: displayVO2max + (y1Max - displayVO2max) * 0.1,
+                    text: `V̇O₂max: ${relVO2max.toFixed(1)} ml·min<sup>-1</sup>·kg<sup>-1</sup>`,
+                    showarrow: false,
+                    font: {color: '#666666'},
+                    xanchor: "center"
+                },
+                {
+                    x: displayPdMaxPos,
+                    y: y1Max * 0.90,
+                    text: `FATmax<br>${appState.weight_based ? displayPdMaxPos.toFixed(1) : Math.round(displayPdMaxPos)} ${appState.weight_based ? "W·kg<sup>-1</sup>" : "W"}`,
+                    showarrow: false,
+                    font: {color: '#666666'},
+                    xanchor: "center"
+                },
+                {
+                    x: displayPdZeroPos,
+                    y: y1Max * 0.90,
+                    text: `MLSS<br>${appState.weight_based ? displayPdZeroPos.toFixed(1) : Math.round(displayPdZeroPos)} ${appState.weight_based ? "W·kg<sup>-1</sup>" : "W"}`,
+                    showarrow: false,
+                    font: {color: '#666666'},
+                    xanchor: "center"
+                },
+                {
+                    x: 0.01,
+                    y: 0.70,
+                    xref: "paper",
+                    yref: "paper",
+                    text: appState.curvilinear ? 
+                        (appState.weight_based ? 
+                            `V̇O₂<sub>SS</sub>(P) = ${vals.a_opt.toFixed(4)} · P² + ${appState.CE_range[0].toFixed(1)} · P + ${(appState.VO2Base/appState.body_mass).toFixed(1)}` :
+                            `V̇O₂<sub>SS</sub>(P) = ${vals.a_opt.toFixed(4)} · P² + ${appState.CE_range[0].toFixed(1)} · P + ${Math.round(appState.VO2Base)}`) :
+                        (appState.weight_based ? 
+                            `V̇O₂<sub>SS</sub>(P) = ${appState.CEVO2.toFixed(1)} · P + ${(appState.VO2Base/appState.body_mass).toFixed(1)}` :
+                            `V̇O₂<sub>SS</sub>(P) = ${appState.CEVO2.toFixed(1)} · P + ${Math.round(appState.VO2Base)}`),
+                    showarrow: false,
+                    font: {
+                        family: "Arial",
+                        size: 12,
+                        color: "#666666"
+                    },
+                    xanchor: "left",
+                    yanchor: "bottom"
+                }
+            ];
+            
+            // Set axis ranges based on lock settings
+            const xaxisRange = appState.lock_x_axis ? [0, 600] : [0, Math.max(...displayPower) * 1.05];
+            const yaxisRange = appState.lock_y_axis ? [0, y1Max] : [0, Math.max(...displayVO2ss_unlimited) * 1.1];
+            
+            // Create layout for the plot
+            const layout = {
+                title: {
+                    text: "V̇O₂<sub>SS</sub>, vLass, vLaox, PD and Lactate Accumulation",
+                    font: {
+                        size: 18,
+                        color: '#2683C6'
+                    }
+                },
+                margin: {l: 60, r: 60, t: 50, b: 50},
+                xaxis: {
+                    title: {
+                        text: `Power (${appState.weight_based ? "W·kg<sup>-1</sup>" : "W"})`,
+                        font: {
+                            size: 14
+                        }
+                    },
+                    range: xaxisRange,
+                    showgrid: true,
+                    gridcolor: 'rgba(200,200,200,0.2)'
+                },
+                yaxis: {
+                    title: {
+                        text: `V̇O₂<sub>SS</sub> (${appState.weight_based ? "ml·min<sup>-1</sup>·kg<sup>-1</sup>" : "ml·min<sup>-1</sup>"})`,
+                        font: {
+                            size: 14
+                        }
+                    },
+                    side: "left",
+                    range: yaxisRange,
+                    showgrid: true,
+                    gridcolor: 'rgba(200,200,200,0.2)'
+                },
+                yaxis2: {
+                    title: {
+                        text: "Lactate Rates (mmol·l<sup>-1</sup>·min<sup>-1</sup>) & Accumulation (mmol·l<sup>-1</sup>)",
+                        font: {
+                            size: 14
+                        }
+                    },
+                    overlaying: "y",
+                    side: "right",
+                    range: [0, 14],
+                    showgrid: false,
+                    dtick: 2
+                },
+                showlegend: true,
+                legend: {
+                    x: 0.01,
+                    y: 0.99,
+                    bgcolor: 'rgba(255, 255, 255, 0.8)',
+                    bordercolor: 'rgba(0,0,0,0.1)',
+                    borderwidth: 1
+                },
+                annotations: annotations,
+                paper_bgcolor: 'rgba(255,255,255,0)',
+                plot_bgcolor: 'rgba(255,255,255,0.5)',
+                hovermode: 'closest'
+            };
+            
+            Plotly.newPlot('plot-container', traces, layout);
+            
+            // Update the values container
+            updateValuesDisplay(vals);
         }
-
-        // Initialize the application
-        init();
+        
+        // Function to update the values display
+        function updateValuesDisplay(vals) {
+            const pdMaxIdx = vals.PD_min.indexOf(Math.max(...vals.PD_min));
+            
+            // Find index of MLSS (PD closest to zero)
+            let minAbsPD = Infinity;
+            let pdZeroIdx = 0;
+            for (let i = 0; i < vals.PD_min.length; i++) {
+                const absPD = Math.abs(vals.PD_min[i]);
+                if (absPD < minAbsPD) {
+                    minAbsPD = absPD;
+                    pdZeroIdx = i;
+                }
+            }
+            
+            // Find index of BLC ≈ 4.0
+            let minDiffLa = Infinity;
+            let la4Idx = 0;
+            for (let i = 0; i < vals.La_accum.length; i++) {
+                if (!isNaN(vals.La_accum[i])) {
+                    const diffLa = Math.abs(vals.La_accum[i] - 4.0);
+                    if (diffLa < minDiffLa) {
+                        minDiffLa = diffLa;
+                        la4Idx = i;
+                    }
+                }
+            }
+            
+            // Format the output text with proper units
+            const formatOutput = (positionName, idx) => {
+                const powerValue = appState.weight_based ? vals.P[idx]/appState.body_mass : vals.P[idx];
+                const vo2ssValue = appState.weight_based ? vals.VO2ss[idx]/appState.body_mass : vals.VO2ss[idx];
+                const powerUnit = appState.weight_based ? "W·kg⁻¹" : "W";
+                const vo2ssUnit = appState.weight_based ? "ml·min⁻¹·kg⁻¹" : "ml·min⁻¹";
+                
+                return `${positionName} (${powerValue.toFixed(1)} ${powerUnit}):\n` +
+                    `  V̇O₂ₛₛ: ${vo2ssValue.toFixed(2)} ${vo2ssUnit}\n` +
+                    `  vLass: ${vals.vLass_min[idx].toFixed(4)} mmol·l⁻¹·min⁻¹\n` +
+                    `  vLaox: ${vals.vLaox_min[idx].toFixed(4)} mmol·l⁻¹·min⁻¹\n` +
+                    `  PD: ${vals.PD_min[idx].toFixed(4)} mmol·l⁻¹·min⁻¹\n` +
+                    `  La Accumulation: ${isNaN(vals.La_accum[idx]) ? '0.0000' : vals.La_accum[idx].toFixed(4)} mmol·l⁻¹\n`;
+            };
+            
+            const outputText = 
+                formatOutput("FATmax", pdMaxIdx) +
+                formatOutput("MLSS", pdZeroIdx) +
+                formatOutput("BLC ≈ 4.0", la4Idx);
+            
+            elements.valuesContainer.textContent = outputText;
+        }
+        
+        // Function to show notification
+        function showNotification(message, type = 'info') {
+            elements.notification.textContent = message;
+            elements.notification.className = 'notification ' + type;
+            elements.notification.style.display = 'block';
+            
+            setTimeout(() => {
+                elements.notification.style.display = 'none';
+            }, 5000);
+        }
+        
+        // Initialize
+        function initialize() {
+            // Set up event listeners for all sliders and inputs
+            elements.CEVO2.addEventListener('input', function() {
+                appState.CEVO2 = parseFloat(this.value);
+                elements.CEVO2Value.textContent = appState.CEVO2.toFixed(1);
+                updatePlot();
+            });
+            
+            elements.CE_range_start.addEventListener('input', function() {
+                appState.CE_range[0] = parseFloat(this.value);
+                elements.CE_range_startValue.textContent = appState.CE_range[0].toFixed(1);
+                updatePlot();
+            });
+            
+            elements.CE_range_end.addEventListener('input', function() {
+                appState.CE_range[1] = parseFloat(this.value);
+                elements.CE_range_endValue.textContent = appState.CE_range[1].toFixed(1);
+                updatePlot();
+            });
+            
+            elements.VO2max.addEventListener('input', function() {
+                appState.VO2max = parseFloat(this.value);
+                elements.VO2maxValue.textContent = appState.VO2max.toFixed(0);
+                appState.VO2max_kg = appState.VO2max / appState.body_mass;
+                elements.VO2max_kg.value = appState.VO2max_kg;
+                elements.VO2max_kgValue.textContent = appState.VO2max_kg.toFixed(2);
+                updatePlot();
+            });
+            
+            elements.VO2max_kg.addEventListener('input', function() {
+                appState.VO2max_kg = parseFloat(this.value);
+                elements.VO2max_kgValue.textContent = appState.VO2max_kg.toFixed(2);
+                appState.VO2max = appState.VO2max_kg * appState.body_mass;
+                elements.VO2max.value = appState.VO2max;
+                elements.VO2maxValue.textContent = appState.VO2max.toFixed(0);
+                updatePlot();
+            });
+            
+            elements.VO2Base.addEventListener('input', function() {
+                appState.VO2Base = parseFloat(this.value);
+                elements.VO2BaseValue.textContent = appState.VO2Base.toFixed(0);
+                if (appState.calculated_vo2base !== null && 
+                    appState.VO2Base !== appState.calculated_vo2base) {
+                    showNotification(`V̇O₂Base manually changed to ${appState.VO2Base} ml·min⁻¹ (Calculated value: ${appState.calculated_vo2base} ml·min⁻¹)`, 'warning');
+                }
+                updatePlot();
+            });
+            
+            elements.vLamax.addEventListener('input', function() {
+                appState.vLamax = parseFloat(this.value);
+                elements.vLamaxValue.textContent = appState.vLamax.toFixed(2);
+                updatePlot();
+            });
+            
+            elements.body_mass.addEventListener('input', function() {
+                appState.body_mass = parseFloat(this.value);
+                elements.body_massValue.textContent = appState.body_mass.toFixed(1);
+                appState.VO2max_kg = appState.VO2max / appState.body_mass;
+                elements.VO2max_kg.value = appState.VO2max_kg;
+                elements.VO2max_kgValue.textContent = appState.VO2max_kg.toFixed(2);
+                // Recalculate VO2Base
+                const kcalDay = calculateBMR(appState.gender, appState.body_mass, appState.height, appState.age);
+                appState.calculated_vo2base = Math.round(calculateVO2Base(kcalDay, appState.gender));
+                updatePlot();
+            });
+            
+            elements.age.addEventListener('input', function() {
+                appState.age = parseInt(this.value);
+                elements.ageValue.textContent = appState.age;
+                // Recalculate VO2Base
+                const kcalDay = calculateBMR(appState.gender, appState.body_mass, appState.height, appState.age);
+                appState.calculated_vo2base = Math.round(calculateVO2Base(kcalDay, appState.gender));
+                updatePlot();
+            });
+            
+            elements.height.addEventListener('input', function() {
+                appState.height = parseInt(this.value);
+                elements.heightValue.textContent = appState.height;
+                // Recalculate VO2Base
+                const kcalDay = calculateBMR(appState.gender, appState.body_mass, appState.height, appState.age);
+                appState.calculated_vo2base = Math.round(calculateVO2Base(kcalDay, appState.gender));
+                updatePlot();
+            });
+            
+            elements.male.addEventListener('change', function() {
+                if (this.checked) {
+                    appState.gender = 'male';
+                    // Recalculate VO2Base
+                    const kcalDay = calculateBMR(appState.gender, appState.body_mass, appState.height, appState.age);
+                    appState.calculated_vo2base = Math.round(calculateVO2Base(kcalDay, appState.gender));
+                    updatePlot();
+                }
+            });
+            
+            elements.female.addEventListener('change', function() {
+                if (this.checked) {
+                    appState.gender = 'female';
+                    // Recalculate VO2Base
+                    const kcalDay = calculateBMR(appState.gender, appState.body_mass, appState.height, appState.age);
+                    appState.calculated_vo2base = Math.round(calculateVO2Base(kcalDay, appState.gender));
+                    updatePlot();
+                }
+            });
+            
+            elements.curvilinear.addEventListener('change', function() {
+                appState.curvilinear = this.checked;
+                elements.linearCeControl.style.display = appState.curvilinear ? 'none' : 'block';
+                elements.curvilinearCeControl.style.display = appState.curvilinear ? 'block' : 'none';
+                updatePlot();
+            });
+            
+            elements.weight_based.addEventListener('change', function() {
+                appState.weight_based = this.checked;
+                updatePlot();
+            });
+            
+            elements.lock_y_axis.addEventListener('change', function() {
+                appState.lock_y_axis = this.checked;
+                updatePlot();
+            });
+            
+            elements.lock_x_axis.addEventListener('change', function() {
+                appState.lock_x_axis = this.checked;
+                updatePlot();
+            });
+            
+            elements.calculate_vo2base.addEventListener('click', function() {
+                const kcalDay = calculateBMR(appState.gender, appState.body_mass, appState.height, appState.age);
+                const vo2base = Math.round(calculateVO2Base(kcalDay, appState.gender));
+                appState.calculated_vo2base = vo2base;
+                appState.VO2Base = vo2base;
+                elements.VO2Base.value = vo2base;
+                elements.VO2BaseValue.textContent = vo2base;
+                
+                showNotification(`Calculated V̇O₂Base: ${vo2base} ml·min⁻¹`, 'info');
+                updatePlot();
+            });
+            
+            // Set up collapsible sections
+            const coll = document.getElementsByClassName("collapsible");
+            for (let i = 0; i < coll.length; i++) {
+                coll[i].addEventListener("click", function() {
+                    this.classList.toggle("active");
+                    const content = this.nextElementSibling;
+                    if (content.style.maxHeight) {
+                        content.style.maxHeight = null;
+                    } else {
+                        content.style.maxHeight = content.scrollHeight + "px";
+                    }
+                });
+            }
+            
+            // Calculate initial VO2Base
+            const kcalDay = calculateBMR(appState.gender, appState.body_mass, appState.height, appState.age);
+            appState.calculated_vo2base = Math.round(calculateVO2Base(kcalDay, appState.gender));
+            
+            // Initial plot
+            updatePlot();
+        }
+        
+        // Initialize the app when the page loads
+        window.addEventListener('load', initialize);
     </script>
 </body>
 </html>

@@ -1,0 +1,1305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Metabolic Simulation Model</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2683C6;
+            --secondary-color: #42BA97;
+            --accent-color: #EF5350;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --border-color: #dee2e6;
+            --gradient-start: #f1f8ff;
+            --gradient-end: #ffffff;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            color: var(--dark-color);
+            line-height: 1.6;
+        }
+        
+        .container {
+            display: flex;
+            min-height: 100vh;
+            max-width: 100%;
+        }
+        
+        .sidebar {
+            width: 350px;
+            background: linear-gradient(to bottom, var(--gradient-start), var(--gradient-end));
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            overflow-y: auto;
+            border-right: 1px solid var(--border-color);
+        }
+        
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            background-color: #fff;
+        }
+        
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+            text-align: center;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border-color);
+        }
+        
+        .control-group {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+            background-color: white;
+            border-radius: 6px;
+            padding: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .control-group:last-child {
+            border-bottom: none;
+        }
+        
+        .control-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+        
+        .slider-container {
+            margin-bottom: 15px;
+        }
+        
+        .range-slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: linear-gradient(to right, #ddd, var(--primary-color));
+            outline: none;
+            margin: 10px 0;
+        }
+        
+        .range-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+        
+        .range-slider::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+        
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            cursor: pointer;
+        }
+        
+        .checkbox-container input {
+            margin-right: 10px;
+            cursor: pointer;
+        }
+        
+        .radio-group {
+            margin: 10px 0;
+        }
+        
+        .radio-option {
+            margin: 5px 0;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        
+        .radio-option input {
+            margin-right: 10px;
+            cursor: pointer;
+        }
+        
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin-top: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        button:hover {
+            background-color: #1a6eae;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 5px rgba(0,0,0,0.15);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        #plot-container {
+            flex: 1;
+            min-height: 500px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+            padding: 5px;
+        }
+        
+        #values-container {
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            font-family: monospace;
+            white-space: pre-wrap;
+            height: 220px;
+            overflow-y: auto;
+            color: #444;
+            font-size: 0.92rem;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.2);
+            display: none;
+            max-width: 300px;
+            z-index: 1000;
+            animation: fadeIn 0.3s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .notification.warning {
+            border-left: 4px solid #ffc107;
+        }
+        
+        .notification.info {
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .slider-value {
+            display: inline-block;
+            width: 60px;
+            text-align: right;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        h4 {
+            margin-top: 15px;
+            color: var(--primary-color);
+        }
+        
+        hr {
+            border: 0;
+            height: 1px;
+            background-color: var(--border-color);
+            margin: 15px 0;
+        }
+        
+        .dual-slider-container {
+            position: relative;
+            margin-bottom: 15px;
+        }
+        
+        .dual-slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: linear-gradient(to right, #ddd, var(--primary-color));
+            outline: none;
+            margin: 10px 0;
+        }
+        
+        .dual-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+            z-index: 2;
+        }
+        
+        .dual-slider-values {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+        }
+        
+        .collapsible {
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 0;
+            background: none;
+            color: var(--dark-color);
+            text-align: left;
+            width: 100%;
+            margin: 0;
+            font-weight: 600;
+        }
+        
+        .collapsible:after {
+            content: '\002B';
+            font-weight: bold;
+            float: right;
+            margin-left: 5px;
+        }
+        
+        .active:after {
+            content: "\2212";
+        }
+        
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.2s ease-out;
+        }
+        
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .info-icon {
+            color: var(--primary-color);
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background-color: rgba(38, 131, 198, 0.1);
+        }
+        
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 10px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+        
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        .axis-controls {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: rgba(38, 131, 198, 0.05);
+            border-radius: 4px;
+        }
+        
+        .card-title {
+            margin-bottom: 10px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: var(--primary-color);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 5px;
+        }
+        
+        .fancy-checkbox {
+            display: inline-block;
+            position: relative;
+            padding-left: 30px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            user-select: none;
+        }
+        
+        .fancy-checkbox input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+            height: 0;
+            width: 0;
+        }
+        
+        .checkmark {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 20px;
+            width: 20px;
+            background-color: #eee;
+            border-radius: 3px;
+            transition: all 0.2s;
+        }
+        
+        .fancy-checkbox:hover input ~ .checkmark {
+            background-color: #ccc;
+        }
+        
+        .fancy-checkbox input:checked ~ .checkmark {
+            background-color: var(--primary-color);
+        }
+        
+        .checkmark:after {
+            content: "";
+            position: absolute;
+            display: none;
+        }
+        
+        .fancy-checkbox input:checked ~ .checkmark:after {
+            display: block;
+        }
+        
+        .fancy-checkbox .checkmark:after {
+            left: 7px;
+            top: 3px;
+            width: 5px;
+            height: 10px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+        
+        .small-text {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .model-info {
+            font-size: 0.9rem;
+            color: #666;
+            margin: 10px 0;
+            padding: 10px;
+            border-left: 3px solid var(--secondary-color);
+            background-color: rgba(66, 186, 151, 0.05);
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 3px 7px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border-radius: 12px;
+            margin-left: 5px;
+            vertical-align: middle;
+        }
+        
+        .badge-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .badge-secondary {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+        
+        .badge-accent {
+            background-color: var(--accent-color);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h1>Metabolic Simulation Model</h1>
+            
+            <div class="control-group" id="ce-controls">
+                <div class="header-section">
+                    <div class="control-label">Oxygen Demand Settings</div>
+                    <div class="tooltip info-icon">ⓘ
+                        <span class="tooltiptext">Defines how oxygen demand changes with power output, as shown in the paper by Dunst et al.</span>
+                    </div>
+                </div>
+                
+                <div class="checkbox-container">
+                    <label class="fancy-checkbox">
+                        <input type="checkbox" id="curvilinear" name="curvilinear">
+                        <span class="checkmark"></span>
+                        Curvilinear CE Relationship
+                    </label>
+                    <span class="badge badge-primary">Fig.1</span>
+                </div>
+                
+                <div id="linear-ce-control" class="slider-container">
+                    <label for="CEVO2">CE (ml·min<sup>-1</sup>·W<sup>-1</sup>): <span id="CEVO2-value" class="slider-value">11.0</span></label>
+                    <input type="range" id="CEVO2" class="range-slider" min="8" max="15" value="11" step="0.1">
+                </div>
+                
+                <div id="curvilinear-ce-control" class="slider-container" style="display:none;">
+                    <label for="CE_range_start">CE Start (ml·min<sup>-1</sup>·W<sup>-1</sup>): <span id="CE_range_start-value" class="slider-value">11.0</span></label>
+                    <input type="range" id="CE_range_start" class="range-slider" min="8" max="15" value="11" step="0.1">
+                    
+                    <label for="CE_range_end">CE Target (ml·min<sup>-1</sup>·W<sup>-1</sup>): <span id="CE_range_end-value" class="slider-value">12.0</span></label>
+                    <input type="range" id="CE_range_end" class="range-slider" min="8" max="15" value="12" step="0.1">
+                </div>
+                
+                <div class="small-text">Based on Fig.1 from Dunst et al. paper showing the effect of cycling cadence on oxygen demand.</div>
+            </div>
+            
+            <div class="control-group">
+                <div class="header-section">
+                    <div class="control-label">Physiological Parameters</div>
+                    <div class="tooltip info-icon">ⓘ
+                        <span class="tooltiptext">Key physiological values used in Mader's metabolic model.</span>
+                    </div>
+                </div>
+                
+                <div class="slider-container">
+                    <label for="VO2max">V̇O₂max (ml·min<sup>-1</sup>): <span id="VO2max-value" class="slider-value">6000</span></label>
+                    <input type="range" id="VO2max" class="range-slider" min="2000" max="7500" value="6000" step="10">
+                </div>
+                
+                <div class="slider-container">
+                    <label for="VO2max_kg">V̇O₂max (ml·min<sup>-1</sup>·kg<sup>-1</sup>): <span id="VO2max_kg-value" class="slider-value">66.67</span></label>
+                    <input type="range" id="VO2max_kg" class="range-slider" min="30" max="100" value="66.67" step="0.01">
+                </div>
+                
+                <div class="slider-container">
+                    <label for="VO2Base">V̇O₂Base (ml·min<sup>-1</sup>): <span id="VO2Base-value" class="slider-value">400</span></label>
+                    <input type="range" id="VO2Base" class="range-slider" min="200" max="800" value="400" step="10">
+                </div>
+                
+                <div class="slider-container">
+                    <label for="vLamax">vLamax (mmol·l<sup>-1</sup>·s<sup>-1</sup>): <span id="vLamax-value" class="slider-value">0.80</span></label>
+                    <input type="range" id="vLamax" class="range-slider" min="0.2" max="1.5" value="0.8" step="0.05">
+                </div>
+                
+                <div class="checkbox-container">
+                    <label class="fancy-checkbox">
+                        <input type="checkbox" id="weight_based" name="weight_based">
+                        <span class="checkmark"></span>
+                        Weight-based Values
+                    </label>
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <div class="axis-controls">
+                    <div class="card-title">Plot Controls</div>
+                    <div>
+                        <label class="fancy-checkbox">
+                            <input type="checkbox" id="lock_y_axis" name="lock_y_axis" checked>
+                            <span class="checkmark"></span>
+                            Lock Y-Axis
+                        </label>
+                    </div>
+                    <div>
+                        <label class="fancy-checkbox">
+                            <input type="checkbox" id="lock_x_axis" name="lock_x_axis" checked>
+                            <span class="checkmark"></span>
+                            Lock X-Axis
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="model-info">
+                    This simulation is based on Mader's metabolic model as described in "Enhancing endurance performance predictions: the role of movement velocity in metabolic simulations demonstrated by cycling cadence" (Dunst et al., 2025).
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <button type="button" class="collapsible">V̇O₂Base Calculation ▼</button>
+                <div class="collapsible-content">
+                    <div class="tooltip info-icon" style="float:right;margin-top:10px;">ⓘ
+                        <span class="tooltiptext">Calculate resting oxygen consumption based on anthropometric data.</span>
+                    </div>
+                    
+                    <div class="radio-group">
+                        <div class="control-label">Gender:</div>
+                        <div class="radio-option">
+                            <input type="radio" id="male" name="gender" value="male" checked>
+                            <label for="male">Male</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="female" name="gender" value="female">
+                            <label for="female">Female</label>
+                        </div>
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label for="body_mass">Body Mass (kg): <span id="body_mass-value" class="slider-value">90.0</span></label>
+                        <input type="range" id="body_mass" class="range-slider" min="40" max="120" value="90" step="0.1">
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label for="age">Age (years): <span id="age-value" class="slider-value">28</span></label>
+                        <input type="range" id="age" class="range-slider" min="18" max="100" value="28" step="1">
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label for="height">Height (cm): <span id="height-value" class="slider-value">193</span></label>
+                        <input type="range" id="height" class="range-slider" min="140" max="220" value="193" step="1">
+                    </div>
+                    
+                    <button id="calculate_vo2base" type="button">Calculate V̇O₂Base</button>
+                    
+                    <div class="small-text">Uses Harris-Benedict equation to estimate BMR, then converts to oxygen uptake.</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div id="plot-container"></div>
+            <div id="values-container"></div>
+        </div>
+    </div>
+    
+    <div id="notification" class="notification"></div>
+    
+    <script>
+        // App state management
+        const appState = {
+            CEVO2: 11.0,
+            CE_range: [11.0, 12.0],
+            VO2max: 6000,
+            VO2max_kg: 66.67,
+            VO2Base: 400,
+            vLamax: 0.8,
+            body_mass: 90.0,
+            gender: 'male',
+            age: 28,
+            height: 193,
+            curvilinear: false,
+            weight_based: false,
+            lock_y_axis: true,
+            lock_x_axis: true,
+            calculated_vo2base: null
+        };
+        
+        // DOM elements
+        const elements = {
+            CEVO2: document.getElementById('CEVO2'),
+            CEVO2Value: document.getElementById('CEVO2-value'),
+            CE_range_start: document.getElementById('CE_range_start'),
+            CE_range_startValue: document.getElementById('CE_range_start-value'),
+            CE_range_end: document.getElementById('CE_range_end'),
+            CE_range_endValue: document.getElementById('CE_range_end-value'),
+            VO2max: document.getElementById('VO2max'),
+            VO2maxValue: document.getElementById('VO2max-value'),
+            VO2max_kg: document.getElementById('VO2max_kg'),
+            VO2max_kgValue: document.getElementById('VO2max_kg-value'),
+            VO2Base: document.getElementById('VO2Base'),
+            VO2BaseValue: document.getElementById('VO2Base-value'),
+            vLamax: document.getElementById('vLamax'),
+            vLamaxValue: document.getElementById('vLamax-value'),
+            body_mass: document.getElementById('body_mass'),
+            body_massValue: document.getElementById('body_mass-value'),
+            age: document.getElementById('age'),
+            ageValue: document.getElementById('age-value'),
+            height: document.getElementById('height'),
+            heightValue: document.getElementById('height-value'),
+            male: document.getElementById('male'),
+            female: document.getElementById('female'),
+            curvilinear: document.getElementById('curvilinear'),
+            weight_based: document.getElementById('weight_based'),
+            lock_y_axis: document.getElementById('lock_y_axis'),
+            lock_x_axis: document.getElementById('lock_x_axis'),
+            calculate_vo2base: document.getElementById('calculate_vo2base'),
+            linearCeControl: document.getElementById('linear-ce-control'),
+            curvilinearCeControl: document.getElementById('curvilinear-ce-control'),
+            plotContainer: document.getElementById('plot-container'),
+            valuesContainer: document.getElementById('values-container'),
+            notification: document.getElementById('notification')
+        };
+        
+        // Function to calculate basal metabolic rate (BMR)
+        function calculateBMR(gender, mass, height, age) {
+            if (gender === 'male') {
+                return 66.5 + (13.75 * mass) + (5.003 * height) - (6.775 * age);
+            } else {
+                return 655.1 + (9.563 * mass) + (1.850 * height) - (4.676 * age);
+            }
+        }
+        
+        // Function to calculate VO2Base from BMR
+        function calculateVO2Base(kcalDay, gender) {
+            const ka = 19.946;
+            const factor = gender === 'male' ? 1.287 : 1.278;
+            return (kcalDay / (24 * 60 * ka)) * 4.1868 * factor * 1000;
+        }
+        
+        // Function to find optimal 'a' coefficient for curvilinear relationship
+        function findOptimalA(startCE, targetCE, VO2max, VO2Base) {
+            const objective = function(a) {
+                const b = startCE;
+                const c = VO2Base - VO2max;
+                const discriminant = b*b - 4*a*c;
+                if (discriminant < 0) return 1e6;
+                const xIntersect = (-b + Math.sqrt(discriminant))/(2*a);
+                if (xIntersect <= 0) return 1e6;
+                const slopeAtIntersection = 2*a*xIntersect + startCE;
+                return Math.pow(slopeAtIntersection - targetCE, 2);
+            };
+            
+            // Simple optimization algorithm
+            let aMin = 0.001;
+            let aMax = 0.1;
+            let iterations = 100;
+            let step = (aMax - aMin) / iterations;
+            let bestA = aMin;
+            let bestError = objective(aMin);
+            
+            for (let i = 1; i <= iterations; i++) {
+                const a = aMin + i * step;
+                const error = objective(a);
+                if (error < bestError) {
+                    bestError = error;
+                    bestA = a;
+                }
+            }
+            
+            return bestA;
+        }
+        
+        // Main function to calculate metabolic values
+        function calculateValues() {
+            const CELaO2 = 0.02049 / appState.body_mass;
+            const VolLa = 0.4;
+            const ks1 = 0.0635;
+            const ks2 = Math.pow(1.1, 3);
+            
+            // Calculate max power with linear CE value
+            const maxPower = appState.curvilinear ? 
+                ((appState.VO2max - appState.VO2Base) / appState.CE_range[0]) * 1.25 :
+                ((appState.VO2max - appState.VO2Base) / appState.CEVO2) * 1.25;
+            
+            // Create power array
+            const P = Array.from({length: Math.ceil(maxPower) + 1}, (_, i) => i);
+            
+            let VO2ss_unlimited;
+            let aOpt = null;
+            
+            if (appState.curvilinear) {
+                // Calculate optimal coefficient for curvilinear relationship
+                aOpt = findOptimalA(appState.CE_range[0], appState.CE_range[1], appState.VO2max, appState.VO2Base);
+                
+                // Curvilinear VO2ss calculation
+                VO2ss_unlimited = P.map(p => aOpt * p * p + appState.CE_range[0] * p + appState.VO2Base);
+            } else {
+                // Linear VO2ss calculation
+                VO2ss_unlimited = P.map(p => appState.CEVO2 * p + appState.VO2Base);
+            }
+            
+            // Find where VO2ss crosses VO2max
+            const crossIndices = VO2ss_unlimited.findIndex(v => v >= appState.VO2max);
+            const crossPoint = crossIndices !== -1 ? crossIndices : VO2ss_unlimited.length;
+            
+            // Limit VO2ss to VO2max
+            const VO2ss = VO2ss_unlimited.map(v => Math.min(v, appState.VO2max));
+            
+            // Calculate vLass
+            const vLass = VO2ss.map(vo2 => 
+                appState.vLamax / (1 + ks2 * Math.pow((appState.VO2max - vo2)/(ks1 * vo2), 3/2))
+            );
+            
+            // Calculate vLaox
+            const vLaox = VO2ss_unlimited.map(vo2 => (CELaO2 * vo2) / (VolLa * 60));
+            
+            // Calculate pyruvate deficit
+            const PD = vLaox.map((ox, i) => ox - vLass[i]);
+            
+            // Convert to minutes for display
+            const vLass_min = vLass.map(v => v * 60);
+            const vLaox_min = vLaox.map(v => v * 60);
+            const PD_min = PD.map(p => p * 60);
+            
+            // Calculate lactate accumulation
+            const La_accum = [];
+            for (let i = 0; i < P.length; i++) {
+                if (i === 0) {
+                    La_accum.push(Math.max(0, (vLass[i] - vLaox[i])));
+                } else {
+                    La_accum.push(La_accum[i-1] + Math.max(0, (vLass[i] - vLaox[i])));
+                }
+            }
+            
+            // Set initial values to NA
+            const startIdx = La_accum.findIndex(la => la > 0);
+            if (startIdx !== -1) {
+                for (let i = 0; i < startIdx; i++) {
+                    La_accum[i] = NaN;
+                }
+            }
+            
+            // Find important points
+            const pdMaxPos = P[PD_min.indexOf(Math.max(...PD_min))];
+            
+            // Find closest to zero (MLSS)
+            let minAbsPD = Infinity;
+            let pdZeroPos = 0;
+            for (let i = 0; i < PD_min.length; i++) {
+                const absPD = Math.abs(PD_min[i]);
+                if (absPD < minAbsPD) {
+                    minAbsPD = absPD;
+                    pdZeroPos = P[i];
+                }
+            }
+            
+            return {
+                P,
+                VO2ss,
+                VO2ss_unlimited,
+                crossPoint,
+                vLass_min,
+                vLaox_min,
+                PD_min,
+                La_accum,
+                pd_max_pos: pdMaxPos,
+                pd_zero_pos: pdZeroPos,
+                max_power: maxPower,
+                a_opt: aOpt
+            };
+        }
+        
+        // Function to update the plot
+        function updatePlot() {
+            const vals = calculateValues();
+            
+            const relVO2max = appState.VO2max / appState.body_mass;
+            const relPower = vals.P.map(p => p / appState.body_mass);
+            const relVO2ss = vals.VO2ss.map(vo2 => vo2 / appState.body_mass);
+            const relVO2ss_unlimited = vals.VO2ss_unlimited.map(vo2 => vo2 / appState.body_mass);
+            const relPdMaxPos = vals.pd_max_pos / appState.body_mass;
+            const relPdZeroPos = vals.pd_zero_pos / appState.body_mass;
+            
+            const displayPower = appState.weight_based ? relPower : vals.P;
+            const displayVO2ss = appState.weight_based ? relVO2ss : vals.VO2ss;
+            const displayVO2ss_unlimited = appState.weight_based ? relVO2ss_unlimited : vals.VO2ss_unlimited;
+            const displayVO2max = appState.weight_based ? relVO2max : appState.VO2max;
+            const displayPdMaxPos = appState.weight_based ? relPdMaxPos : vals.pd_max_pos;
+            const displayPdZeroPos = appState.weight_based ? relPdZeroPos : vals.pd_zero_pos;
+            
+            const y1Max = displayVO2max * 1.25;
+            const xMid = Math.max(...displayPower) / 2;
+            
+            // Create traces for the plot
+            const traces = [];
+            
+            // VO2max line
+            traces.push({
+                x: displayPower,
+                y: Array(displayPower.length).fill(displayVO2max),
+                name: "V̇O₂max",
+                type: 'scatter',
+                mode: 'lines',
+                line: {color: '#CCCCCC', dash: 'dot', width: 1},
+                showlegend: false
+            });
+            
+            // FATmax vertical line
+            if (displayPdMaxPos >= Math.min(...displayPower) && displayPdMaxPos <= Math.max(...displayPower)) {
+                traces.push({
+                    x: [displayPdMaxPos, displayPdMaxPos],
+                    y: [0, 20],
+                    name: "PD max",
+                    type: 'scatter',
+                    mode: 'lines',
+                    line: {color: '#CCCCCC', dash: 'dot', width: 1},
+                    showlegend: false,
+                    yaxis: 'y2'
+                });
+            }
+            
+            // MLSS vertical line
+            if (displayPdZeroPos >= Math.min(...displayPower) && displayPdZeroPos <= Math.max(...displayPower)) {
+                traces.push({
+                    x: [displayPdZeroPos, displayPdZeroPos],
+                    y: [0, 20],
+                    name: "PD = 0",
+                    type: 'scatter',
+                    mode: 'lines',
+                    line: {color: '#CCCCCC', dash: 'dot', width: 1},
+                    showlegend: false,
+                    yaxis: 'y2'
+                });
+            }
+            
+            // VO2ss curve
+            if (vals.crossPoint > 1) {
+                traces.push({
+                    x: displayPower.slice(0, vals.crossPoint),
+                    y: displayVO2ss_unlimited.slice(0, vals.crossPoint),
+                    name: "V̇O₂ss",
+                    type: 'scatter',
+                    mode: 'lines',
+                    line: {color: '#2683C6', width: 3}
+                });
+                
+                if (vals.crossPoint < displayPower.length) {
+                    traces.push({
+                        x: displayPower.slice(vals.crossPoint),
+                        y: displayVO2ss_unlimited.slice(vals.crossPoint),
+                        name: "V̇O₂ss",
+                        type: 'scatter',
+                        mode: 'lines',
+                        showlegend: false,
+                        line: {color: '#2683C6', dash: 'dash', width: 3}
+                    });
+                }
+            }
+            
+            // vLass curve
+            traces.push({
+                x: displayPower,
+                y: vals.vLass_min,
+                name: "vLass",
+                type: 'scatter',
+                mode: 'lines',
+                yaxis: 'y2',
+                line: {color: '#EF5350', dash: 'dash', width: 2}
+            });
+            
+            // vLaox curve
+            traces.push({
+                x: displayPower,
+                y: vals.vLaox_min,
+                name: "vLaox",
+                type: 'scatter',
+                mode: 'lines',
+                yaxis: 'y2',
+                line: {color: '#1CADE4', dash: 'dash', width: 2}
+            });
+            
+            // PD curve
+            traces.push({
+                x: displayPower,
+                y: vals.PD_min,
+                name: "PD",
+                type: 'scatter',
+                mode: 'lines',
+                yaxis: 'y2',
+                line: {color: "#42BA97", width: 3}
+            });
+            
+            // La accumulation curve
+            traces.push({
+                x: displayPower,
+                y: vals.La_accum,
+                name: "La Accumulation",
+                type: 'scatter',
+                mode: 'lines',
+                yaxis: 'y2',
+                line: {color: '#C8133B', width: 3}
+            });
+            
+            // Annotations
+            const annotations = [
+                {
+                    x: xMid,
+                    y: displayVO2max + (y1Max - displayVO2max) * 0.1,
+                    text: `V̇O₂max: ${relVO2max.toFixed(1)} ml·min<sup>-1</sup>·kg<sup>-1</sup>`,
+                    showarrow: false,
+                    font: {color: '#666666'},
+                    xanchor: "center"
+                },
+                {
+                    x: displayPdMaxPos,
+                    y: y1Max * 0.90,
+                    text: `FATmax<br>${appState.weight_based ? displayPdMaxPos.toFixed(1) : Math.round(displayPdMaxPos)} ${appState.weight_based ? "W·kg<sup>-1</sup>" : "W"}`,
+                    showarrow: false,
+                    font: {color: '#666666'},
+                    xanchor: "center"
+                },
+                {
+                    x: displayPdZeroPos,
+                    y: y1Max * 0.90,
+                    text: `MLSS<br>${appState.weight_based ? displayPdZeroPos.toFixed(1) : Math.round(displayPdZeroPos)} ${appState.weight_based ? "W·kg<sup>-1</sup>" : "W"}`,
+                    showarrow: false,
+                    font: {color: '#666666'},
+                    xanchor: "center"
+                },
+                {
+                    x: 0.01,
+                    y: 0.70,
+                    xref: "paper",
+                    yref: "paper",
+                    text: appState.curvilinear ? 
+                        (appState.weight_based ? 
+                            `V̇O₂<sub>SS</sub>(P) = ${vals.a_opt.toFixed(4)} · P² + ${appState.CE_range[0].toFixed(1)} · P + ${(appState.VO2Base/appState.body_mass).toFixed(1)}` :
+                            `V̇O₂<sub>SS</sub>(P) = ${vals.a_opt.toFixed(4)} · P² + ${appState.CE_range[0].toFixed(1)} · P + ${Math.round(appState.VO2Base)}`) :
+                        (appState.weight_based ? 
+                            `V̇O₂<sub>SS</sub>(P) = ${appState.CEVO2.toFixed(1)} · P + ${(appState.VO2Base/appState.body_mass).toFixed(1)}` :
+                            `V̇O₂<sub>SS</sub>(P) = ${appState.CEVO2.toFixed(1)} · P + ${Math.round(appState.VO2Base)}`),
+                    showarrow: false,
+                    font: {
+                        family: "Arial",
+                        size: 12,
+                        color: "#666666"
+                    },
+                    xanchor: "left",
+                    yanchor: "bottom"
+                }
+            ];
+            
+            // Set axis ranges based on lock settings
+            const xaxisRange = appState.lock_x_axis ? [0, 600] : [0, Math.max(...displayPower)];
+            const yaxisRange = appState.lock_y_axis ? [0, y1Max] : null;
+            
+            // Create layout for the plot
+            const layout = {
+                title: {
+                    text: "V̇O₂<sub>SS</sub>, vLass, vLaox, PD and Lactate Accumulation",
+                    font: {
+                        size: 18,
+                        color: '#2683C6'
+                    }
+                },
+                margin: {l: 60, r: 60, t: 50, b: 50},
+                xaxis: {
+                    title: {
+                        text: `Power (${appState.weight_based ? "W·kg<sup>-1</sup>" : "W"})`,
+                        font: {
+                            size: 14
+                        }
+                    },
+                    range: xaxisRange,
+                    showgrid: true,
+                    gridcolor: 'rgba(200,200,200,0.2)'
+                },
+                yaxis: {
+                    title: {
+                        text: `V̇O₂<sub>SS</sub> (${appState.weight_based ? "ml·min<sup>-1</sup>·kg<sup>-1</sup>" : "ml·min<sup>-1</sup>"})`,
+                        font: {
+                            size: 14
+                        }
+                    },
+                    side: "left",
+                    range: yaxisRange,
+                    showgrid: true,
+                    gridcolor: 'rgba(200,200,200,0.2)'
+                },
+                yaxis2: {
+                    title: {
+                        text: "Lactate Rates (mmol·l<sup>-1</sup>·min<sup>-1</sup>) & Accumulation (mmol·l<sup>-1</sup>)",
+                        font: {
+                            size: 14
+                        }
+                    },
+                    overlaying: "y",
+                    side: "right",
+                    range: [0, 14],
+                    showgrid: false,
+                    dtick: 2
+                },
+                showlegend: true,
+                legend: {
+                    x: 0.01,
+                    y: 0.99,
+                    bgcolor: 'rgba(255, 255, 255, 0.8)',
+                    bordercolor: 'rgba(0,0,0,0.1)',
+                    borderwidth: 1
+                },
+                annotations: annotations,
+                paper_bgcolor: 'rgba(255,255,255,0)',
+                plot_bgcolor: 'rgba(255,255,255,0.5)',
+                hovermode: 'closest'
+            };
+            
+            Plotly.newPlot('plot-container', traces, layout);
+            
+            // Update the values container
+            updateValuesDisplay(vals);
+        }
+        
+        // Function to format power and VO2 values for display
+        function formatValue(value, isWeight) {
+            return isWeight ? value.toFixed(1) : Math.round(value);
+        }
+        
+        // Function to update the values display
+        function updateValuesDisplay(vals) {
+            const pdMaxIdx = vals.PD_min.indexOf(Math.max(...vals.PD_min));
+            
+            // Find index of MLSS (PD closest to zero)
+            let minAbsPD = Infinity;
+            let pdZeroIdx = 0;
+            for (let i = 0; i < vals.PD_min.length; i++) {
+                const absPD = Math.abs(vals.PD_min[i]);
+                if (absPD < minAbsPD) {
+                    minAbsPD = absPD;
+                    pdZeroIdx = i;
+                }
+            }
+            
+            // Find index of BLC ≈ 4.0
+            let minDiffLa = Infinity;
+            let la4Idx = 0;
+            for (let i = 0; i < vals.La_accum.length; i++) {
+                if (!isNaN(vals.La_accum[i])) {
+                    const diffLa = Math.abs(vals.La_accum[i] - 4.0);
+                    if (diffLa < minDiffLa) {
+                        minDiffLa = diffLa;
+                        la4Idx = i;
+                    }
+                }
+            }
+            
+            // Format the output text with proper units
+            const formatOutput = (positionName, idx) => {
+                const powerValue = appState.weight_based ? vals.P[idx]/appState.body_mass : vals.P[idx];
+                const vo2ssValue = appState.weight_based ? vals.VO2ss[idx]/appState.body_mass : vals.VO2ss[idx];
+                const powerUnit = appState.weight_based ? "W·kg⁻¹" : "W";
+                const vo2ssUnit = appState.weight_based ? "ml·min⁻¹·kg⁻¹" : "ml·min⁻¹";
+                
+                return `${positionName} (${powerValue.toFixed(1)} ${powerUnit}):\n` +
+                    `  V̇O₂ₛₛ: ${vo2ssValue.toFixed(2)} ${vo2ssUnit}\n` +
+                    `  vLass: ${vals.vLass_min[idx].toFixed(4)} mmol·l⁻¹·min⁻¹\n` +
+                    `  vLaox: ${vals.vLaox_min[idx].toFixed(4)} mmol·l⁻¹·min⁻¹\n` +
+                    `  PD: ${vals.PD_min[idx].toFixed(4)} mmol·l⁻¹·min⁻¹\n` +
+                    `  La Accumulation: ${isNaN(vals.La_accum[idx]) ? '0.0000' : vals.La_accum[idx].toFixed(4)} mmol·l⁻¹\n`;
+            };
+            
+            const outputText = 
+                formatOutput("FATmax", pdMaxIdx) +
+                formatOutput("MLSS", pdZeroIdx) +
+                formatOutput("BLC ≈ 4.0", la4Idx);
+            
+            elements.valuesContainer.textContent = outputText;
+        }
+        
+        // Function to show notification
+        function showNotification(message, type = 'info') {
+            elements.notification.textContent = message;
+            elements.notification.className = 'notification ' + type;
+            elements.notification.style.display = 'block';
+            
+            setTimeout(() => {
+                elements.notification.style.display = 'none';
+            }, 5000);
+        }
+        
+        // Initialize
+        function initialize() {
+            // Set up event listeners for all sliders and inputs
+            elements.CEVO2.addEventListener('input', function() {
+                appState.CEVO2 = parseFloat(this.value);
+                elements.CEVO2Value.textContent = appState.CEVO2.toFixed(1);
+                updatePlot();
+            });
+            
+            elements.CE_range_start.addEventListener('input', function() {
+                appState.CE_range[0] = parseFloat(this.value);
+                elements.CE_range_startValue.textContent = appState.CE_range[0].toFixed(1);
+                updatePlot();
+            });
+            
+            elements.CE_range_end.addEventListener('input', function() {
+                appState.CE_range[1] = parseFloat(this.value);
+                elements.CE_range_endValue.textContent = appState.CE_range[1].toFixed(1);
+                updatePlot();
+            });
+            
+            elements.VO2max.addEventListener('input', function() {
+                appState.VO2max = parseFloat(this.value);
+                elements.VO2maxValue.textContent = appState.VO2max.toFixed(0);
+                appState.VO2max_kg = appState.VO2max / appState.body_mass;
+                elements.VO2max_kg.value = appState.VO2max_kg;
+                elements.VO2max_kgValue.textContent = appState.VO2max_kg.toFixed(2);
+                updatePlot();
+            });
+            
+            elements.VO2max_kg.addEventListener('input', function() {
+                appState.VO2max_kg = parseFloat(this.value);
+                elements.VO2max_kgValue.textContent = appState.VO2max_kg.toFixed(2);
+                appState.VO2max = appState.VO2max_kg * appState.body_mass;
+                elements.VO2max.value = appState.VO2max;
+                elements.VO2maxValue.textContent = appState.VO2max.toFixed(0);
+                updatePlot();
+            });
+            
+            elements.VO2Base.addEventListener('input', function() {
+                appState.VO2Base = parseFloat(this.value);
+                elements.VO2BaseValue.textContent = appState.VO2Base.toFixed(0);
+                if (appState.calculated_vo2base !== null && 
+                    appState.VO2Base !== appState.calculated_vo2base) {
+                    showNotification(`V̇O₂Base manually changed to ${appState.VO2Base} ml·min⁻¹ (Calculated value: ${appState.calculated_vo2base} ml·min⁻¹)`, 'warning');
+                }
+                updatePlot();
+            });
+            
+            elements.vLamax.addEventListener('input', function() {
+                appState.vLamax = parseFloat(this.value);
+                elements.vLamaxValue.textContent = appState.vLamax.toFixed(2);
+                updatePlot();
+            });
+            
+            elements.body_mass.addEventListener('input', function() {
+                appState.body_mass = parseFloat(this.value);
+                elements.body_massValue.textContent = appState.body_mass.toFixed(1);
+                appState.VO2max_kg = appState.VO2max / appState.body_mass;
+                elements.VO2max_kg.value = appState.VO2max_kg;
+                elements.VO2max_kgValue.textContent = appState.VO2max_kg.toFixed(2);
+                // Recalculate VO2Base
+                const kcalDay = calculateBMR(appState.gender, appState.body_mass, appState.height, appState.age);
+                appState.calculated_vo2base = Math.round(calculateVO2Base(kcalDay, appState.gender));
+                updatePlot();
+            });
+            
+            elements.age.addEventListener('input', function() {
+                appState.age = parseInt(this.value);
+                elements.ageValue.textContent = appState.age;
+                // Recalculate VO2Base
+                const kcalDay = calculateBMR(appState.gender, appState.body_mass, appState.height, appState.age);
+                appState.calculated_vo2base = Math.round(calculateVO2Base(kcalDay, appState.gender));
+                updatePlot();
+            });
+            
+            elements.height.addEventListener('input', function() {
+                appState.height = parseInt(this.value);
+                elements.heightValue.textContent = appState.height;
+                // Recalculate VO2Base
+                const kcalDay = calculateBMR(appState.gender, appState.body_mass, appState.height, appState.age);
+                appState.calculated_vo2base = Math.round(calculateVO2Base(kcalDay, appState.gender));
+                updatePlot();
+            });
+            
+            elements.male.addEventListener('change', function() {
+                if (this.checked) {
+                    appState.gender = 'male';
+                    // Recalculate VO2Base
+                    const kcalDay = calculateBMR(appState.gender, appState.body_mass, appState.height, appState.age);
+                    appState.calculated_vo2base = Math.round(calculateVO2Base(kcalDay, appState.gender));
+                    updatePlot();
+                }
+            });
+            
+            elements.female.addEventListener('change', function() {
+                if (this.checked) {
+                    appState.gender = 'female';
+                    // Recalculate VO2Base
+                    const kcalDay = calculateBMR(appState.gender, appState.body_mass, appState.height, appState.age);
+                    appState.calculated_vo2base = Math.round(calculateVO2Base(kcalDay, appState.gender));
+                    updatePlot();
+                }
+            });
+            
+            elements.curvilinear.addEventListener('change', function() {
+                appState.curvilinear = this.checked;
+                elements.linearCeControl.style.display = appState.curvilinear ? 'none' : 'block';
+                elements.curvilinearCeControl.style.display = appState.curvilinear ? 'block' : 'none';
+                updatePlot();
+            });
+            
+            elements.weight_based.addEventListener('change', function() {
+                appState.weight_based = this.checked;
+                updatePlot();
+            });
+            
+            elements.lock_y_axis.addEventListener('change', function() {
+                appState.lock_y_axis = this.checked;
+                updatePlot();
+            });
+            
+            elements.lock_x_axis.addEventListener('change', function() {
+                appState.lock_x_axis = this.checked;
+                updatePlot();
+            });
+            
+            elements.calculate_vo2base.addEventListener('click', function() {
+                const kcalDay = calculateBMR(appState.gender, appState.body_mass, appState.height, appState.age);
+                const vo2base = Math.round(calculateVO2Base(kcalDay, appState.gender));
+                appState.calculated_vo2base = vo2base;
+                appState.VO2Base = vo2base;
+                elements.VO2Base.value = vo2base;
+                elements.VO2BaseValue.textContent = vo2base;
+                
+                showNotification(`Calculated V̇O₂Base: ${vo2base} ml·min⁻¹`, 'info');
+                updatePlot();
+            });
+            
+            // Set up collapsible sections
+            const coll = document.getElementsByClassName("collapsible");
+            for (let i = 0; i < coll.length; i++) {
+                coll[i].addEventListener("click", function() {
+                    this.classList.toggle("active");
+                    const content = this.nextElementSibling;
+                    if (content.style.maxHeight) {
+                        content.style.maxHeight = null;
+                    } else {
+                        content.style.maxHeight = content.scrollHeight + "px";
+                    }
+                });
+            }
+            
+            // Calculate initial VO2Base
+            const kcalDay = calculateBMR(appState.gender, appState.body_mass, appState.height, appState.age);
+            appState.calculated_vo2base = Math.round(calculateVO2Base(kcalDay, appState.gender));
+            
+            // Initial plot
+            updatePlot();
+        }
+        
+        // Initialize the app when the page loads
+        window.addEventListener('load', initialize);
+    </script>
+</body>
+</html>
