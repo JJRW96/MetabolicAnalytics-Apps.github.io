@@ -1,0 +1,26 @@
+[
+  {
+    "objectID": "about.html",
+    "href": "about.html",
+    "title": "About",
+    "section": "",
+    "text": "About this site\n\n1 + 1\n\n[1] 2"
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "MetabolicAnalytics-ShinyLiveApps.github.io",
+    "section": "",
+    "text": "This is a Quarto website.\nTo learn more about Quarto websites visit https://quarto.org/docs/websites.\n\n1 + 1\n\n[1] 2"
+  },
+  {
+    "objectID": "Mader_Modell.html",
+    "href": "Mader_Modell.html",
+    "title": "Mader-Modell",
+    "section": "",
+    "text": "Mader\nasdf\n\n\nTest - App\nMader App\nMader App 2",
+    "crumbs": [
+      "Mader-Modell"
+    ]
+  }
+]
