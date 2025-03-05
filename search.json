@@ -9,18 +9,18 @@
   {
     "objectID": "index.html",
     "href": "index.html",
-    "title": "MetabolicAnalytics-ShinyLiveApps.github.io",
+    "title": "Sports Science Models & Applications",
     "section": "",
-    "text": "This is a Quarto website.\nTo learn more about Quarto websites visit https://quarto.org/docs/websites.\n\n1 + 1\n\n[1] 2"
+    "text": "This website provides interactive sports science tools and applications for exercise physiology analysis. The collection includes models for metabolic calculations, performance predictions.\nAvailable applications help quantify physiological parameters and analyze the relationships between exercise intensity, metabolism, and athletic performance through evidence-based calculations and visual representations."
   },
   {
     "objectID": "Mader_Modell.html",
     "href": "Mader_Modell.html",
-    "title": "Mader-Modell",
+    "title": "Mader’s metabolic model",
     "section": "",
-    "text": "Mader\nasdf\n\n\nTest - App\nMader App\nMader App 2",
+    "text": "Link: Mader App\n\n\n\n\nLiteratur\n\nDunst, A. K., Hesse, C., & Ueberschär, O. (2024). Understanding optimal cadence dynamics: a systematic analysis of the power-velocity relationship in track cyclists with increasing exercise intensity. Frontiers in Physiology, 15(April), 1–17. https://doi.org/10.3389/fphys.2024.1343601\n\n\nDunst, A. K., Hesse, C., & Ueberschär, O. (2025). Enhancing endurance performance predictions: the role of movement velocity in metabolic simulations demonstrated by cycling cadence. European journal of applied physiology. https://doi.org/10.1007/s00421-024-05663-4\n\n\nHintzy-Cloutier, F., Zameziati, K., & Belli, A. (2003). Influence of the base-line determination on work efficiency during submaximal cycling. Journal of Sports Medicine and Physical Fitness, 43(1), 51–56.",
     "crumbs": [
-      "Mader-Modell"
+      "Mader's metabolic model"
     ]
   }
 ]
