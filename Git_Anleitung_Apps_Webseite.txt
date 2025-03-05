@@ -1,0 +1,62 @@
+Reihenfolge für neue Seite:
+
+- Projektordner und Repository gleich benennen
+- cd "C:/Users/johan/OneDrive/Desktop/SpoWi/MetabolicAnalytics-Apps.github.io"
+- git remote add origin https://github.com/JJRW96/MetabolicAnalytics-Apps.github.io.git
+- git branch -M main
+- git add .
+- git commit -m "First commit"
+- git push origin main
+- neuer branch "gh-pages" neben "main"
+- darin .github/workflows/publish.yml mit dem Inhalt von "Example: Knitr with renv" der Seite erstellen -> https://quarto.org/docs/publishing/github-pages.html#example-knitr-with-renv
+- git add .
+- git commit -m "publish.yml"
+- git push origin main
+- Setting -> Pages -> Branch -> "gh-pages"
+
+
+
+
+Commands to upload file:
+
+ls -> "Was ist in dem Zielordner?"
+
+cd / cd "C:/Users/johan/OneDrive/Desktop/SpoWi/MetabolicAnalytics-Apps.github.io"
+git init
+git remote add origin https://github.com/JJRW96/MetabolicAnalytics-Apps.github.io.git
+git remote -v
+git remote set-url origin https://github.com/JJRW96/MetabolicAnalytics-Apps.github.io.git ->Remote nochmal anpassen falls nötig
+git remote -v
+git add .
+git commit -m "First commit"
+git push -u origin main (git branch -M main - > evtl. vorher noch durchführen) / git push origin master 
+
+git help 
+
+Commands to update repository:
+git status
+git add .
+git commit -m "Update"
+git push -u origin main
+
+quarto publish gh-pages
+
+ls- List all the files in the current directory
+
+If your source code is in the different directory, you need to change the directory on git bash with command cd followed by directory or path.
+
+cd - To change the directory
+
+git init- This command initializes the git in the given path. You can see the .git hidden files after this command gets executed.
+
+git remote add origin [gitLink]- gitLink denote the place where your code is stored in the remote repository
+
+git remote -v Check if access for push and pull
+
+git add .- Add all the files in the local directory to the remote repository
+
+git commit m "First commit" It establishes a connection with local repository
+
+git push origin master- It establishes a connection with a remote repository and upload your source code or files to GitHub
+
+git push -u origin main Upload to main branch
