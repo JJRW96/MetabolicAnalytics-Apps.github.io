@@ -1,0 +1,45 @@
+---
+title: "Critical Power & W'"
+
+format:
+  html:
+    resources: 
+      - shinylive-sw.js
+      
+filters:
+  - shinylive
+
+execute:
+  message: false
+  engine: knitr
+  echo: false
+  warning: false
+  error: false
+bibliography: references.bib
+lang: de
+number-sections: false
+editor: 
+  markdown: 
+    wrap: 72
+    
+---
+
+# CP-Model
+
+<div style="position: relative; width: 100%; height: 800px;">
+  <iframe src="Critical_Power_App 1.3.html" style="position: absolute; width: 100%; height: 100%; border: none;"></iframe>
+</div>
+
+<br>
+
+[Link: Critical-Power App](/Critical_Power_App 1.3.html)
+
+# W'-Balance
+
+<div style="position: relative; width: 100%; height: 800px;">
+  <iframe src="W'_Balance_App 1.1.html" style="position: absolute; width: 100%; height: 100%; border: none;"></iframe>
+</div>
+
+<br>
+
+[Link: W'-Balance App](/W'_Balance_App 1.1.html)

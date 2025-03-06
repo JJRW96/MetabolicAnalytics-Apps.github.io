@@ -14,7 +14,7 @@ website:
   page-navigation: true
   page-footer:
     right: "[Quarto](https://quarto.org/)"
-    left: "Johannes Will, 2025"
+    left: "Johannes Will, 2025 | [JohannesWill96@gmail.com](mailto:JohannesWill96@gmail.com)"
       
   sidebar:
     logo: "images/Logo_1.png"
@@ -25,12 +25,13 @@ website:
     collapse-level: 3 #Ab welchem Level die Unterpunkt nicht mehr angezeigt werden. Bei 2 wird bspw. bei Energieumsatz die Unterpunkte eingeklappt
     contents:
        - Mader_Modell.qmd
-
+       - Critical_Power.qmd
       
 lang: en
 number-sections: true
 bibliography: references.bib
 csl: apa.csl
+reference-section-title: "References"
 format:
   html: 
     grid:
