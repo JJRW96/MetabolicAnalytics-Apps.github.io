@@ -1,0 +1,1438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CP-Modeling</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/numeric@1.2.6/numeric.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2683C6;
+            --secondary-color: #42BA97;
+            --accent-color: #EF5350;
+            --dark-color: #343a40;
+            --light-color: #f8f9fa;
+            --gray-color: #6c757d;
+            --light-gray: #e9ecef;
+            --gradient-start: #f1f8ff;
+            --gradient-end: #ffffff;
+            --border-color: #dee2e6;
+            --power-law-color: #000000;
+            --param2-color: #808080;
+            --ompd-color: #EF5350;
+            --om3cp-color: #42BA97;
+            --omexp-color: #9C85C0;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #f5f7fa;
+            color: var(--dark-color);
+            overflow: hidden;
+            line-height: 1.6;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+            max-width: 100%;
+        }
+
+        .sidebar {
+            width: 350px;
+            flex-shrink: 0;
+            background: linear-gradient(to bottom, var(--gradient-start), var(--gradient-end));
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            overflow-y: auto;
+            border-right: 1px solid var(--border-color);
+            max-height: 100vh;
+            position: relative;
+            z-index: 10;
+        }
+
+        .sidebar::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .sidebar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #bbb;
+            border-radius: 10px;
+        }
+        
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: #999;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            background-color: #fff;
+            overflow-y: auto;
+            height: 100vh;
+        }
+
+        .header {
+            padding: 20px 0;
+            border-bottom: 2px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 1.8rem;
+            color: var(--primary-color);
+            text-align: center;
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .section-title {
+            font-weight: 600;
+            color: var(--primary-color);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .info-icon {
+            color: var(--primary-color);
+            cursor: pointer;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: rgba(38, 131, 198, 0.1);
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 250px;
+            background-color: #555;
+            color: #fff;
+            text-align: left;
+            border-radius: 6px;
+            padding: 10px;
+            position: absolute;
+            z-index: 100;
+            right: -20px;
+            top: 30px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .model-toggles {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .model-checkbox {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: background-color 0.2s;
+            margin-bottom: 5px;
+            background-color: rgba(0,0,0,0.03);
+        }
+
+        .model-checkbox:hover {
+            background-color: rgba(0,0,0,0.05);
+        }
+
+        .power-law .model-checkbox {
+            border-left: 4px solid var(--power-law-color);
+        }
+
+        .param2 .model-checkbox {
+            border-left: 4px solid var(--param2-color);
+        }
+
+        .ompd .model-checkbox {
+            border-left: 4px solid var(--ompd-color);
+        }
+
+        .om3cp .model-checkbox {
+            border-left: 4px solid var(--om3cp-color);
+        }
+
+        .omexp .model-checkbox {
+            border-left: 4px solid var(--omexp-color);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        input[type="number"],
+        input[type="range"] {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 0.9em;
+        }
+
+        input[type="number"] {
+            height: 38px;
+        }
+
+        input[type="checkbox"] {
+            margin-right: 8px;
+            cursor: pointer;
+            width: 16px;
+            height: 16px;
+        }
+
+        .slider-container {
+            margin-bottom: 20px;
+        }
+
+        .slider-container input[type="range"] {
+            height: 8px;
+            border-radius: 5px;
+            background: linear-gradient(to right, #ddd, var(--primary-color));
+            outline: none;
+            -webkit-appearance: none;
+            margin: 10px 0;
+        }
+
+        .slider-container input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+
+        .range-values {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9em;
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        .data-point {
+            background-color: white;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            border-left: 3px solid var(--primary-color);
+        }
+
+        .point-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .point-header h4 {
+            margin: 0;
+            font-size: 1em;
+            color: var(--primary-color);
+        }
+
+        .add-point-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            width: 100%;
+            margin-top: 15px;
+            transition: all 0.3s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .add-point-btn:hover {
+            background-color: #1a6eae;
+            transform: translateY(-2px);
+            box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+        }
+
+        .add-point-btn:active {
+            transform: translateY(0);
+        }
+
+        .remove-point-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 9px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8em;
+            transition: background-color 0.2s;
+        }
+
+        .remove-point-btn:hover {
+            background-color: #bd2130;
+        }
+
+        .plot-container {
+            background-color: white;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            flex-grow: 1;
+        }
+
+        .plot-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-align: center;
+            color: var(--primary-color);
+        }
+
+        #legend_container_pd, #legend_container_pi {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        #power_duration_plot {
+            width: 100%;
+            height: 600px;
+        }
+
+        #power_inverse_plot {
+            width: 100%;
+            height: 400px;
+        }
+
+        .annotation-text {
+            font-size: 0.9em !important;
+        }
+
+        @media (max-width: 1000px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                max-height: none;
+                overflow-y: visible;
+            }
+            
+            .main-content {
+                padding: 10px;
+                height: auto;
+            }
+            
+            #power_duration_plot {
+                height: 400px;
+            }
+            
+            #power_inverse_plot {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="header">
+                <h1>CP-Modeling</h1>
+            </div>
+
+            <div class="control-group">
+                <div class="section-title">
+                    Models
+                    <div class="tooltip info-icon">ⓘ
+                        <span class="tooltiptext">
+                            Choose which mathematical models to display on the power-duration graph. Each model uses different equations to predict performance.
+                        </span>
+                    </div>
+                </div>
+                <div class="model-toggles">
+                    <div class="toggle-container power-law">
+                        <label class="model-checkbox">
+                            <input type="checkbox" id="show_powerlaw" checked>
+                            Power-Law
+                        </label>
+                    </div>
+                    <div class="toggle-container param2">
+                        <label class="model-checkbox">
+                            <input type="checkbox" id="show_2param" checked>
+                            2-Parameter
+                        </label>
+                    </div>
+                    <div class="toggle-container ompd">
+                        <label class="model-checkbox">
+                            <input type="checkbox" id="show_ompd" checked>
+                            OmPD
+                        </label>
+                    </div>
+                    <div class="toggle-container om3cp">
+                        <label class="model-checkbox">
+                            <input type="checkbox" id="show_om3cp" checked>
+                            Om3CP
+                        </label>
+                    </div>
+                    <div class="toggle-container omexp">
+                        <label class="model-checkbox">
+                            <input type="checkbox" id="show_omexp" checked>
+                            OmExp
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <div class="section-title">
+                    Plot Settings
+                    <div class="tooltip info-icon">ⓘ
+                        <span class="tooltiptext">
+                            Configure the number of data points and X-axis range for the power-duration plot.
+                        </span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="num_points">Number of data points</label>
+                    <input type="number" id="num_points" min="2" max="10" value="3">
+                </div>
+
+                <div class="slider-container">
+                    <label for="x_range_min">X-axis minimum [s]</label>
+                    <input type="range" id="x_range_min" min="0" max="1800" value="0">
+                    <div class="range-values">
+                        <span id="x_min_value">0</span>
+                    </div>
+                </div>
+
+                <div class="slider-container">
+                    <label for="x_range_max">X-axis maximum [s]</label>
+                    <input type="range" id="x_range_max" min="0" max="3600" value="1200">
+                    <div class="range-values">
+                        <span id="x_max_value">1200</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <div class="section-title">
+                    Data Points
+                    <div class="tooltip info-icon">ⓘ
+                        <span class="tooltiptext">
+                            Enter your power-duration test data. Each point represents a maximal effort at a specific duration.
+                        </span>
+                    </div>
+                </div>
+
+                <div id="data_points_container">
+                    <!-- Data points will be inserted here -->
+                </div>
+
+                <button class="add-point-btn" id="add_point_btn">Add Data Point</button>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="plot-container">
+                <div class="plot-title">Power-Duration Relationship</div>
+                <div id="legend_container_pd" style="text-align: center; margin-bottom: 10px;"></div>
+                <div id="power_duration_plot"></div>
+            </div>
+            <div class="plot-container">
+                <div class="plot-title">Power vs. t⁻¹</div>
+                <div id="legend_container_pi" style="text-align: center; margin-bottom: 10px;"></div>
+                <div id="power_inverse_plot"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initial data
+        let pointsData = {
+            durations: [180, 300, 600],
+            powers: [500, 470, 410]
+        };
+
+        // DOM Elements
+        const numPointsInput = document.getElementById('num_points');
+        const xRangeMinInput = document.getElementById('x_range_min');
+        const xRangeMaxInput = document.getElementById('x_range_max');
+        const xMinValue = document.getElementById('x_min_value');
+        const xMaxValue = document.getElementById('x_max_value');
+        const dataPointsContainer = document.getElementById('data_points_container');
+        const addPointBtn = document.getElementById('add_point_btn');
+        const legendContainerPD = document.getElementById('legend_container_pd');
+        const legendContainerPI = document.getElementById('legend_container_pi');
+        const powerDurationPlot = document.getElementById('power_duration_plot');
+        const powerInversePlot = document.getElementById('power_inverse_plot');
+        
+        // Model checkboxes
+        const showPowerLaw = document.getElementById('show_powerlaw');
+        const show2Param = document.getElementById('show_2param');
+        const showOmpd = document.getElementById('show_ompd');
+        const showOm3cp = document.getElementById('show_om3cp');
+        const showOmexp = document.getElementById('show_omexp');
+
+        // Initialize the data point inputs
+        function initializeDataPoints() {
+            dataPointsContainer.innerHTML = '';
+            for (let i = 0; i < pointsData.durations.length; i++) {
+                addDataPointUI(i, pointsData.durations[i], pointsData.powers[i]);
+            }
+            updatePlots();
+        }
+
+        // Add data point UI
+        function addDataPointUI(index, duration = 0, power = 0) {
+            const pointDiv = document.createElement('div');
+            pointDiv.className = 'data-point';
+            pointDiv.id = `point_${index}`;
+            
+            const headerDiv = document.createElement('div');
+            headerDiv.className = 'point-header';
+            
+            const headerTitle = document.createElement('h4');
+            headerTitle.textContent = `Data point ${index + 1}`;
+            headerDiv.appendChild(headerTitle);
+            
+            if (index > 1) { // Allow removing points, but keep at least 2
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'remove-point-btn';
+                removeBtn.textContent = 'X';
+                removeBtn.onclick = () => removeDataPoint(index);
+                headerDiv.appendChild(removeBtn);
+            }
+            
+            pointDiv.appendChild(headerDiv);
+
+            const durationGroup = document.createElement('div');
+            durationGroup.className = 'form-group';
+            
+            const durationLabel = document.createElement('label');
+            durationLabel.setAttribute('for', `duration_${index}`);
+            durationLabel.textContent = 'Duration [s]';
+            durationGroup.appendChild(durationLabel);
+            
+            const durationInput = document.createElement('input');
+            durationInput.setAttribute('type', 'number');
+            durationInput.setAttribute('id', `duration_${index}`);
+            durationInput.setAttribute('min', '1');
+            durationInput.value = duration;
+            durationInput.onchange = () => updateDataPoint(index);
+            durationGroup.appendChild(durationInput);
+            
+            pointDiv.appendChild(durationGroup);
+
+            const powerGroup = document.createElement('div');
+            powerGroup.className = 'form-group';
+            
+            const powerLabel = document.createElement('label');
+            powerLabel.setAttribute('for', `power_${index}`);
+            powerLabel.textContent = 'Power [W]';
+            powerGroup.appendChild(powerLabel);
+            
+            const powerInput = document.createElement('input');
+            powerInput.setAttribute('type', 'number');
+            powerInput.setAttribute('id', `power_${index}`);
+            powerInput.setAttribute('min', '0');
+            powerInput.value = power;
+            powerInput.onchange = () => updateDataPoint(index);
+            powerGroup.appendChild(powerInput);
+            
+            pointDiv.appendChild(powerGroup);
+
+            dataPointsContainer.appendChild(pointDiv);
+        }
+
+        // Update data point from input
+        function updateDataPoint(index) {
+            const durationInput = document.getElementById(`duration_${index}`);
+            const powerInput = document.getElementById(`power_${index}`);
+            
+            if (durationInput && powerInput) {
+                pointsData.durations[index] = parseFloat(durationInput.value);
+                pointsData.powers[index] = parseFloat(powerInput.value);
+                updatePlots();
+            }
+        }
+
+        // Add a new data point
+        function addDataPoint() {
+            if (pointsData.durations.length < 10) {
+                pointsData.durations.push(0);
+                pointsData.powers.push(0);
+                numPointsInput.value = pointsData.durations.length;
+                addDataPointUI(pointsData.durations.length - 1);
+            }
+        }
+
+        // Remove a data point
+        function removeDataPoint(index) {
+            if (pointsData.durations.length > 2) {
+                pointsData.durations.splice(index, 1);
+                pointsData.powers.splice(index, 1);
+                numPointsInput.value = pointsData.durations.length;
+                initializeDataPoints();
+            }
+        }
+
+        // Update the number of data points
+        function updateNumPoints() {
+            const num = parseInt(numPointsInput.value);
+            if (num < 2) {
+                numPointsInput.value = 2;
+                return;
+            }
+            if (num > 10) {
+                numPointsInput.value = 10;
+                return;
+            }
+
+            if (num > pointsData.durations.length) {
+                // Add points
+                while (pointsData.durations.length < num) {
+                    pointsData.durations.push(0);
+                    pointsData.powers.push(0);
+                }
+            } else if (num < pointsData.durations.length) {
+                // Remove points
+                pointsData.durations = pointsData.durations.slice(0, num);
+                pointsData.powers = pointsData.powers.slice(0, num);
+            }
+            
+            initializeDataPoints();
+        }
+
+        // Update X-axis range
+        function updateXRange() {
+            const minVal = parseInt(xRangeMinInput.value);
+            const maxVal = parseInt(xRangeMaxInput.value);
+            
+            // Ensure min < max
+            if (minVal >= maxVal) {
+                xRangeMinInput.value = maxVal - 1;
+            }
+            
+            xMinValue.textContent = xRangeMinInput.value;
+            xMaxValue.textContent = xRangeMaxInput.value;
+            
+            updatePlots();
+        }
+
+        // Handle window resize - make the plot responsive
+        function handleResize() {
+            Plotly.Plots.resize(powerDurationPlot);
+            Plotly.Plots.resize(powerInversePlot);
+        }
+
+        window.addEventListener('resize', handleResize);
+
+        // Calculate R-squared
+        function calculateRSquared(observed, predicted) {
+            const mean = observed.reduce((a, b) => a + b, 0) / observed.length;
+            const ssRes = observed.reduce((sum, val, i) => sum + Math.pow(val - predicted[i], 2), 0);
+            const ssTot = observed.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0);
+            return 1 - (ssRes / ssTot);
+        }
+
+        // Linear regression
+        function linearRegression(x, y) {
+            const n = x.length;
+            let sumX = 0;
+            let sumY = 0;
+            let sumXY = 0;
+            let sumXX = 0;
+            
+            for (let i = 0; i < n; i++) {
+                sumX += x[i];
+                sumY += y[i];
+                sumXY += x[i] * y[i];
+                sumXX += x[i] * x[i];
+            }
+            
+            const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+            const intercept = (sumY - slope * sumX) / n;
+            
+            return { slope, intercept };
+        }
+
+        // Improved 2-parameter critical power model using linear form
+        function fit2ParamCP(durations, powers) {
+            const inverseDurations = durations.map(d => 1 / d);
+            const regression = linearRegression(inverseDurations, powers);
+            
+            // CP is the y-intercept, W' is the slope
+            return {
+                CP: regression.intercept,
+                Wprime: regression.slope
+            };
+        }
+
+        // Robust non-linear regression for advanced CP models
+        function robustNonlinearRegression(func, xData, yData, bounds) {
+            // Estimate initial parameters
+            const initialGuess = estimateInitialParams(xData, yData, bounds);
+            
+            // Helper function to calculate sum of squared errors
+            function sumSquaredErrors(params) {
+                let sse = 0;
+                for (let i = 0; i < xData.length; i++) {
+                    const predicted = func(xData[i], params);
+                    const residual = yData[i] - predicted;
+                    // Weight inversely proportional to duration to better fit short durations
+                    const weight = Math.sqrt(1 / xData[i]);
+                    sse += weight * residual * residual;
+                }
+                return sse;
+            }
+            
+            // Use numeric.js uncmin for optimization
+            try {
+                const result = numeric.uncmin(
+                    p => sumSquaredErrors({
+                        CP: p[0],
+                        Wprime: p[1],
+                        Pmax: p[2]
+                    }), 
+                    [initialGuess.CP, initialGuess.Wprime, initialGuess.Pmax],
+                    0.0001
+                );
+                
+                return {
+                    CP: Math.max(bounds.CP.min, Math.min(bounds.CP.max, result.solution[0])),
+                    Wprime: Math.max(bounds.Wprime.min, Math.min(bounds.Wprime.max, result.solution[1])),
+                    Pmax: Math.max(bounds.Pmax.min, Math.min(bounds.Pmax.max, result.solution[2]))
+                };
+            } catch (error) {
+                console.error("Optimization failed:", error);
+                return initialGuess; // Return initial guess if optimization fails
+            }
+        }
+
+        // Estimate good initial parameters for the models
+        function estimateInitialParams(durations, powers, bounds) {
+            // Sort data by duration
+            const sortedIndices = durations
+                .map((d, i) => ({d, i}))
+                .sort((a, b) => a.d - b.d)
+                .map(x => x.i);
+            
+            const sortedDurations = sortedIndices.map(i => durations[i]);
+            const sortedPowers = sortedIndices.map(i => powers[i]);
+            
+            // Get min and max powers
+            const minPower = Math.min(...powers);
+            const maxPower = Math.max(...powers);
+            
+            // Estimate CP as slightly below the lowest power value for long durations
+            const longDurationIndex = sortedDurations.length - 1;
+            let CP = Math.max(bounds.CP.min, sortedPowers[longDurationIndex] * 0.95);
+            CP = Math.min(CP, bounds.CP.max);
+            
+            // Estimate W' using the middle duration
+            const midIndex = Math.floor(sortedDurations.length / 2);
+            const midDuration = sortedDurations[midIndex];
+            const midPower = sortedPowers[midIndex];
+            let Wprime = (midPower - CP) * midDuration;
+            Wprime = Math.max(bounds.Wprime.min, Math.min(Wprime, bounds.Wprime.max));
+            
+            // Estimate Pmax as 1.5x the highest power
+            let Pmax = Math.max(bounds.Pmax.min, maxPower * 1.5);
+            Pmax = Math.min(Pmax, bounds.Pmax.max);
+            
+            return { CP, Wprime, Pmax };
+        }
+
+        // Model functions with proper handling of edge cases
+        function powerLawModel(duration, params) {
+            if (duration <= 0) return params.S; // Handle t=0
+            return params.S * Math.pow(duration, params.E - 1);
+        }
+
+        function twoParamModel(duration, params) {
+            if (duration <= 0) return Infinity; // Handle t=0
+            return params.CP + params.Wprime / duration;
+        }
+
+        function ompdModel(duration, params) {
+            if (duration <= 0) return params.Pmax; // Handle t=0
+            const term = 1 - Math.exp(-(params.Pmax - params.CP) * duration / params.Wprime);
+            return params.CP + (params.Wprime / duration) * term;
+        }
+
+        function om3cpModel(duration, params) {
+            if (duration <= 0) return params.Pmax; // Handle t=0
+            const denominator = duration + params.Wprime / (params.Pmax - params.CP);
+            return params.CP + params.Wprime / denominator;
+        }
+
+        function omexpModel(duration, params) {
+            if (duration <= 0) return params.Pmax; // Handle t=0
+            const tau = params.Wprime / (params.Pmax - params.CP);
+            return params.CP + (params.Pmax - params.CP) * Math.exp(-duration / tau);
+        }
+
+        // Fit models to data
+        function fitModels() {
+            const durations = pointsData.durations.slice();
+            const powers = pointsData.powers.slice();
+            
+            // Filter out any invalid data points
+            const validIndices = [];
+            for (let i = 0; i < durations.length; i++) {
+                if (durations[i] > 0 && !isNaN(durations[i]) && powers[i] > 0 && !isNaN(powers[i])) {
+                    validIndices.push(i);
+                }
+            }
+            
+            const validDurations = validIndices.map(i => durations[i]);
+            const validPowers = validIndices.map(i => powers[i]);
+            
+            if (validDurations.length < 2) {
+                return {}; // Need at least 2 valid points for fitting
+            }
+            
+            const models = {};
+            const minPower = Math.min(...validPowers);
+            const maxPower = Math.max(...validPowers);
+            
+            // Parameter bounds
+            const bounds = {
+                CP: { min: minPower * 0.7, max: minPower * 0.99 },
+                Wprime: { min: 1000, max: 50000 },
+                Pmax: { min: maxPower * 1.1, max: maxPower * 3 }
+            };
+
+            // Power Law Model
+            try {
+                const logDurations = validDurations.map(d => Math.log(d));
+                const logPowers = validPowers.map(p => Math.log(p));
+                const regression = linearRegression(logDurations, logPowers);
+                const E = regression.slope + 1;
+                const S = Math.exp(regression.intercept);
+                models.powerLaw = { S, E };
+            } catch (e) {
+                console.error("Error fitting Power Law model:", e);
+            }
+
+            // 2-Parameter Model
+            try {
+                models.twoParam = fit2ParamCP(validDurations, validPowers);
+            } catch (e) {
+                console.error("Error fitting 2-Parameter model:", e);
+            }
+
+            // OmPD Model
+            try {
+                models.ompd = robustNonlinearRegression(
+                    ompdModel, 
+                    validDurations, 
+                    validPowers,
+                    bounds
+                );
+            } catch (e) {
+                console.error("Error fitting OmPD model:", e);
+            }
+
+            // Om3CP Model
+            try {
+                models.om3cp = robustNonlinearRegression(
+                    om3cpModel,
+                    validDurations,
+                    validPowers,
+                    bounds
+                );
+            } catch (e) {
+                console.error("Error fitting Om3CP model:", e);
+            }
+
+            // OmExp Model
+            try {
+                models.omexp = robustNonlinearRegression(
+                    omexpModel,
+                    validDurations,
+                    validPowers,
+                    bounds
+                );
+            } catch (e) {
+                console.error("Error fitting OmExp model:", e);
+            }
+
+            return models;
+        }
+
+        // Create custom horizontal legend
+        function createHorizontalLegend(container, items) {
+            container.innerHTML = '';
+            const legendDiv = document.createElement('div');
+            legendDiv.style.display = 'flex';
+            legendDiv.style.flexWrap = 'wrap';
+            legendDiv.style.justifyContent = 'center';
+            legendDiv.style.gap = '15px';
+            
+            items.forEach(item => {
+                const itemDiv = document.createElement('div');
+                itemDiv.style.display = 'flex';
+                itemDiv.style.alignItems = 'center';
+                itemDiv.style.marginBottom = '5px';
+                
+                const colorBox = document.createElement('span');
+                colorBox.style.width = '12px';
+                colorBox.style.height = '12px';
+                colorBox.style.backgroundColor = item.color;
+                colorBox.style.display = 'inline-block';
+                colorBox.style.marginRight = '5px';
+                if (item.dash) {
+                    colorBox.style.borderTop = `2px ${item.dash} ${item.color}`;
+                }
+                
+                const nameSpan = document.createElement('span');
+                nameSpan.textContent = item.name;
+                nameSpan.style.fontSize = '0.9em';
+                
+                itemDiv.appendChild(colorBox);
+                itemDiv.appendChild(nameSpan);
+                legendDiv.appendChild(itemDiv);
+            });
+            
+            container.appendChild(legendDiv);
+        }
+
+        // Find maximum y value at t=1 across all models for optimal scaling
+        function findMaxModelValue(models) {
+            let maxY = 0;
+            
+            // Power Law
+            if (showPowerLaw.checked && models.powerLaw) {
+                const { S, E } = models.powerLaw;
+                const yAt1 = S * Math.pow(1, E - 1);
+                maxY = Math.max(maxY, yAt1);
+            }
+            
+            // OmPD
+            if (showOmpd.checked && models.ompd) {
+                const { CP, Wprime, Pmax } = models.ompd;
+                const yAt1 = ompdModel(1, { CP, Wprime, Pmax });
+                maxY = Math.max(maxY, yAt1);
+            }
+            
+            // Om3CP
+            if (showOm3cp.checked && models.om3cp) {
+                const { CP, Wprime, Pmax } = models.om3cp;
+                const yAt1 = om3cpModel(1, { CP, Wprime, Pmax });
+                maxY = Math.max(maxY, yAt1);
+            }
+            
+            // OmExp
+            if (showOmexp.checked && models.omexp) {
+                const { CP, Wprime, Pmax } = models.omexp;
+                const yAt1 = omexpModel(1, { CP, Wprime, Pmax });
+                maxY = Math.max(maxY, yAt1);
+            }
+            
+            return maxY;
+        }
+
+        // Update plots
+        function updatePlots() {
+            // Filter valid data points
+            const validPoints = pointsData.durations.map((d, i) => ({d, p: pointsData.powers[i]}))
+                .filter(pt => pt.d > 0 && pt.p > 0 && !isNaN(pt.d) && !isNaN(pt.p));
+            
+            if (validPoints.length < 2) {
+                // Need at least 2 valid points
+                return;
+            }
+            
+            const durations = validPoints.map(pt => pt.d);
+            const powers = validPoints.map(pt => pt.p);
+            const inverseDurations = durations.map(d => 1 / d);
+            
+            // Fit models
+            const models = fitModels();
+
+            // Create power-duration plot
+            const xMin = parseInt(xRangeMinInput.value);
+            const xMax = parseInt(xRangeMaxInput.value);
+            
+            // Generate curve points including t=0 for extrapolation
+            const curveX = [];
+            // Add very small value instead of 0 to avoid division by zero
+            curveX.push(0.001);
+            
+            // Add rest of points
+            for (let i = 0; i < 100; i++) {
+                const x = xMin + (i / 99) * (Math.min(xMax, Math.max(...durations)) - xMin);
+                if (x > 0) curveX.push(x);
+            }
+            
+            const predX = Array.from({ length: 100 }, (_, i) => 
+                Math.max(...durations) + (i / 99) * (xMax - Math.max(...durations)));
+
+            // Calculate max model value at t=1 for Y-axis scaling
+            const maxModelY = findMaxModelValue(models) * 1.1;
+            const yMax = Math.max(maxModelY, Math.max(...powers) * 1.1);
+
+            // Legend items for power-duration plot
+            const pdLegendItems = [
+                { name: "Data points", color: "#2683C6" }
+            ];
+
+            // Data points trace
+            const dataTrace = {
+                x: durations,
+                y: powers,
+                type: 'scatter',
+                mode: 'markers',
+                name: 'Data points',
+                marker: {
+                    color: '#2683C6',
+                    size: 10
+                },
+                showlegend: false
+            };
+
+            const traces = [dataTrace];
+            let annotations = [];
+            const annotationX = xMin + (xMax - xMin) * 0.5;
+            const annotationY = yMax * 0.70;
+
+            // Power Law Model
+            if (showPowerLaw.checked && models.powerLaw) {
+                const { S, E } = models.powerLaw;
+                const curveY = curveX.map(x => powerLawModel(x, { S, E }));
+                const predY = predX.map(x => powerLawModel(x, { S, E }));
+                const p60 = powerLawModel(3600, { S, E });
+                const predicted = durations.map(d => powerLawModel(d, { S, E }));
+                const r2 = calculateRSquared(powers, predicted);
+
+                traces.push({
+                    x: curveX,
+                    y: curveY,
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: 'Power-Law',
+                    line: {
+                        color: '#000000',
+                        width: 2
+                    },
+                    showlegend: false
+                });
+
+                traces.push({
+                    x: predX,
+                    y: predY,
+                    type: 'scatter',
+                    mode: 'lines',
+                    showlegend: false,
+                    line: {
+                        color: '#000000',
+                        width: 2,
+                        dash: 'dash'
+                    }
+                });
+
+                pdLegendItems.push({ name: "Power-Law", color: "#000000" });
+                pdLegendItems.push({ name: "Extrapolation", color: "#000000", dash: "dash" });
+
+                annotations.push(`Power-Law: P(t) = ${S.toFixed(1)} * t^(${(E-1).toFixed(3)})<br>` +
+                                `P<sub>60</sub>: ${p60.toFixed(1)} W | R² = ${r2.toFixed(3)}`);
+            }
+
+            // 2-Parameter Model
+            if (show2Param.checked && models.twoParam) {
+                const { CP, Wprime } = models.twoParam;
+                // Skip t=0 for 2-param model to avoid infinity
+                const filteredCurveX = curveX.filter(x => x > 0.001);
+                const curveY = filteredCurveX.map(x => twoParamModel(x, { CP, Wprime }));
+                const predY = predX.map(x => twoParamModel(x, { CP, Wprime }));
+                const predicted = durations.map(d => twoParamModel(d, { CP, Wprime }));
+                const r2 = calculateRSquared(powers, predicted);
+
+                traces.push({
+                    x: filteredCurveX,
+                    y: curveY,
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: '2-Parameter',
+                    line: {
+                        color: '#808080',
+                        width: 2
+                    },
+                    showlegend: false
+                });
+
+                traces.push({
+                    x: predX,
+                    y: predY,
+                    type: 'scatter',
+                    mode: 'lines',
+                    showlegend: false,
+                    line: {
+                        color: '#808080',
+                        width: 2,
+                        dash: 'dash'
+                    }
+                });
+
+                pdLegendItems.push({ name: "2-Parameter", color: "#808080" });
+
+                annotations.push(`2-Parameter: P(t) = ${CP.toFixed(1)} + ${Wprime.toFixed(1)}/t<br>` +
+                                `CP: ${CP.toFixed(1)} W | W': ${Wprime.toFixed(1)} J | R² = ${r2.toFixed(3)}`);
+            }
+
+            // OmPD Model
+            if (showOmpd.checked && models.ompd) {
+                const { CP, Wprime, Pmax } = models.ompd;
+                const curveY = curveX.map(x => ompdModel(x, { CP, Wprime, Pmax }));
+                const predY = predX.map(x => ompdModel(x, { CP, Wprime, Pmax }));
+                const predicted = durations.map(d => ompdModel(d, { CP, Wprime, Pmax }));
+                const r2 = calculateRSquared(powers, predicted);
+
+                traces.push({
+                    x: curveX,
+                    y: curveY,
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: 'OmPD',
+                    line: {
+                        color: '#EF5350',
+                        width: 2
+                    },
+                    showlegend: false
+                });
+
+                traces.push({
+                    x: predX,
+                    y: predY,
+                    type: 'scatter',
+                    mode: 'lines',
+                    showlegend: false,
+                    line: {
+                        color: '#EF5350',
+                        width: 2,
+                        dash: 'dash'
+                    }
+                });
+
+                pdLegendItems.push({ name: "OmPD", color: "#EF5350" });
+
+                annotations.push(`OmPD: P(t) = ${CP.toFixed(1)} + ${Wprime.toFixed(1)}/t * (1 - exp(-(${Pmax.toFixed(1)}-${CP.toFixed(1)})*t/${Wprime.toFixed(1)}))<br>` +
+                                `CP: ${CP.toFixed(1)} W | W': ${Wprime.toFixed(1)} J | P<sub>max</sub>: ${Pmax.toFixed(1)} W | R² = ${r2.toFixed(3)}`);
+            }
+
+            // Om3CP Model
+            if (showOm3cp.checked && models.om3cp) {
+                const { CP, Wprime, Pmax } = models.om3cp;
+                const curveY = curveX.map(x => om3cpModel(x, { CP, Wprime, Pmax }));
+                const predY = predX.map(x => om3cpModel(x, { CP, Wprime, Pmax }));
+                const predicted = durations.map(d => om3cpModel(d, { CP, Wprime, Pmax }));
+                const r2 = calculateRSquared(powers, predicted);
+
+                traces.push({
+                    x: curveX,
+                    y: curveY,
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: 'Om3CP',
+                    line: {
+                        color: '#42BA97',
+                        width: 2
+                    },
+                    showlegend: false
+                });
+
+                traces.push({
+                    x: predX,
+                    y: predY,
+                    type: 'scatter',
+                    mode: 'lines',
+                    showlegend: false,
+                    line: {
+                        color: '#42BA97',
+                        width: 2,
+                        dash: 'dash'
+                    }
+                });
+
+                pdLegendItems.push({ name: "Om3CP", color: "#42BA97" });
+
+                annotations.push(`Om3CP: P(t) = ${CP.toFixed(1)} + ${Wprime.toFixed(1)}/(t + ${Wprime.toFixed(1)}/(${Pmax.toFixed(1)}-${CP.toFixed(1)}))<br>` +
+                                `CP: ${CP.toFixed(1)} W | W': ${Wprime.toFixed(1)} J | P<sub>max</sub>: ${Pmax.toFixed(1)} W | R² = ${r2.toFixed(3)}`);
+            }
+
+            // OmExp Model
+            if (showOmexp.checked && models.omexp) {
+                const { CP, Wprime, Pmax } = models.omexp;
+                const curveY = curveX.map(x => omexpModel(x, { CP, Wprime, Pmax }));
+                const predY = predX.map(x => omexpModel(x, { CP, Wprime, Pmax }));
+                const predicted = durations.map(d => omexpModel(d, { CP, Wprime, Pmax }));
+                const r2 = calculateRSquared(powers, predicted);
+
+                traces.push({
+                    x: curveX,
+                    y: curveY,
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: 'OmExp',
+                    line: {
+                        color: '#9C85C0',
+                        width: 2
+                    },
+                    showlegend: false
+                });
+
+                traces.push({
+                    x: predX,
+                    y: predY,
+                    type: 'scatter',
+                    mode: 'lines',
+                    showlegend: false,
+                    line: {
+                        color: '#9C85C0',
+                        width: 2,
+                        dash: 'dash'
+                    }
+                });
+
+                pdLegendItems.push({ name: "OmExp", color: "#9C85C0" });
+
+                annotations.push(`OmExp: P(t) = ${CP.toFixed(1)} + (${Pmax.toFixed(1)}-${CP.toFixed(1)}) * exp(-t/(${Wprime.toFixed(1)}/(${Pmax.toFixed(1)}-${CP.toFixed(1)})))<br>` +
+                                `CP: ${CP.toFixed(1)} W | W': ${Wprime.toFixed(1)} J | P<sub>max</sub>: ${Pmax.toFixed(1)} W | R² = ${r2.toFixed(3)}`);
+            }
+
+            // Create custom legend
+            createHorizontalLegend(legendContainerPD, pdLegendItems);
+
+            // Create power-duration plot layout
+            const pdLayout = {
+                title: '',
+                xaxis: {
+                    title: {
+                        text: 'Duration [s]',
+                        font: { size: 14 }
+                    },
+                    range: [xMin, xMax]
+                },
+                yaxis: {
+                    title: {
+                        text: 'Power [W]',
+                        font: { size: 14 }
+                    },
+                    range: [0, yMax]
+                },
+                showlegend: false,
+                annotations: [{
+                    x: annotationX,
+                    y: annotationY,
+                    text: annotations.join('<br><br>'),
+                    showarrow: false,
+                    align: 'left',
+                    bgcolor: 'rgba(255, 255, 255, 0.8)',
+                    font: { size: 11 },
+                    borderpad: 10,
+                    bordercolor: 'rgba(0,0,0,0)',
+                    borderwidth: 0,
+                    className: 'annotation-text'
+                }],
+                margin: { l: 70, r: 70, t: 10, b: 70 },
+                paper_bgcolor: 'rgba(255,255,255,0)',
+                plot_bgcolor: 'rgba(255,255,255,0.5)',
+                hovermode: 'closest',
+                autosize: true
+            };
+
+            // Create power-inverse plot with better dynamic scaling
+            const maxInvDuration = Math.max(...inverseDurations);
+            const minPower = Math.min(...powers);
+            const maxPower = Math.max(...powers);
+            const powerPadding = (maxPower - minPower) * 0.1;
+            
+            // Create inverse x values for better curve
+            const inverseX = Array.from({ length: 100 }, (_, i) => 
+                (i / 99) * maxInvDuration * 1.1);
+            
+            // Legend items for power-inverse plot
+            const piLegendItems = [
+                { name: "Data points", color: "#2683C6" }
+            ];
+            
+            const inverseTraces = [{
+                x: inverseDurations,
+                y: powers,
+                type: 'scatter',
+                mode: 'markers',
+                name: 'Data points',
+                marker: {
+                    color: '#2683C6',
+                    size: 10
+                },
+                showlegend: false
+            }];
+
+            // Add 2-Parameter model to inverse plot
+            let inverseAnnotation = '';
+            if (show2Param.checked && models.twoParam) {
+                const { CP, Wprime } = models.twoParam;
+                const lineY = inverseX.map(x => CP + Wprime * x);
+                const predicted = inverseDurations.map(id => CP + Wprime * id);
+                const r2 = calculateRSquared(powers, predicted);
+                
+                inverseTraces.push({
+                    x: inverseX,
+                    y: lineY,
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: '2-Parameter',
+                    line: {
+                        color: '#808080',
+                        width: 2
+                    },
+                    showlegend: false
+                });
+                
+                piLegendItems.push({ name: "2-Parameter", color: "#808080" });
+                
+                inverseAnnotation = `2-Parameter: P(t) = ${CP.toFixed(1)} + ${Wprime.toFixed(1)}/t<br>` +
+                                   `CP: ${CP.toFixed(1)} W | W': ${Wprime.toFixed(1)} J | R² = ${r2.toFixed(3)}`;
+            }
+
+            // Create custom legend for power-inverse plot
+            createHorizontalLegend(legendContainerPI, piLegendItems);
+
+            // Create power-inverse plot layout with better dynamic scaling
+            const piLayout = {
+                title: '',
+                xaxis: {
+                    title: {
+                        text: 't⁻¹ [s⁻¹]',
+                        font: { size: 14 }
+                    },
+                    range: [0, maxInvDuration * 1.1]
+                },
+                yaxis: {
+                    title: {
+                        text: 'Power [W]',
+                        font: { size: 14 }
+                    },
+                    range: [Math.max(0, minPower - powerPadding), maxPower + powerPadding]
+                },
+                showlegend: false,
+                margin: { l: 70, r: 70, t: 10, b: 70 },
+                paper_bgcolor: 'rgba(255,255,255,0)',
+                plot_bgcolor: 'rgba(255,255,255,0.5)',
+                hovermode: 'closest',
+                autosize: true
+            };
+            
+            if (inverseAnnotation) {
+                piLayout.annotations = [{
+                    x: maxInvDuration * 0.5,
+                    y: maxPower * 0.95,
+                    text: inverseAnnotation,
+                    showarrow: false,
+                    align: 'left',
+                    bgcolor: 'rgba(255, 255, 255, 0.8)',
+                    font: { size: 11 },
+                    borderpad: 10,
+                    bordercolor: 'rgba(0,0,0,0)',
+                    borderwidth: 0,
+                    className: 'annotation-text'
+                }];
+            }
+
+            // Render plots
+            Plotly.newPlot('power_duration_plot', traces, pdLayout, {
+                responsive: true
+            });
+            
+            Plotly.newPlot('power_inverse_plot', inverseTraces, piLayout, {
+                responsive: true
+            });
+        }
+
+        // Event listeners
+        numPointsInput.addEventListener('change', updateNumPoints);
+        xRangeMinInput.addEventListener('input', updateXRange);
+        xRangeMaxInput.addEventListener('input', updateXRange);
+        addPointBtn.addEventListener('click', addDataPoint);
+        
+        // Model checkboxes
+        showPowerLaw.addEventListener('change', updatePlots);
+        show2Param.addEventListener('change', updatePlots);
+        showOmpd.addEventListener('change', updatePlots);
+        showOm3cp.addEventListener('change', updatePlots);
+        showOmexp.addEventListener('change', updatePlots);
+
+        // Initialize the application
+        initializeDataPoints();
+        
+        // Make sure it's properly sized on page load
+        window.addEventListener('load', () => {
+            handleResize();
+        });
+    </script>
+</body>
+</html>

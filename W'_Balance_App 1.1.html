@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>W' Balance Training Planner</title>
+    <style>
+        :root {
+            --primary-color: #2683C6;
+            --secondary-color: #42BA97;
+            --accent-color: #EF5350;
+            --dark-color: #343a40;
+            --light-color: #f8f9fa;
+            --gray-color: #6c757d;
+            --light-gray: #e9ecef;
+            --gradient-start: #f1f8ff;
+            --gradient-end: #ffffff;
+            --border-color: #dee2e6;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #f5f7fa;
+            color: var(--dark-color);
+            overflow: hidden;
+            line-height: 1.6;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+            max-width: 100%;
+        }
+
+        .sidebar {
+            width: 350px;
+            flex-shrink: 0;
+            background: linear-gradient(to bottom, var(--gradient-start), var(--gradient-end));
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            overflow-y: auto;
+            border-right: 1px solid var(--border-color);
+            max-height: 100vh;
+            position: relative;
+            z-index: 10;
+        }
+
+        .sidebar::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .sidebar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #bbb;
+            border-radius: 10px;
+        }
+        
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: #999;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            background-color: #fff;
+            overflow-y: auto;
+            height: 100vh;
+        }
+
+        .header {
+            padding: 20px 0;
+            border-bottom: 2px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 1.8rem;
+            color: var(--primary-color);
+            text-align: center;
+        }
+
+        .header p {
+            margin: 5px 0 0;
+            opacity: 0.8;
+            text-align: center;
+            color: var(--gray-color);
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .section-title {
+            font-weight: 600;
+            color: var(--primary-color);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .info-icon {
+            color: var(--primary-color);
+            cursor: pointer;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: rgba(38, 131, 198, 0.1);
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 250px;
+            background-color: #555;
+            color: #fff;
+            text-align: left;
+            border-radius: 6px;
+            padding: 10px;
+            position: absolute;
+            z-index: 100;
+            right: -20px;
+            top: 30px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .slider-container input[type="range"] {
+            flex: 1;
+            height: 8px;
+            border-radius: 5px;
+            background: linear-gradient(to right, #ddd, var(--primary-color));
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider-container input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+
+        .slider-container input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+
+        .slider-value {
+            min-width: 60px;
+            text-align: right;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            margin-top: 15px;
+            width: 100%;
+            transition: all 0.3s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .button:hover {
+            background-color: #1a6eae;
+            transform: translateY(-2px);
+            box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+        }
+
+        .button:active {
+            transform: translateY(0);
+        }
+
+        .calculation-info {
+            font-size: 0.85em;
+            color: var(--gray-color);
+            margin-top: 15px;
+            padding: 10px;
+            background-color: var(--light-color);
+            border-radius: 4px;
+        }
+
+        .info-box {
+            background-color: #e8f4f8;
+            border-left: 4px solid var(--primary-color);
+            padding: 12px;
+            margin-top: 15px;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .info-title {
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 5px;
+        }
+
+        .model-info {
+            font-size: 0.9rem;
+            color: #666;
+            margin: 15px 0;
+            padding: 12px;
+            border-left: 3px solid var(--secondary-color);
+            background-color: rgba(66, 186, 151, 0.05);
+            line-height: 1.5;
+        }
+
+        #workout-plot {
+            width: 100%;
+            height: 600px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            padding: 5px;
+            flex-grow: 1;
+        }
+
+        @media (max-width: 1000px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                max-height: none;
+                overflow-y: visible;
+            }
+            
+            .main-content {
+                padding: 10px;
+                height: auto;
+            }
+            
+            #workout-plot {
+                height: 400px;
+            }
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="header">
+                <h1>W' Balance Training Planner</h1>
+                <p>Optimize your interval training with the W' Balance model</p>
+            </div>
+
+            <div class="control-group">
+                <div class="section-title">
+                    Athlete Parameters
+                    <div class="tooltip info-icon">ⓘ
+                        <span class="tooltiptext">
+                            Critical Power (CP) represents the maximal sustainable power output, while W' represents the finite work capacity above CP. From Skiba's paper: "The W' represents a finite work capacity (J) available to the athlete once they attempt a power output above CP."
+                        </span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="cp-slider">Critical Power (CP) [W]</label>
+                    <div class="slider-container">
+                        <input type="range" id="cp-slider" min="100" max="500" value="365" step="1">
+                        <span class="slider-value" id="cp-value">365</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="wprime-slider">W' [kJ]</label>
+                    <div class="slider-container">
+                        <input type="range" id="wprime-slider" min="5" max="40" value="20" step="0.5">
+                        <span class="slider-value" id="wprime-value">20</span>
+                    </div>
+                </div>
+
+                <div class="model-info">
+                    The 2-parameter Critical Power model describes power-duration relationship as: P = W'/t + CP, where P is power output and t is time to exhaustion at that power.
+                </div>
+            </div>
+
+            <div class="control-group">
+                <div class="section-title">
+                    Training Parameters
+                    <div class="tooltip info-icon">ⓘ
+                        <span class="tooltiptext">
+                            Define your interval workout structure. Work intervals deplete W' when power is above CP, while recovery intervals allow W' to recharge when power is below CP.
+                        </span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="interval-count">Number of Intervals</label>
+                    <div class="slider-container">
+                        <input type="range" id="interval-count" min="1" max="20" value="5" step="1">
+                        <span class="slider-value" id="interval-count-value">5</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="interval-duration">Interval Duration [s]</label>
+                    <div class="slider-container">
+                        <input type="range" id="interval-duration" min="10" max="1200" value="300" step="5">
+                        <span class="slider-value" id="interval-duration-value">300</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="rest-duration">Rest Duration [s]</label>
+                    <div class="slider-container">
+                        <input type="range" id="rest-duration" min="10" max="1200" value="300" step="5">
+                        <span class="slider-value" id="rest-duration-value">300</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="power">Work Interval Power [W]</label>
+                    <div class="slider-container">
+                        <input type="range" id="power" min="50" max="600" value="400" step="1">
+                        <span class="slider-value" id="power-value">400</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="rest-power">Rest Interval Power [W]</label>
+                    <div class="slider-container">
+                        <input type="range" id="rest-power" min="0" max="500" value="200" step="5">
+                        <span class="slider-value" id="rest-power-value">200</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="wprime-end">W'-End Target [kJ]</label>
+                    <div class="slider-container">
+                        <input type="range" id="wprime-end" min="-10" max="30" value="0" step="0.5">
+                        <span class="slider-value" id="wprime-end-value">0</span>
+                    </div>
+                </div>
+
+                <button class="button" id="calculate-btn">Calculate Power for W'-Target</button>
+
+                <div class="info-box" id="result-info" style="display: none;">
+                    <div class="info-title">Result</div>
+                    <div id="result-text"></div>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <div class="section-title">
+                    W' Balance Model Information
+                    <div class="tooltip info-icon">ⓘ
+                        <span class="tooltiptext">
+                            The W' Balance model tracks the depletion and recovery of W' during intermittent exercise. This implementation uses Skiba's exponential recovery model.
+                        </span>
+                    </div>
+                </div>
+                <div class="calculation-info">
+                    <p>Based on Skiba's exponential W' Balance model:</p>
+                    <p style="margin-top: 8px; font-style: italic;">W'<sub>BAL</sub>(t) = W' - ∫<sub>0</sub><sup>t</sup>(W'<sub>EXP</sub> · e<sup>-(t-u)/τ<sub>W'</sub></sup>)du</p>
+                    <p style="margin-top: 8px;">Where τ<sub>W'</sub> = 546·e<sup>(-0.01·DCP)</sup> + 316</p>
+                    <p style="margin-top: 8px;">DCP is the difference between CP and recovery power.</p>
+                </div>
+
+                <div class="model-info">
+                    <p>When power > CP: W' is depleted</p>
+                    <p>When power < CP: W' recovers exponentially</p>
+                    <p>Exhaustion occurs when W' is fully depleted</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div id="workout-plot"></div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const cpSlider = document.getElementById('cp-slider');
+        const cpValue = document.getElementById('cp-value');
+        const wprimeSlider = document.getElementById('wprime-slider');
+        const wprimeValue = document.getElementById('wprime-value');
+        const intervalCountSlider = document.getElementById('interval-count');
+        const intervalCountValue = document.getElementById('interval-count-value');
+        const intervalDurationSlider = document.getElementById('interval-duration');
+        const intervalDurationValue = document.getElementById('interval-duration-value');
+        const restDurationSlider = document.getElementById('rest-duration');
+        const restDurationValue = document.getElementById('rest-duration-value');
+        const powerSlider = document.getElementById('power');
+        const powerValue = document.getElementById('power-value');
+        const restPowerSlider = document.getElementById('rest-power');
+        const restPowerValue = document.getElementById('rest-power-value');
+        const wprimeEndSlider = document.getElementById('wprime-end');
+        const wprimeEndValue = document.getElementById('wprime-end-value');
+        const calculateBtn = document.getElementById('calculate-btn');
+        const resultInfo = document.getElementById('result-info');
+        const resultText = document.getElementById('result-text');
+
+        // Initialize plot
+        let workoutPlot = document.getElementById('workout-plot');
+        
+        // Update slider value displays
+        cpSlider.addEventListener('input', () => { 
+            cpValue.textContent = cpSlider.value;
+            updatePlot();
+        });
+        wprimeSlider.addEventListener('input', () => { 
+            wprimeValue.textContent = wprimeSlider.value;
+            updatePlot();
+        });
+        intervalCountSlider.addEventListener('input', () => { 
+            intervalCountValue.textContent = intervalCountSlider.value;
+            updatePlot();
+        });
+        intervalDurationSlider.addEventListener('input', () => { 
+            intervalDurationValue.textContent = intervalDurationSlider.value;
+            updatePlot();
+        });
+        restDurationSlider.addEventListener('input', () => { 
+            restDurationValue.textContent = restDurationSlider.value;
+            updatePlot();
+        });
+        powerSlider.addEventListener('input', () => { 
+            powerValue.textContent = powerSlider.value;
+            updatePlot();
+        });
+        restPowerSlider.addEventListener('input', () => { 
+            restPowerValue.textContent = restPowerSlider.value;
+            updatePlot();
+        });
+        wprimeEndSlider.addEventListener('input', () => { 
+            wprimeEndValue.textContent = wprimeEndSlider.value;
+        });
+
+        // Calculate W' Balance using Skiba's model
+        function calcWPrimeBalance(powerValues, timeValues, cp, wprime) {
+            const wprimeBalance = [];
+            wprimeBalance[0] = wprime * 1000;  // Convert to Joules
+            
+            for (let i = 1; i < powerValues.length; i++) {
+                // Time difference between current and previous measurement
+                const deltaT = timeValues[i] - timeValues[i-1];
+                
+                // Calculate W' consumption/recovery
+                if (powerValues[i-1] > cp) {
+                    // W' is consumed when power > CP
+                    const wprimeExp = (powerValues[i-1] - cp) * deltaT;
+                    wprimeBalance[i] = wprimeBalance[i-1] - wprimeExp;
+                } else {
+                    // W' recovers when power < CP
+                    // Calculate DCP and time constant using Skiba's formula
+                    const dcp = cp - powerValues[i-1];
+                    const tauWPrime = 546 * Math.exp(-0.01 * dcp) + 316;
+                    
+                    // Exponential recovery
+                    wprimeBalance[i] = wprime * 1000 - (wprime * 1000 - wprimeBalance[i-1]) * Math.exp(-deltaT / tauWPrime);
+                }
+                
+                // Ensure W' Balance doesn't exceed maximum
+                wprimeBalance[i] = Math.min(wprimeBalance[i], wprime * 1000);
+            }
+            
+            return wprimeBalance;
+        }
+
+        // Calculate recovery time
+        function calcRecoveryTime(startWprime, cp, wprime) {
+            // If W' is already full, no recovery needed
+            if (startWprime >= wprime * 1000) {
+                return 0;
+            }
+            
+            // Time constant for recovery at 0 watts
+            const dcp = cp;  // Difference between CP and 0 watts
+            const tauWPrime = 546 * Math.exp(-0.01 * dcp) + 316;
+            
+            // Calculate time to full recovery (99.9%)
+            const recoveryTime = -tauWPrime * Math.log(0.001 * (wprime * 1000 - startWprime) / (wprime * 1000));
+            
+            return recoveryTime;
+        }
+
+        // Find optimal power for target W'-End value
+        function findOptimalPower() {
+            const cp = parseInt(cpSlider.value);
+            const wprime = parseFloat(wprimeSlider.value);
+            const intervals = parseInt(intervalCountSlider.value);
+            const intervalDuration = parseFloat(intervalDurationSlider.value);
+            const restDuration = parseFloat(restDurationSlider.value);
+            const restPower = parseInt(restPowerSlider.value);
+            const targetWprimeEnd = parseFloat(wprimeEndSlider.value);
+            
+            // Binary search to find optimal power
+            let left = cp;
+            let right = cp + 1000;  // High starting value
+            const precision = 1;  // 1 watt precision
+            let maxIterations = 50;
+            let iter = 0;
+            
+            // Special case for very low or negative target W'-End values
+            if (targetWprimeEnd <= 0.1) {
+                while (right - left > precision && iter < maxIterations) {
+                    const mid = (left + right) / 2;
+                    
+                    // Simulate with mid power
+                    const timePoints = createTimePoints(intervals, intervalDuration, restDuration);
+                    const powerValues = createPowerValues(timePoints, intervals, intervalDuration, restDuration, mid, restPower);
+                    const wprimeBalance = calcWPrimeBalance(powerValues, timePoints, cp, wprime);
+                    const endBalance = wprimeBalance[wprimeBalance.length - 1] / 1000;
+                    
+                    // Adjust search direction
+                    if (endBalance > targetWprimeEnd) {
+                        left = mid;
+                    } else {
+                        right = mid;
+                    }
+                    
+                    iter++;
+                }
+            } else {
+                // Standard case for positive W'-End values
+                while (right - left > precision && iter < maxIterations) {
+                    const mid = (left + right) / 2;
+                    
+                    // Simulate with mid power
+                    const timePoints = createTimePoints(intervals, intervalDuration, restDuration);
+                    const powerValues = createPowerValues(timePoints, intervals, intervalDuration, restDuration, mid, restPower);
+                    const wprimeBalance = calcWPrimeBalance(powerValues, timePoints, cp, wprime);
+                    const endBalance = wprimeBalance[wprimeBalance.length - 1] / 1000;
+                    
+                    // Adjust search direction
+                    if (endBalance < targetWprimeEnd) {
+                        right = mid;
+                    } else {
+                        left = mid;
+                    }
+                    
+                    iter++;
+                }
+            }
+            
+            return Math.round((left + right) / 2);
+        }
+
+        // Create time points array
+        function createTimePoints(intervals, intervalDuration, restDuration) {
+            const totalDuration = intervals * (intervalDuration + restDuration);
+            const stepSize = 0.5;  // Half-second steps for smooth curves
+            const points = Math.ceil(totalDuration / stepSize);
+            
+            const timePoints = [];
+            for (let i = 0; i <= points; i++) {
+                timePoints.push(i * stepSize);
+            }
+            
+            return timePoints;
+        }
+
+        // Create power values array (workout pattern)
+        function createPowerValues(timePoints, intervals, intervalDuration, restDuration, power, restPower) {
+            return timePoints.map(t => {
+                const cycleIndex = Math.floor(t / (intervalDuration + restDuration));
+                const cyclePosition = t - cycleIndex * (intervalDuration + restDuration);
+                
+                if (cyclePosition < restDuration) {
+                    return restPower;
+                } else {
+                    return power;
+                }
+            });
+        }
+
+        // Handle window resize - make the plot responsive
+        function handleResize() {
+            Plotly.Plots.resize(workoutPlot);
+        }
+
+        window.addEventListener('resize', handleResize);
+
+        // Update the plot based on current slider values
+        function updatePlot() {
+            const cp = parseInt(cpSlider.value);
+            const wprime = parseFloat(wprimeSlider.value);
+            const intervals = parseInt(intervalCountSlider.value);
+            const intervalDuration = parseFloat(intervalDurationSlider.value);
+            const restDuration = parseFloat(restDurationSlider.value);
+            const power = parseInt(powerSlider.value);
+            const restPower = parseInt(restPowerSlider.value);
+            
+            // Calculate workout duration
+            const workoutDuration = intervals * (intervalDuration + restDuration);
+            
+            // Create time points for workout phase
+            const timePointsWorkout = createTimePoints(intervals, intervalDuration, restDuration);
+            
+            // Create power values for workout phase
+            const powerValuesWorkout = createPowerValues(timePointsWorkout, intervals, intervalDuration, restDuration, power, restPower);
+            
+            // Calculate W' Balance for workout phase
+            const wprimeBalanceWorkout = calcWPrimeBalance(powerValuesWorkout, timePointsWorkout, cp, wprime);
+            
+            // W'-End value at the end of workout
+            const wprimeEndWorkout = wprimeBalanceWorkout[wprimeBalanceWorkout.length - 1];
+            
+            // Update W'-End slider to match calculated value
+            wprimeEndSlider.value = (wprimeEndWorkout / 1000).toFixed(1);
+            wprimeEndValue.textContent = (wprimeEndWorkout / 1000).toFixed(1);
+            
+            // Calculate recovery time to full regeneration
+            const recoveryTime = calcRecoveryTime(wprimeEndWorkout, cp, wprime);
+            
+            // Create time points for recovery phase
+            const recoverySteps = 200;  // More points for smoother recovery curve
+            const timePointsRecovery = [];
+            for (let i = 0; i <= recoverySteps; i++) {
+                timePointsRecovery.push(workoutDuration + (recoveryTime * i / recoverySteps));
+            }
+            
+            // Power values for recovery phase (all 0 watts)
+            const powerValuesRecovery = Array(timePointsRecovery.length).fill(0);
+            
+            // Calculate W' Balance for recovery phase
+            let wprimeBalanceRecovery = [];
+            if (timePointsRecovery.length > 0) {
+                // Start with the last value from workout phase
+                wprimeBalanceRecovery[0] = wprimeEndWorkout;
+                
+                for (let i = 1; i < timePointsRecovery.length; i++) {
+                    const deltaT = timePointsRecovery[i] - timePointsRecovery[i-1];
+                    const dcp = cp;  // Recovery at 0 watts
+                    const tauWPrime = 546 * Math.exp(-0.01 * dcp) + 316;
+                    
+                    wprimeBalanceRecovery[i] = wprime * 1000 - (wprime * 1000 - wprimeBalanceRecovery[i-1]) * Math.exp(-deltaT / tauWPrime);
+                    wprimeBalanceRecovery[i] = Math.min(wprimeBalanceRecovery[i], wprime * 1000);
+                }
+            }
+            
+            // Find 97.5% recovery point
+            const target97 = 0.975 * wprime * 1000;
+            let recovery97Time = workoutDuration + recoveryTime;  // Default to full recovery time
+            
+            for (let i = 0; i < wprimeBalanceRecovery.length; i++) {
+                if (wprimeBalanceRecovery[i] >= target97) {
+                    recovery97Time = timePointsRecovery[i];
+                    break;
+                }
+            }
+            
+            // Create arrays for plotting
+            const dfWorkout = {
+                time: timePointsWorkout,
+                power: powerValuesWorkout,
+                wprime: wprimeBalanceWorkout.map(w => w / 1000)  // Convert to kJ for display
+            };
+            
+            const dfRecovery = {
+                time: timePointsRecovery,
+                power: powerValuesRecovery,
+                wprime: wprimeBalanceRecovery.map(w => w / 1000)  // Convert to kJ for display
+            };
+            
+            // X-axis range: only positive values, limited to 97.5% recovery point
+            const xMin = 0;
+            const xMax = recovery97Time;
+            
+            // Y-axis range for power - make sure CP is always visible, plus some extra space
+            const yMax = Math.max(power, cp * 1.1, restPower) * 1.2;
+            
+            // Determine the minimum value for W' Balance
+            const minWprime = Math.min(0, Math.min(...dfWorkout.wprime)) * 1.2;  // Add space below
+            
+            // Create shapes for plot
+            const shapes = [];
+            
+            // Add horizontal line at W' = 0 if negative values exist
+            if (minWprime < 0) {
+                shapes.push({
+                    type: "line", 
+                    x0: xMin, 
+                    x1: xMax, 
+                    y0: 0, 
+                    y1: 0,
+                    yref: 'y2',
+                    line: { color: "darkgray", width: 1, dash: "dot" }
+                });
+            }
+            
+            // Add vertical line at end of workout
+            shapes.push({
+                type: "line", 
+                x0: workoutDuration, 
+                x1: workoutDuration, 
+                y0: 0, 
+                y1: yMax,
+                line: { color: "darkgray", width: 2, dash: "dash" }
+            });
+            
+            // Add interval lines
+            for (let i = 0; i < intervals; i++) {
+                const startPause = i * (intervalDuration + restDuration);
+                const endPause = startPause + restDuration;
+                const endInterval = startPause + restDuration + intervalDuration;
+                
+                // Line at beginning of interval (end of rest)
+                shapes.push({
+                    type: "line", 
+                    x0: endPause, 
+                    x1: endPause, 
+                    y0: 0, 
+                    y1: yMax,
+                    line: { color: "darkgray", width: 1, dash: "dash" }
+                });
+                
+                // Line at end of interval
+                if (i < intervals - 1) {  // Only if not the last interval
+                    shapes.push({
+                        type: "line", 
+                        x0: endInterval, 
+                        x1: endInterval, 
+                        y0: 0, 
+                        y1: yMax,
+                        line: { color: "darkgray", width: 1, dash: "dash" }
+                    });
+                }
+            }
+            
+            // Create annotations for the plot
+            const annotations = [];
+            
+            // W'-End value annotation with improved styling
+            const wprimeEndVal = dfWorkout.wprime[dfWorkout.wprime.length - 1];
+            annotations.push({
+                x: workoutDuration,
+                y: wprimeEndVal,
+                text: `W'-End: ${wprimeEndVal.toFixed(1)} kJ`,
+                showarrow: true,
+                arrowhead: 7,
+                arrowsize: 1,
+                arrowwidth: 2,
+                arrowcolor: '#42BA97',
+                ax: -60,
+                ay: 0,
+                xref: "x",
+                yref: "y2",
+                bgcolor: "rgba(255, 255, 255, 0.8)",
+                bordercolor: "#42BA97",
+                borderwidth: 2,
+                borderpad: 4,
+                font: { color: "#42BA97", size: 12, weight: "bold" }
+            });
+            
+            // Recovery phase label
+            if (workoutDuration < xMax) {
+                annotations.push({
+                    x: (workoutDuration + xMax) / 2,
+                    y: yMax * 0.95,
+                    text: "Recovery Phase (0 Watts)",
+                    showarrow: false,
+                    font: { size: 14, color: "gray" },
+                    xref: "x",
+                    yref: "y"
+                });
+            }
+            
+            // Update the plot
+            Plotly.react(workoutPlot, 
+                [
+                    // Power line
+                    {
+                        x: [...dfWorkout.time, ...dfRecovery.time],
+                        y: [...dfWorkout.power, ...dfRecovery.power],
+                        type: 'scatter',
+                        mode: 'lines',
+                        line: { color: '#778899', width: 3 },
+                        name: 'Power (Watts)',
+                        yaxis: 'y'
+                    },
+                    // W' Balance line for workout phase
+                    {
+                        x: dfWorkout.time,
+                        y: dfWorkout.wprime,
+                        type: 'scatter',
+                        mode: 'lines',
+                        line: { color: '#42BA97', width: 3 },
+                        name: "W' Balance (kJ)",
+                        yaxis: 'y2'
+                    },
+                    // W' Balance line for recovery phase
+                    {
+                        x: dfRecovery.time,
+                        y: dfRecovery.wprime,
+                        type: 'scatter',
+                        mode: 'lines',
+                        line: { color: '#42BA97', width: 3, dash: 'dash' },
+                        name: "W' Recovery (kJ)",
+                        yaxis: 'y2',
+                        showlegend: false  // No separate legend for recovery
+                    },
+                    // Critical Power line
+                    {
+                        x: [xMin, xMax],
+                        y: [cp, cp],
+                        type: 'scatter',
+                        mode: 'lines',
+                        line: { color: '#EF5350', width: 2 },
+                        name: 'Critical Power',
+                        yaxis: 'y'
+                    }
+                ],
+                {
+                    title: {
+                        text: 'Power-Time Profile with W\' Balance',
+                        font: { size: 18, color: '#2683C6' }
+                    },
+                    xaxis: {
+                        title: {
+                            text: 'Time (seconds)',
+                            font: { size: 14 }
+                        },
+                        range: [xMin, xMax],
+                        zeroline: false,
+                        showgrid: false
+                    },
+                    yaxis: {
+                        title: {
+                            text: 'Power (Watts)',
+                            font: { size: 14 }
+                        },
+                        range: [0, yMax],
+                        zeroline: false,
+                        showgrid: false,
+                        side: 'left'
+                    },
+                    yaxis2: {
+                        title: {
+                            text: "W' Balance (kJ)",
+                            font: { size: 14 }
+                        },
+                        range: [minWprime, wprime * 1.2],
+                        overlaying: 'y',
+                        showgrid: false,
+                        side: 'right'
+                    },
+                    showlegend: true,
+                    legend: {
+                        orientation: 'h',
+                        x: 0.5,
+                        y: 1.0,
+                        xanchor: 'center',
+                        yanchor: 'bottom',
+                        bgcolor: 'rgba(255, 255, 255, 0)',
+                        bordercolor: 'rgba(0, 0, 0, 0)',
+                        borderwidth: 0
+                    },
+                    shapes: shapes,
+                    annotations: annotations,
+                    margin: { t: 60, r: 70, l: 70, b: 70 },
+                    paper_bgcolor: 'rgba(255,255,255,0)',
+                    plot_bgcolor: 'rgba(255,255,255,0.5)',
+                    hovermode: 'closest',
+                    autosize: true
+                },
+                {
+                    responsive: true
+                }
+            );
+        }
+
+        // Calculate button click handler for optimal power calculation
+        calculateBtn.addEventListener('click', () => {
+            const optimalPower = findOptimalPower();
+            
+            // Set slider to optimal power
+            powerSlider.value = optimalPower;
+            powerValue.textContent = optimalPower;
+            
+            // Update the plot with new power
+            updatePlot();
+            
+            // Show result info
+            resultInfo.style.display = 'block';
+            
+            const cp = parseInt(cpSlider.value);
+            if (optimalPower <= cp) {
+                resultText.innerHTML = `Optimal power: <strong>${optimalPower} W</strong><br><span style="color: orange;">Note: Optimal power is less than or equal to CP.</span>`;
+            } else {
+                resultText.innerHTML = `Optimal power: <strong>${optimalPower} W</strong>`;
+            }
+        });
+
+        // Initialize the plot on page load
+        updatePlot();
+        
+        // Make sure it's properly sized on page load
+        window.addEventListener('load', () => {
+            handleResize();
+        });
+    </script>
+</body>
+</html>
