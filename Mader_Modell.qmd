@@ -27,6 +27,24 @@ nocite: |
     
 ---
 
+**Please note: This website is currently under construction.** I'm gradually adding more detailed explanations of the applications and developing additional models. The content will continue to expand over time.
+
+```{css}
+#| echo: false
+p {
+  text-align: justify
+}
+caption, .figure-caption {
+  text-align: left;
+}
+figure.quarto-float-tbl figcaption {
+  text-align: left !important;
+}
+figure figcaption {
+  text-align: justify;
+}
+```
+
 <div style="position: relative; width: 100%; height: 800px;">
   <iframe src="Mader_App2.html" style="position: absolute; width: 100%; height: 100%; border: none;"></iframe>
 </div>

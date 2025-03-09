@@ -24,6 +24,7 @@ website:
     search: true
     collapse-level: 3 #Ab welchem Level die Unterpunkt nicht mehr angezeigt werden. Bei 2 wird bspw. bei Energieumsatz die Unterpunkte eingeklappt
     contents:
+       - about.qmd
        - Mader_Modell.qmd
        - Critical_Power.qmd
       

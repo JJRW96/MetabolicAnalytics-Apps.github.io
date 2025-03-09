@@ -1,0 +1,50 @@
+{
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "---\n",
+        "title: \"About\"\n",
+        "---\n",
+        "\n",
+        "```{css}\n",
+        "#| echo: false\n",
+        "p {\n",
+        "  text-align: justify\n",
+        "}\n",
+        "caption, .figure-caption {\n",
+        "  text-align: left;\n",
+        "}\n",
+        "figure.quarto-float-tbl figcaption {\n",
+        "  text-align: left !important;\n",
+        "}\n",
+        "figure figcaption {\n",
+        "  text-align: justify;\n",
+        "}\n",
+        "```\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "This website provides interactive sports science tools and applications for exercise physiology analysis. The collection includes models for metabolic calculations, performance predictions.\n",
+        "\n",
+        "**Please note: This website is currently under construction.** I'm gradually adding more detailed explanations of the applications and developing additional models. The content will continue to expand over time.\n",
+        "\n",
+        "Available applications help quantify physiological parameters and analyze the relationships between exercise intensity, metabolism, and athletic performance through evidence-based calculations and visual representations.\n",
+        "\n",
+        "If you're interested in similar tools, you might want to check out my [master's thesis](https://jjrw96.github.io/Wirkungsgrad-Rad.github.io/about.html), which was created as a website. It contains comparable applications with detailed explanations, though it's worth mentioning that the thesis is in German and specifically focuses on efficiency factors in cycling."
+      ],
+      "id": "238ba24f"
+    }
+  ],
+  "metadata": {
+    "kernelspec": {
+      "display_name": "Python 3",
+      "language": "python",
+      "name": "python3"
+    }
+  },
+  "nbformat": 4,
+  "nbformat_minor": 5
+}
