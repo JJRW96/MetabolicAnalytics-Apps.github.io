@@ -15,7 +15,7 @@ execute:
   echo: false
   warning: false
   error: false
-bibliography: references.bib
+bibliography: references_all.bib
 lang: de
 number-sections: false
 editor: 
@@ -23,11 +23,9 @@ editor:
     wrap: 72
     
 nocite: |
-  @Hintzy-Cloutier2003, @Dunst2025, @Dunst2024
+  @Hintzy-Cloutier2003, @Dunst2025, @Dunst2024; @Mader2003; @Hauser2014; @Ji2021; @Nolte2022; @Mader1984; @Oezyener2001 
     
 ---
-
-**Please note: This website is currently under construction.** I'm gradually adding more detailed explanations of the applications and developing additional models. The content will continue to expand over time.
 
 ```{css}
 #| echo: false
@@ -45,10 +43,22 @@ figure figcaption {
 }
 ```
 
+**Please note: This website is currently under construction.** I'm gradually adding more detailed explanations of the applications and developing additional models. The content will continue to expand over time.
+
+<a href="Example_Race_Data.csv" download class="btn btn-primary">
+  <i class="bi bi-download"></i> Download Example_Race_Data.csv
+</a>
+
+
 <div style="position: relative; width: 100%; height: 800px;">
-  <iframe src="Mader_App2.html" style="position: absolute; width: 100%; height: 100%; border: none;"></iframe>
+  <iframe src="Mader_App_2.8.html" style="position: absolute; width: 100%; height: 100%; border: none;"></iframe>
 </div>
 
 <br>
 
-[Link: Mader App](/Mader_App2.html)
+[Link: Mader App](/Mader_App_2.8.html)
+
+
+
+
+

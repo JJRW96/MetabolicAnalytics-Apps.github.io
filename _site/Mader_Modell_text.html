@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="de" xml:lang="de"><head>
 
 <meta charset="utf-8">
 <meta name="generator" content="quarto-1.5.45">
@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Sports Science Models &amp; Applications – ShinyApps</title>
+<title>Mader’s metabolic model – ShinyApps</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -20,7 +20,27 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
-</style>
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
 
 
 <script src="site_libs/quarto-nav/quarto-nav.js"></script>
@@ -55,20 +75,49 @@ ul.task-list li input[type="checkbox"] {
   ],
   "show-item-context": false,
   "language": {
-    "search-no-results-text": "No results",
-    "search-matching-documents-text": "matching documents",
-    "search-copy-link-title": "Copy link to search",
-    "search-hide-matches-text": "Hide additional matches",
-    "search-more-match-text": "more match in this document",
-    "search-more-matches-text": "more matches in this document",
-    "search-clear-button-title": "Clear",
+    "search-no-results-text": "Keine Treffer",
+    "search-matching-documents-text": "Treffer",
+    "search-copy-link-title": "Link in die Suche kopieren",
+    "search-hide-matches-text": "Zusätzliche Treffer verbergen",
+    "search-more-match-text": "weitere Treffer in diesem Dokument",
+    "search-more-matches-text": "weitere Treffer in diesem Dokument",
+    "search-clear-button-title": "Zurücksetzen",
     "search-text-placeholder": "",
-    "search-detached-cancel-button-title": "Cancel",
-    "search-submit-button-title": "Submit",
-    "search-label": "Search"
+    "search-detached-cancel-button-title": "Abbrechen",
+    "search-submit-button-title": "Abschicken",
+    "search-label": "Suchen"
   }
 }</script>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 <link rel="stylesheet" href="styles.css">
 </head>
@@ -79,13 +128,13 @@ ul.task-list li input[type="checkbox"] {
   <header id="quarto-header" class="headroom fixed-top">
   <nav class="quarto-secondary-nav">
     <div class="container-fluid d-flex">
-      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Seitenleiste umschalten" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item">Sports Science Models &amp; Applications</li></ol></nav>
-        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item">Mader’s metabolic model</li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Seitenleiste umschalten" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
-      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+      <button type="button" class="btn quarto-search-button" aria-label="Suchen" onclick="window.quartoOpenSearch();">
         <i class="bi bi-search"></i>
       </button>
     </div>
@@ -100,12 +149,12 @@ ul.task-list li input[type="checkbox"] {
       <img src="./images/Logo_1.png" alt="" class="sidebar-logo py-0 d-lg-inline d-none">
       </a>
       <div class="sidebar-tools-main">
-  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Dunkelmodus umschalten"><i class="bi"></i></a>
 </div>
       </div>
         <div class="mt-2 flex-shrink-0 align-items-center">
         <div class="sidebar-search">
-        <div id="quarto-search" class="" title="Search"></div>
+        <div id="quarto-search" class="" title="Suchen"></div>
         </div>
         </div>
     <div class="sidebar-menu-container"> 
@@ -139,7 +188,7 @@ ul.task-list li input[type="checkbox"] {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Sports Science Models &amp; Applications</h1>
+<h1 class="title">Mader’s metabolic model</h1>
 </div>
 
 
@@ -172,13 +221,144 @@ figure figcaption {
 }
 </style>
 </div>
-<p>This website provides interactive sports science tools and applications for exercise physiology analysis. The collection includes models for metabolic calculations, performance predictions. Available applications help quantify physiological parameters and analyze the relationships between exercise intensity, metabolism, and athletic performance through evidence-based calculations and visual representations.</p>
 <p><strong>Please note: This website is currently under construction.</strong> I’m gradually adding more detailed explanations of the applications and developing additional models. The content will continue to expand over time.</p>
-<p>For additional tools, take a look at the website I created for my <a href="https://jjrw96.github.io/Wirkungsgrad-Rad.github.io/about.html">master’s thesis</a>. This site offers similar applications with comprehensive explanations, but comes in German only and centers on examining efficiency factors in cycling performance.</p>
+<p><a href="Example_Race_Data.csv" download="" class="btn btn-primary"> <i class="bi bi-download"></i> Download Example_Race_Data.csv </a></p>
+<div style="position: relative; width: 100%; height: 800px;">
+<p><iframe src="Mader_App_2.7.html" style="position: absolute; width: 100%; height: 100%; border: none;"></iframe></p>
+</div>
+<p><br></p>
+<p><a href=".\Mader_App_2.7.html">Link: Mader App</a></p>
+<section id="metabolic-parameter-calculations-in-maders-model-theoretical-framework-and-implementation" class="level1">
+<h1>Metabolic Parameter Calculations in Mader’s Model: Theoretical Framework and Implementation</h1>
+<p>Mader’s mathematical model provides a sophisticated framework for predicting endurance performance through simulation of metabolic responses to exercise. The model, as implemented in the Shiny application, calculates key metabolic parameters including steady-state oxygen uptake (<span class="math inline">\(\dot{V}O_{2ss}\)</span>), maximal lactate accumulation rate (<span class="math inline">\(vLa_{ss}\)</span>), lactate oxidation rate (<span class="math inline">\(vLa_{ox}\)</span>), pyruvate deficit (PD), and blood lactate accumulation. These calculations rely on a set of physiological input parameters that characterize an individual’s metabolic capacity.</p>
+<section id="steady-state-oxygen-uptake-dotvo_2ss" class="level2">
+<h2 class="anchored" data-anchor-id="steady-state-oxygen-uptake-dotvo_2ss">Steady-State Oxygen Uptake (<span class="math inline">\(\dot{V}O_{2ss}\)</span>)</h2>
+<p>The steady-state oxygen uptake represents the oxygen consumption at a given exercise intensity when metabolic equilibrium is achieved. In its standard form, <span class="math inline">\(\dot{V}O_{2ss}\)</span> is calculated using a linear relationship between power output and oxygen demand:</p>
+<p><span id="eq-VO2ss-linear"><span class="math display">\[
+\dot{V}O_{2ss}(P) = CE_{V\dot{O}_2} \cdot P + \dot{V}O_{2Base}
+\tag{1}\]</span></span></p>
+<p>Where: - <span class="math inline">\(CE_{V\dot{O}_2}\)</span> is the oxygen cost per unit of power output (ml/min/W) - <span class="math inline">\(P\)</span> is the mechanical power output (W) - <span class="math inline">\(\dot{V}O_{2Base}\)</span> is the resting oxygen uptake (ml/min)</p>
+<p>However, as demonstrated by <span class="citation" data-cites="Dunst2025">Dunst et al. (<a href="#ref-Dunst2025" role="doc-biblioref">2025</a>)</span>, this relationship may be influenced by movement velocity (e.g., cycling cadence), with both <span class="math inline">\(CE_{V\dot{O}_2}\)</span> and <span class="math inline">\(\dot{V}O_{2Base}\)</span> showing U-shaped relationships with pedaling rate.</p>
+<p>In the application, the resting oxygen uptake (<span class="math inline">\(\dot{V}O_{2Base}\)</span>) can be calculated using the Harris-Benedict equations adapted for oxygen consumption:</p>
+<p>For males: <span id="eq-harris-benedict-m"><span class="math display">\[
+h_m = 66.5 + (13.75 \cdot m) + (5.003 \cdot l) - (6.775 \cdot a)
+\tag{2}\]</span></span></p>
+<p>For females: <span id="eq-harris-benedict-f"><span class="math display">\[
+h_f = 655.1 + (9.563 \cdot m) + (1.850 \cdot l) - (4.676 \cdot a)
+\tag{3}\]</span></span></p>
+<p>Where: - <span class="math inline">\(m\)</span> is body mass (kg) - <span class="math inline">\(l\)</span> is height (cm) - <span class="math inline">\(a\)</span> is age (years)</p>
+<p>Converting to oxygen consumption: <span id="eq-VO2Base"><span class="math display">\[
+\dot{V}O_{2Base} = \frac{h_{f,m}}{24 \cdot 60 \cdot k\ddot{A}} \cdot 4.1868 \cdot f \cdot 1000
+\tag{4}\]</span></span></p>
+<p>With: - <span class="math inline">\(k\ddot{A} = 19.946\)</span> (kJ·L<span class="math inline">\(^{-1}\)</span>) - <span class="math inline">\(f = 1.287\)</span> for males, <span class="math inline">\(f = 1.278\)</span> for females</p>
+<p>The Shiny application also provides an option for a curvilinear oxygen uptake-power relationship:</p>
+<p><span id="eq-VO2ss-curvilinear"><span class="math display">\[
+\dot{V}O_{2ss}(P) = a \cdot P^2 + CE_{start} \cdot P + \dot{V}O_{2Base}
+\tag{5}\]</span></span></p>
+<p>Where <span class="math inline">\(a\)</span> is an optimized coefficient that ensures the slope at the intersection with <span class="math inline">\(\dot{V}O_{2max}\)</span> equals the target oxygen cost (<span class="math inline">\(CE_{target}\)</span>). This curvilinear relationship may better represent the oxygen cost at higher intensities for some athletes.</p>
+<p>For simulation purposes, <span class="math inline">\(\dot{V}O_{2ss}\)</span> is capped at <span class="math inline">\(\dot{V}O_{2max}\)</span>, as oxygen uptake cannot exceed this physiological maximum:</p>
+<p><span id="eq-VO2ss-capped"><span class="math display">\[
+\dot{V}O_{2ss} = \min(\dot{V}O_{2ss\text{-unlimited}}, \dot{V}O_{2max})
+\tag{6}\]</span></span></p>
+</section>
+<section id="maximal-lactate-accumulation-rate-vla_ss" class="level2">
+<h2 class="anchored" data-anchor-id="maximal-lactate-accumulation-rate-vla_ss">Maximal Lactate Accumulation Rate (<span class="math inline">\(vLa_{ss}\)</span>)</h2>
+<p>The intensity-specific glycolytic activity, represented by <span class="math inline">\(vLa_{ss}\)</span>, is calculated using Michaelis-Menten enzyme kinetics that account for the activation state of glycolysis based on the cytosolic phosphorylation state:</p>
+<p><span id="eq-vLass"><span class="math display">\[
+vLa_{ss} = \frac{vLa_{max}}{1 + ks_2 \cdot \left(\frac{\dot{V}O_{2max} - \dot{V}O_{2ss}}{ks_1 \cdot \dot{V}O_{2ss}}\right)^{3/2}}
+\tag{7}\]</span></span></p>
+<p>Where: - <span class="math inline">\(vLa_{max}\)</span> is the maximal lactate accumulation rate (mmol·l<span class="math inline">\(^{-1}\)</span>·s<span class="math inline">\(^{-1}\)</span>) - <span class="math inline">\(ks_1 = 0.0635\)</span> (mmol·kg<span class="math inline">\(_m^{-1}\)</span>)<span class="math inline">\(^2\)</span> is the 50% activation constant of oxidative phosphorylation - <span class="math inline">\(ks_2 = (1.1\)</span> mmol·kg<span class="math inline">\(_m^{-1}\)</span>)<span class="math inline">\(^3\)</span> is the 50% activation constant of glycolysis</p>
+<p>The term <span class="math inline">\(\left(\frac{\dot{V}O_{2max} - \dot{V}O_{2ss}}{ks_1 \cdot \dot{V}O_{2ss}}\right)^{3/2}\)</span> represents the phosphorylation state of the muscle cell, which regulates glycolytic flux. As exercise intensity increases and <span class="math inline">\(\dot{V}O_{2ss}\)</span> approaches <span class="math inline">\(\dot{V}O_{2max}\)</span>, this term decreases, resulting in increased glycolytic activity.</p>
+<p><span class="citation" data-cites="Dunst2025">Dunst et al. (<a href="#ref-Dunst2025" role="doc-biblioref">2025</a>)</span> found that while <span class="math inline">\(vLa_{max}\)</span> appeared to increase with cycling cadence in a polynomial relationship, this may be an artifact of measurement methodology rather than representing true changes in maximal glycolytic flux. Their findings suggest that <span class="math inline">\(vLa_{max}\)</span> should be treated as cadence-independent for modeling purposes.</p>
+<p>In the application, <span class="math inline">\(vLa_{ss}\)</span> is converted to mmol·l<span class="math inline">\(^{-1}\)</span>·min<span class="math inline">\(^{-1}\)</span> for visualization purposes:</p>
+<p><span id="eq-vLass-min"><span class="math display">\[
+vLa_{ss} \text{ [mmol·l}^{-1}\text{·min}^{-1}\text{]} = vLa_{ss} \text{ [mmol·l}^{-1}\text{·s}^{-1}\text{]} \cdot 60
+\tag{8}\]</span></span></p>
+</section>
+<section id="lactate-oxidation-rate-vla_ox" class="level2">
+<h2 class="anchored" data-anchor-id="lactate-oxidation-rate-vla_ox">Lactate Oxidation Rate (<span class="math inline">\(vLa_{ox}\)</span>)</h2>
+<p>The rate at which lactate is eliminated from the blood through oxidation is calculated as a function of oxygen uptake:</p>
+<p><span id="eq-vLaox"><span class="math display">\[
+vLa_{ox} = \frac{CE_{La\dot{O}_2} \cdot \dot{V}O_{2ss}}{VolLa \cdot 60}
+\tag{9}\]</span></span></p>
+<p>Where: - <span class="math inline">\(CE_{La\dot{O}_2} = 0.02049\)</span> mmol·l<span class="math inline">\(^{-1}\)</span>·ml<span class="math inline">\(^{-1}\)</span> is the lactate equivalent per oxygen uptake - <span class="math inline">\(VolLa = 0.4\)</span> is the lactate distribution volume - The factor 60 converts from per second to per minute</p>
+<p>As with <span class="math inline">\(vLa_{ss}\)</span>, this value is converted to mmol·l<span class="math inline">\(^{-1}\)</span>·min<span class="math inline">\(^{-1}\)</span> for visualization:</p>
+<p><span id="eq-vLaox-min"><span class="math display">\[
+vLa_{ox} \text{ [mmol·l}^{-1}\text{·min}^{-1}\text{]} = vLa_{ox} \text{ [mmol·l}^{-1}\text{·s}^{-1}\text{]} \cdot 60
+\tag{10}\]</span></span></p>
+<p>The lactate equivalent (<span class="math inline">\(CE_{La\dot{O}_2}\)</span>) is divided by body mass in the application to account for individual differences, which affects lactate kinetics.</p>
+</section>
+<section id="pyruvate-deficit-pd" class="level2">
+<h2 class="anchored" data-anchor-id="pyruvate-deficit-pd">Pyruvate Deficit (PD)</h2>
+<p>The pyruvate deficit represents the difference between the capacity to metabolize pyruvate via oxidative phosphorylation and the pyruvate produced by glycolysis:</p>
+<p><span id="eq-PD"><span class="math display">\[
+PD = vLa_{ox} - vLa_{ss}
+\tag{11}\]</span></span></p>
+<p>A positive PD indicates that the oxidative system can process more pyruvate than is being produced, allowing for fat oxidation. A negative PD indicates lactate accumulation as glycolysis exceeds oxidative capacity.</p>
+<p>The maximum pyruvate deficit (PD<span class="math inline">\(_{max}\)</span>) corresponds to the intensity with the highest fat oxidation rate, often referred to as FAT<span class="math inline">\(_{max}\)</span>:</p>
+<p><span id="eq-FATmax"><span class="math display">\[
+\text{FAT}_{max} = \max(PD)
+\tag{12}\]</span></span></p>
+<p>The maximal lactate steady state (MLSS) occurs where PD equals zero, indicating a balance between lactate production and elimination:</p>
+<p><span id="eq-MLSS"><span class="math display">\[
+\text{MLSS} = \{P | PD(P) = 0\}
+\tag{13}\]</span></span></p>
+<p>In the Shiny application, these thresholds are identified by finding the power values corresponding to the maximum of the PD curve and the point where PD crosses zero, respectively.</p>
+</section>
+<section id="lactate-accumulation" class="level2">
+<h2 class="anchored" data-anchor-id="lactate-accumulation">Lactate Accumulation</h2>
+<p>The lactate accumulation in blood is calculated as the cumulative effect of the imbalance between lactate production and elimination:</p>
+<p><span id="eq-La-accum"><span class="math display">\[
+La_{accum}(i) =
+\begin{cases}
+\max(0, vLa_{ss}(i) - vLa_{ox}(i)), &amp; \text{if } i=1 \\
+La_{accum}(i-1) + \max(0, vLa_{ss}(i) - vLa_{ox}(i)), &amp; \text{otherwise}
+\end{cases}
+\tag{14}\]</span></span></p>
+<p>This accumulation only begins when <span class="math inline">\(vLa_{ss}\)</span> exceeds <span class="math inline">\(vLa_{ox}\)</span>, which typically occurs beyond the MLSS. The implementation includes setting accumulated lactate values to NA for intensities below this threshold to represent the absence of net lactate accumulation.</p>
+</section>
+<section id="impact-of-movement-velocity-on-metabolic-parameters" class="level2">
+<h2 class="anchored" data-anchor-id="impact-of-movement-velocity-on-metabolic-parameters">Impact of Movement Velocity on Metabolic Parameters</h2>
+<p><span class="citation" data-cites="Dunst2025">Dunst et al. (<a href="#ref-Dunst2025" role="doc-biblioref">2025</a>)</span> demonstrated that incorporating cadence-dependent relationships for <span class="math inline">\(CE_{V\dot{O}_2}\)</span> and <span class="math inline">\(\dot{V}O_{2Base}\)</span> into Mader’s model significantly affects predicted power outputs at metabolic thresholds. Their findings revealed polynomial relationships between cadence and threshold-specific power outputs, with optimal cadences of 84 rpm for MAP, 80 rpm for MLSS, and 70 rpm for FAT<span class="math inline">\(_{max}\)</span> when using cadence-dependent <span class="math inline">\(CE_{V\dot{O}_2}\)</span> and <span class="math inline">\(\dot{V}O_{2Base}\)</span> with constant <span class="math inline">\(vLa_{max}\)</span>.</p>
+<p>The mathematical functions describing these cadence dependencies were:</p>
+<p><span id="eq-CE-cadence"><span class="math display">\[
+CE_{V\dot{O}_2}(PR) = 0.0004 \cdot PR^2 - 0.094 \cdot PR + 16.857
+\tag{15}\]</span></span></p>
+<p><span id="eq-VO2Base-cadence"><span class="math display">\[
+\dot{V}O_{2Base}(PR) = 0.172 \cdot PR^2 - 14.460 \cdot PR + 548.039
+\tag{16}\]</span></span></p>
+<p>Where <span class="math inline">\(PR\)</span> is the pedaling rate in rpm.</p>
+<p>When these relationships are incorporated into the model, the power output at a given metabolic threshold becomes a function of cadence:</p>
+<p><span id="eq-Power-cadence"><span class="math display">\[
+P(PR) = \frac{\dot{V}O_{2ss}(PR) - \dot{V}O_{2Base}(PR)}{CE_{V\dot{O}_2}(PR)}
+\tag{17}\]</span></span></p>
+<p>This approach represents a significant advancement in metabolic modeling, as it acknowledges that metabolic responses are not fixed but vary with movement velocity, offering more precise predictions for endurance performance.</p>
+</section>
+<section id="practical-application" class="level2">
+<h2 class="anchored" data-anchor-id="practical-application">Practical Application</h2>
+<p>The Shiny application visualizes these relationships, allowing users to explore how changes in physiological parameters and cadence affect metabolic thresholds. The app displays power output-specific values for <span class="math inline">\(\dot{V}O_{2ss}\)</span>, <span class="math inline">\(vLa_{ss}\)</span>, <span class="math inline">\(vLa_{ox}\)</span>, PD, and lactate accumulation, providing insights into the metabolic profile at different intensities.</p>
+<p>For training prescription, the identification of FATmax and MLSS is particularly valuable, as these thresholds demarcate important training zones. The ability to account for cadence effects enhances the precision of these prescriptions, especially for cyclists who may use different cadences during training and competition.</p>
+<p>As highlighted by <span class="citation" data-cites="Dunst2025">Dunst et al. (<a href="#ref-Dunst2025" role="doc-biblioref">2025</a>)</span>, neglecting movement velocity in metabolic modeling can lead to significant errors in performance predictions, with deviations of up to 100W in threshold power estimates. By incorporating cadence-dependent relationships, the application provides a more nuanced understanding of the interplay between movement velocity and metabolic processes, enhancing the utility of Mader’s model for endurance performance prediction and training optimization.</p>
 
 
+</section>
+</section>
+<section id="bibliography" class="level1 unnumbered">
 
-</main> <!-- /main -->
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" data-line-spacing="2" role="list">
+<div id="ref-Dunst2024" class="csl-entry" role="listitem">
+Dunst, A. K., Hesse, C., &amp; Ueberschär, O. (2024). <span>Understanding optimal cadence dynamics: a systematic analysis of the power-velocity relationship in track cyclists with increasing exercise intensity</span>. <em>Frontiers in Physiology</em>, <em>15</em>(April), 1–17. <a href="https://doi.org/10.3389/fphys.2024.1343601">https://doi.org/10.3389/fphys.2024.1343601</a>
+</div>
+<div id="ref-Dunst2025" class="csl-entry" role="listitem">
+Dunst, A. K., Hesse, C., &amp; Ueberschär, O. (2025). <span>Enhancing endurance performance predictions: the role of movement velocity in metabolic simulations demonstrated by cycling cadence.</span> <em>European journal of applied physiology</em>. <a href="https://doi.org/10.1007/s00421-024-05663-4">https://doi.org/10.1007/s00421-024-05663-4</a>
+</div>
+<div id="ref-Hintzy-Cloutier2003" class="csl-entry" role="listitem">
+Hintzy-Cloutier, F., Zameziati, K., &amp; Belli, A. (2003). <a href="https://www.ncbi.nlm.nih.gov/pubmed/12629462"><span>Influence of the base-line determination on work efficiency during submaximal cycling</span></a>. <em>Journal of Sports Medicine and Physical Fitness</em>, <em>43</em>(1), 51–56.
+</div>
+</div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {

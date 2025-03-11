@@ -15,7 +15,7 @@ execute:
   echo: false
   warning: false
   error: false
-bibliography: references.bib
+bibliography: references_all.bib
 lang: de
 number-sections: false
 editor: 

@@ -1,0 +1,236 @@
+---
+title: "Mader's metabolic model"
+
+format:
+  html:
+    resources: 
+      - shinylive-sw.js
+      
+filters:
+  - shinylive
+
+execute:
+  message: false
+  engine: knitr
+  echo: false
+  warning: false
+  error: false
+bibliography: references.bib
+lang: de
+number-sections: false
+editor: 
+  markdown: 
+    wrap: 72
+    
+nocite: |
+  @Hintzy-Cloutier2003, @Dunst2025, @Dunst2024
+    
+---
+
+```{css}
+#| echo: false
+p {
+  text-align: justify
+}
+caption, .figure-caption {
+  text-align: left;
+}
+figure.quarto-float-tbl figcaption {
+  text-align: left !important;
+}
+figure figcaption {
+  text-align: justify;
+}
+```
+
+**Please note: This website is currently under construction.** I'm gradually adding more detailed explanations of the applications and developing additional models. The content will continue to expand over time.
+
+<a href="Example_Race_Data.csv" download class="btn btn-primary">
+  <i class="bi bi-download"></i> Download Example_Race_Data.csv
+</a>
+
+
+<div style="position: relative; width: 100%; height: 800px;">
+  <iframe src="Mader_App_2.7.html" style="position: absolute; width: 100%; height: 100%; border: none;"></iframe>
+</div>
+
+<br>
+
+[Link: Mader App](/Mader_App_2.7.html)
+
+
+
+# Metabolic Parameter Calculations in Mader's Model: Theoretical Framework and Implementation
+
+
+Mader's mathematical model provides a sophisticated framework for predicting endurance performance through simulation of metabolic responses to exercise. The model, as implemented in the Shiny application, calculates key metabolic parameters including steady-state oxygen uptake ($\dot{V}O_{2ss}$), maximal lactate accumulation rate ($vLa_{ss}$), lactate oxidation rate ($vLa_{ox}$), pyruvate deficit (PD), and blood lactate accumulation. These calculations rely on a set of physiological input parameters that characterize an individual's metabolic capacity.
+
+## Steady-State Oxygen Uptake ($\dot{V}O_{2ss}$)
+
+The steady-state oxygen uptake represents the oxygen consumption at a given exercise intensity when metabolic equilibrium is achieved. In its standard form, $\dot{V}O_{2ss}$ is calculated using a linear relationship between power output and oxygen demand:
+
+$$
+\dot{V}O_{2ss}(P) = CE_{V\dot{O}_2} \cdot P + \dot{V}O_{2Base}
+$$ {#eq-VO2ss-linear}
+
+Where:
+- $CE_{V\dot{O}_2}$ is the oxygen cost per unit of power output (ml/min/W)
+- $P$ is the mechanical power output (W)
+- $\dot{V}O_{2Base}$ is the resting oxygen uptake (ml/min)
+
+However, as demonstrated by @Dunst2025, this relationship may be influenced by movement velocity (e.g., cycling cadence), with both $CE_{V\dot{O}_2}$ and $\dot{V}O_{2Base}$ showing U-shaped relationships with pedaling rate.
+
+In the application, the resting oxygen uptake ($\dot{V}O_{2Base}$) can be calculated using the Harris-Benedict equations adapted for oxygen consumption:
+
+For males:
+$$
+h_m = 66.5 + (13.75 \cdot m) + (5.003 \cdot l) - (6.775 \cdot a)
+$$ {#eq-harris-benedict-m}
+
+For females:
+$$
+h_f = 655.1 + (9.563 \cdot m) + (1.850 \cdot l) - (4.676 \cdot a)
+$$ {#eq-harris-benedict-f}
+
+Where:
+- $m$ is body mass (kg)
+- $l$ is height (cm)
+- $a$ is age (years)
+
+Converting to oxygen consumption:
+$$
+\dot{V}O_{2Base} = \frac{h_{f,m}}{24 \cdot 60 \cdot k\ddot{A}} \cdot 4.1868 \cdot f \cdot 1000
+$$ {#eq-VO2Base}
+
+With:
+- $k\ddot{A} = 19.946$ (kJ·L$^{-1}$)
+- $f = 1.287$ for males, $f = 1.278$ for females
+
+The Shiny application also provides an option for a curvilinear oxygen uptake-power relationship:
+
+$$
+\dot{V}O_{2ss}(P) = a \cdot P^2 + CE_{start} \cdot P + \dot{V}O_{2Base}
+$$ {#eq-VO2ss-curvilinear}
+
+Where $a$ is an optimized coefficient that ensures the slope at the intersection with $\dot{V}O_{2max}$ equals the target oxygen cost ($CE_{target}$). This curvilinear relationship may better represent the oxygen cost at higher intensities for some athletes.
+
+For simulation purposes, $\dot{V}O_{2ss}$ is capped at $\dot{V}O_{2max}$, as oxygen uptake cannot exceed this physiological maximum:
+
+$$
+\dot{V}O_{2ss} = \min(\dot{V}O_{2ss\text{-unlimited}}, \dot{V}O_{2max})
+$$ {#eq-VO2ss-capped}
+
+## Maximal Lactate Accumulation Rate ($vLa_{ss}$)
+
+The intensity-specific glycolytic activity, represented by $vLa_{ss}$, is calculated using Michaelis-Menten enzyme kinetics that account for the activation state of glycolysis based on the cytosolic phosphorylation state:
+
+$$
+vLa_{ss} = \frac{vLa_{max}}{1 + ks_2 \cdot \left(\frac{\dot{V}O_{2max} - \dot{V}O_{2ss}}{ks_1 \cdot \dot{V}O_{2ss}}\right)^{3/2}}
+$$ {#eq-vLass}
+
+Where:
+- $vLa_{max}$ is the maximal lactate accumulation rate (mmol·l$^{-1}$·s$^{-1}$)
+- $ks_1 = 0.0635$ (mmol·kg$_m^{-1}$)$^2$ is the 50% activation constant of oxidative phosphorylation
+- $ks_2 = (1.1$ mmol·kg$_m^{-1}$)$^3$ is the 50% activation constant of glycolysis
+
+The term $\left(\frac{\dot{V}O_{2max} - \dot{V}O_{2ss}}{ks_1 \cdot \dot{V}O_{2ss}}\right)^{3/2}$ represents the phosphorylation state of the muscle cell, which regulates glycolytic flux. As exercise intensity increases and $\dot{V}O_{2ss}$ approaches $\dot{V}O_{2max}$, this term decreases, resulting in increased glycolytic activity.
+
+@Dunst2025 found that while $vLa_{max}$ appeared to increase with cycling cadence in a polynomial relationship, this may be an artifact of measurement methodology rather than representing true changes in maximal glycolytic flux. Their findings suggest that $vLa_{max}$ should be treated as cadence-independent for modeling purposes.
+
+In the application, $vLa_{ss}$ is converted to mmol·l$^{-1}$·min$^{-1}$ for visualization purposes:
+
+$$
+vLa_{ss} \text{ [mmol·l}^{-1}\text{·min}^{-1}\text{]} = vLa_{ss} \text{ [mmol·l}^{-1}\text{·s}^{-1}\text{]} \cdot 60
+$$ {#eq-vLass-min}
+
+## Lactate Oxidation Rate ($vLa_{ox}$)
+
+The rate at which lactate is eliminated from the blood through oxidation is calculated as a function of oxygen uptake:
+
+$$
+vLa_{ox} = \frac{CE_{La\dot{O}_2} \cdot \dot{V}O_{2ss}}{VolLa \cdot 60}
+$$ {#eq-vLaox}
+
+Where:
+- $CE_{La\dot{O}_2} = 0.02049$ mmol·l$^{-1}$·ml$^{-1}$ is the lactate equivalent per oxygen uptake
+- $VolLa = 0.4$ is the lactate distribution volume
+- The factor 60 converts from per second to per minute
+
+As with $vLa_{ss}$, this value is converted to mmol·l$^{-1}$·min$^{-1}$ for visualization:
+
+$$
+vLa_{ox} \text{ [mmol·l}^{-1}\text{·min}^{-1}\text{]} = vLa_{ox} \text{ [mmol·l}^{-1}\text{·s}^{-1}\text{]} \cdot 60
+$$ {#eq-vLaox-min}
+
+The lactate equivalent ($CE_{La\dot{O}_2}$) is divided by body mass in the application to account for individual differences, which affects lactate kinetics.
+
+## Pyruvate Deficit (PD)
+
+The pyruvate deficit represents the difference between the capacity to metabolize pyruvate via oxidative phosphorylation and the pyruvate produced by glycolysis:
+
+$$
+PD = vLa_{ox} - vLa_{ss}
+$$ {#eq-PD}
+
+A positive PD indicates that the oxidative system can process more pyruvate than is being produced, allowing for fat oxidation. A negative PD indicates lactate accumulation as glycolysis exceeds oxidative capacity.
+
+The maximum pyruvate deficit (PD$_{max}$) corresponds to the intensity with the highest fat oxidation rate, often referred to as FAT$_{max}$:
+
+$$
+\text{FAT}_{max} = \max(PD)
+$$ {#eq-FATmax}
+
+The maximal lactate steady state (MLSS) occurs where PD equals zero, indicating a balance between lactate production and elimination:
+
+$$
+\text{MLSS} = \{P | PD(P) = 0\}
+$$ {#eq-MLSS}
+
+In the Shiny application, these thresholds are identified by finding the power values corresponding to the maximum of the PD curve and the point where PD crosses zero, respectively.
+
+## Lactate Accumulation
+
+The lactate accumulation in blood is calculated as the cumulative effect of the imbalance between lactate production and elimination:
+
+$$
+La_{accum}(i) = 
+\begin{cases}
+\max(0, vLa_{ss}(i) - vLa_{ox}(i)), & \text{if } i=1 \\
+La_{accum}(i-1) + \max(0, vLa_{ss}(i) - vLa_{ox}(i)), & \text{otherwise}
+\end{cases}
+$$ {#eq-La-accum}
+
+This accumulation only begins when $vLa_{ss}$ exceeds $vLa_{ox}$, which typically occurs beyond the MLSS. The implementation includes setting accumulated lactate values to NA for intensities below this threshold to represent the absence of net lactate accumulation.
+
+## Impact of Movement Velocity on Metabolic Parameters
+
+@Dunst2025 demonstrated that incorporating cadence-dependent relationships for $CE_{V\dot{O}_2}$ and $\dot{V}O_{2Base}$ into Mader's model significantly affects predicted power outputs at metabolic thresholds. Their findings revealed polynomial relationships between cadence and threshold-specific power outputs, with optimal cadences of 84 rpm for MAP, 80 rpm for MLSS, and 70 rpm for FAT$_{max}$ when using cadence-dependent $CE_{V\dot{O}_2}$ and $\dot{V}O_{2Base}$ with constant $vLa_{max}$.
+
+The mathematical functions describing these cadence dependencies were:
+
+$$
+CE_{V\dot{O}_2}(PR) = 0.0004 \cdot PR^2 - 0.094 \cdot PR + 16.857
+$$ {#eq-CE-cadence}
+
+$$
+\dot{V}O_{2Base}(PR) = 0.172 \cdot PR^2 - 14.460 \cdot PR + 548.039
+$$ {#eq-VO2Base-cadence}
+
+Where $PR$ is the pedaling rate in rpm.
+
+When these relationships are incorporated into the model, the power output at a given metabolic threshold becomes a function of cadence:
+
+$$
+P(PR) = \frac{\dot{V}O_{2ss}(PR) - \dot{V}O_{2Base}(PR)}{CE_{V\dot{O}_2}(PR)}
+$$ {#eq-Power-cadence}
+
+This approach represents a significant advancement in metabolic modeling, as it acknowledges that metabolic responses are not fixed but vary with movement velocity, offering more precise predictions for endurance performance.
+
+## Practical Application
+
+The Shiny application visualizes these relationships, allowing users to explore how changes in physiological parameters and cadence affect metabolic thresholds. The app displays power output-specific values for $\dot{V}O_{2ss}$, $vLa_{ss}$, $vLa_{ox}$, PD, and lactate accumulation, providing insights into the metabolic profile at different intensities.
+
+For training prescription, the identification of FATmax and MLSS is particularly valuable, as these thresholds demarcate important training zones. The ability to account for cadence effects enhances the precision of these prescriptions, especially for cyclists who may use different cadences during training and competition.
+
+As highlighted by @Dunst2025, neglecting movement velocity in metabolic modeling can lead to significant errors in performance predictions, with deviations of up to 100W in threshold power estimates. By incorporating cadence-dependent relationships, the application provides a more nuanced understanding of the interplay between movement velocity and metabolic processes, enhancing the utility of Mader's model for endurance performance prediction and training optimization.
+
