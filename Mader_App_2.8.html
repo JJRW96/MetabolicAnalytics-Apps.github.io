@@ -645,17 +645,17 @@
                         </div>
                         
                         <div class="parameter-row">
-                            <div class="parameter-label">CE (CEVO<sub>2</sub>) Dependency:</div>
+                            <div class="parameter-label">CE (CEV̇O<sub>2</sub>) Dependency:</div>
                             <div class="tooltip info-icon">ⓘ
-                                <span class="tooltiptext">Formula: CEVO<sub>2</sub>(rpm) = 0.0004 · rpm² - 0.094 · rpm + 16.857. Research shows a U-shaped relationship between cadence and oxygen demand per watt.</span>
+                                <span class="tooltiptext">Formula: CEV̇O<sub>2</sub>(rpm) = 0.0004 · rpm² - 0.094 · rpm + 16.857. Research shows a U-shaped relationship between cadence and oxygen demand per watt.</span>
                             </div>
                             <span class="slider-value">✓</span>
                         </div>
                         
                         <div class="parameter-row">
-                            <div class="parameter-label">VO<sub>2,Base</sub> Dependency:</div>
+                            <div class="parameter-label">V̇O<sub>2,Base</sub> Dependency:</div>
                             <div class="tooltip info-icon">ⓘ
-                                <span class="tooltiptext">Formula: VO<sub>2,Base</sub>(rpm) = 0.172 · rpm² - 14.460 · rpm + 548.039. Research shows a U-shaped relationship between cadence and resting oxygen uptake.</span>
+                                <span class="tooltiptext">Formula: V̇O<sub>2,Base</sub>(rpm) = 0.172 · rpm² - 14.460 · rpm + 548.039. Research shows a U-shaped relationship between cadence and resting oxygen uptake.</span>
                             </div>
                             <span class="slider-value">✓</span>
                         </div>
@@ -664,10 +664,10 @@
                             <label class="fancy-checkbox">
                                 <input type="checkbox" id="vo2max_dependent" name="vo2max_dependent">
                                 <span class="checkmark"></span>
-                                Include VO<sub>2,max</sub> Dependency
+                                Include V̇O<sub>2,max</sub> Dependency
                             </label>
                             <div class="tooltip info-icon">ⓘ
-                                <span class="tooltiptext">Based on Fig.4 from the paper, VO<sub>2,max</sub> might also be slightly cadence-dependent, with optimal values around 80-90 rpm. This is an experimental feature.</span>
+                                <span class="tooltiptext">Based on Fig.4 from the paper, V̇O<sub>2,max</sub> might also be slightly cadence-dependent, with optimal values around 80-90 rpm. This is an experimental feature.</span>
                             </div>
                         </div>
                         
@@ -779,7 +779,7 @@
                         <input type="range" id="height" class="range-slider" min="140" max="220" value="193" step="1">
                     </div>
                     
-                    <button id="calculate_vo2base" type="button">Calculate VO2Base</button>
+                    <button id="calculate_vo2base" type="button">Calculate V̇O<sub>2</sub>Base</button>
                     
                     <div class="small-text">Uses the Harris-Benedict equation to estimate basal metabolic rate, which is then converted to oxygen consumption.</div>
                 </div>
@@ -837,6 +837,14 @@
                             <span id="max_power_step-value" class="slider-value">400</span>
                         </div>
                         <input type="range" id="max_power_step" class="range-slider" min="200" max="600" value="400" step="20">
+                    </div>
+                    
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <label for="power_scale">Power Adjustment (%):</label>
+                            <span id="power_scale-value" class="slider-value">100</span>
+                        </div>
+                        <input type="range" id="power_scale" class="range-slider" min="0" max="200" value="100" step="1">
                     </div>
                     
                     <button id="load_interval_example" type="button">Load Example Exercise Data</button>
@@ -902,17 +910,17 @@
                         </div>
                         
                         <div class="parameter-row">
-                            <div class="parameter-label">CE (CEVO<sub>2</sub>) Dependency:</div>
+                            <div class="parameter-label">CE (CEV̇O<sub>2</sub>) Dependency:</div>
                             <div class="tooltip info-icon">ⓘ
-                                <span class="tooltiptext">Formula: CEVO<sub>2</sub>(rpm) = 0.0004 · rpm² - 0.094 · rpm + 16.857</span>
+                                <span class="tooltiptext">Formula: CEV̇O<sub>2</sub>(rpm) = 0.0004 · rpm² - 0.094 · rpm + 16.857</span>
                             </div>
                             <span class="slider-value">✓</span>
                         </div>
                         
                         <div class="parameter-row">
-                            <div class="parameter-label">VO<sub>2,Base</sub> Dependency:</div>
+                            <div class="parameter-label">V̇O<sub>2,Base</sub> Dependency:</div>
                             <div class="tooltip info-icon">ⓘ
-                                <span class="tooltiptext">Formula: VO<sub>2,Base</sub>(rpm) = 0.172 · rpm² - 14.460 · rpm + 548.039</span>
+                                <span class="tooltiptext">Formula: V̇O<sub>2,Base</sub>(rpm) = 0.172 · rpm² - 14.460 · rpm + 548.039</span>
                             </div>
                             <span class="slider-value">✓</span>
                         </div>
@@ -921,7 +929,7 @@
                             <label class="fancy-checkbox">
                                 <input type="checkbox" id="vo2max_dependent_step" name="vo2max_dependent_step">
                                 <span class="checkmark"></span>
-                                Include VO<sub>2,max</sub> Dependency
+                                Include V̇O<sub>2,max</sub> Dependency
                             </label>
                         </div>
                         
@@ -950,7 +958,7 @@
                             <label for="vo2_up_time_constant">V̇O<sub>2,on</sub> time constant (s):</label>
                             <span id="vo2_up_time_constant-value" class="slider-value">30</span>
                         </div>
-                        <input type="range" id="vo2_up_time_constant" class="range-slider" min="15" max="60" value="30" step="1">
+                        <input type="range" id="vo2_up_time_constant" class="range-slider" min="0" max="60" value="30" step="1">
                     </div>
                     
                     <div class="slider-container">
@@ -958,7 +966,7 @@
                             <label for="vo2_down_time_constant">V̇O<sub>2,off</sub> time constant (s):</label>
                             <span id="vo2_down_time_constant-value" class="slider-value">30</span>
                         </div>
-                        <input type="range" id="vo2_down_time_constant" class="range-slider" min="15" max="60" value="30" step="1">
+                        <input type="range" id="vo2_down_time_constant" class="range-slider" min="0" max="60" value="30" step="1">
                     </div>
                     
                     <div class="slider-container">
@@ -1171,6 +1179,7 @@
         critical_power: 365,
         w_prime: 20.0,
         use_mlss_as_cp: true,
+        power_scale: 100, // Standardwert 100%
         
         // Cadence Dependency Tab 2
         cadence_dependent_step: false,
@@ -1286,6 +1295,8 @@
             body_mass_step: document.getElementById('body_mass_step'),
             body_mass_stepValue: document.getElementById('body_mass_step-value'),
             steptestPlotContainer: document.getElementById('steptest-plot-container'),
+            power_scale: document.getElementById('power_scale'),
+            power_scaleValue: document.getElementById('power_scale-value'),
             
             // Cadence Dependency Tab 2
             cadence_dependent_step: document.getElementById('cadence_dependent_step'),
@@ -1609,7 +1620,7 @@
         traces.push({
             x: displayPower,
             y: Array(displayPower.length).fill(displayVO2max),
-            name: "VO2max",
+            name: "V̇O<sub>2</sub>max",
             type: 'scatter',
             mode: 'lines',
             line: {color: '#CCCCCC', dash: 'dot', width: 1},
@@ -1621,7 +1632,7 @@
             traces.push({
                 x: [displayPdMaxPos, displayPdMaxPos],
                 y: [0, 20],
-                name: "FATmax",
+                name: "FAT<sub>max</sub>",
                 type: 'scatter',
                 mode: 'lines',
                 line: {color: '#CCCCCC', dash: 'dot', width: 1},
@@ -1649,7 +1660,7 @@
             traces.push({
                 x: displayPower.slice(0, vals.crossPoint),
                 y: displayVO2ss_unlimited.slice(0, vals.crossPoint),
-                name: "VO2ss",
+                name: "V̇O<sub>2,SS</sub>",
                 type: 'scatter',
                 mode: 'lines',
                 line: {color: '#2683C6', width: 3},
@@ -1660,7 +1671,7 @@
                 traces.push({
                     x: displayPower.slice(vals.crossPoint),
                     y: displayVO2ss_unlimited.slice(vals.crossPoint),
-                    name: "VO2ss (extrapolated)",
+                    name: "V̇O<sub>2,SS,extrapolated</sub>",
                     type: 'scatter',
                     mode: 'lines',
                     line: {color: '#2683C6', dash: 'dash', width: 3},
@@ -1673,7 +1684,7 @@
         traces.push({
             x: displayPower,
             y: vals.vLass_min,
-            name: "vLass",
+            name: "vLa<sub>SS</sub>",
             type: 'scatter',
             mode: 'lines',
             yaxis: 'y2',
@@ -1684,7 +1695,7 @@
         traces.push({
             x: displayPower,
             y: vals.vLaox_min,
-            name: "vLaox",
+            name: "vLa<sub>ox</sub>",
             type: 'scatter',
             mode: 'lines',
             yaxis: 'y2',
@@ -1706,7 +1717,7 @@
         traces.push({
             x: displayPower,
             y: vals.La_accum,
-            name: "La Accumulation",
+            name: "La<sub>Accumulation</sub>",
             type: 'scatter',
             mode: 'lines',
             yaxis: 'y2',
@@ -1721,7 +1732,7 @@
             {
                 x: xMid,
                 y: displayVO2max + (y1Max - displayVO2max) * 0.1,
-                text: `VO2max: ${relVO2max.toFixed(1)} ml·min<sup>-1</sup>·kg<sup>-1</sup>`,
+                text: `V̇O<sub>2</sub>max: ${relVO2max.toFixed(1)} ml·min<sup>-1</sup>·kg<sup>-1</sup>`,
                 showarrow: false,
                 font: {color: '#666666'},
                 xanchor: "center"
@@ -1748,15 +1759,15 @@
         let formulaText = '';
         if (appState.curvilinear) {
             if (appState.weight_based) {
-                formulaText = `VO<sub>2,SS</sub>(P) = ${vals.a_opt.toFixed(4)} · P² + ${appState.CE_range[0].toFixed(1)} · P + ${(vals.effective_values.VO2Base/appState.body_mass).toFixed(1)}`;
+                formulaText = `V̇O<sub>2,SS</sub>(P) = ${vals.a_opt.toFixed(4)} · P² + ${appState.CE_range[0].toFixed(1)} · P + ${(vals.effective_values.VO2Base/appState.body_mass).toFixed(1)}`;
             } else {
-                formulaText = `VO<sub>2,SS</sub>(P) = ${vals.a_opt.toFixed(4)} · P² + ${appState.CE_range[0].toFixed(1)} · P + ${Math.round(vals.effective_values.VO2Base)}`;
+                formulaText = `V̇O<sub>2,SS</sub>(P) = ${vals.a_opt.toFixed(4)} · P² + ${appState.CE_range[0].toFixed(1)} · P + ${Math.round(vals.effective_values.VO2Base)}`;
             }
         } else {
             if (appState.weight_based) {
-                formulaText = `VO<sub>2,SS</sub>(P) = ${vals.effective_values.CEVO2.toFixed(1)} · P + ${(vals.effective_values.VO2Base/appState.body_mass).toFixed(1)}`;
+                formulaText = `V̇O<sub>2,SS</sub>(P) = ${vals.effective_values.CEVO2.toFixed(1)} · P + ${(vals.effective_values.VO2Base/appState.body_mass).toFixed(1)}`;
             } else {
-                formulaText = `VO<sub>2,SS</sub>(P) = ${vals.effective_values.CEVO2.toFixed(1)} · P + ${Math.round(vals.effective_values.VO2Base)}`;
+                formulaText = `V̇O<sub>2,SS</sub>(P) = ${vals.effective_values.CEVO2.toFixed(1)} · P + ${Math.round(vals.effective_values.VO2Base)}`;
             }
         }
         
@@ -1792,7 +1803,7 @@
         // Layout for normal axes
         const layout = {
             title: {
-                text: "VO2ss, vLass, vLaox, PD and Lactate Accumulation",
+                text: "V̇O<sub>2,SS</sub>, vLa<sub>SS</sub>, vLa<sub>ox</sub>, PD and Lactate Accumulation",
                 font: {
                     size: 18,
                     color: '#2683C6'
@@ -1812,7 +1823,7 @@
             },
             yaxis: {
                 title: {
-                    text: `VO2ss (${appState.weight_based ? "ml·min<sup>-1</sup>·kg<sup>-1</sup>" : "ml·min<sup>-1</sup>"})`,
+                    text: `V̇O<sub>2</sub>ss (${appState.weight_based ? "ml·min<sup>-1</sup>·kg<sup>-1</sup>" : "ml·min<sup>-1</sup>"})`,
                     font: {
                         size: 14
                     }
@@ -1898,11 +1909,11 @@
             const vo2ssUnit = appState.weight_based ? "ml·min⁻¹·kg⁻¹" : "ml·min⁻¹";
             
             return `${positionName} (${powerValue.toFixed(1)} ${powerUnit}):\n` +
-                `  VO2ss: ${vo2ssValue.toFixed(2)} ${vo2ssUnit}\n` +
-                `  vLass: ${vals.vLass_min[idx].toFixed(4)} mmol·l⁻¹·min⁻¹\n` +
-                `  vLaox: ${vals.vLaox_min[idx].toFixed(4)} mmol·l⁻¹·min⁻¹\n` +
+                `  V̇O<sub>2</sub>ss: ${vo2ssValue.toFixed(2)} ${vo2ssUnit}\n` +
+                `  vLa<sub>SS</sub>: ${vals.vLass_min[idx].toFixed(4)} mmol·l⁻¹·min⁻¹\n` +
+                `  vLa<sub>ox</sub>: ${vals.vLaox_min[idx].toFixed(4)} mmol·l⁻¹·min⁻¹\n` +
                 `  PD: ${vals.PD_min[idx].toFixed(4)} mmol·l⁻¹·min⁻¹\n` +
-                `  La Accumulation: ${isNaN(vals.La_accum[idx]) ? '0.0000' : vals.La_accum[idx].toFixed(4)} mmol·l⁻¹\n`;
+                `  La<sub>Accumulation</sub>: ${isNaN(vals.La_accum[idx]) ? '0.0000' : vals.La_accum[idx].toFixed(4)} mmol·l⁻¹\n`;
         };
         
         let outputText = "";
@@ -1925,7 +1936,7 @@
         }
         
         outputText += 
-            formatOutput("FATmax", pdMaxIdx) +
+            formatOutput("FAT<sub>max</sub>", pdMaxIdx) +
             formatOutput("MLSS", pdZeroIdx) +
             formatOutput("BLC ≈ 4.0", la4Idx);
         
@@ -2007,14 +2018,27 @@
             
             // Create time and power arrays
             const numSteps = Math.floor(maxPower / stepWatt) + 1;
+            const stepEndPower = (numSteps - 1) * stepWatt; // Letzte reguläre Stufe
             const totalDurationSec = numSteps * stepDurationSec;
             const timeSec = [];
             const power = [];
             
-            for (let i = 0; i <= totalDurationSec; i++) {
+            // Add step test (angepasst, um sicherzustellen, dass maxPower nicht überschritten wird)
+            for (let i = 0; i < totalDurationSec; i++) {
                 timeSec.push(i);
                 const currentStep = Math.floor(i / stepDurationSec);
-                power.push(currentStep * stepWatt);
+                const currentPower = currentStep * stepWatt;
+                // Stelle sicher, dass wir maxPower nicht überschreiten
+                power.push(Math.min(currentPower, stepEndPower));
+            }
+            
+            // Add cool-down phase (600s at 0 Watt) after the step test
+            const cooldownDuration = 600; // 600 Sekunden (10 Minuten)
+            const lastTime = timeSec[timeSec.length - 1];
+            
+            for (let i = 1; i <= cooldownDuration; i++) {
+                timeSec.push(lastTime + i);
+                power.push(0); // 0 Watt während der Abkühlphase
             }
             
             return {
@@ -2072,6 +2096,12 @@
             const powerData = createPowerData();
             const timePoints = powerData.time_s;
             let powerValues = [...powerData.power];
+            
+            // Skaliere die Power-Werte basierend auf dem Power Scale Slider (0-200%)
+            if (appState.power_scale !== 100) {
+                const scaleFactor = appState.power_scale / 100;
+                powerValues = powerValues.map(p => p * scaleFactor);
+            }
             
             // Extract cadence data if available
             let cadenceValues = null;
@@ -2405,7 +2435,7 @@
             traces.push({
                 x: timeSec,
                 y: stepData.VO2,
-                name: "VO2",
+                name: "V̇O<sub>2</sub>",
                 type: 'scatter',
                 mode: 'lines',
                 yaxis: "y3",
@@ -2429,7 +2459,7 @@
             traces.push({
                 x: timeSec,
                 y: stepData.vLass_min,
-                name: "vLass",
+                name: "vLa<sub>SS</sub>",
                 type: 'scatter',
                 mode: 'lines',
                 yaxis: "y2",
@@ -2441,7 +2471,7 @@
             traces.push({
                 x: timeSec,
                 y: stepData.vLaox_min,
-                name: "vLaox",
+                name: "vLa<sub>ox</sub>",
                 type: 'scatter',
                 mode: 'lines',
                 yaxis: "y2",
@@ -2535,10 +2565,10 @@
             const effectiveVO2Base = appState.use_tab1_params ? appState.VO2Base : appState.VO2Base_step;
             
             if (stepData.is_curvilinear) {
-                formulaText = `VO<sub>2,SS</sub>(P) = ${stepData.a_opt.toFixed(4)} · P² + ${stepData.ce_range[0].toFixed(1)} · P + ${Math.round(effectiveVO2Base)}`;
+                formulaText = `V̇O<sub>2,SS</sub>(P) = ${stepData.a_opt.toFixed(4)} · P² + ${stepData.ce_range[0].toFixed(1)} · P + ${Math.round(effectiveVO2Base)}`;
             } else {
                 const effectiveCE = appState.use_tab1_params ? appState.CEVO2 : appState.CEVO2_step;
-                formulaText = `VO<sub>2,SS</sub>(P) = ${effectiveCE.toFixed(1)} · P + ${Math.round(effectiveVO2Base)}`;
+                formulaText = `V̇O<sub>2,SS</sub>(P) = ${effectiveCE.toFixed(1)} · P + ${Math.round(effectiveVO2Base)}`;
             }
             
             // Füge Cadence-Info hinzu, wenn Cadence-Abhängigkeit aktiviert ist
@@ -2999,6 +3029,12 @@
                 elements.critical_power.disabled = false;
             }
             
+            updateStepTestPlot();
+        });
+        
+        elements.power_scale.addEventListener('input', function() {
+            appState.power_scale = parseFloat(this.value);
+            elements.power_scaleValue.textContent = appState.power_scale;
             updateStepTestPlot();
         });
         
