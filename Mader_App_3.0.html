@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lactate-Power Model</title>
+    <title>Metabolic Simulation</title>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
@@ -58,6 +58,7 @@
             flex-direction: column;
             background-color: #fff;
             overflow-y: auto;
+            width: 100%; /* Stelle sicher, dass der Container die volle Breite nutzt */
         }
         
         h1 {
@@ -195,11 +196,14 @@
         
         #plot-container, #steptest-plot-container {
             height: 600px; /* Fixed height to match original */
+            width: 100%; /* Stelle sicher, dass der Container die volle Breite nutzt */
+            max-width: 100%; /* Begrenze die maximale Breite */
             background-color: white;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.08);
             margin-bottom: 20px;
             padding: 5px;
+            box-sizing: border-box; /* Stelle sicher, dass Padding nicht die Breite erhöht */
         }
         
         #values-container {
@@ -563,19 +567,26 @@
             align-items: center;
             justify-content: space-between;
         }
+
+        .disclaimer-alert {
+            background-color: #ffecb3;
+            color: #7a5700;
+            padding: 12px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            border-left: 5px solid #ffc107;
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="sidebar" id="sidebar">
-            <h1>Lactate-Power Model</h1>
+      <div class="container">
+          <div class="sidebar" id="sidebar">
+              <h1 style="font-size: 1.3em;">Mader's Metabolic Simulation</h1>
             
             <div class="tabs">
-                <div class="tab active" data-tab="leistungsdiagramm">Power Diagram</div>
-                <div class="tab tooltip" data-tab="belastungssimulation">
-                    <em>Exercise Simulation<em>
-                    <span class="tooltiptext">Experimental feature - under development</span>
-                </div>
+                <div class="tab active" data-tab="leistungsdiagramm">P-V̇O<sub>2</sub>-La Dynamics</div>
+                <div class="tab" data-tab="belastungssimulation">Exercise Simulation</div>
             </div>
             
             <!-- Tab 1: Power Diagram Controls -->
@@ -647,44 +658,48 @@
                             <input type="range" id="cadence" class="range-slider" min="20" max="200" value="80" step="1">
                         </div>
                         
-                        <div class="parameter-row">
-                            <div class="parameter-label">CE (CEV̇O<sub>2</sub>) Dependency:</div>
-                            <div class="tooltip info-icon">ⓘ
-                                <span class="tooltiptext">Formula: CEV̇O<sub>2</sub>(rpm) = 0.0004 · rpm² - 0.094 · rpm + 16.857. Research shows a U-shaped relationship between cadence and oxygen demand per watt.</span>
-                            </div>
-                            <span class="slider-value">✓</span>
+                    <div class="parameter-row">
+                        <div class="parameter-label">CE (CEV̇O<sub>2</sub>) Dependency:</div>
+                        <div class="spacer"></div>
+                        <div class="tooltip info-icon">ⓘ
+                            <span class="tooltiptext">Formula: CEV̇O<sub>2</sub>(rpm) = 0.0004 · rpm² - 0.094 · rpm + 16.857. Research shows a U-shaped relationship between cadence and oxygen demand per watt.</span>
                         </div>
-                        
-                        <div class="parameter-row">
-                            <div class="parameter-label">V̇O<sub>2,Base</sub> Dependency:</div>
-                            <div class="tooltip info-icon">ⓘ
-                                <span class="tooltiptext">Formula: V̇O<sub>2,Base</sub>(rpm) = 0.172 · rpm² - 14.460 · rpm + 548.039. Research shows a U-shaped relationship between cadence and resting oxygen uptake.</span>
-                            </div>
-                            <span class="slider-value">✓</span>
-                        </div>
-                        
-                        <div class="checkbox-container">
-                            <label class="fancy-checkbox">
-                                <input type="checkbox" id="vo2max_dependent" name="vo2max_dependent">
-                                <span class="checkmark"></span>
-                                Include V̇O<sub>2,max</sub> Dependency
-                            </label>
-                            <div class="tooltip info-icon">ⓘ
-                                <span class="tooltiptext">Based on Fig.4 from the paper, V̇O<sub>2,max</sub> might also be slightly cadence-dependent, with optimal values around 80-90 rpm. This is an experimental feature.</span>
-                            </div>
-                        </div>
-                        
-                        <div class="checkbox-container">
-                            <label class="fancy-checkbox">
-                                <input type="checkbox" id="vlamax_dependent" name="vlamax_dependent">
-                                <span class="checkmark"></span>
-                                Include vLa<sub>max</sub> Dependency (Experimental)
-                            </label>
-                            <div class="tooltip info-icon">ⓘ
-                                <span class="tooltiptext">Formula: vLa<sub>max</sub>(rpm) = -0.0002 · rpm² + 0.00931 · rpm. The paper suggests this may not reflect true physiological processes but rather testing methodology limitations.</span>
-                            </div>
-                        </div>
+                        <span class="slider-value">✓</span>
                     </div>
+                    
+                    <div class="parameter-row">
+                        <div class="parameter-label">V̇O<sub>2,Base</sub> Dependency:</div>
+                        <div class="spacer"></div>
+                        <div class="tooltip info-icon">ⓘ
+                            <span class="tooltiptext">Formula: V̇O<sub>2,Base</sub>(rpm) = 0.172 · rpm² - 14.460 · rpm + 548.039. Research shows a U-shaped relationship between cadence and resting oxygen uptake.</span>
+                        </div>
+                        <span class="slider-value">✓</span>
+                    </div>
+                        
+                    <div class="checkbox-container">
+                        <label class="fancy-checkbox">
+                            <input type="checkbox" id="vo2max_dependent" name="vo2max_dependent">
+                            <span class="checkmark"></span>
+                            Include V̇O<sub>2,max</sub> Dependency
+                        </label>
+                        <div class="tooltip info-icon">ⓘ
+                            <span class="tooltiptext">Based on Fig.4 from the paper, V̇O<sub>2,max</sub> might also be slightly cadence-dependent, with optimal values around 80-90 rpm. This is an experimental feature.</span>
+                        </div>
+                        <span class="slider-value">?</span>
+                    </div>
+                    
+                    <div class="checkbox-container">
+                        <label class="fancy-checkbox">
+                            <input type="checkbox" id="vlamax_dependent" name="vlamax_dependent">
+                            <span class="checkmark"></span>
+                            Include vLa<sub>max</sub> Dependency 
+                        </label>
+                        <div class="tooltip info-icon">ⓘ
+                            <span class="tooltiptext">Formula: vLa<sub>max</sub>(rpm) = -0.0002 · rpm² + 0.00931 · rpm. The paper suggests this may not reflect true physiological processes but rather testing methodology limitations.</span>
+                        </div>
+                        <span class="slider-value">?</span>
+                    </div>
+                </div>
                     
                     <div class="small-text">Based on the research from Dunst et al. (2025) showing how metabolic parameters vary with cycling cadence.</div>
                 </div>
@@ -810,7 +825,7 @@
             
             <!-- Tab 2: Exercise Simulation Controls -->
             <div class="tab-content" id="belastungssimulation-content">
-                  <!-- Disclaimer Alert -->
+                <!-- Disclaimer Alert -->
                 <div class="disclaimer-alert">
                     <strong><em>Disclaimer:</em> This tab and all calculations are still under development and should be considered experimental only!</strong>
                 </div>
@@ -1029,6 +1044,25 @@
                         </label>
                     </div>
                     
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <label for="w_prime_balance_min">W' Balance Minimum (kJ):</label>
+                            <span id="w_prime_balance_min-value" class="slider-value">-5.0</span>
+                        </div>
+                        <input type="range" id="w_prime_balance_min" class="range-slider" min="-20" max="10" value="0" step="0.5">
+                    </div>
+                    
+                    <div class="checkbox-container">
+                        <label class="fancy-checkbox">
+                            <input type="checkbox" id="use_w_prime_balance_abort" name="use_w_prime_balance_abort" checked="checked">
+                            <span class="checkmark"></span>
+                            Abort simulation when W' Balance falls below minimum
+                            <div class="tooltip info-icon" style="margin-left: 5px;">ⓘ
+                                <span class="tooltiptext">When checked, the simulation will terminate if W' Balance falls below the specified minimum.</span>
+                            </div>
+                        </label>
+                    </div>
+                    
                     <div class="model-info">
                         <p>W' Balance model (Skiba):</p>
                         <p>W'<sub>BAL</sub>(t) = W' - ∫<sub>0</sub><sup>t</sup>(W'<sub>EXP</sub> · e<sup>-(t-u)/τ<sub>W'</sub></sup>)du</p>
@@ -1158,6 +1192,8 @@
         lock_y_axis: true,
         lock_x_axis: true,
         calculated_vo2base: null,
+        w_prime_balance_min: -5.0,
+        use_w_prime_balance_abort: true,
         
         // Cadence Dependency Tab 1
         cadence_dependent: false,
@@ -1274,6 +1310,9 @@
             critical_powerValue: document.getElementById('critical_power-value'),
             w_prime: document.getElementById('w_prime'),
             w_primeValue: document.getElementById('w_prime-value'),
+            w_prime_balance_min: document.getElementById('w_prime_balance_min'),
+            w_prime_balance_minValue: document.getElementById('w_prime_balance_min-value'),
+            use_w_prime_balance_abort: document.getElementById('use_w_prime_balance_abort'),
             use_mlss_as_cp: document.getElementById('use_mlss_as_cp'),
             load_interval_example: document.getElementById('load_interval_example'),
             power_data: document.getElementById('power_data'),
@@ -1896,19 +1935,6 @@
             }
         }
         
-        // Find index of BLC ≈ 4.0
-        let minDiffLa = Infinity;
-        let la4Idx = 0;
-        for (let i = 0; i < vals.La_accum.length; i++) {
-            if (!isNaN(vals.La_accum[i])) {
-                const diffLa = Math.abs(vals.La_accum[i] - 4.0);
-                if (diffLa < minDiffLa) {
-                    minDiffLa = diffLa;
-                    la4Idx = i;
-                }
-            }
-        }
-        
         // Format the output text with proper units
         const formatOutput = (positionName, idx) => {
             const powerValue = appState.weight_based ? vals.P[idx]/appState.body_mass : vals.P[idx];
@@ -1945,8 +1971,7 @@
         
         outputText += 
             formatOutput("FAT<sub>max</sub>", pdMaxIdx) +
-            formatOutput("MLSS", pdZeroIdx) +
-            formatOutput("BLC ≈ 4.0", la4Idx);
+            formatOutput("MLSS", pdZeroIdx);
         
         elements.valuesContainer.innerHTML = outputText;
     }
@@ -2278,11 +2303,17 @@
             // Calculate lactate accumulation
             const LaConc = [laBase]; // Start with baseline
             
-            // Find simulation endpoint (La_max reached)
+            // Calculate W' Balance
+            const cp = appState.critical_power;
+            const wprime = appState.w_prime;
+            const wprimeBalance = calcWPrimeBalance(powerValues, timePoints, cp, wprime);
+            
+            // Find simulation endpoint (La_max reached or W' Balance below minimum)
             let endIdx = timePoints.length;
             let abortIdx = null;
             let abortPower = null;
             let abortTime = null;
+            let abortReason = null;
             
             for (let i = 1; i < timePoints.length; i++) {
                 // Change in lactate per second
@@ -2297,15 +2328,20 @@
                     endIdx = i;
                     abortPower = powerValues[i];
                     abortTime = timePoints[i];
+                    abortReason = "lactate";
+                }
+                
+                // Check if W' Balance falls below minimum
+                if (appState.use_w_prime_balance_abort && wprimeBalance[i] <= appState.w_prime_balance_min && abortIdx === null) {
+                    abortIdx = i;
+                    endIdx = i;
+                    abortPower = powerValues[i];
+                    abortTime = timePoints[i];
+                    abortReason = "wbalance";
                 }
             }
             
-            // Calculate W' Balance
-            const cp = appState.critical_power;
-            const wprime = appState.w_prime;
-            const wprimeBalance = calcWPrimeBalance(powerValues, timePoints, cp, wprime);
-            
-            // Truncate data if LA_max reached
+            // Truncate data if simulation endpoint reached
             if (endIdx < timePoints.length) {
                 const trimmedTimePoints = timePoints.slice(0, endIdx + 1);
                 const trimmedPowerValues = powerValues.slice(0, endIdx + 1);
@@ -2333,6 +2369,7 @@
                     w_prime_bal: trimmedWprimeBalance,
                     abort_power: abortPower,
                     abort_time: abortTime,
+                    abort_reason: abortReason,
                     cadence: trimmedCadence,
                     is_curvilinear: isCurvilinear,
                     a_opt: aOpt,
@@ -2360,6 +2397,7 @@
                 w_prime_bal: wprimeBalance,
                 abort_power: abortPower,
                 abort_time: abortTime,
+                abort_reason: abortReason,
                 cadence: finalCadence,
                 is_curvilinear: isCurvilinear,
                 a_opt: aOpt,
@@ -2511,6 +2549,20 @@
                 showlegend: true
             });
             
+            // Horizontal line for W' Balance minimum
+            if (appState.use_w_prime_balance_abort) {
+                traces.push({
+                    x: [Math.min(...timeSec), Math.max(...timeSec)],
+                    y: [appState.w_prime_balance_min, appState.w_prime_balance_min],
+                    name: "W' Balance Minimum",
+                    type: 'scatter',
+                    mode: 'lines',
+                    yaxis: "y2",
+                    line: {color: '#42BA97', dash: 'dot', width: 1, opacity: 0.8},
+                    showlegend: true
+                });
+            }
+            
             // Horizontal line for Critical Power
             traces.push({
                 x: [Math.min(...timeSec), Math.max(...timeSec)],
@@ -2538,21 +2590,25 @@
             // Annotations for abort criteria if reached
             const annotations = [];
             if (stepData.abort_power !== null) {
-                annotations.push(
-                    {
-                        x: stepData.abort_time,
-                        y: stepData.abort_power,
-                        yref: "y",
-                        text: `Abort at ${Math.round(stepData.abort_power)} W, ${Math.floor(stepData.abort_time/60)}:${(stepData.abort_time % 60).toString().padStart(2, '0')} min:s`,
-                        showarrow: true,
-                        arrowhead: 2,
-                        arrowsize: 1,
-                        arrowwidth: 2,
-                        arrowcolor: '#666666',
-                        ax: 0,
-                        ay: -40
-                    },
-                    {
+                let abortText = `Abort at ${Math.round(stepData.abort_power)} W, ${Math.floor(stepData.abort_time/60)}:${(stepData.abort_time % 60).toString().padStart(2, '0')} min:s`;
+                
+                annotations.push({
+                    x: stepData.abort_time,
+                    y: stepData.abort_power,
+                    yref: "y",
+                    text: abortText,
+                    showarrow: true,
+                    arrowhead: 2,
+                    arrowsize: 1,
+                    arrowwidth: 2,
+                    arrowcolor: '#666666',
+                    ax: 0,
+                    ay: -25
+                });
+                
+                // Annotation für den Abbruchgrund
+                if (stepData.abort_reason === "lactate") {
+                    annotations.push({
                         x: stepData.abort_time,
                         y: appState.la_max,
                         yref: "y2",
@@ -2564,8 +2620,22 @@
                         arrowcolor: '#C8133B',
                         ax: 20,
                         ay: 0
-                    }
-                );
+                    });
+                } else if (stepData.abort_reason === "wbalance") {
+                    annotations.push({
+                        x: stepData.abort_time,
+                        y: appState.w_prime_balance_min,
+                        yref: "y2",
+                        text: `W' Balance: ${appState.w_prime_balance_min.toFixed(1)} kJ`,
+                        showarrow: true,
+                        arrowhead: 2,
+                        arrowsize: 1,
+                        arrowwidth: 2,
+                        arrowcolor: '#42BA97',
+                        ax: 20,
+                        ay: 0
+                    });
+                }
             }
             
             // Formeltext für die CE-Beziehung
@@ -3020,6 +3090,17 @@
             updateStepTestPlot();
         });
         
+        elements.w_prime_balance_min.addEventListener('input', function() {
+            appState.w_prime_balance_min = parseFloat(this.value);
+            elements.w_prime_balance_minValue.textContent = appState.w_prime_balance_min.toFixed(1);
+            updateStepTestPlot();
+        });
+        
+        elements.use_w_prime_balance_abort.addEventListener('change', function() {
+            appState.use_w_prime_balance_abort = this.checked;
+            updateStepTestPlot();
+        });
+        
         elements.use_mlss_as_cp.addEventListener('change', function() {
             appState.use_mlss_as_cp = this.checked;
             
@@ -3409,6 +3490,7 @@
         elements.body_mass_stepValue.textContent = appState.body_mass_step.toFixed(1);
         elements.critical_powerValue.textContent = appState.critical_power;
         elements.w_primeValue.textContent = appState.w_prime.toFixed(1);
+        elements.w_prime_balance_minValue.textContent = appState.w_prime_balance_min.toFixed(1);
         elements.CE_range_start_stepValue.textContent = appState.CE_range_step[0].toFixed(1);
         elements.CE_range_end_stepValue.textContent = appState.CE_range_step[1].toFixed(1);
         
@@ -3436,6 +3518,7 @@
         
         // Set the use_mlss_as_cp checkbox to checked
         elements.use_mlss_as_cp.checked = appState.use_mlss_as_cp;
+        elements.use_w_prime_balance_abort.checked = appState.use_w_prime_balance_abort;
         
         // Immediately synchronize CP slider with current MLSS value
         if (appState.use_mlss_as_cp && appState.mlss_value) {

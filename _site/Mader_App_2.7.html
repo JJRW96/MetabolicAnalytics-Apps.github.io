@@ -639,9 +639,9 @@
                         <div id="cadence-control" class="slider-container">
                             <div class="slider-label">
                                 <label for="cadence">Cadence (rpm):</label>
-                                <span id="cadence-value" class="slider-value">90</span>
+                                <span id="cadence-value" class="slider-value">80</span>
                             </div>
-                            <input type="range" id="cadence" class="range-slider" min="20" max="200" value="90" step="1">
+                            <input type="range" id="cadence" class="range-slider" min="20" max="200" value="80" step="1">
                         </div>
                         
                         <div class="parameter-row">
@@ -947,7 +947,7 @@
                     
                     <div class="slider-container">
                         <div class="slider-label">
-                            <label for="vo2_up_time_constant">VO2 Time Constant (up) (s):</label>
+                            <label for="vo2_up_time_constant">V̇O<sub>2,on</sub> time constant (s):</label>
                             <span id="vo2_up_time_constant-value" class="slider-value">30</span>
                         </div>
                         <input type="range" id="vo2_up_time_constant" class="range-slider" min="15" max="60" value="30" step="1">
@@ -955,7 +955,7 @@
                     
                     <div class="slider-container">
                         <div class="slider-label">
-                            <label for="vo2_down_time_constant">VO2 Time Constant (down) (s):</label>
+                            <label for="vo2_down_time_constant">V̇O<sub>2,off</sub> time constant (s):</label>
                             <span id="vo2_down_time_constant-value" class="slider-value">30</span>
                         </div>
                         <input type="range" id="vo2_down_time_constant" class="range-slider" min="15" max="60" value="30" step="1">
@@ -963,7 +963,7 @@
                     
                     <div class="slider-container">
                         <div class="slider-label">
-                            <label for="la_max">Lactate Stop Criterion (mmol/l):</label>
+                            <label for="la_max">BLC exercise termination value (mmol/l):</label>
                             <span id="la_max-value" class="slider-value">20.0</span>
                         </div>
                         <input type="range" id="la_max" class="range-slider" min="4" max="30" value="20" step="0.5">
@@ -971,7 +971,7 @@
                     
                     <div class="slider-container">
                         <div class="slider-label">
-                            <label for="la_base">Resting Lactate (mmol/l):</label>
+                            <label for="la_base">Resting BLC-value (mmol/l):</label>
                             <span id="la_base-value" class="slider-value">0.8</span>
                         </div>
                         <input type="range" id="la_base" class="range-slider" min="0.5" max="2" value="0.8" step="0.1">
@@ -1038,6 +1038,40 @@
                     
                     <!-- Individual parameters if not imported -->
                         <div id="individual-params" style="display:block;">
+                          <div class="checkbox-container">
+                            <label class="fancy-checkbox">
+                                <input type="checkbox" id="curvilinear_step" name="curvilinear_step">
+                                <span class="checkmark"></span>
+                                Curvilinear CE relationship
+                                <div class="tooltip info-icon" style="margin-left: 5px;">ⓘ
+                                    <span class="tooltiptext">Based on the curvilinear relationship between power output and energy consumption.</span>
+                                </div>
+                            </label>
+                        </div>
+                        
+                        <div id="linear-ce-control-step" class="slider-container">
+                            <div class="slider-label">
+                                <label for="CEVO2_step">CE (ml·min<sup>-1</sup>·W<sup>-1</sup>):</label>
+                                <span id="CEVO2_step-value" class="slider-value">11.0</span>
+                            </div>
+                            <input type="range" id="CEVO2_step" class="range-slider" min="8" max="15" value="11" step="0.1">
+                        </div>
+                        
+                        <div id="curvilinear-ce-control-step" class="slider-container" style="display:none;">
+                            <div class="slider-label">
+                                <label for="CE_range_start_step">CE Start (ml·min<sup>-1</sup>·W<sup>-1</sup>):</label>
+                                <span id="CE_range_start_step-value" class="slider-value">11.0</span>
+                            </div>
+                            <input type="range" id="CE_range_start_step" class="range-slider" min="8" max="15" value="11" step="0.1">
+                            
+                            <div class="slider-label">
+                                <label for="CE_range_end_step">CE Target (ml·min<sup>-1</sup>·W<sup>-1</sup>):</label>
+                                <span id="CE_range_end_step-value" class="slider-value">12.0</span>
+                            </div>
+                            <input type="range" id="CE_range_end_step" class="range-slider" min="8" max="15" value="12" step="0.1">
+                        </div>
+                          
+                          
                         <div class="slider-container">
                             <div class="slider-label">
                                 <label for="CEVO2_step">CE (ml·min<sup>-1</sup>·W<sup>-1</sup>):</label>
@@ -1120,7 +1154,7 @@
         
         // Cadence Dependency Tab 1
         cadence_dependent: false,
-        cadence: 90,
+        cadence: 80,
         vo2max_dependent: false,
         vlamax_dependent: false,
         
@@ -1137,6 +1171,8 @@
         separator: ';',
         use_tab1_params: true,
         CEVO2_step: 11.0,
+        curvilinear_step: false,
+        CE_range_step: [11.0, 12.0],
         VO2max_step: 6300,      
         VO2Base_step: 400,
         vLamax_step: 0.85,      

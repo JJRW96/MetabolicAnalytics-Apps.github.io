@@ -1,0 +1,100 @@
+des ATP/PCr-Systems wirkt die angestiegene ADP-  
+Konzentration stimulierend auf
+ 6. die oxidative Phosphorylierungsrate (aerobe ATP-  
+Bildung) und die
+ 7. Glykogenolyse sowie die Glykolyse, was zur Stei-
+gerung der Laktatbildungsrate führt (glykolytische 
+ATP- Bildung). 8. Die Laktatbildungsrate selbst ist abhängig vom pH-
+Wert. Mit Abnahme des pH-Wertes sinkt die Bil -
+dungsrate.
+ 9. Als Folge von 6 und 7 steigt die ATP- Bildungsrate 
+an und stabilisiert damit den ATP-Pool.
+ 10. Aufgrund der Zunahme des aeroben Stoffwechsels 
+steigt auch der pCO2 im Muskel an und führt damit 
+zu einer Abnahme des pH-Wertes.
+ 11. Mit ansteigender Glykolyserate kommt es zur Er -
+höhung der Laktatkonzentration im Muskel.
+ 12. Änderungen der Laktatkonzentration haben einen 
+Einfluss auf den Säure-Basen-Haushalt und damit 
+auf den pH-Wert. Bei ansteigender Laktatkonzent -
+ration fällt der pH-Wert ab, bei abnehmender Lak -
+tatkonzentration steigt er an.
+ 13. Laktat passiert die Muskelzellmembran und wird 
+über das Blut in alle Gewebe transportiert, wo es 
+über den aeroben Stoffwechsel abgebaut bzw. – 
+speziell in der Leber – wieder zu Glykogen aufge -
+baut wird. Wenn die Laktatkonzentration im Blut 
+die des laktatbildenden Muskels überschreitet, 
+kommt es zu einem Rückstrom von Laktat in den 
+Muskel.
+Die mathematische Beschreibung der aufgeführten Pro -
+zesse erlaubt es, den zeitlichen Verlauf von Konzentra -
+tionen und Flussraten aufzuzeigen.
+Jede Form von Leistung, die im menschlichen Kör -
+per erbracht wird, muss durch ein chemisches Äqui -
+valent „bezahlt“ werden. Die „Währung“ ist zumeist 
+ATP . Neben der Muskelkontraktion muss für den Er -
+halt der Struktur und der Funktion aller anderen Or -
+gansysteme Energie bereitgestellt werden. Von allen 
+Organen ist die Muskulatur die Struktur, die in der 
+Lage ist, ihren Energieumsatz am stärksten zu steigern 
+(s. auch 7  Kap. 3).
+Die Ausgabenseite „Ruhe- + Arbeitsumsatz“ wird 
+durch die Energieflüsse aus dem Pool der energiereichen 
+Phosphate, der oxidativen Rephosphorylierung und der 
+Substratkettenphosphorylierung in der Glykolyse und 
+im Zitratzyklus ausgeglichen. Für die Aufstellung einer 
+Bilanz ist eine einheitliche „Währung“ zu nutzen. Dafür 
+bietet sich „ATP“ als direkter „Energiespender“ der 
+Muskelkontraktion an. Folgende Setzungen werden da -
+her vorgenommen:
+ 1. /g81
+/g81/g81GP
+ATPP Crmmols kg
+mmols kg mmols kg/g152/g152 /g11/g12
+/g32/g152 /g152 /g11/g12 /g14/g152 /g152 /g11/g12/g16/g16
+/g16/g16 /g16/g1611
+11 11
+ 2. /g81ATPVO
+VO aa
+ATPmmols kg
+K mmolmlV Om ls.
+..
+.
+2
+211
+1
+2/g152/g152 /g11/g12
+/g32/g152 /g11/g12 /g152/g152/g16/g16
+/g16/g16 /g16/g16/g152 /g11/g1211kgaerobe
+ATP-Bildung
+glykolytische
+ATP-Bildung
+pH
+MuskelLaktat
+Muskel
+La - Blut
++ Gewebe6d ATP O2 /dt
+d ATP La/dt
+11
+12
+54 3
+PCr Cr
+2
+ADP ATP
+1ENERGIEVERBRAUCH
+z. B. Muskelarbeit9
+1310 87ADP t
+       .Abb. 4.38  Modell der Regulation des Energiestoffwechsels nach 
+Mader (mod. aus: Heck 1990b , S. 84). Die Bedeutung der Ziffern 
+wird im nachfolgenden Text erläutert. (mit freundlicher Genehmi -
+gung von Hofmann-Verlag GmbH & Co. KG)Regulation des Energiestoffwechsels des Muskels
+
+--- Page 3 ---
+84
+4 3. /g81
+/g81ATPLasspH
+LaATPL asspHmmol sk g
+K mmols kg.. .
+.. ./g152/g152 /g11/g12
+/g32/g152 /g152/g152/g16/g16

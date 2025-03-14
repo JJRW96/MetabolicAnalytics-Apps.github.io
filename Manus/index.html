@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mader Model Step Test Simulation</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>Mader Model Step Test Simulation</h1>
+        <p>Based on the Mader model of muscle metabolism</p>
+    </header>
+    
+    <main>
+        <section id="controls">
+            <h2>Parameters</h2>
+            <div class="slider-container">
+                <label for="vo2max">VO2max (ml/min): <span id="vo2max-value">6000</span></label>
+                <input type="range" id="vo2max" min="2000" max="8000" step="100" value="6000">
+            </div>
+            <div class="slider-container">
+                <label for="vlamax">VLamax: <span id="vlamax-value">0.70</span></label>
+                <input type="range" id="vlamax" min="0.2" max="1.5" step="0.05" value="0.70">
+            </div>
+            <div class="button-group">
+                <button id="start-btn">Start Simulation</button>
+                <button id="stop-btn" disabled>Stop</button>
+                <button id="reset-btn">Reset</button>
+            </div>
+            <div class="test-info">
+                <h3>Step Test Protocol</h3>
+                <p>30-second steps</p>
+                <p>Starting power: 60 watts</p>
+                <p>Increment: 20 watts per step</p>
+                <p>Maximum power: 500 watts</p>
+            </div>
+        </section>
+        
+        <section id="simulation">
+            <div class="chart-container">
+                <canvas id="power-chart"></canvas>
+            </div>
+            <div class="chart-container">
+                <canvas id="metabolic-chart"></canvas>
+            </div>
+        </section>
+        
+        <section id="parameters">
+            <h2>Current Values</h2>
+            <div class="parameter-group">
+                <h3>Power and Time</h3>
+                <div class="parameter">
+                    <span class="parameter-name">Time:</span>
+                    <span class="parameter-value" id="current-time">0 s</span>
+                </div>
+                <div class="parameter">
+                    <span class="parameter-name">Power:</span>
+                    <span class="parameter-value" id="current-power">0 W</span>
+                </div>
+            </div>
+            <div class="parameter-group">
+                <h3>Metabolic Parameters</h3>
+                <div class="parameter">
+                    <span class="parameter-name">VO2:</span>
+                    <span class="parameter-value" id="current-vo2">0 ml/min</span>
+                </div>
+                <div class="parameter">
+                    <span class="parameter-name">VLaox:</span>
+                    <span class="parameter-value" id="current-vlaox">0 mmol/s/kg</span>
+                </div>
+                <div class="parameter">
+                    <span class="parameter-name">Pyruvate Deficit:</span>
+                    <span class="parameter-value" id="current-pyruvate-deficit">0</span>
+                </div>
+                <div class="parameter">
+                    <span class="parameter-name">Muscle Lactate:</span>
+                    <span class="parameter-value" id="current-muscle-lactate">0 mmol/l</span>
+                </div>
+                <div class="parameter">
+                    <span class="parameter-name">Blood Lactate:</span>
+                    <span class="parameter-value" id="current-blood-lactate">0 mmol/l</span>
+                </div>
+                <div class="parameter">
+                    <span class="parameter-name">pH:</span>
+                    <span class="parameter-value" id="current-ph">7.4</span>
+                </div>
+                <div class="parameter">
+                    <span class="parameter-name">PCr:</span>
+                    <span class="parameter-value" id="current-pcr">0 mmol/kg</span>
+                </div>
+                <div class="parameter">
+                    <span class="parameter-name">ATP:</span>
+                    <span class="parameter-value" id="current-atp">0 mmol/kg</span>
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <footer>
+        <p>Simulation based on: Mader A. (2003) - Glycolysis and oxidative phosphorylation as a function of cytosolic phosphorylation state and power output of the muscle cell</p>
+    </footer>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
+    <script src="simulation.js"></script>
+</body>
+</html>

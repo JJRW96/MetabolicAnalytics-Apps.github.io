@@ -23,7 +23,7 @@ editor:
     wrap: 72
     
 nocite: |
-  @Hintzy-Cloutier2003, @Dunst2025, @Dunst2024; @Mader2003; @Hauser2014; @Ji2021; @Nolte2022; @Mader1984; @Oezyener2001 
+  @Hintzy-Cloutier2003, @Dunst2025, @Dunst2024; @Mader2003; @Hauser2014; @Ji2021; @Nolte2022; @Mader1984; @Mader1986; @Mader1996; @Oezyener2001
     
 ---
 
@@ -51,12 +51,12 @@ figure figcaption {
 
 
 <div style="position: relative; width: 100%; height: 800px;">
-  <iframe src="Mader_App_2.9.html" style="position: absolute; width: 100%; height: 100%; border: none;"></iframe>
+  <iframe src="Mader_App_3.0.html" style="position: absolute; width: 100%; height: 100%; border: none;"></iframe>
 </div>
 
 <br>
 
-[Link: Mader App](/Mader_App_2.9.html)
+[Link: Mader App](/Mader_App_3.0.html)
 
 
 
