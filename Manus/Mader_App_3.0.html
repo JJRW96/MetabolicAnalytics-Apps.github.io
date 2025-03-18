@@ -613,7 +613,7 @@
                     <div id="linear-ce-control" class="slider-container">
                         <div class="slider-label">
                             <label for="CEVO2">CE (ml·min<sup>-1</sup>·W<sup>-1</sup>):</label>
-                            <span id="CEVO2-value" class="slider-value">11.5</span>
+                            <span id="CEVO2-value" class="slider-value">11.0</span>
                         </div>
                         <input type="range" id="CEVO2" class="range-slider" min="8" max="15" value="11" step="0.1">
                     </div>
@@ -645,7 +645,7 @@
                         <label class="fancy-checkbox">
                             <input type="checkbox" id="cadence_dependent" name="cadence_dependent">
                             <span class="checkmark"></span>
-                            Enable U-Shaped Cadence Dependency
+                            Enable Cadence Dependency
                         </label>
                     </div>
                     
@@ -908,7 +908,7 @@
                         <label class="fancy-checkbox">
                             <input type="checkbox" id="cadence_dependent_step" name="cadence_dependent_step">
                             <span class="checkmark"></span>
-                            Enable U-Shaped Cadence Dependency
+                            Enable Cadence Dependency
                         </label>
                     </div>
                     
@@ -1102,7 +1102,7 @@
                       <div id="linear-ce-control-step" class="slider-container">
                           <div class="slider-label">
                               <label for="CEVO2_step">CE (ml·min<sup>-1</sup>·W<sup>-1</sup>):</label>
-                              <span id="CEVO2_step-value" class="slider-value">11.5</span>
+                              <span id="CEVO2_step-value" class="slider-value">11.0</span>
                           </div>
                           <input type="range" id="CEVO2_step" class="range-slider" min="8" max="15" value="11" step="0.1">
                       </div>
@@ -1110,7 +1110,7 @@
                       <div id="curvilinear-ce-control-step" class="slider-container" style="display:none;">
                           <div class="slider-label">
                               <label for="CE_range_start_step">CE Start (ml·min<sup>-1</sup>·W<sup>-1</sup>):</label>
-                              <span id="CE_range_start_step-value" class="slider-value">11.5</span>
+                              <span id="CE_range_start_step-value" class="slider-value">11.0</span>
                           </div>
                           <input type="range" id="CE_range_start_step" class="range-slider" min="8" max="15" value="11" step="0.1">
                           
@@ -1177,7 +1177,7 @@
     // App state management
     const appState = {
         // Tab 1 Parameters
-        CEVO2: 11.5,
+        CEVO2: 11.0,
         CE_range: [11.0, 12.0],
         VO2max: 6300,           
         VO2max_kg: 70.80,       

@@ -321,6 +321,20 @@ This approach represents a significant advancement in metabolic modeling, as it 
 
 Although the current version of the application does not include explicit cadence-dependent parameter controls, the theoretical framework is in place for future implementation. Users could potentially simulate these effects by manually adjusting CE and VO2Base values based on the cadence-specific equations.
 
+
+## Alternative Modeling of movement velocity
+
+![Cadence-Test All](images/p_VO2_nD_DT_all.html){#fig-DT_all width="1350"
+height="800"}
+
+![Cadence-Test avg](images/p_VO2_nD_DT.html){#fig-DT_avg width="1350"
+height="800"}
+
+![VO2SS-Power-Cadence Models](images/p_VO2SS_Models.html){#fig-VO2SS_Models width="1350"
+height="800"}
+
+
+
 ## Calculation Flow in Tab 1: Power-Based Metabolic Profile
 
 In the first tab of the Shiny application, the calculations proceed through several distinct steps to generate the complete metabolic profile:

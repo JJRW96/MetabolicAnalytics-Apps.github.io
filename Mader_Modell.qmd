@@ -45,18 +45,17 @@ figure figcaption {
 
 **Please note: This website is currently under construction.** I'm gradually adding more detailed explanations of the applications and developing additional models. The content will continue to expand over time.
 
-<a href="Example_Race_Data.csv" download class="btn btn-primary">
-  <i class="bi bi-download"></i> Download Example_Race_Data.csv
-</a>
-
-
 <div style="position: relative; width: 100%; height: 800px;">
-  <iframe src="Mader_App_3.0.html" style="position: absolute; width: 100%; height: 100%; border: none;"></iframe>
+  <iframe src="Mader_App_3.1.html" style="position: absolute; width: 100%; height: 100%; border: none;"></iframe>
 </div>
 
 <br>
 
-[Link: Mader App](/Mader_App_3.0.html)
+[Link: Mader App](/Mader_App_3.1.html)
+
+<a href="Example_Race_Data.csv" download class="btn btn-primary">
+  <i class="bi bi-download"></i> Download Example_Race_Data.csv
+</a>
 
 
 

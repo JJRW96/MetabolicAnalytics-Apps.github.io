@@ -577,6 +577,26 @@
             border-left: 5px solid #ffc107;
             font-size: 0.9rem;
         }
+        
+        .eta-value {
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-left: 5px;
+        }
+        
+        .eta-infobox {
+            background-color: rgba(38, 131, 198, 0.05);
+            padding: 10px;
+            margin-top: 10px;
+            border-left: 3px solid var(--primary-color);
+            font-size: 0.9rem;
+        }
+        
+        .formula {
+            font-style: italic;
+            margin: 5px 0;
+            font-family: 'Times New Roman', serif;
+        }
     </style>
 </head>
 <body>
@@ -604,7 +624,7 @@
                             <input type="checkbox" id="curvilinear" name="curvilinear">
                             <span class="checkmark"></span>
                             Curvilinear CE relationship
-                            <div class="tooltip info-icon" style="margin-left: 5px;">ⓘ
+                            <div class="tooltip info-icon" style="margin-left: 47px;">ⓘ
                                 <span class="tooltiptext">Based on the curvilinear relationship between power output and energy consumption.</span>
                             </div>
                         </label>
@@ -616,6 +636,18 @@
                             <span id="CEVO2-value" class="slider-value">11.5</span>
                         </div>
                         <input type="range" id="CEVO2" class="range-slider" min="8" max="15" value="11" step="0.1">
+                        
+                        <div class="parameter-row" style="margin-top: 5px;">
+                            <div class="parameter-label">Delta Efficiency (Δη):</div>
+                            <span id="delta-eta-value" class="slider-value">24.7-26.5%</span>
+                            <div class="tooltip info-icon" style="margin-left: 5px;">ⓘ
+                                <span class="tooltiptext">                                  
+                                    <p>Delta efficiency is calculated from the slope of the P-V̇O<sub>2</sub>-Relationship (CE) using the caloric equivalent (depends on the RQ value with a range between 19.62 and 21.13 [kJ·l<sup>-1</sup>]):</p>
+                                    <p>Δη = 1 / ((CE · caloric Equivalent) / 60)</p>
+                                    <p>Example: Δη = 1 / ((11.65 · 20.87) / 60) ≈ 24.7%</p>
+                                </span>
+                            </div>
+                        </div>
                     </div>
                     
                     <div id="curvilinear-ce-control" class="slider-container" style="display:none;">
@@ -659,7 +691,7 @@
                         </div>
                         
                     <div class="parameter-row">
-                        <div class="parameter-label">CE (CEV̇O<sub>2</sub>) Dependency:</div>
+                        <div class="parameter-label">CE-Dependency:</div>
                         <div class="spacer"></div>
                         <div class="tooltip info-icon">ⓘ
                             <span class="tooltiptext">Formula: CEV̇O<sub>2</sub>(rpm) = 0.0004 · rpm² - 0.094 · rpm + 16.857. Research shows a U-shaped relationship between cadence and oxygen demand per watt.</span>
@@ -994,15 +1026,26 @@
                     
                     <div class="slider-container">
                         <div class="slider-label">
-                            <label for="la_max">BLC exercise termination value (mmol/l):</label>
+                            <label for="la_max">Lactate exercise termination value (mmol·l<sup>-1</sup>):</label>
                             <span id="la_max-value" class="slider-value">20.0</span>
                         </div>
                         <input type="range" id="la_max" class="range-slider" min="4" max="30" value="20" step="0.5">
                     </div>
                     
+                    <div class="checkbox-container">
+                        <label class="fancy-checkbox">
+                            <input type="checkbox" id="use_lactate_abort" name="use_lactate_abort">
+                            <span class="checkmark"></span>
+                            Terminate simulation when lactate exceeds max value
+                            <div class="tooltip info-icon" style="margin-left: 5px;">ⓘ
+                                <span class="tooltiptext">When checked, the simulation will terminate if blood lactate concentration exceeds the specified maximum value.</span>
+                            </div>
+                        </label>
+                    </div>
+                    
                     <div class="slider-container">
                         <div class="slider-label">
-                            <label for="la_base">Resting BLC-value (mmol/l):</label>
+                            <label for="la_base">Resting Lactate-value (mmol·l<sup>-1</sup>):</label>
                             <span id="la_base-value" class="slider-value">0.8</span>
                         </div>
                         <input type="range" id="la_base" class="range-slider" min="0.5" max="2" value="0.8" step="0.1">
@@ -1194,6 +1237,7 @@
         calculated_vo2base: null,
         w_prime_balance_min: -5.0,
         use_w_prime_balance_abort: true,
+        use_lactate_abort: false, 
         
         // Cadence Dependency Tab 1
         cadence_dependent: false,
@@ -1313,6 +1357,7 @@
             w_prime_balance_min: document.getElementById('w_prime_balance_min'),
             w_prime_balance_minValue: document.getElementById('w_prime_balance_min-value'),
             use_w_prime_balance_abort: document.getElementById('use_w_prime_balance_abort'),
+            use_lactate_abort: document.getElementById('use_lactate_abort'), // Neue Zeile
             use_mlss_as_cp: document.getElementById('use_mlss_as_cp'),
             load_interval_example: document.getElementById('load_interval_example'),
             power_data: document.getElementById('power_data'),
@@ -2322,8 +2367,8 @@
                 const deltaLa = (vLass[i] - (vLaox[i] * Math.min(LaConc[i-1], 15) / 8)) * deltaT;
                 LaConc.push(Math.max(laBase, LaConc[i-1] + deltaLa)); // Prevent dropping below baseline
                 
-                // Check if LA_max reached
-                if (LaConc[i] >= laMax && abortIdx === null) {
+                // Check if LA_max reached and lactate abort is enabled
+                if (appState.use_lactate_abort && LaConc[i] >= laMax && abortIdx === null) {
                     abortIdx = i;
                     endIdx = i;
                     abortPower = powerValues[i];
@@ -2612,7 +2657,7 @@
                         x: stepData.abort_time,
                         y: appState.la_max,
                         yref: "y2",
-                        text: `Lactate: ${appState.la_max.toFixed(1)} mmol/l`,
+                        text: `Lactate: ${appState.la_max.toFixed(1)} mmol·l<sup>-1</sup>`,
                         showarrow: true,
                         arrowhead: 2,
                         arrowsize: 1,
@@ -2777,10 +2822,32 @@
             }
         }
         
+        // Function to calculate delta efficiency (Δη) from CE value
+        function calculateDeltaEfficiency(ceValue) {
+            // Caloric equivalent range based on RQ values
+            const calorEquivalentMin = 21.131; // Lower bound
+            const calorEquivalentMax = 19.619; // Upper bound
+            
+            // Calculate efficiency range (expressed as decimal)
+            const etaMin = 1 / ((ceValue * calorEquivalentMin) / 60);
+            const etaMax = 1 / ((ceValue * calorEquivalentMax) / 60);
+            
+            // Return range as percentage values
+            return {
+                min: etaMin * 100,
+                max: etaMax * 100
+            };
+        }
+        
         // Event handlers for Tab 1
         elements.CEVO2.addEventListener('input', function() {
             appState.CEVO2 = parseFloat(this.value);
             elements.CEVO2Value.textContent = appState.CEVO2.toFixed(1);
+            
+            // Calculate and update delta efficiency
+            const deltaEta = calculateDeltaEfficiency(appState.CEVO2);
+            document.getElementById('delta-eta-value').textContent = 
+                `${deltaEta.min.toFixed(1)}-${deltaEta.max.toFixed(1)}%`;
             
             // Synchronize with Tab 2 if parameters are linked
             if (appState.use_tab1_params) {
@@ -3098,6 +3165,11 @@
         
         elements.use_w_prime_balance_abort.addEventListener('change', function() {
             appState.use_w_prime_balance_abort = this.checked;
+            updateStepTestPlot();
+        });
+        
+        elements.use_lactate_abort.addEventListener('change', function() {
+            appState.use_lactate_abort = this.checked;
             updateStepTestPlot();
         });
         
@@ -3532,6 +3604,11 @@
         if (appState.use_mlss_as_cp) {
             elements.critical_power.disabled = true;
         }
+        
+        // Initialize delta efficiency value
+        const initialDeltaEta = calculateDeltaEfficiency(appState.CEVO2);
+        document.getElementById('delta-eta-value').textContent = 
+            `${initialDeltaEta.min.toFixed(1)}-${initialDeltaEta.max.toFixed(1)}%`;
         
         // Update plot once more to ensure everything is correct
         updateStepTestPlot();
