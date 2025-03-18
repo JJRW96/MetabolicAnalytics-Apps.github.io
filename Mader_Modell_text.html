@@ -61,6 +61,9 @@ div.csl-indent {
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="site_libs/bootstrap/bootstrap-6a00d7ebc5533775dc3675cb261d6cfe.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
 <link href="site_libs/bootstrap/bootstrap-dark-0ed3b8ce94f9dbc3da4c5660203e5302.min.css" rel="prefetch" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<script src="site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
+<link href="site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
+<link href="site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -418,6 +421,39 @@ P(PR) = \frac{\dot{V}O_{2ss}(PR) - \dot{V}O_{2Base}(PR)}{CE_{V\dot{O}_2}(PR)}
 \tag{24}\]</span></span></p>
 <p>This approach represents a significant advancement in metabolic modeling, as it acknowledges that metabolic responses are not fixed but vary with movement velocity, offering more precise predictions for endurance performance.</p>
 <p>Although the current version of the application does not include explicit cadence-dependent parameter controls, the theoretical framework is in place for future implementation. Users could potentially simulate these effects by manually adjusting CE and VO2Base values based on the cadence-specific equations.</p>
+</section>
+<section id="alternative-modeling-of-movement-velocity" class="level2">
+<h2 class="anchored" data-anchor-id="alternative-modeling-of-movement-velocity">Alternative Modeling of movement velocity</h2>
+<div id="fig-DT_all" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-DT_all-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="images/p_VO2_nD_DT_all.html" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Abbildung&nbsp;1: Cadence-Test All"><embed src="images/p_VO2_nD_DT_all.html" width="1350" height="800"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-DT_all-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Abbildung&nbsp;1: Cadence-Test All
+</figcaption>
+</figure>
+</div>
+<div id="fig-DT_avg" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-DT_avg-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="images/p_VO2_nD_DT.html" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Abbildung&nbsp;2: Cadence-Test avg"><embed src="images/p_VO2_nD_DT.html" width="1350" height="800"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-DT_avg-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Abbildung&nbsp;2: Cadence-Test avg
+</figcaption>
+</figure>
+</div>
+<div id="fig-VO2SS_Models" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-VO2SS_Models-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="images/p_VO2SS_Models.html" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Abbildung&nbsp;3: VO2SS-Power-Cadence Models"><embed src="images/p_VO2SS_Models.html" width="1350" height="800"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-VO2SS_Models-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Abbildung&nbsp;3: VO2SS-Power-Cadence Models
+</figcaption>
+</figure>
+</div>
 </section>
 <section id="calculation-flow-in-tab-1-power-based-metabolic-profile" class="level2">
 <h2 class="anchored" data-anchor-id="calculation-flow-in-tab-1-power-based-metabolic-profile">Calculation Flow in Tab 1: Power-Based Metabolic Profile</h2>
@@ -1112,6 +1148,38 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 </div>
   </div>
 </footer>
+<script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","loop":false,"openEffect":"zoom","selector":".lightbox"});
+(function() {
+  let previousOnload = window.onload;
+  window.onload = () => {
+    if (previousOnload) {
+      previousOnload();
+    }
+    lightboxQuarto.on('slide_before_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      const href = trigger.getAttribute('href');
+      if (href !== null) {
+        const imgEl = window.document.querySelector(`a[href="${href}"] img`);
+        if (imgEl !== null) {
+          const srcAttr = imgEl.getAttribute("src");
+          if (srcAttr && srcAttr.startsWith("data:")) {
+            slideConfig.href = srcAttr;
+          }
+        }
+      } 
+    });
+  
+    lightboxQuarto.on('slide_after_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(slideNode);
+      }
+    });
+  
+  };
+  
+})();
+          </script>
 
 
 
