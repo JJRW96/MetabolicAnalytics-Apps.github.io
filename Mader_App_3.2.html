@@ -615,7 +615,7 @@
                     <div class="header-section">
                         <div class="control-label">Oxygen Demand Settings</div>
                         <div class="tooltip info-icon">ⓘ
-                            <span class="tooltiptext">Defines how oxygen demand changes with power output.</span>
+                            <span class="tooltiptext">Describes the P-V̇O<sub>2</sub>Relationship during incrementel cycling exercise</span>
                         </div>
                     </div>
                     
@@ -625,7 +625,10 @@
                             <span class="checkmark"></span>
                             Curvilinear CE relationship
                             <div class="tooltip info-icon" style="margin-left: 47px;">ⓘ
-                                <span class="tooltiptext">Based on the curvilinear relationship between power output and energy consumption.</span>
+                                <span class="tooltiptext">
+                                  <p>A linear V̇O<sub>2</sub>-P relationship shows constant oxygen cost per unit work, suggesting uniform efficiency. The curvilinear model exhibits increasing oxygen consumption at higher intensities, reflecting physiological changes and decreased efficiency above lactate threshold.</p>
+                                  <p>Here, CE<sub>Start</sub> represents efficiency at the beginning of the V̇O<sub>2</sub>-P curve, while CE<sub>Target</sub> represents efficiency at the end, coinciding exactly with V̇O<sub>2,max</sub>.</p>
+                                </span>
                             </div>
                         </label>
                     </div>
@@ -652,13 +655,13 @@
                     
                     <div id="curvilinear-ce-control" class="slider-container" style="display:none;">
                         <div class="slider-label">
-                            <label for="CE_range_start">CE Start (ml·min<sup>-1</sup>·W<sup>-1</sup>):</label>
+                            <label for="CE_range_start">CE<sub>Start</sub> (ml·min<sup>-1</sup>·W<sup>-1</sup>):</label>
                             <span id="CE_range_start-value" class="slider-value">11.0</span>
                         </div>
                         <input type="range" id="CE_range_start" class="range-slider" min="8" max="15" value="11" step="0.1">
                         
                         <div class="slider-label">
-                            <label for="CE_range_end">CE Target (ml·min<sup>-1</sup>·W<sup>-1</sup>):</label>
+                            <label for="CE_range_end">CE<sub>Target</sub> (ml·min<sup>-1</sup>·W<sup>-1</sup>):</label>
                             <span id="CE_range_end-value" class="slider-value">12.0</span>
                         </div>
                         <input type="range" id="CE_range_end" class="range-slider" min="8" max="15" value="12" step="0.1">
@@ -669,7 +672,7 @@
                     <div class="header-section">
                         <div class="control-label">Cadence Dependency</div>
                         <div class="tooltip info-icon">ⓘ
-                            <span class="tooltiptext">Incorporate cycling cadence effects as described in Dunst et al. (2025). This modifies metabolic parameters based on the pedaling rate.</span>
+                            <span class="tooltiptext">Incorporate cycling cadence effects on the V̇O<sub>2</sub>-P relationship as described in Dunst et al. (2025). This modifies metabolic parameters based on the pedaling rate.</span>
                         </div>
                     </div>
                     
@@ -738,9 +741,9 @@
                 
                 <div class="control-group">
                     <div class="header-section">
-                        <div class="control-label">Physiological Parameters</div>
+                        <div class="control-label">Physiological Input-Parameters</div>
                         <div class="tooltip info-icon">ⓘ
-                            <span class="tooltiptext">Important physiological values in Mader's metabolism model.</span>
+                            <span class="tooltiptext">Physiological input parameters to calculate workload-specific metabolic response according to Mader's metabolic model.</span>
                         </div>
                     </div>
                     
@@ -1152,13 +1155,13 @@
                       
                       <div id="curvilinear-ce-control-step" class="slider-container" style="display:none;">
                           <div class="slider-label">
-                              <label for="CE_range_start_step">CE Start (ml·min<sup>-1</sup>·W<sup>-1</sup>):</label>
+                              <label for="CE_range_start_step">CE<sub>Start</sub> (ml·min<sup>-1</sup>·W<sup>-1</sup>):</label>
                               <span id="CE_range_start_step-value" class="slider-value">11.5</span>
                           </div>
                           <input type="range" id="CE_range_start_step" class="range-slider" min="8" max="15" value="11" step="0.1">
                           
                           <div class="slider-label">
-                              <label for="CE_range_end_step">CE Target (ml·min<sup>-1</sup>·W<sup>-1</sup>):</label>
+                              <label for="CE_range_end_step">CE<sub>Target</sub> (ml·min<sup>-1</sup>·W<sup>-1</sup>):</label>
                               <span id="CE_range_end_step-value" class="slider-value">12.0</span>
                           </div>
                           <input type="range" id="CE_range_end_step" class="range-slider" min="8" max="15" value="12" step="0.1">
@@ -1715,7 +1718,7 @@
             name: "V̇O<sub>2</sub>max",
             type: 'scatter',
             mode: 'lines',
-            line: {color: '#CCCCCC', dash: 'dot', width: 1},
+            line: {color: '#CCCCCC', dash: 'dot', width: 2},
             showlegend: false
         });
         
@@ -1727,7 +1730,7 @@
                 name: "FAT<sub>max</sub>",
                 type: 'scatter',
                 mode: 'lines',
-                line: {color: '#CCCCCC', dash: 'dot', width: 1},
+                line: {color: '#CCCCCC', dash: 'dot', width: 2},
                 showlegend: false,
                 yaxis: 'y2'
             });
@@ -1741,7 +1744,7 @@
                 name: "MLSS",
                 type: 'scatter',
                 mode: 'lines',
-                line: {color: '#CCCCCC', dash: 'dot', width: 1},
+                line: {color: '#CCCCCC', dash: 'dot', width: 2},
                 showlegend: false,
                 yaxis: 'y2'
             });
@@ -1832,7 +1835,7 @@
             {
                 x: displayPdMaxPos,
                 y: y1Max * 0.90,
-                text: `FATmax<br>${appState.weight_based ? displayPdMaxPos.toFixed(1) : Math.round(displayPdMaxPos)} ${appState.weight_based ? "W·kg<sup>-1</sup>" : "W"}`,
+                text: `FAT<sub>max</sub><br>${appState.weight_based ? displayPdMaxPos.toFixed(1) : Math.round(displayPdMaxPos)} ${appState.weight_based ? "W·kg<sup>-1</sup>" : "W"}`,
                 showarrow: false,
                 font: {color: '#666666'},
                 xanchor: "center"
@@ -2762,7 +2765,7 @@
                 },
                 yaxis3: {
                     title: {
-                        text: "VO₂ (ml·min⁻¹)",
+                        text: "V̇O<sub>2</sub> (ml·min⁻¹)",
                         font: {
                             size: 14
                         }
@@ -3088,7 +3091,7 @@
             }
             
             // Show notification
-            showNotification(`VO₂,Base calculated: ${Math.round(calculatedVO2Base)} ml·min⁻¹`, 'info');
+            showNotification(`V̇O<sub>2,Base</sub> calculated: ${Math.round(calculatedVO2Base)} ml·min⁻¹`, 'info');
             
             // Update plot and critical power
             updatePlot();
