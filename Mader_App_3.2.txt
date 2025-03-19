@@ -1523,10 +1523,10 @@
     }
     
     function calculateCadenceDependentVLamax(cadence, baseVLamax) {
-        // Exakte Formel aus dem Paper: vLamax(PR) = -0.0002 * PR² + 0.00931 * PR
-        // Wir benötigen keinen Skalierungsfaktor, da das Paper direkt die absolute Funktion angibt
-        // Die Funktion ist bereits für einen absoluten Wert kalibriert
-        return -0.0002 * Math.pow(cadence, 2) + 0.00931 * cadence;
+        // Formula from paper: vLamax(PR) = -0.0002 * PR² + 0.00931 * PR
+        // We need to scale this to match the current vLamax at the default cadence (90 rpm)
+        const scaleVLamax = baseVLamax / (-0.0002 * Math.pow(90, 2) + 0.00931 * 90);
+        return (-0.0002 * Math.pow(cadence, 2) + 0.00931 * cadence) * scaleVLamax;
     }
     
     function calculateCadenceDependentVO2max(cadence, baseVO2max) {
