@@ -1063,6 +1063,7 @@
                         </div>
                     </div>
                     
+                    
                     <div class="slider-container">
                         <div class="slider-label">
                             <label for="critical_power">Critical Power (CP) (W):</label>
@@ -1115,6 +1116,83 @@
                         <p>Where τ<sub>W'</sub> = 546·e<sup>(-0.01·DCP)</sup> + 316</p>
                     </div>
                 </div>
+                
+                <div class="control-group">
+                      <div class="header-section">
+                          <div class="control-label">PCr and O<sub>2</sub> Deficit Model</div>
+                          <div class="tooltip info-icon">ⓘ
+                              <span class="tooltiptext">Simulation of PCr dynamics and O<sub>2</sub> deficit based on mismatch between O<sub>2</sub> demand and actual O<sub>2</sub> uptake.</span>
+                          </div>
+                      </div>
+                      
+                      <div class="checkbox-container">
+                          <label class="fancy-checkbox">
+                              <input type="checkbox" id="show_pcr_model" name="show_pcr_model">
+                              <span class="checkmark"></span>
+                              Enable PCr and O<sub>2</sub> Deficit Model
+                          </label>
+                      </div>
+                      
+                      <div id="pcr-model-controls" style="display:none;">
+                      <div class="slider-container">
+                          <div class="slider-label" style="display: flex; justify-content: space-between; align-items: center;">
+                              <div>
+                                  <label for="pcr_init">Resting PCr (mmol·kg<sup>-1</sup>):</label>
+                                  <span id="pcr_init-value" style="margin-left: 23px;" class="slider-value">25.0</span>
+                              </div>
+                              <div class="tooltip info-icon">ⓘ
+                                  <span class="tooltiptext">Initial phosphocreatine (PCr) concentration in active muscle tissue. Typical values range from 15-38 mmol·kg<sup>-1</sup> of muscle wet weight.</span>
+                              </div>
+                          </div>
+                          <input type="range" id="pcr_init" class="range-slider" min="15" max="38" value="25" step="0.1">
+                      </div>
+                  
+                      <div class="slider-container">
+                          <div class="slider-label" style="display: flex; justify-content: space-between; align-items: center;">
+                              <div>
+                                  <label for="p_o_ratio">P/O<sub>2</sub> (mol ATP · mol O<sub>2</sub><sup>-1</sup>):</label>
+                                  <span id="p_o_ratio-value" style="margin-left: 10px;" class="slider-value">4.80</span>
+                              </div>
+                              <div class="tooltip info-icon">ⓘ
+                                  <span class="tooltiptext">P/O<sub>2</sub> Ratio represents the amount of ATP molecules generated per oxygen molecule consumed. Value depends on substrate mixture (4.61 for purely fat, 5.0 for purely carbohydrate metabolism).</span>
+                              </div>
+                          </div>
+                          <input type="range" id="p_o_ratio" class="range-slider" min="4.61" max="5.0" value="4.80" step="0.01">
+                      </div>
+                      
+                      <div class="slider-container">
+                          <div class="slider-label" style="display: flex; justify-content: space-between; align-items: center;">
+                              <div>
+                                  <label for="active_muscle_mass">Active Muscle Mass (kg):</label>
+                                  <span id="active_muscle_mass-value" style="margin-left: 19px;" class="slider-value">25.0</span>
+                              </div>
+                              <div class="tooltip info-icon">ⓘ
+                                  <span class="tooltiptext">
+                                      <strong>Research-based recommendations:</strong><br>
+                                      • For cyclists, active muscle mass depends on gender, body weight, and position:<br>
+                                      <br>
+                                      <u>Women</u>:<br>
+                                      - Seated cycling: ~22% of body weight (0.34 × 0.65)<br>
+                                      - Standing cycling: ~25.5% of body weight (0.34 × 0.75)<br>
+                                      <br>
+                                      <u>Men</u>:<br>
+                                      - Seated cycling: ~27% of body weight (0.42 × 0.65)<br>
+                                      - Standing cycling: ~31.5% of body weight (0.42 × 0.75)<br>
+                                      <br>
+                                      Based on Janssen et al. (2000) MRI data and exercise physiology research on cycling biomechanics.
+                                  </span>
+                              </div>
+                          </div>
+                          <input type="range" id="active_muscle_mass" class="range-slider" min="5" max="40" value="25" step="0.5">
+                      </div>
+                      
+                      <div class="eta-infobox">
+                          <p>The PCr model calculates phosphocreatine dynamics based on O<sub>2</sub> deficit/surplus:</p>
+                          <p class="formula">PCr<sub>Store</sub>(t) = PCr<sub>Initial</sub> - ∫<sub>0</sub><sup>t</sup>(O<sub>2</sub>Deficit × P/O<sub>2</sub> Ratio)</p>
+                          <p>Accumulated O<sub>2</sub> deficit represents the mismatch between O<sub>2</sub> demand and uptake.</p>
+                       </div>
+                    </div>
+                </div>"
                 
                 <div class="control-group">
                   <div class="header-section">
@@ -1271,6 +1349,10 @@
         w_prime: 20.0,
         use_mlss_as_cp: true,
         power_scale: 100, // Standardwert 100%
+        show_pcr_model: false,
+        pcr_init: 25.0,
+        p_o_ratio: 4.80,
+        active_muscle_mass: 25.0,
         
         // Cadence Dependency Tab 2
         cadence_dependent_step: false,
@@ -1392,6 +1474,15 @@
             steptestPlotContainer: document.getElementById('steptest-plot-container'),
             power_scale: document.getElementById('power_scale'),
             power_scaleValue: document.getElementById('power_scale-value'),
+            // PCr Model Controls
+            show_pcr_model: document.getElementById('show_pcr_model'),
+            pcr_model_controls: document.getElementById('pcr-model-controls'),
+            pcr_init: document.getElementById('pcr_init'),
+            pcr_initValue: document.getElementById('pcr_init-value'),
+            p_o_ratio: document.getElementById('p_o_ratio'),
+            p_o_ratioValue: document.getElementById('p_o_ratio-value'),
+            active_muscle_mass: document.getElementById('active_muscle_mass'),
+            active_muscle_massValue: document.getElementById('active_muscle_mass-value'),
             
             // Cadence Dependency Tab 2
             cadence_dependent_step: document.getElementById('cadence_dependent_step'),
@@ -2405,6 +2496,52 @@
                 }
             }
             
+           // Calculate PCr dynamics and O2 deficit if PCr model is enabled
+            let pcrStore = null;
+            let accumulatedO2Deficit = null;
+            
+            if (appState.show_pcr_model) {
+                // Molar volume of O2 under STPD conditions (ml/mol)
+                const o2MolarVolume = 22414;
+                
+                // Calculate O2 deficit and surplus for each time point
+                const o2Deficit = vo2Target.map((target, i) => Math.max(0, target - vo2Actual[i]));
+                const o2Surplus = vo2Target.map((target, i) => Math.max(0, vo2Actual[i] - target));
+                
+                // Calculate PCr store dynamics
+                pcrStore = new Array(timePoints.length);
+                pcrStore[0] = appState.pcr_init; // Start with initial value
+                
+                // Calculate accumulated O2 deficit that can decrease but not go below 0
+                accumulatedO2Deficit = new Array(timePoints.length);
+                accumulatedO2Deficit[0] = 0;
+                
+                for (let i = 1; i < timePoints.length; i++) {
+                    // Time difference in minutes
+                    const deltaTMin = (timePoints[i] - timePoints[i-1]) / 60;
+                    
+                    // O2 deficit in this time step in ml
+                    const deficitMl = o2Deficit[i-1] * deltaTMin;
+                    
+                    // O2 surplus in this time step in ml
+                    const surplusMl = o2Surplus[i-1] * deltaTMin;
+                    
+                    // Convert from ml O2 to mmol PCr per kg muscle mass
+                    const pcrConsumption = (deficitMl * appState.p_o_ratio * 1000) / (appState.active_muscle_mass * o2MolarVolume);
+                    const pcrResynthesis = (surplusMl * appState.p_o_ratio * 1000) / (appState.active_muscle_mass * o2MolarVolume);
+                    
+                    // Update PCr store
+                    pcrStore[i] = pcrStore[i-1] - pcrConsumption + pcrResynthesis;
+                    
+                    // Limit PCr store between 0 and initial value
+                    pcrStore[i] = Math.min(appState.pcr_init, Math.max(0, pcrStore[i]));
+                    
+                    // Update accumulated O2 deficit, allowing it to decrease when there's surplus
+                    // but never go below 0
+                    accumulatedO2Deficit[i] = Math.max(0, accumulatedO2Deficit[i-1] + deficitMl - surplusMl);
+                }
+            }
+            
             // Truncate data if simulation endpoint reached
             if (endIdx < timePoints.length) {
                 const trimmedTimePoints = timePoints.slice(0, endIdx + 1);
@@ -2422,6 +2559,15 @@
                     trimmedCadence = cadenceValues.slice(0, endIdx + 1);
                 }
                 
+                // Trim PCr and O2 deficit data if enabled
+                let trimmedPcrStore = null;
+                let trimmedAccumulatedO2Deficit = null;
+                
+                if (appState.show_pcr_model && pcrStore && accumulatedO2Deficit) {
+                    trimmedPcrStore = pcrStore.slice(0, endIdx + 1);
+                    trimmedAccumulatedO2Deficit = accumulatedO2Deficit.slice(0, endIdx + 1);
+                }
+                
                 return {
                     time_sec: trimmedTimePoints,
                     power: trimmedPowerValues,
@@ -2437,7 +2583,9 @@
                     cadence: trimmedCadence,
                     is_curvilinear: isCurvilinear,
                     a_opt: aOpt,
-                    ce_range: CE_range
+                    ce_range: CE_range,
+                    pcr_store: trimmedPcrStore,
+                    accumulated_o2_deficit: trimmedAccumulatedO2Deficit
                 };
             }
             
@@ -2465,7 +2613,9 @@
                 cadence: finalCadence,
                 is_curvilinear: isCurvilinear,
                 a_opt: aOpt,
-                ce_range: CE_range
+                ce_range: CE_range,
+                pcr_store: pcrStore,
+                accumulated_o2_deficit: accumulatedO2Deficit
             };
         }
         
@@ -2498,7 +2648,12 @@
             
             // For the max y value, use the maximum of: maximum lactate value, W' (in kJ),
             // or maximum PD value, and multiply by 1.05 for a 5% buffer
-            const wprimeYmax = Math.max(maxLaktatValue, appState.w_prime, maxPDValue) * 1.05;
+            let wprimeYmax = Math.max(maxLaktatValue, appState.w_prime, maxPDValue) * 1.05;
+            
+            // If PCr model is enabled, adjust y-axis to include PCr values
+            if (appState.show_pcr_model && stepData.pcr_store) {
+                wprimeYmax = Math.max(wprimeYmax, appState.pcr_init * 1.05);
+            }
             
             // Create traces for the plot
             const traces = [];
@@ -2601,43 +2756,34 @@
                 showlegend: true
             });
             
-            // Horizontal line for max lactate
-            traces.push({
-                x: [Math.min(...timeSec), Math.max(...timeSec)],
-                y: [appState.la_max, appState.la_max],
-                name: "Max Lactate",
-                type: 'scatter',
-                mode: 'lines',
-                yaxis: "y2",
-                line: {color: 'red', dash: 'dot', width: 1, opacity: 0.8},
-                showlegend: true
-            });
-            
-            // Horizontal line for W' Balance minimum
-            if (appState.use_w_prime_balance_abort) {
+            // Add PCr and O2 deficit traces if PCr model is enabled
+            if (appState.show_pcr_model && stepData.pcr_store && stepData.accumulated_o2_deficit) {
+                // PCr store curve on y2 axis (same as lactate)
                 traces.push({
-                    x: [Math.min(...timeSec), Math.max(...timeSec)],
-                    y: [appState.w_prime_balance_min, appState.w_prime_balance_min],
-                    name: "W' Balance Minimum",
+                    x: timeSec,
+                    y: stepData.pcr_store,
+                    name: "PCr Store",
                     type: 'scatter',
                     mode: 'lines',
                     yaxis: "y2",
-                    line: {color: '#42BA97', dash: 'dot', width: 1, opacity: 0.8},
+                    line: {color: '#FFB300', dash: 'dot', width: 2, opacity: 0.8},
                     showlegend: true
                 });
+                
+                // Accumulated O2 deficit on y3 axis (same as VO2)
+                traces.push({
+                    x: timeSec,
+                    y: stepData.accumulated_o2_deficit,
+                    name: "Acc. O<sub>2</sub> Deficit",
+                    type: 'scatter',
+                    mode: 'lines',
+                    yaxis: "y3",
+                    line: {color: '#26A69A', dash: 'dot', width: 2, opacity: 0.8},
+                    showlegend: true
+                });
+                
             }
             
-            // Horizontal line for Critical Power
-            traces.push({
-                x: [Math.min(...timeSec), Math.max(...timeSec)],
-                y: [appState.critical_power, appState.critical_power],
-                name: "Critical Power",
-                type: 'scatter',
-                mode: 'lines',
-                yaxis: "y",
-                line: {color: '#80CDC1', dash: 'dot', width: 1, opacity: 0.8},
-                showlegend: true
-            });
             
             // Zero line for W' balance reference
             traces.push({
@@ -2769,7 +2915,7 @@
                 },
                 yaxis2: {
                     title: {
-                        text: "Lactate (mmol·l⁻¹), La-Rates & W' Balance (kJ)",
+                        text: "Lactate (mmol·l⁻¹), La-Rates, PCr (mmol·kg⁻¹) & W' Balance (kJ)",
                         font: {
                             size: 14
                         }
@@ -2781,7 +2927,7 @@
                 },
                 yaxis3: {
                     title: {
-                        text: "V̇O<sub>2</sub> (ml·min⁻¹)",
+                        text: "V̇O<sub>2</sub> (ml·min⁻¹) & O<sub>2</sub> Deficit (ml)",
                         font: {
                             size: 14
                         }
@@ -3185,6 +3331,41 @@
         elements.use_w_prime_balance_abort.addEventListener('change', function() {
             appState.use_w_prime_balance_abort = this.checked;
             updateStepTestPlot();
+        });
+        
+        // PCr Model Event Handlers
+        elements.show_pcr_model.addEventListener('change', function() {
+            appState.show_pcr_model = this.checked;
+            elements.pcr_model_controls.style.display = appState.show_pcr_model ? 'block' : 'none';
+            updateStepTestPlot();
+            
+            if (this.checked) {
+                showNotification("PCr and O<sub>2</sub> deficit model enabled. Additional traces for PCr store and accumulated O<sub>2</sub> deficit are now displayed.", 'info');
+            }
+        });
+        
+        elements.pcr_init.addEventListener('input', function() {
+            appState.pcr_init = parseFloat(this.value);
+            elements.pcr_initValue.textContent = appState.pcr_init.toFixed(1);
+            if (appState.show_pcr_model) {
+                updateStepTestPlot();
+            }
+        });
+        
+        elements.p_o_ratio.addEventListener('input', function() {
+            appState.p_o_ratio = parseFloat(this.value);
+            elements.p_o_ratioValue.textContent = appState.p_o_ratio.toFixed(2);
+            if (appState.show_pcr_model) {
+                updateStepTestPlot();
+            }
+        });
+        
+        elements.active_muscle_mass.addEventListener('input', function() {
+            appState.active_muscle_mass = parseFloat(this.value);
+            elements.active_muscle_massValue.textContent = appState.active_muscle_mass.toFixed(1);
+            if (appState.show_pcr_model) {
+                updateStepTestPlot();
+            }
         });
         
         elements.use_lactate_abort.addEventListener('change', function() {
