@@ -1186,6 +1186,17 @@
                           <input type="range" id="active_muscle_mass" class="range-slider" min="5" max="40" value="25" step="0.5">
                       </div>
                       
+                      <div class="checkbox-container">
+                          <label class="fancy-checkbox">
+                              <input type="checkbox" id="show_vo2_demand" name="show_vo2_demand">
+                              <span class="checkmark"></span>
+                              Show V̇O<sub>2</sub> Demand Curve
+                              <div class="tooltip info-icon" style="margin-left: 5px;">ⓘ
+                                  <span class="tooltiptext">Shows the actual V̇O<sub>2</sub> demand for each power output as a dotted line, with the area between actual V̇O<sub>2</sub> and demand filled to visualize O<sub>2</sub> deficit.</span>
+                              </div>
+                          </label>
+                      </div>
+                      
                       <div class="eta-infobox">
                           <p>The PCr model calculates phosphocreatine dynamics based on O<sub>2</sub> deficit/surplus:</p>
                           <p class="formula">PCr<sub>Store</sub>(t) = PCr<sub>Initial</sub> - ∫<sub>0</sub><sup>t</sup>(O<sub>2</sub>Deficit × P/O<sub>2</sub> Ratio)</p>
@@ -1353,6 +1364,7 @@
         pcr_init: 25.0,
         p_o_ratio: 4.80,
         active_muscle_mass: 25.0,
+        show_vo2_demand: false,
         
         // Cadence Dependency Tab 2
         cadence_dependent_step: false,
@@ -1483,6 +1495,7 @@
             p_o_ratioValue: document.getElementById('p_o_ratio-value'),
             active_muscle_mass: document.getElementById('active_muscle_mass'),
             active_muscle_massValue: document.getElementById('active_muscle_mass-value'),
+            show_vo2_demand: document.getElementById('show_vo2_demand'),
             
             // Cadence Dependency Tab 2
             cadence_dependent_step: document.getElementById('cadence_dependent_step'),
@@ -2401,8 +2414,9 @@
             const laMax = appState.la_max;
             const laBase = appState.la_base;
             
-            // Calculate VO2 target values with curvilinear option
+           // Calculate VO2 target values with curvilinear option
             const vo2Target = [];
+            const vo2Demand = []; // VO2 demand for each power level before VO2max limitation
             let aOpt = null;
             
             // Falls curvilinear benutzt wird, a-Koeffizienten berechnen
@@ -2417,6 +2431,7 @@
                 } else {
                     vo2ss = effectiveCEVO2[i] * powerValues[i] + effectiveVO2Base[i];
                 }
+                vo2Demand[i] = vo2ss; // Store original demand before VO2max limitation
                 vo2Target[i] = Math.min(vo2ss, effectiveVO2max[i]); // Limited by VO2max
             }
             
@@ -2542,11 +2557,11 @@
                 }
             }
             
-            // Truncate data if simulation endpoint reached
             if (endIdx < timePoints.length) {
                 const trimmedTimePoints = timePoints.slice(0, endIdx + 1);
                 const trimmedPowerValues = powerValues.slice(0, endIdx + 1);
                 const trimmedVo2Actual = vo2Actual.slice(0, endIdx + 1);
+                const trimmedVo2Demand = vo2Demand.slice(0, endIdx + 1);
                 const trimmedVLassMin = vLassMin.slice(0, endIdx + 1);
                 const trimmedVLaoxMin = vLaoxMin.slice(0, endIdx + 1);
                 const trimmedPD = PD.slice(0, endIdx + 1);
@@ -2572,6 +2587,7 @@
                     time_sec: trimmedTimePoints,
                     power: trimmedPowerValues,
                     VO2: trimmedVo2Actual,
+                    vo2_demand: trimmedVo2Demand,
                     vLass_min: trimmedVLassMin,
                     vLaox_min: trimmedVLaoxMin,
                     PD: trimmedPD,
@@ -2602,6 +2618,7 @@
                 time_sec: timePoints,
                 power: powerValues,
                 VO2: vo2Actual,
+                vo2_demand: vo2Demand,  // Diese Zeile hinzufügen
                 vLass_min: vLassMin,
                 vLaox_min: vLaoxMin,
                 PD: PD,
@@ -2708,6 +2725,35 @@
                 showlegend: true
             });
             
+            // VO2 demand curve and fill area, only if PCr model is enabled and VO2 demand display is checked
+            if (appState.show_pcr_model && appState.show_vo2_demand && stepData.vo2_demand) {
+                // VO2 demand curve - dotted line with the same color as VO2
+                traces.push({
+                    x: timeSec,
+                    y: stepData.vo2_demand,
+                    name: "V̇O<sub>2</sub> Demand",
+                    type: 'scatter',
+                    mode: 'lines',
+                    yaxis: "y3",
+                    line: {color: '#2683C6', dash: 'dot', width: 1.5},
+                    showlegend: true
+                });
+                
+                // Area fill between VO2 demand and actual VO2
+                traces.push({
+                    x: [...timeSec, ...timeSec.slice().reverse()],
+                    y: [...stepData.vo2_demand, ...stepData.VO2.slice().reverse()],
+                    name: "O<sub>2</sub> Deficit Area",
+                    type: 'scatter',
+                    mode: 'none',
+                    yaxis: "y3",
+                    fill: 'toself',
+                    fillcolor: 'rgba(38, 131, 198, 0.2)',
+                    line: {width: 0},
+                    showlegend: true
+                });
+            }
+            
             // Lactate accumulation
             traces.push({
                 x: timeSec,
@@ -2778,7 +2824,7 @@
                     type: 'scatter',
                     mode: 'lines',
                     yaxis: "y3",
-                    line: {color: '#26A69A', dash: 'dot', width: 2, opacity: 0.8},
+                    line: {color: '#0097A7', dash: 'dot', width: 2, opacity: 0.8},
                     showlegend: true
                 });
                 
@@ -3363,6 +3409,13 @@
         elements.active_muscle_mass.addEventListener('input', function() {
             appState.active_muscle_mass = parseFloat(this.value);
             elements.active_muscle_massValue.textContent = appState.active_muscle_mass.toFixed(1);
+            if (appState.show_pcr_model) {
+                updateStepTestPlot();
+            }
+        });
+        
+        elements.show_vo2_demand.addEventListener('change', function() {
+            appState.show_vo2_demand = this.checked;
             if (appState.show_pcr_model) {
                 updateStepTestPlot();
             }
