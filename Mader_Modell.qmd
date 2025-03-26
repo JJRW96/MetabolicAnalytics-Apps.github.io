@@ -23,7 +23,7 @@ editor:
     wrap: 72
     
 nocite: |
-  @Hintzy-Cloutier2003, @Dunst2025, @Dunst2024; @Mader2003; @Hauser2014; @Ji2021; @Nolte2022; @Mader1984; @Mader1986; @Mader1996; @Oezyener2001
+  @Hintzy-Cloutier2003, @Dunst2025, @Dunst2024; @Mader2003; @Hauser2014; @Ji2021; @Nolte2022; @Mader1984; @Mader1986; @Mader1996; @Oezyener2001; @Jeukendrup2005; @Brooks2004; @Brooks2012; @Jeukendrup2019; @Stegemann1991; @Friedman1998; @Friedman1999
     
 ---
 
@@ -46,12 +46,12 @@ figure figcaption {
 **Please note: This website is currently under construction.** I'm gradually adding more detailed explanations of the applications and developing additional models. The content will continue to expand over time.
 
 <div style="position: relative; width: 100%; height: 800px;">
-  <iframe src="Mader_App_3.6.html" style="position: absolute; width: 100%; height: 100%; border: none;"></iframe>
+  <iframe src="Mader_App_4.2.html" style="position: absolute; width: 100%; height: 100%; border: none;"></iframe>
 </div>
 
 <br>
 
-[Link: Mader App](/Mader_App_3.6.html)
+[Link: Mader App](/Mader_App_4.2.html)
 
 <a href="Example_Race_Data.csv" download class="btn btn-primary">
   <i class="bi bi-download"></i> Download Example_Race_Data.csv

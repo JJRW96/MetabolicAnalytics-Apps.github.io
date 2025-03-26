@@ -23,7 +23,7 @@ editor:
     wrap: 72
     
 nocite: |
-  @Hintzy-Cloutier2003, @Dunst2025, @Dunst2024; @Mader2003; @Hauser2014; @Ji2021; @Nolte2022; @Mader1984; @Mader1986; @Mader1996; @Oezyener2001
+  @Hintzy-Cloutier2003, @Dunst2025, @Dunst2024; @Mader2003; @Hauser2014; @Ji2021; @Nolte2022; @Mader1984; @Mader1986; @Mader1996; @Oezyener2001; @Jeukendrup2005; @Brooks2004; @Brooks2012; @Jeukendrup2019; @Stegemann1991; @Friedman1998; @Friedman1999
     
 ---
 
@@ -517,3 +517,9 @@ As highlighted by @Dunst2025, neglecting movement velocity in metabolic modeling
 Recent critical analysis by @Nolte2022 cautions against over-reliance on the model's quantitative predictions without careful validation. Their findings suggest that while the model provides valuable qualitative insights into metabolic processes, individual variations in lactate removal capabilities and potential limitations in vLamax measurement protocols may affect the accuracy of threshold predictions. Users should therefore interpret the model outputs as one component of a comprehensive assessment rather than as definitive values.
 
 Nevertheless, the model's ability to simulate how different combinations of aerobic and anaerobic capacities can produce similar performance outcomes offers unique insights for training prescription. As @Ji2021 demonstrated, the model can help identify specific physiological limitations (aerobic capacity, glycolytic capacity, or movement economy) that may be limiting an athlete's performance, allowing for more targeted training interventions.
+
+### Berechnung der Substratverteilung 
+
+Beschrieben in @Heck2022 S.59 und S.76
+
+CHO und Fat Oxidation at Rest, at 45 & 65% of VO2max in @Friedman1998 und @Friedman1999 und @Brooks2012

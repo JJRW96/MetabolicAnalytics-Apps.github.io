@@ -558,15 +558,6 @@
             word-break: break-all;
         }
         
-        .swap-axes-container {
-            margin: 15px 0;
-            padding: 10px;
-            background-color: rgba(38, 131, 198, 0.05);
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
 
         .disclaimer-alert {
             background-color: #ffecb3;
@@ -2102,21 +2093,25 @@
             }
         }
         
-        // Format the output text with proper units
-        const formatOutput = (positionName, idx) => {
-            const powerValue = appState.weight_based ? vals.P[idx]/appState.body_mass : vals.P[idx];
-            const vo2ssValue = appState.weight_based ? vals.VO2ss[idx]/appState.body_mass : vals.VO2ss[idx];
-            const powerUnit = appState.weight_based ? "W·kg⁻¹" : "W";
-            const vo2ssUnit = appState.weight_based ? "ml·min⁻¹·kg⁻¹" : "ml·min⁻¹";
+            // Format the output text with proper units
+            const formatOutput = (positionName, idx) => {
+                const powerValue = appState.weight_based ? vals.P[idx]/appState.body_mass : vals.P[idx];
+                const vo2ssValue = appState.weight_based ? vals.VO2ss[idx]/appState.body_mass : vals.VO2ss[idx];
+                const powerUnit = appState.weight_based ? "W·kg<sup>-1</sup>" : "W";
+                const vo2ssUnit = appState.weight_based ? "ml·min<sup>-1</sup>·kg<sup>-1</sup>" : "ml·min<sup>-1</sup>";
+            
+            // Berechne prozentuale Auslastung der VO2max
+            const vo2maxValue = appState.weight_based ? vals.effective_values.VO2max/appState.body_mass : vals.effective_values.VO2max;
+            const vo2Percentage = (vo2ssValue / vo2maxValue) * 100;
             
             return `${positionName} (${powerValue.toFixed(1)} ${powerUnit}):\n` +
-                `  V̇O<sub>2</sub>ss: ${vo2ssValue.toFixed(2)} ${vo2ssUnit}\n` +
-                `  vLa<sub>SS</sub>: ${vals.vLass_min[idx].toFixed(4)} mmol·l⁻¹·min⁻¹\n` +
-                `  vLa<sub>ox</sub>: ${vals.vLaox_min[idx].toFixed(4)} mmol·l⁻¹·min⁻¹\n` +
-                `  PD: ${vals.PD_min[idx].toFixed(4)} mmol·l⁻¹·min⁻¹\n` +
-                `  La<sub>Accumulation</sub>: ${isNaN(vals.La_accum[idx]) ? '0.0000' : vals.La_accum[idx].toFixed(4)} mmol·l⁻¹\n`;
+                `  V̇O<sub>2,SS</sub>: ${vo2ssValue.toFixed(2)} ${vo2ssUnit} (${vo2Percentage.toFixed(1)}% of V̇O<sub>2,max</sub>)\n` +
+                `  vLa<sub>SS</sub>: ${vals.vLass_min[idx].toFixed(4)} mmol·l<sup>-1</sup>·min<sup>-1</sup>\n` +
+                `  vLa<sub>ox</sub>: ${vals.vLaox_min[idx].toFixed(4)} mmol·l<sup>-1</sup>·min<sup>-1</sup>\n` +
+                `  PD: ${vals.PD_min[idx].toFixed(4)} mmol·l<sup>-1</sup>·min<sup>-1</sup>\n` +
+                `  La<sub>Accumulation</sub>: ${isNaN(vals.La_accum[idx]) ? '0.0000' : vals.La_accum[idx].toFixed(4)} mmol·l<sup>-1</sup>\n`;
         };
-        
+                
         let outputText = "";
         
         // Add cadence info if enabled
