@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>About – ShinyApps</title>
+<title>mader_sprint_modell – ShinyApps</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -30,7 +30,6 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
-<link href="./Mader_Modell.html" rel="next">
 <script src="site_libs/quarto-html/quarto.js"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
@@ -70,6 +69,35 @@ ul.task-list li input[type="checkbox"] {
   }
 }</script>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 <link rel="stylesheet" href="styles.css">
 </head>
@@ -83,7 +111,7 @@ ul.task-list li input[type="checkbox"] {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./about.html">About</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -113,7 +141,7 @@ ul.task-list li input[type="checkbox"] {
     <ul class="list-unstyled mt-1">
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./about.html" class="sidebar-item-text sidebar-link active">
+  <a href="./about.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">About</span></a>
   </div>
 </li>
@@ -139,48 +167,192 @@ ul.task-list li input[type="checkbox"] {
 <!-- margin-sidebar -->
     
 <!-- main -->
-<main class="content" id="quarto-document-content">
-
-<header id="title-block-header" class="quarto-title-block default">
-<div class="quarto-title">
-<h1 class="title">About</h1>
-</div>
+<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"></header>
 
 
 
-<div class="quarto-title-meta">
 
-    
-  
-    
-  </div>
-  
+<section id="sprint-metabolism-model-mathematical-framework-and-implementation" class="level1" data-number="1">
+<h1 data-number="1"><span class="header-section-number">1</span> Sprint Metabolism Model: Mathematical Framework and Implementation</h1>
+<section id="introduction-to-the-sprint-metabolism-model" class="level2" data-number="1.1">
+<h2 data-number="1.1" class="anchored" data-anchor-id="introduction-to-the-sprint-metabolism-model"><span class="header-section-number">1.1</span> Introduction to the Sprint Metabolism Model</h2>
+<p>The Sprint Metabolism Model application implements a sophisticated simulation of the biochemical processes that occur during high-intensity exercise. Based on the foundational work of Alois Mader and Hans-Hermann Heck, this model focuses specifically on the rapid changes in metabolite concentrations that characterize sprint activities. Unlike endurance models that emphasize steady-state conditions, this sprint model captures the dynamic, non-steady-state nature of short-duration, high-intensity exercise where ATP-PCr dynamics and anaerobic glycolysis predominate.</p>
+<p>The model provides a mechanistic framework for understanding muscle fatigue during sprint activities by simulating how high-energy phosphate compounds (ATP, PCr) are depleted and how metabolic by-products (lactate) accumulate over time. These simulations offer insights into the metabolic factors that limit sprint performance and the physiological determinants of sprint capacity.</p>
+</section>
+<section id="fundamental-equilibrium-reactions" class="level2" data-number="1.2">
+<h2 data-number="1.2" class="anchored" data-anchor-id="fundamental-equilibrium-reactions"><span class="header-section-number">1.2</span> Fundamental Equilibrium Reactions</h2>
+<p>The foundation of the Sprint Metabolism Model lies in understanding the equilibrium reactions that govern energy transfer in muscle cells during high-intensity exercise. Two key reactions are central to this model:</p>
+<section id="creatine-kinase-equilibrium" class="level3" data-number="1.2.1">
+<h3 data-number="1.2.1" class="anchored" data-anchor-id="creatine-kinase-equilibrium"><span class="header-section-number">1.2.1</span> Creatine Kinase Equilibrium</h3>
+<p>The Creatine Kinase (CK) reaction plays a crucial role in ATP resynthesis during the initial seconds of sprint activity:</p>
+<p><span class="math display">\[\text{PCr} + \text{ADP} + \text{H}^+ \rightleftharpoons \text{ATP} + \text{Cr}\]</span></p>
+<p>This reaction is characterized by an equilibrium constant (<span class="math inline">\(M_1\)</span>) that determines the relationship between ATP, ADP, PCr, and inorganic phosphate (Pi):</p>
+<p><span id="eq-creatine-kinase"><span class="math display">\[\frac{[\text{ATP}]}{[\text{ADP}]} = M_1 \cdot \frac{[\text{PCr}]}{[\text{Pi}]} \tag{1}\]</span></span></p>
+<p>The equilibrium constant <span class="math inline">\(M_1\)</span> is pH-dependent and is related to the hydrogen ion concentration by:</p>
+<p><span id="eq-m1-ph"><span class="math display">\[M_1 = [H^+] \cdot 1.66 \times 10^9 \text{ mol}^{-1} \tag{2}\]</span></span></p>
+<p>At a pH of 7.0, <span class="math inline">\(M_1\)</span> is approximately 166. This pH-dependency of <span class="math inline">\(M_1\)</span> is physiologically significant as it shows how acidosis (decreased pH) can influence the balance between ATP and ADP.</p>
+</section>
+<section id="adenylate-kinase-equilibrium" class="level3" data-number="1.2.2">
+<h3 data-number="1.2.2" class="anchored" data-anchor-id="adenylate-kinase-equilibrium"><span class="header-section-number">1.2.2</span> Adenylate Kinase Equilibrium</h3>
+<p>The Adenylate Kinase (AK) reaction acts as a secondary buffer system for ATP levels:</p>
+<p><span class="math display">\[2\text{ADP} \rightleftharpoons \text{ATP} + \text{AMP}\]</span></p>
+<p>This reaction is quantified by the equilibrium constant <span class="math inline">\(M_3\)</span>:</p>
+<p><span id="eq-adenylate-kinase"><span class="math display">\[[\text{ATP}] \cdot [\text{AMP}] = M_3 \cdot [\text{ADP}]^2 \tag{3}\]</span></span></p>
+<p>The value of <span class="math inline">\(M_3\)</span> typically ranges from 0.85 to 1.05, with 1.05 used as the default in the model.</p>
+</section>
+</section>
+<section id="conservation-laws-and-metabolite-pools" class="level2" data-number="1.3">
+<h2 data-number="1.3" class="anchored" data-anchor-id="conservation-laws-and-metabolite-pools"><span class="header-section-number">1.3</span> Conservation Laws and Metabolite Pools</h2>
+<p>Two critical conservation laws govern the total pool sizes of key metabolites:</p>
+<section id="total-adenine-nucleotides-conservation" class="level3" data-number="1.3.1">
+<h3 data-number="1.3.1" class="anchored" data-anchor-id="total-adenine-nucleotides-conservation"><span class="header-section-number">1.3.1</span> Total Adenine Nucleotides Conservation</h3>
+<p>The sum of adenine nucleotides remains constant throughout exercise:</p>
+<p><span id="eq-SA-conservation"><span class="math display">\[S[A] = [\text{ATP}] + [\text{ADP}] + [\text{AMP}] \tag{4}\]</span></span></p>
+<p>Where <span class="math inline">\(S[A]\)</span> is typically around 7 mmol·kg<span class="math inline">\(^{-1}\)</span> muscle wet weight.</p>
+</section>
+<section id="total-phosphate-conservation" class="level3" data-number="1.3.2">
+<h3 data-number="1.3.2" class="anchored" data-anchor-id="total-phosphate-conservation"><span class="header-section-number">1.3.2</span> Total Phosphate Conservation</h3>
+<p>Similarly, the total phosphate pool remains constant:</p>
+<p><span id="eq-SC-conservation"><span class="math display">\[S[C] = [\text{PCr}] + [\text{Pi}] \tag{5}\]</span></span></p>
+<p>Where <span class="math inline">\(S[C]\)</span> is typically around 26-28 mmol·kg<span class="math inline">\(^{-1}\)</span> muscle wet weight.</p>
+</section>
+</section>
+<section id="calculating-equilibrium-concentrations" class="level2" data-number="1.4">
+<h2 data-number="1.4" class="anchored" data-anchor-id="calculating-equilibrium-concentrations"><span class="header-section-number">1.4</span> Calculating Equilibrium Concentrations</h2>
+<p>By combining the equilibrium and conservation equations, we can derive expressions for calculating the concentrations of all metabolites based on the current PCr and Pi levels.</p>
+<p>First, we define a variable <span class="math inline">\(Q\)</span> based on the Creatine Kinase equilibrium:</p>
+<p><span id="eq-Q-definition"><span class="math display">\[Q = M_1 \cdot \frac{[\text{PCr}]}{[\text{Pi}]} \tag{6}\]</span></span></p>
+<p>Using this variable, we can express ADP concentration as:</p>
+<p><span id="eq-ADP-calculation"><span class="math display">\[[\text{ADP}] = \frac{S[A] \cdot Q}{M_3 + Q + Q^2} \tag{7}\]</span></span></p>
+<p>Once ADP is calculated, ATP and AMP can be determined:</p>
+<p><span id="eq-ATP-calculation"><span class="math display">\[[\text{ATP}] = [\text{ADP}] \cdot Q \tag{8}\]</span></span></p>
+<p><span id="eq-AMP-calculation"><span class="math display">\[[\text{AMP}] = S[A] - [\text{ATP}] - [\text{ADP}] \tag{9}\]</span></span></p>
+<p>These equations allow us to calculate the complete metabolite profile at any point during exercise, based on the changing PCr concentration.</p>
+</section>
+<section id="atp-consumption-during-sprint-exercise" class="level2" data-number="1.5">
+<h2 data-number="1.5" class="anchored" data-anchor-id="atp-consumption-during-sprint-exercise"><span class="header-section-number">1.5</span> ATP Consumption During Sprint Exercise</h2>
+<p>In the Sprint Metabolism Model, ATP consumption can be specified in two ways:</p>
+<section id="direct-atp-consumption" class="level3" data-number="1.5.1">
+<h3 data-number="1.5.1" class="anchored" data-anchor-id="direct-atp-consumption"><span class="header-section-number">1.5.1</span> Direct ATP Consumption</h3>
+<p>This approach directly specifies the rate of ATP utilization during exercise:</p>
+<p><span id="eq-direct-ATP-consumption"><span class="math display">\[\text{ATP consumption rate} = \text{mmol} \cdot \text{kg}^{-1} \cdot \text{s}^{-1} \tag{10}\]</span></span></p>
+<p>Typical values range from 0.5 to 5 mmol·kg<span class="math inline">\(^{-1}\)</span>·s<span class="math inline">\(^{-1}\)</span>, with higher values representing more intense sprint efforts.</p>
+</section>
+<section id="power-based-atp-consumption" class="level3" data-number="1.5.2">
+<h3 data-number="1.5.2" class="anchored" data-anchor-id="power-based-atp-consumption"><span class="header-section-number">1.5.2</span> Power-Based ATP Consumption</h3>
+<p>This alternative approach calculates ATP consumption based on mechanical power output:</p>
+<p><span id="eq-power-ATP-consumption"><span class="math display">\[\text{ATP consumption rate} = \frac{\text{Power (W)}}{\text{Active Muscle Mass (kg)}} \cdot \text{WATT\_TO\_ATP\_FACTOR} \tag{11}\]</span></span></p>
+<p>Where WATT_TO_ATP_FACTOR is approximately 0.05 mmol·kg<span class="math inline">\(^{-1}\)</span>·s<span class="math inline">\(^{-1}\)</span> per W·kg<span class="math inline">\(^{-1}\)</span>.</p>
+<p>This conversion factor represents the biochemical efficiency of converting ATP energy to mechanical work, accounting for the efficiency losses in the contraction process.</p>
+</section>
+</section>
+<section id="glycolytic-activation-and-lactate-formation" class="level2" data-number="1.6">
+<h2 data-number="1.6" class="anchored" data-anchor-id="glycolytic-activation-and-lactate-formation"><span class="header-section-number">1.6</span> Glycolytic Activation and Lactate Formation</h2>
+<p>As PCr becomes depleted and ADP accumulates, glycolysis is activated to provide additional ATP. The activation of glycolysis follows a sigmoid relationship with ADP concentration:</p>
+<p><span id="eq-lactate-formation"><span class="math display">\[v_{\text{La\_rate}} = \frac{v_{\text{La\_max}} \cdot [\text{ADP}]^3}{KS2 + [\text{ADP}]^3} \tag{12}\]</span></span></p>
+<p>Where: - <span class="math inline">\(v_{\text{La\_max}}\)</span> is the maximum lactate formation rate (a key parameter representing glycolytic capacity) - <span class="math inline">\(KS2\)</span> is approximately <span class="math inline">\((0.15)^3 = 0.003375\)</span> mmol·kg<span class="math inline">\(^{-1}\)</span> - <span class="math inline">\([\text{ADP}]\)</span> is the ADP concentration in mmol·kg<span class="math inline">\(^{-1}\)</span></p>
+<p>This equation represents a Hill equation with a coefficient of 3, reflecting the steep activation of glycolysis as ADP increases. The cubic relationship with ADP is particularly important for capturing the rapid acceleration of glycolysis during sprint exercise.</p>
+</section>
+<section id="the-free-energy-of-atp-hydrolysis-and-fatigue" class="level2" data-number="1.7">
+<h2 data-number="1.7" class="anchored" data-anchor-id="the-free-energy-of-atp-hydrolysis-and-fatigue"><span class="header-section-number">1.7</span> The Free Energy of ATP Hydrolysis and Fatigue</h2>
+<p>The free energy available from ATP hydrolysis (<span class="math inline">\(\Delta G_{\text{ATP}}\)</span>) is a critical factor in determining when muscular fatigue occurs:</p>
+<p><span id="eq-free-energy"><span class="math display">\[\Delta G_{\text{ATP}} = \Delta G^0 + RT \ln\frac{[\text{ADP}][\text{Pi}]}{[\text{ATP}]} \tag{13}\]</span></span></p>
+<p>Where: - <span class="math inline">\(\Delta G^0\)</span> is approximately -30.5 kJ·mol<span class="math inline">\(^{-1}\)</span> - <span class="math inline">\(R\)</span> is the gas constant (8.314 J·mol<span class="math inline">\(^{-1}\)</span>·K<span class="math inline">\(^{-1}\)</span>) - <span class="math inline">\(T\)</span> is the absolute temperature (310 K or 37°C)</p>
+<p>As exercise progresses and ATP decreases while ADP and Pi increase, the absolute value of <span class="math inline">\(\Delta G_{\text{ATP}}\)</span> decreases, providing less energy for muscle contraction. When ATP falls below approximately 65% of its initial concentration, the free energy becomes insufficient for maintaining muscle force, leading to fatigue.</p>
+<p>This concept forms the basis for the termination threshold in the simulation, where exercise is considered to end when ATP drops below a user-specified percentage of the initial value (typically 65%).</p>
+</section>
+<section id="time-step-simulation-approach" class="level2" data-number="1.8">
+<h2 data-number="1.8" class="anchored" data-anchor-id="time-step-simulation-approach"><span class="header-section-number">1.8</span> Time-Step Simulation Approach</h2>
+<p>The model implements a time-step approach to simulate the dynamic changes in metabolite concentrations during sprint exercise:</p>
+<ol type="1">
+<li>Initialize PCr, Pi, and calculate initial ATP, ADP, and AMP concentrations</li>
+<li>For each time step (<span class="math inline">\(\Delta t\)</span>, typically 0.05 seconds):
+<ol type="a">
+<li>Calculate ATP consumption for the current time step</li>
+<li>Reduce PCr by the corresponding amount to resynthesize ATP</li>
+<li>Update Pi based on PCr consumption (conservation of total phosphate)</li>
+<li>Recalculate ATP, ADP, and AMP concentrations using equilibrium equations</li>
+<li>Calculate lactate formation rate and accumulate lactate</li>
+<li>Check if termination criteria are met (ATP below threshold)</li>
+</ol></li>
+</ol>
+<p>This approach allows the model to capture the rapidly changing metabolite concentrations during sprint exercise with high temporal resolution.</p>
+</section>
+<section id="mathematical-implementation-in-the-application" class="level2" data-number="1.9">
+<h2 data-number="1.9" class="anchored" data-anchor-id="mathematical-implementation-in-the-application"><span class="header-section-number">1.9</span> Mathematical Implementation in the Application</h2>
+<p>The application implements the simulation through a series of equations applied at each time step:</p>
+<section id="initial-state-calculation" class="level3" data-number="1.9.1">
+<h3 data-number="1.9.1" class="anchored" data-anchor-id="initial-state-calculation"><span class="header-section-number">1.9.1</span> Initial State Calculation</h3>
+<p>For the starting condition, the model calculates the initial equilibrium state:</p>
+<p><span id="eq-initial-Q"><span class="math display">\[Q_{t0} = M_1 \cdot \frac{[\text{PCr}_0]}{[\text{Pi}_0]} \tag{14}\]</span></span></p>
+<p><span id="eq-initial-ADP"><span class="math display">\[[\text{ADP}_0] = \frac{S[A] \cdot Q_{t0}}{M_3 + Q_{t0} + Q_{t0}^2} \tag{15}\]</span></span></p>
+<p><span id="eq-initial-ATP"><span class="math display">\[[\text{ATP}_0] = [\text{ADP}_0] \cdot Q_{t0} \tag{16}\]</span></span></p>
+<p><span id="eq-initial-AMP"><span class="math display">\[[\text{AMP}_0] = S[A] - [\text{ATP}_0] - [\text{ADP}_0] \tag{17}\]</span></span></p>
+</section>
+<section id="time-step-calculations" class="level3" data-number="1.9.2">
+<h3 data-number="1.9.2" class="anchored" data-anchor-id="time-step-calculations"><span class="header-section-number">1.9.2</span> Time-Step Calculations</h3>
+<p>For each time step, the model calculates:</p>
+<ol type="1">
+<li><p>ATP consumption based on the selected mode: <span id="eq-ATP-needed"><span class="math display">\[\text{ATP needed} = \text{ATP consumption rate} \cdot \Delta t \tag{18}\]</span></span></p></li>
+<li><p>PCr utilization to resynthesize ATP: <span id="eq-PCr-used"><span class="math display">\[\text{PCr used} = \min([\text{PCr}], \text{ATP needed}) \tag{19}\]</span></span> <span id="eq-PCr-update"><span class="math display">\[[\text{PCr}]_{t+\Delta t} = [\text{PCr}]_t - \text{PCr used} \tag{20}\]</span></span></p></li>
+<li><p>Update Pi based on PCr consumption: <span id="eq-Pi-update"><span class="math display">\[[\text{Pi}]_{t+\Delta t} = S[C] - [\text{PCr}]_{t+\Delta t} \tag{21}\]</span></span></p></li>
+<li><p>Recalculate Q, ADP, ATP, and AMP: <span id="eq-Q-update"><span class="math display">\[Q_{t+\Delta t} = M_1 \cdot \frac{[\text{PCr}]_{t+\Delta t}}{[\text{Pi}]_{t+\Delta t}} \tag{22}\]</span></span></p>
+<p><span id="eq-ADP-update"><span class="math display">\[[\text{ADP}]_{t+\Delta t} = \frac{S[A] \cdot Q_{t+\Delta t}}{M_3 + Q_{t+\Delta t} + Q_{t+\Delta t}^2} \tag{23}\]</span></span></p>
+<p><span id="eq-ATP-update"><span class="math display">\[[\text{ATP}]_{t+\Delta t} = [\text{ADP}]_{t+\Delta t} \cdot Q_{t+\Delta t} \tag{24}\]</span></span></p>
+<p><span id="eq-AMP-update"><span class="math display">\[[\text{AMP}]_{t+\Delta t} = S[A] - [\text{ATP}]_{t+\Delta t} - [\text{ADP}]_{t+\Delta t} \tag{25}\]</span></span></p></li>
+<li><p>Calculate lactate formation rate: <span id="eq-La-rate"><span class="math display">\[v_{\text{La\_rate}} = \frac{v_{\text{La\_max}} \cdot [\text{ADP}]_{t+\Delta t}^3}{KS2 + [\text{ADP}]_{t+\Delta t}^3} \tag{26}\]</span></span></p>
+<p><span id="eq-La-update"><span class="math display">\[[\text{La}]_{t+\Delta t} = [\text{La}]_t + v_{\text{La\_rate}} \cdot \Delta t \tag{27}\]</span></span></p></li>
+<li><p>Check termination criteria: <span id="eq-termination"><span class="math display">\[\text{If } [\text{ATP}]_{t+\Delta t} &lt; \frac{\text{threshold}}{100} \cdot [\text{ATP}_0] \text{ then terminate} \tag{28}\]</span></span></p></li>
+</ol>
+</section>
+</section>
+<section id="pcr-estimation-based-on-body-composition" class="level2" data-number="1.10">
+<h2 data-number="1.10" class="anchored" data-anchor-id="pcr-estimation-based-on-body-composition"><span class="header-section-number">1.10</span> PCr Estimation Based on Body Composition</h2>
+<p>The application includes a feature to estimate the initial PCr concentration based on body mass and active muscle percentage:</p>
+<p><span id="eq-PCr-estimation"><span class="math display">\[[\text{PCr}_0] = \text{basePCr} + \text{massAdjustment} + \text{muscleAdjustment} \tag{29}\]</span></span></p>
+<p>Where: - basePCr is the typical value for a healthy adult (≈ 23 mmol·kg<span class="math inline">\(^{-1}\)</span>) - massAdjustment = (bodyMass - 70) × 0.02 - muscleAdjustment = (activeMassPerc - 30) × 0.1</p>
+<p>This estimation reflects the observation that PCr concentration tends to be higher in more muscular individuals and lower in less active individuals. The function constrains the estimated value to a physiologically plausible range of 15-30 mmol·kg<span class="math inline">\(^{-1}\)</span>.</p>
+</section>
+<section id="physiological-interpretation-of-results" class="level2" data-number="1.11">
+<h2 data-number="1.11" class="anchored" data-anchor-id="physiological-interpretation-of-results"><span class="header-section-number">1.11</span> Physiological Interpretation of Results</h2>
+<p>The simulation results can be interpreted in terms of the different energy systems that contribute to sprint performance:</p>
+<ol type="1">
+<li><p><strong>ATP-PCr System (0-10 seconds)</strong>: The initial phase shows rapid PCr depletion with relatively stable ATP concentrations, demonstrating the critical buffer role of PCr.</p></li>
+<li><p><strong>Glycolytic Contribution (5-20+ seconds)</strong>: As PCr depletes, ADP increases, activating glycolysis as indicated by the rising lactate formation rate. This represents the transition from PCr to glycolytic dominance.</p></li>
+<li><p><strong>Fatigue Onset (Termination Point)</strong>: The point where ATP falls below the critical threshold (typically 65% of initial value) represents the theoretical time at which muscle contraction would become impaired in an actual sprint.</p></li>
+</ol>
+<p>The model also illustrates key physiological principles:</p>
+<ol type="1">
+<li><p><strong>Buffer Effect of PCr</strong>: The initial stability of ATP despite high energy demands demonstrates PCr’s crucial role in buffering ATP levels.</p></li>
+<li><p><strong>Delayed Glycolytic Activation</strong>: The lag in lactate formation illustrates the delayed activation of glycolysis, which requires ADP accumulation.</p></li>
+<li><p><strong>Energy System Transition</strong>: The crossover between PCr depletion and glycolytic activation represents the transition between immediate (ATP-PCr) and short-term (glycolytic) energy systems.</p></li>
+<li><p><strong>Metabolic Limitation to Sprint Performance</strong>: The termination time provides insight into the metabolic factors that limit sprint duration and intensity.</p></li>
+</ol>
+</section>
+<section id="applications-and-limitations" class="level2" data-number="1.12">
+<h2 data-number="1.12" class="anchored" data-anchor-id="applications-and-limitations"><span class="header-section-number">1.12</span> Applications and Limitations</h2>
+<section id="applications" class="level3" data-number="1.12.1">
+<h3 data-number="1.12.1" class="anchored" data-anchor-id="applications"><span class="header-section-number">1.12.1</span> Applications</h3>
+<ol type="1">
+<li><p><strong>Training Prescription</strong>: The model can help determine the appropriate work-to-rest ratios for sprint interval training by showing how long it takes to substantially deplete PCr and how long recovery periods should be to allow adequate PCr resynthesis.</p></li>
+<li><p><strong>Individual Differences</strong>: By adjusting model parameters (PCr0, vLa_max, active muscle mass), coaches and researchers can explore how individual physiological differences affect sprint performance and fatigue resistance.</p></li>
+<li><p><strong>Equipment Selection</strong>: Power-based analysis can inform equipment choices (e.g., gear ratios) by showing how different power demands affect metabolic responses and fatigue onset.</p></li>
+</ol>
+</section>
+<section id="limitations" class="level3" data-number="1.12.2">
+<h3 data-number="1.12.2" class="anchored" data-anchor-id="limitations"><span class="header-section-number">1.12.2</span> Limitations</h3>
+<ol type="1">
+<li><p><strong>Simplification of Complex Systems</strong>: The model simplifies many aspects of muscle metabolism, including the spatial distribution of metabolites, fiber type heterogeneity, and complex enzyme kinetics.</p></li>
+<li><p><strong>Fixed Parameter Assumptions</strong>: Some parameters (e.g., pH) are assumed constant although they change during intense exercise.</p></li>
+<li><p><strong>Mechanical Factors Not Included</strong>: The model focuses on metabolic factors but does not account for mechanical factors like muscle elasticity, neuromuscular fatigue, or coordination.</p></li>
+<li><p><strong>Validation Challenges</strong>: Direct validation of the model is challenging because invasive techniques are required to measure intramuscular metabolite concentrations during sprint exercise.</p></li>
+</ol>
+<p>Despite these limitations, the Sprint Metabolism Model provides valuable insights into the dynamic metabolic processes that underlie sprint performance and fatigue, serving as a powerful tool for research, education, and applied sport science.</p>
 
 
-</header>
-
-
-<div class="cell">
-<style type="text/css">
-p {
-  text-align: justify
-}
-caption, .figure-caption {
-  text-align: left;
-}
-figure.quarto-float-tbl figcaption {
-  text-align: left !important;
-}
-figure figcaption {
-  text-align: justify;
-}
-</style>
-</div>
-<p>This website provides interactive sports science tools and applications for exercise physiology analysis. The collection includes models for metabolic calculations, performance predictions. Available applications help quantify physiological parameters and analyze the relationships between exercise intensity, metabolism, and athletic performance through evidence-based calculations and visual representations.</p>
-<p><strong>Please note: This website is currently under construction.</strong> I’m gradually adding more detailed explanations of the applications and developing additional models. The content will continue to expand over time.</p>
-<p>For additional tools, take a look at the website I created for my <a href="https://jjrw96.github.io/Wirkungsgrad-Rad.github.io/about.html">master’s thesis</a>. This site offers similar applications with comprehensive explanations, but comes in German only and centers on examining efficiency factors in cycling performance.</p>
-
-
+</section>
+</section>
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
@@ -683,15 +855,6 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   }
 });
 </script>
-<nav class="page-navigation">
-  <div class="nav-page nav-page-previous">
-  </div>
-  <div class="nav-page nav-page-next">
-      <a href="./Mader_Modell.html" class="pagination-link" aria-label="Mader's metabolic model">
-        <span class="nav-page-text">Mader’s metabolic model</span> <i class="bi bi-arrow-right-short"></i>
-      </a>
-  </div>
-</nav>
 </div> <!-- /content -->
 <footer class="footer">
   <div class="nav-footer">
