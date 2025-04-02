@@ -1,32 +1,3 @@
----
-title: "Cadence Test"
-
-format:
-  html:
-    resources: 
-      - shinylive-sw.js
-
-filters:
-  - shinylive
-
-execute:
-  message: false
-  engine: knitr
-  echo: false
-  warning: false
-  error: false
-  
-bibliography: references_all.bib
-lang: de
-number-sections: false
-editor: 
-  markdown: 
-    wrap: 72
----
-
-```{r}
-#| results: "hide"
-
 # Required packages
 library(readxl)
 library(dplyr)
@@ -282,54 +253,8 @@ calculate_ss_vo2 <- function(data, start_time, end_time, rpm_target) {
   return(list(ss_vo2 = max_vo2, avg_rpm = avg_rpm))
 }
 
-# New function to calculate lowest VO2 for stage 0 (resting phase)
-calculate_min_ss_vo2 <- function(data, start_time, end_time) {
-  # Filter data for the specific stage
-  stage_data <- data %>% 
-    filter(t_s >= start_time & t_s <= end_time)
-  
-  # Make sure we have data
-  if(nrow(stage_data) == 0) {
-    cat(sprintf("No data found for stage 0 resting phase %d-%d\n", start_time, end_time))
-    return(list(ss_vo2 = NA, avg_rpm = 0))
-  }
-  
-  # Debug: Print how many data points we have
-  cat(sprintf("Stage 0 data points: %d (from %d to %d)\n", nrow(stage_data), start_time, end_time))
-  
-  # Check if we have enough data for 90-second windows
-  if(nrow(stage_data) < 90) {
-    cat(sprintf("WARNING: Not enough data points for 90s window in resting phase %d-%d, using average of all points\n", start_time, end_time))
-    # If not enough points, just use the mean of all available data
-    mean_vo2 <- mean(stage_data$VO2_t, na.rm = TRUE)
-    cat(sprintf("Stage 0 rpm: Mean VO2 = %.1f (insufficient data for window calculation)\n", mean_vo2))
-    return(list(ss_vo2 = mean_vo2, avg_rpm = 0))
-  }
-  
-  # Calculate rolling 90s averages for VO2 for the entire stage
-  rolling_vo2 <- rollmean(stage_data$VO2_t, k = 90, align = "left", fill = NA)
-  
-  # Debug: Check if we have valid averages
-  cat(sprintf("Valid rolling averages: %d, NA values: %d\n", 
-              sum(!is.na(rolling_vo2)), sum(is.na(rolling_vo2))))
-  
-  # Make sure we have at least one valid average
-  if(all(is.na(rolling_vo2))) {
-    cat("WARNING: No valid 90s windows found, using average of all data points\n")
-    mean_vo2 <- mean(stage_data$VO2_t, na.rm = TRUE)
-    return(list(ss_vo2 = mean_vo2, avg_rpm = 0))
-  }
-  
-  # Find the lowest average VO2 (this is different from the standard function)
-  min_vo2 <- min(rolling_vo2, na.rm = TRUE)
-  
-  cat(sprintf("Stage 0 rpm: Lowest SS VO2 = %.1f\n", min_vo2))
-  
-  return(list(ss_vo2 = min_vo2, avg_rpm = 0))
-}
-
 # Read Excel file (sheet "Spiro")
-file_path <- "Spiro_Will.xlsx"
+file_path <- "C:/Users/johan/OneDrive/Desktop/SpoWi/WS 22,23/Masterarbeit - Wirkungsgrad/Formel, Berechnungen/Drehzahltest_2.0/Spiro_Will.xlsx"
 df <- read_excel(file_path, sheet = "Spiro")
 
 # Keep only the required columns
@@ -411,17 +336,13 @@ df_rpm_base <- df %>%
   filter(RPM > 0) %>%
   select(t_s_rpm, RPM)
 
-# ---- ANGEPASST: Define stage times for test 1 (0 Watt) with stages shifted right ----
+# ---- CORRECTED: Define stage times for test 1 (0 Watt) with stages shifted right ----
 start_time1 <- 1487-360
 end_time1 <- 3300
 rpm_values1 <- c(0, 20, 40, 60, 80, 100, 120, 140, 160)
 
 # Shift time_points1 to align with stages correctly (180s offset from original)
 time_points1 <- seq(start_time1 + 180, 2940 + 180, 180)  # Starting points shifted right
-first_vertical_line1 <- time_points1[2]  # Save the position of the first vertical line (now skipping first one)
-
-# Remove first AND last vertical line for Plot 1
-vertical_lines1 <- time_points1[2:(length(time_points1)-1)]  # Skip both first and last vertical lines
 
 # Calculate SS values for each stage of test 1
 df_DT1_SS <- data.frame(
@@ -430,28 +351,7 @@ df_DT1_SS <- data.frame(
   avg_rpm = numeric(length(rpm_values1))
 )
 
-# Calculate SS for Stage 0 rpm in Plot 1 (special case - use lowest VO2 in the range)
-# Debug: Check the time range for plot 1 stage 0
-cat(sprintf("\nPlot 1 - Stage 0 time range: %.1f to %.1f\n", start_time1, first_vertical_line1))
-
-# Fallback value for Plot 1 Stage 0 rpm in case calculation fails
-fallback_stage0_vo2_plot1 <- mean(df$VO2_t[df$t_s >= start_time1 & df$t_s <= first_vertical_line1], na.rm = TRUE)
-cat(sprintf("Fallback VO2 value for Plot 1 Stage 0: %.1f\n", fallback_stage0_vo2_plot1))
-
-# Try to calculate min SS VO2 for Plot 1 Stage 0
-ss_result0_plot1 <- calculate_min_ss_vo2(df, start_time1, first_vertical_line1)
-
-# If calculation failed, use fallback value
-if(is.na(ss_result0_plot1$ss_vo2)) {
-  cat("Using fallback value for Plot 1 Stage 0\n")
-  df_DT1_SS$ss_vo2[1] <- fallback_stage0_vo2_plot1
-} else {
-  df_DT1_SS$ss_vo2[1] <- ss_result0_plot1$ss_vo2
-}
-df_DT1_SS$avg_rpm[1] <- 0
-
-# Calculate SS for other stages in Plot 1
-for(i in 2:length(rpm_values1)) {
+for(i in 1:length(rpm_values1)) {
   if(i < length(time_points1)) {
     # Define start and end time for this stage
     stage_start <- time_points1[i]
@@ -467,17 +367,13 @@ for(i in 2:length(rpm_values1)) {
   }
 }
 
-# ---- ANGEPASST: Define stage times for test 2 (200 Watt) with stages shifted right ----
+# ---- CORRECTED: Define stage times for test 2 (200 Watt) with stages shifted right ----
 start_time2 <- 4207-360
 end_time2 <- 6000
 rpm_values2 <- c(0, 20, 40, 60, 80, 100, 120, 140, 160)
 
 # Shift time_points2 to align with stages correctly (180s offset from original)
 time_points2 <- seq(start_time2 + 180, 5700 + 180, 180)  # Starting points shifted right
-first_vertical_line2 <- time_points2[2]  # Save the position of the first vertical line
-
-# Remove the first and last vertical line for Plot 2
-vertical_lines2 <- time_points2[2:(length(time_points2)-1)]  # Skip first and last vertical lines
 
 # Calculate SS values for each stage of test 2
 df_DT2_SS <- data.frame(
@@ -486,28 +382,7 @@ df_DT2_SS <- data.frame(
   avg_rpm = numeric(length(rpm_values2))
 )
 
-# Calculate SS for Stage 0 rpm in Plot 2 (special case - use lowest VO2 in the range)
-# Debug: Check the time range for plot 2 stage 0
-cat(sprintf("\nPlot 2 - Stage 0 time range: %.1f to %.1f\n", start_time2, first_vertical_line2))
-
-# Fallback value for Plot 2 Stage 0 rpm in case calculation fails
-fallback_stage0_vo2_plot2 <- mean(df$VO2_t[df$t_s >= start_time2 & df$t_s <= first_vertical_line2], na.rm = TRUE)
-cat(sprintf("Fallback VO2 value for Plot 2 Stage 0: %.1f\n", fallback_stage0_vo2_plot2))
-
-# Try to calculate min SS VO2 for Plot 2 Stage 0
-ss_result0_plot2 <- calculate_min_ss_vo2(df, start_time2, first_vertical_line2)
-
-# If calculation failed, use fallback value
-if(is.na(ss_result0_plot2$ss_vo2)) {
-  cat("Using fallback value for Plot 2 Stage 0\n")
-  df_DT2_SS$ss_vo2[1] <- fallback_stage0_vo2_plot2
-} else {
-  df_DT2_SS$ss_vo2[1] <- ss_result0_plot2$ss_vo2
-}
-df_DT2_SS$avg_rpm[1] <- 0
-
-# Calculate SS for other stages in Plot 2, including stages 20-140 rpm
-for(i in 2:(length(rpm_values2)-1)) {
+for(i in 1:length(rpm_values2)) {
   if(i < length(time_points2)) {
     # Define start and end time for this stage
     stage_start <- time_points2[i]
@@ -523,83 +398,6 @@ for(i in 2:(length(rpm_values2)-1)) {
   }
 }
 
-# Spezielle Berechnung für Stage 160 rpm in Plot 2
-# Definiere den Zeitbereich für Stage 160 rpm in Plot 2
-last_stage_index2 <- length(rpm_values2)
-last_stage_start <- time_points2[last_stage_index2-1]  # Startzeit der letzten Stage
-last_stage_end <- end_time2                            # Ende der Daten verwenden
-last_stage_rpm <- rpm_values2[last_stage_index2]
-
-# Debug Ausgabe
-cat(sprintf("\nPlot 2 - Stage 160 rpm time range: %.1f to %.1f\n", 
-            last_stage_start, last_stage_end))
-
-# Filter für den spezifischen Zeitraum der Stage 160 rpm
-stage_160_data <- df %>% 
-  filter(t_s >= last_stage_start & t_s <= last_stage_end)
-
-# Überprüfen, ob wir ausreichend Daten haben
-if(nrow(stage_160_data) < 90) {
-  cat("WARNING: Not enough data points for Stage 160 rpm in Plot 2\n")
-  # Fallback: Nutze den Durchschnitt, wenn nicht genug Daten vorhanden sind
-  ss_vo2_value <- mean(stage_160_data$VO2_t, na.rm = TRUE)
-  avg_rpm_value <- mean(df_rpm_base$RPM[df_rpm_base$t_s_rpm >= last_stage_start & 
-                                          df_rpm_base$t_s_rpm <= last_stage_end], na.rm = TRUE)
-} else {
-  # Berechne rollenden 90s-Durchschnitt für VO2
-  rolling_vo2 <- rollmean(stage_160_data$VO2_t, k = 90, align = "left", fill = NA)
-  
-  # Finde den höchsten Durchschnittswert
-  max_vo2 <- max(rolling_vo2, na.rm = TRUE)
-  
-  # Finde den Index des Fensters mit dem höchsten VO2-Durchschnitt
-  best_window_start <- which.max(rolling_vo2)
-  best_window_indices <- best_window_start:(best_window_start + 89)
-  
-  # Zeitpunkte dieses besten Fensters ermitteln
-  best_window_times <- stage_160_data$t_s[best_window_indices]
-  
-  # Debug Ausgabe
-  cat(sprintf("Best 90s window for Stage 160 rpm in Plot 2: From t=%.1f to t=%.1f\n", 
-              min(best_window_times), max(best_window_times)))
-  
-  # VO2 SS-Wert ist der höchste 90s-Durchschnitt
-  ss_vo2_value <- max_vo2
-  
-  # Für RPM: Finde die zugehörigen RPM-Werte für denselben Zeitraum
-  rpm_data_for_best_window <- data.frame()
-  for(t in best_window_times) {
-    # Finde den nächstgelegenen Zeitpunkt in den RPM-Daten
-    closest_row <- df_rpm_base %>% 
-      mutate(time_diff = abs(t_s_rpm - t)) %>%
-      arrange(time_diff) %>%
-      slice(1)
-    
-    if(nrow(closest_row) > 0) {
-      rpm_data_for_best_window <- rbind(rpm_data_for_best_window, closest_row)
-    }
-  }
-  
-  # Berechne den RPM-Durchschnitt für diesen Zeitraum
-  if(nrow(rpm_data_for_best_window) > 0) {
-    avg_rpm_value <- mean(rpm_data_for_best_window$RPM, na.rm = TRUE)
-    cat(sprintf("Avg RPM for best VO2 window in Stage 160 rpm: %.1f (from %d data points)\n", 
-                avg_rpm_value, nrow(rpm_data_for_best_window)))
-  } else {
-    # Fallback: Nutze den Target RPM, wenn keine Daten gefunden wurden
-    avg_rpm_value <- last_stage_rpm
-    cat("WARNING: No RPM data found for best VO2 window. Using target RPM.\n")
-  }
-}
-
-# Speichere die berechneten Werte
-df_DT2_SS$ss_vo2[last_stage_index2] <- ss_vo2_value
-df_DT2_SS$avg_rpm[last_stage_index2] <- avg_rpm_value
-
-cat(sprintf("Test 2 - Stage %d rpm: SS VO2 = %.1f, Avg RPM = %.1f\n", 
-            last_stage_rpm, ss_vo2_value, avg_rpm_value))
-
-# Ensure RPM values are correct for stage 0
 df_DT1_SS$avg_rpm[df_DT1_SS$rpm_target == 0] <- 0
 df_DT2_SS$avg_rpm[df_DT2_SS$rpm_target == 0] <- 0
 
@@ -650,51 +448,17 @@ plot1 <- plot_ly() %>%
       bgcolor = "rgba(255, 255, 255, 0.3)"
     ))
 
-# Add vertical lines for Plot 1 - now WITHOUT the first AND last one
+# Add horizontal lines in 180s steps for Plot 1, excluding the last one
+vertical_lines1 <- seq(start_time1 + 180, 2940 + 180 - 180, 180)  # Remove last line
 for(t in vertical_lines1) {
   plot1 <- plot1 %>% add_segments(x = t, xend = t, y = 0, yend = 7000, 
                                   line = list(color = 'darkgrey', dash = 'dash', width = 1),
                                   showlegend = FALSE)
 }
 
-# Add cadence stage annotations and SS values for Plot 1
-# Special handling for "Stage: 0 rpm" - place in middle between start and first vertical line
-mid_point0_plot1 <- (start_time1 + first_vertical_line1) / 2
-
-# Add Stage 0 rpm annotation in the middle between start and first vertical line
-plot1 <- plot1 %>% add_annotations(
-  x = mid_point0_plot1,
-  y = 6750,
-  text = "Stage: 0 rpm",
-  showarrow = FALSE,
-  font = list(size = 10)
-)
-
-# Add SS VO2 value for Stage 0 in Plot 1
-vo2_text_plot1_stage0 <- sprintf("V̇O<sub>2,SS</sub>: %.0f ml · min<sup>-1</sup>", df_DT1_SS$ss_vo2[1])
-
-plot1 <- plot1 %>% add_annotations(
-  x = mid_point0_plot1,
-  y = 6500,
-  text = vo2_text_plot1_stage0,
-  showarrow = FALSE,
-  font = list(size = 9)
-)
-
-# Add Cadence avg value
-rpm_text_plot1_stage0 <- sprintf("Cadence<sub>avg</sub>: %.0f rpm", df_DT1_SS$avg_rpm[1])
-
-plot1 <- plot1 %>% add_annotations(
-  x = mid_point0_plot1,
-  y = 6350,
-  text = rpm_text_plot1_stage0,
-  showarrow = FALSE,
-  font = list(size = 9)
-)
-
-# Add annotations for other stages as before
-for(i in 2:(length(rpm_values1)-1)) {  # Exclude the last stage as it's incomplete
-  if(i < length(time_points1) - 1) {  
+# Add cadence stage annotations and SS values for Plot 1 (shifted stages)
+for(i in 1:length(rpm_values1)) {
+  if(i < length(time_points1) - 1) {  # Exclude the last stage as it's incomplete
     mid_point1 <- (time_points1[i] + time_points1[i+1]) / 2
     
     # Add stage annotation
@@ -730,41 +494,6 @@ for(i in 2:(length(rpm_values1)-1)) {  # Exclude the last stage as it's incomple
       )
     }
   }
-}
-
-# Add annotation for the last stage in Plot 1 - CORRECTED POSITION
-last_stage_index1 <- length(rpm_values1)
-# Calculate mid-point with adjustment to move 180s left from previous position
-last_mid_point1 <- time_points1[last_stage_index1] + 90  # Position at middle of stage
-
-plot1 <- plot1 %>% add_annotations(
-  x = last_mid_point1,
-  y = 6750,
-  text = paste("Stage:", rpm_values1[last_stage_index1], "rpm"),
-  showarrow = FALSE,
-  font = list(size = 10)
-)
-
-if(!is.na(df_DT1_SS$ss_vo2[last_stage_index1])) {
-  vo2_text <- sprintf("V̇O<sub>2,SS</sub>: %.0f ml · min<sup>-1</sup>", df_DT1_SS$ss_vo2[last_stage_index1])
-  
-  plot1 <- plot1 %>% add_annotations(
-    x = last_mid_point1,
-    y = 6500,
-    text = vo2_text,
-    showarrow = FALSE,
-    font = list(size = 9)
-  )
-  
-  rpm_text <- sprintf("Cadence<sub>avg</sub>: %.0f rpm", df_DT1_SS$avg_rpm[last_stage_index1])
-  
-  plot1 <- plot1 %>% add_annotations(
-    x = last_mid_point1,
-    y = 6350,
-    text = rpm_text,
-    showarrow = FALSE,
-    font = list(size = 9)
-  )
 }
 
 # Filter dataset for the second diagram 
@@ -808,51 +537,17 @@ plot2 <- plot_ly() %>%
       bgcolor = "rgba(255, 255, 255, 0.3)"
     ))
 
-# Add vertical lines for Plot 2 - WITHOUT first and last vertical lines
+# Add horizontal lines in 180s steps for Plot 2, but shifted right to match stages
+vertical_lines2 <- seq(start_time2 + 180, 5700 + 180, 180)  # Add offset
 for(t in vertical_lines2) {
   plot2 <- plot2 %>% add_segments(x = t, xend = t, y = 0, yend = 7000, 
                                   line = list(color = 'darkgrey', dash = 'dash', width = 1),
                                   showlegend = FALSE)
 }
 
-# Add cadence stage annotations and SS values for Plot 2
-# Special handling for "Stage: 0 rpm" - place in middle between start and first vertical line
-mid_point0_plot2 <- (start_time2 + first_vertical_line2) / 2
-
-# Add Stage 0 rpm annotation in the middle between start and first vertical line
-plot2 <- plot2 %>% add_annotations(
-  x = mid_point0_plot2,
-  y = 6750,
-  text = "Stage: 0 rpm",
-  showarrow = FALSE,
-  font = list(size = 10)
-)
-
-# Add SS VO2 value for Stage 0 in Plot 2
-vo2_text_plot2_stage0 <- sprintf("V̇O<sub>2,SS</sub>: %.0f ml · min<sup>-1</sup>", df_DT2_SS$ss_vo2[1])
-
-plot2 <- plot2 %>% add_annotations(
-  x = mid_point0_plot2,
-  y = 6500,
-  text = vo2_text_plot2_stage0,
-  showarrow = FALSE,
-  font = list(size = 9)
-)
-
-# Add Cadence avg value
-rpm_text_plot2_stage0 <- sprintf("Cadence<sub>avg</sub>: %.0f rpm", df_DT2_SS$avg_rpm[1])
-
-plot2 <- plot2 %>% add_annotations(
-  x = mid_point0_plot2,
-  y = 6350,
-  text = rpm_text_plot2_stage0,
-  showarrow = FALSE,
-  font = list(size = 9)
-)
-
-# Add annotations for other stages (excluding the last one in loop, handling separately)
-for(i in 2:(length(rpm_values2)-1)) {
-  if(i < length(time_points2) - 1) {
+# Add cadence stage annotations and SS values for Plot 2 with corrected positions
+for(i in 1:length(rpm_values2)) {
+  if(i < length(time_points2) - 1) {  # Exclude the last stage as it may be incomplete
     mid_point2 <- (time_points2[i] + time_points2[i+1]) / 2
     
     # Add stage annotation
@@ -890,59 +585,25 @@ for(i in 2:(length(rpm_values2)-1)) {
   }
 }
 
-# Add annotation for the last stage in Plot 2 (Stage 160 rpm) - CORRECTED POSITION
-last_stage_index2 <- length(rpm_values2)
-# Calculate mid-point with adjustment to move 180s left from previous position
-last_mid_point2 <- time_points2[last_stage_index2] + 90  # Position at middle of stage
-
-plot2 <- plot2 %>% add_annotations(
-  x = last_mid_point2,
-  y = 6750,
-  text = paste("Stage:", rpm_values2[last_stage_index2], "rpm"),
-  showarrow = FALSE,
-  font = list(size = 10)
-)
-
-if(!is.na(df_DT2_SS$ss_vo2[last_stage_index2])) {
-  vo2_text <- sprintf("V̇O<sub>2,SS</sub>: %.0f ml · min<sup>-1</sup>", df_DT2_SS$ss_vo2[last_stage_index2])
-  
-  plot2 <- plot2 %>% add_annotations(
-    x = last_mid_point2,
-    y = 6500,
-    text = vo2_text,
-    showarrow = FALSE,
-    font = list(size = 9)
-  )
-  
-  rpm_text <- sprintf("Cadence<sub>avg</sub>: %.0f rpm", df_DT2_SS$avg_rpm[last_stage_index2])
-  
-  plot2 <- plot2 %>% add_annotations(
-    x = last_mid_point2,
-    y = 6350,
-    text = rpm_text,
-    showarrow = FALSE,
-    font = list(size = 9)
-  )
-}
-
 # Display both plots
 print(plot1)
 print(plot2)
+
 ##############################
 
 # Entfernen der 2. Zeile aus df_DT2_SS
-df_DT2_SS_filtered <- df_DT2_SS
+df_DT2_SS_filtered <- df_DT2_SS[-2, ]
 
 # Erstellen der Plotly-Abbildung mit nur Datenpunkten
 plot <- plot_ly() %>%
   # Datenpunkte für df_DT1_SS
   add_trace(data = df_DT1_SS, x = ~avg_rpm, y = ~ss_vo2, type = 'scatter', mode = 'markers',
-            name = "0 Watt", 
+            name = "Datensatz 1", 
             marker = list(color = '#1CADE4', size = 10)) %>%
   
   # Datenpunkte für df_DT2_SS (ohne die 2. Zeile)
   add_trace(data = df_DT2_SS_filtered, x = ~avg_rpm, y = ~ss_vo2, type = 'scatter', mode = 'markers',
-            name = "200 Watt", 
+            name = "Datensatz 2", 
             marker = list(color = '#EF5350', size = 10)) %>%
   
   layout(
@@ -956,7 +617,7 @@ plot <- plot_ly() %>%
                  tickformat = '.0f'),
     showlegend = TRUE,
     legend = list(
-      x = 0.02,
+      x = 0.90,
       y = 1.00,
       xanchor = "left",
       yanchor = "top",
@@ -966,8 +627,6 @@ plot <- plot_ly() %>%
 
 # Plot anzeigen
 plot
-
-
 
 #####################################
 
@@ -1040,17 +699,5 @@ plot_diff <- plot_ly() %>%
     )
   )
 
-
-```
-
-```{r}
-plot1
-```
-
-```{r}
-plot2
-```
-
-```{r}
-plot
-```
+# Plot anzeigen
+plot_diff
