@@ -26,8 +26,9 @@ website:
     contents:
        - about.qmd
        - Mader_Modell.qmd
+       - Cadence_Test
        - Critical_Power.qmd
-      
+       
 lang: en
 number-sections: true
 bibliography: references.bib

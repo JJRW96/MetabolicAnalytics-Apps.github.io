@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PCr, ATP und Laktat-Modellierung im Sprint</title>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --accent-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+            --info-color: #3498db;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--dark-color);
+            background-color: var(--light-color);
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        header {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        h1 {
+            margin-bottom: 10px;
+            font-size: 2.2rem;
+        }
+
+        h2 {
+            color: var(--secondary-color);
+            margin: 20px 0 10px;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 5px;
+        }
+
+        .content {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 20px;
+        }
+
+        .chart-container {
+            flex: 1 1 100%;
+            min-height: 500px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            background-color: white;
+        }
+
+        .controls {
+            flex: 1 1 100%;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .slider-container {
+            margin-bottom: 15px;
+        }
+
+        .slider-container label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .slider-row {
+            display: flex;
+            align-items: center;
+        }
+
+        .slider-row input[type="range"] {
+            flex: 1;
+            height: 10px;
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            background: #d3d3d3;
+            outline: none;
+            border-radius: 5px;
+        }
+
+        .slider-row input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--primary-color);
+            cursor: pointer;
+            border-radius: 50%;
+        }
+
+        .slider-row input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: var(--primary-color);
+            cursor: pointer;
+            border-radius: 50%;
+        }
+
+        .slider-value {
+            min-width: 80px;
+            text-align: right;
+            margin-left: 10px;
+            font-family: monospace;
+            font-size: 1.1rem;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 0 15px 10px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            margin-right: 5px;
+            border-radius: 3px;
+        }
+
+        .info-panel {
+            flex: 1 1 100%;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+
+        .info-panel h3 {
+            color: var(--secondary-color);
+            margin-bottom: 10px;
+        }
+
+        .info-panel p {
+            margin-bottom: 10px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                flex-direction: column;
+            }
+            
+            .chart-container {
+                min-height: 350px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>PCr, ATP und Laktat-Modellierung im Sprint</h1>
+            <p>Simulation des Verhaltens von PCr, ATP, Laktatbildungsrate und Muskellaktatkonzentration während eines Sprints</p>
+        </header>
+
+        <div class="content">
+            <div class="chart-container">
+                <canvas id="chart"></canvas>
+            </div>
+
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #4169E1;"></div>
+                    <span>PCr</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #000000;"></div>
+                    <span>ATP</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #DC143C;"></div>
+                    <span>ADP</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #32CD32;"></div>
+                    <span>AMP</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #FF8C00;"></div>
+                    <span>Laktatbildungsrate</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #9932CC;"></div>
+                    <span>Muskellaktatkonzentration</span>
+                </div>
+            </div>
+
+            <div class="controls">
+                <h2>Parameter einstellen</h2>
+                
+                <div class="slider-container">
+                    <label for="pcr-slider">PCr (mmol · kgm⁻¹)</label>
+                    <div class="slider-row">
+                        <input type="range" id="pcr-slider" min="15" max="30" step="0.1" value="23">
+                        <span class="slider-value" id="pcr-value">23.0</span>
+                    </div>
+                </div>
+                
+                <div class="slider-container">
+                    <label for="pi-slider">Pi (mmol · kgm⁻¹)</label>
+                    <div class="slider-row">
+                        <input type="range" id="pi-slider" min="1" max="10" step="0.1" value="3">
+                        <span class="slider-value" id="pi-value">3.0</span>
+                    </div>
+                </div>
+                
+                <div class="slider-container">
+                    <label for="sc-slider">S[C] (mmol · kgm⁻¹)</label>
+                    <div class="slider-row">
+                        <input type="range" id="sc-slider" min="20" max="35" step="0.1" value="26">
+                        <span class="slider-value" id="sc-value">26.0</span>
+                    </div>
+                </div>
+                
+                <div class="slider-container">
+                    <label for="sa-slider">S[A] (mmol · kgm⁻¹)</label>
+                    <div class="slider-row">
+                        <input type="range" id="sa-slider" min="5" max="10" step="0.1" value="7">
+                        <span class="slider-value" id="sa-value">7.0</span>
+                    </div>
+                </div>
+                
+                <div class="slider-container">
+                    <label for="m1-slider">M1 (pH = 7,0)</label>
+                    <div class="slider-row">
+                        <input type="range" id="m1-slider" min="100" max="250" step="1" value="166">
+                        <span class="slider-value" id="m1-value">166</span>
+                    </div>
+                </div>
+                
+                <div class="slider-container">
+                    <label for="m3-slider">M3</label>
+                    <div class="slider-row">
+                        <input type="range" id="m3-slider" min="0.5" max="1.5" step="0.01" value="1.05">
+                        <span class="slider-value" id="m3-value">1.05</span>
+                    </div>
+                </div>
+                
+                <div class="slider-container">
+                    <label for="energy-slider">Energieverbrauch (mmol · kgm⁻¹ ATP pro Sekunde)</label>
+                    <div class="slider-row">
+                        <input type="range" id="energy-slider" min="1" max="5" step="0.1" value="3">
+                        <span class="slider-value" id="energy-value">3.0</span>
+                    </div>
+                </div>
+                
+                <div class="button-container">
+                    <button id="reset-button">Zurücksetzen</button>
+                </div>
+            </div>
+
+            <div class="info-panel">
+                <h3>Über diese Simulation</h3>
+                <p>Diese Anwendung modelliert den Verlauf von PCr, ATP, Laktatbildungsrate und Muskellaktatkonzentration während eines Sprints basierend auf dem Modell von Heck (2022).</p>
+                <p>Die Simulation zeigt, wie PCr abnimmt, während ATP zunächst konstant bleibt und nach etwa 7 Sekunden abfällt. Gleichzeitig steigen ADP und AMP an. Nach etwa 8 Sekunden tritt eine Kontraktionsinsuffizienz des Muskels ein.</p>
+                <p>Mit den Schiebereglern können Sie die verschiedenen Parameter anpassen und deren Einfluss auf den Verlauf beobachten.</p>
+            </div>
+        </div>
+
+        <footer>
+            <p>Basierend auf dem Modell von Heck (2022)</p>
+        </footer>
+    </div>
+
+    <script>
+        // Variablen für die Slider-Werte
+        let pcrValue = 23.0;
+        let piValue = 3.0;
+        let scValue = 26.0;
+        let saValue = 7.0;
+        let m1Value = 166;
+        let m3Value = 1.05;
+        let energyValue = 3.0;
+
+        // DOM-Elemente
+        const pcrSlider = document.getElementById('pcr-slider');
+        const piSlider = document.getElementById('pi-slider');
+        const scSlider = document.getElementById('sc-slider');
+        const saSlider = document.getElementById('sa-slider');
+        const m1Slider = document.getElementById('m1-slider');
+        const m3Slider = document.getElementById('m3-slider');
+        const energySlider = document.getElementById('energy-slider');
+        
+        const pcrValueDisplay = document.getElementById('pcr-value');
+        const piValueDisplay = document.getElementById('pi-value');
+        const scValueDisplay = document.getElementById('sc-value');
+        const saValueDisplay = document.getElementById('sa-value');
+        const m1ValueDisplay = document.getElementById('m1-value');
+        const m3ValueDisplay = document.getElementById('m3-value');
+        const energyValueDisplay = document.getElementById('energy-value');
+        
+        const resetButton = document.getElementById('reset-button');
+        
+        // Funktion zur Berechnung der Konzentrationen
+        function calculateConcentrations(time) {
+            // Zeitschritte
+            const dt = 0.01; // 10ms
+            const steps = Math.ceil(time / dt);
+            
+            // Arrays für die Ergebnisse
+            const times = [];
+            const pcrValues = [];
+            const atpValues = [];
+            const adpValues = [];
+            const ampValues = [];
+            const laRateValues = [];
+            const laConcentrationValues = [];
+            
+            // Anfangswerte
+            let pcr = pcrValue;
+            let pi = piValue;
+            let adp = 0;
+            let atp = 0;
+            let amp = 0;
+            let laRate = 0;
+            let laConcentration = 0;
+            
+            // Berechnung der Anfangswerte für ATP, ADP und AMP
+            adp = saValue * m3Value * (scValue - pcr) / (m1Value * pcr * m3Value + m1Value * pcr * (scValue - pcr) + m3Value * Math.pow(scValue - pcr, 2));
+            atp = m1Value * pcr * adp / (scValue - pcr);
+            amp = saValue - atp - adp;
+            
+            // Simulation über die Zeit
+            for (let i = 0; i <= steps; i++) {
+                const t = i * dt;
+                times.push(t);
+                
+                // PCr-Abnahme durch Energieverbrauch
+                const pcrDecrease = energyValue * dt;
+                pcr = Math.max(0, pcr - pcrDecrease);
+                pi = scValue - pcr;
+                
+                // Berechnung von ADP, ATP und AMP
+                if (pcr > 0) {
+                    adp = saValue * m3Value * pi / (m1Value * pcr * m3Value + m1Value * pcr * pi + m3Value * pi * pi);
+                    atp = m1Value * pcr * adp / pi;
+                    amp = saValue - atp - adp;
+                } else {
+                    // Wenn PCr aufgebraucht ist, sinkt ATP schneller
+                    atp = Math.max(0, atp - energyValue * dt);
+                    adp = Math.min(saValue - atp, adp + energyValue * dt * 0.7);
+                    amp = saValue - atp - adp;
+                }
+                
+                // Laktatbildungsrate - vereinfachtes Modell
+                // Steigt mit zunehmendem ADP und sinkendem ATP
+                if (atp > 0) {
+                    laRate = 5 * adp / atp;
+                } else {
+                    laRate = 0;
+                }
+                
+                // Muskellaktatkonzentration - Integral der Laktatbildungsrate
+                laConcentration += laRate * dt;
+                
+                // Werte speichern
+                pcrValues.push(pcr);
+                atpValues.push(atp);
+                adpValues.push(adp);
+                ampValues.push(amp);
+                laRateValues.push(laRate);
+                laConcentrationValues.push(laConcentration);
+            }
+            
+            return {
+                times,
+                pcrValues,
+                atpValues,
+                adpValues,
+                ampValues,
+                laRateValues,
+                laConcentrationValues
+            };
+        }
+        
+        // Chart.js laden
+        function loadChartJS() {
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = 'https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js';
+                script.onload = resolve;
+                script.onerror = reject;
+                document.head.appendChild(script) ;
+            });
+        }
+        
+        // Funktion zum Aktualisieren des Charts
+        let myChart;
+        
+        function updateChart() {
+            const simulationTime = 9; // 9 Sekunden
+            const result = calculateConcentrations(simulationTime);
+            
+            if (myChart) {
+                myChart.destroy();
+            }
+            
+            const ctx = document.getElementById('chart').getContext('2d');
+            myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: result.times,
+                    datasets: [
+                        {
+                            label: 'PCr',
+                            data: result.pcrValues,
+                            borderColor: '#4169E1',
+                            backgroundColor: 'rgba(65, 105, 225, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.3,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'ATP',
+                            data: result.atpValues,
+                            borderColor: '#000000',
+                            backgroundColor: 'rgba(0, 0, 0, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.3,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'ADP',
+                            data: result.adpValues,
+                            borderColor: '#DC143C',
+                            backgroundColor: 'rgba(220, 20, 60, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.3,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'AMP',
+                            data: result.ampValues,
+                            borderColor: '#32CD32',
+                            backgroundColor: 'rgba(50, 205, 50, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.3,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Laktatbildungsrate',
+                            data: result.laRateValues,
+                            borderColor: '#FF8C00',
+                            backgroundColor: 'rgba(255, 140, 0, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.3,
+                            yAxisID: 'y1'
+                        },
+                        {
+                            label: 'Muskellaktatkonzentration',
+                            data: result.laConcentrationValues,
+                            borderColor: '#9932CC',
+                            backgroundColor: 'rgba(153, 50, 204, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.3,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Zeit (s)'
+                            },
+                            grid: {
+                                color: 'rgba(200, 200, 200, 0.2)'
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'PCr, ATP, ADP, AMP (mmol · kgm⁻¹)'
+                            },
+                            min: 0,
+                            max: Math.max(pcrValue * 1.1, 25),
+                            grid: {
+                                color: 'rgba(200, 200, 200, 0.2)'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Laktatbildungsrate, Muskellaktatkonzentration'
+                            },
+                            min: 0,
+                            grid: {
+                                drawOnChartArea: false
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += context.parsed.y.toFixed(2);
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Event-Listener für Slider
+        pcrSlider.addEventListener('input', function() {
+            pcrValue = parseFloat(this.value);
+            pcrValueDisplay.textContent = pcrValue.toFixed(1);
+            updateChart();
+        });
+        
+        piSlider.addEventListener('input', function() {
+            piValue = parseFloat(this.value);
+            piValueDisplay.textContent = piValue.toFixed(1);
+            updateChart();
+        });
+        
+        scSlider.addEventListener('input', function() {
+            scValue = parseFloat(this.value);
+            scValueDisplay.textContent = scValue.toFixed(1);
+            updateChart();
+        });
+        
+        saSlider.addEventListener('input', function() {
+            saValue = parseFloat(this.value);
+            saValueDisplay.textContent = saValue.toFixed(1);
+            updateChart();
+        });
+        
+        m1Slider.addEventListener('input', function() {
+            m1Value = parseFloat(this.value);
+            m1ValueDisplay.textContent = m1Value;
+            updateChart();
+        });
+        
+        m3Slider.addEventListener('input', function() {
+            m3Value = parseFloat(this.value);
+            m3ValueDisplay.textContent = m3Value.toFixed(2);
+            updateChart();
+        });
+        
+        energySlider.addEventListener('input', function() {
+            energyValue = parseFloat(this.value);
+            energyValueDisplay.textContent = energyValue.toFixed(1);
+            updateChart();
+        });
+        
+        // Reset-Button
+        resetButton.addEventListener('click', function() {
+            pcrSlider.value = 23.0;
+            piSlider.value = 3.0;
+            scSlider.value = 26.0;
+            saSlider.value = 7.0;
+            m1Slider.value = 166;
+            m3Slider.value = 1.05;
+            energySlider.value = 3.0;
+            
+            pcrValue = 23.0;
+            piValue = 3.0;
+            scValue = 26.0;
+            saValue = 7.0;
+            m1Value = 166;
+            m3Value = 1.05;
+            energyValue = 3.0;
+            
+            pcrValueDisplay.textContent = pcrValue.toFixed(1);
+            piValueDisplay.textContent = piValue.toFixed(1);
+            scValueDisplay.textContent = scValue.toFixed(1);
+            saValueDisplay.textContent = saValue.toFixed(1);
+            m1ValueDisplay.textContent = m1Value;
+            m3ValueDisplay.textContent = m3Value.toFixed(2);
+            energyValueDisplay.textContent = energyValue.toFixed(1);
+            
+            updateChart();
+        });
+        
+        // Initialisierung
+        loadChartJS().then(() => {
+            updateChart();
+            console.log("Chart.js geladen und Diagramm initialisiert");
+        }).catch(error => {
+            console.error("Fehler beim Laden von Chart.js:", error);
+            alert("Fehler beim Laden der Diagrammbibliothek. Bitte Seite neu laden.");
+        });
+    </script>
+</body>
+</html>

@@ -38,6 +38,8 @@ jobs:
             any::htmlwidgets
             any::xml2
             any::curl
+            any::zoo
+            any::readxl
 
       - name: Render and Publish
         uses: quarto-dev/quarto-actions/publish@v2

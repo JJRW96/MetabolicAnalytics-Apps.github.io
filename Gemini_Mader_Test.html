@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sprint Stoffwechsel Modell v2</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script> <style>
+        :root {
+            --primary-color: #007bff;
+            --secondary-color: #6c757d;
+            --light-gray: #f8f9fa;
+            --dark-gray: #343a40;
+            --white: #fff;
+            --label-color: #555;
+            --box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            background-color: var(--light-gray);
+            color: var(--dark-gray);
+            line-height: 1.6;
+        }
+        h1 {
+            color: var(--dark-gray);
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .main-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            width: 95%;
+            max-width: 1400px;
+            justify-content: center;
+        }
+        .controls-container {
+            flex: 1 1 400px; /* Flex-grow, flex-shrink, flex-basis */
+            min-width: 350px;
+            background-color: var(--white);
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: var(--box-shadow);
+        }
+         .chart-container {
+            flex: 2 1 600px; /* Chart takes more space */
+            min-width: 400px;
+            height: 500px; /* Fixed height for better layout */
+            background-color: var(--white);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: var(--box-shadow);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        canvas {
+            max-width: 100%;
+            max-height: 100%;
+        }
+        .controls-grid {
+            display: grid;
+            grid-template-columns: 1fr; /* Single column layout */
+            gap: 20px;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            position: relative; /* For tooltip positioning if needed */
+        }
+        /* Tooltip styling using title attribute */
+        .control-group[title]:hover::after {
+             content: attr(title);
+             position: absolute;
+             left: 105%; /* Position to the right */
+             top: 5px;
+             white-space: normal; /* Allow wrapping */
+             padding: 8px 12px;
+             background-color: rgba(0, 0, 0, 0.8);
+             color: white;
+             border-radius: 5px;
+             font-size: 0.85em;
+             z-index: 10;
+             width: 200px; /* Max width for the tooltip */
+             box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+             pointer-events: none; /* Allow interaction with elements below */
+             opacity: 0;
+             transition: opacity 0.2s ease-in-out;
+        }
+         .control-group[title]:hover::after {
+            opacity: 1;
+         }
+
+        label {
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: var(--label-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        input[type="range"] {
+            width: 100%;
+            cursor: pointer;
+            margin-top: 5px;
+        }
+        .value-display {
+            font-style: italic;
+            color: var(--primary-color);
+            min-width: 60px; /* Ensure space for values and units */
+            display: inline-block;
+            text-align: right;
+            font-weight: bold;
+        }
+        .radio-group label,
+        .unit-select-group label {
+            font-weight: normal;
+            margin-right: 15px;
+            cursor: pointer;
+        }
+        .radio-group input[type="radio"],
+        .unit-select-group input[type="radio"] {
+             margin-right: 5px;
+             cursor: pointer;
+        }
+        .unit-select-group,
+        .radio-group {
+            display: flex;
+            flex-wrap: wrap;
+            margin-top: 5px;
+            padding: 5px;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+        }
+         /* Specific group styling */
+        #atp-verbrauch-direct-group,
+        #atp-verbrauch-watt-group {
+            padding-left: 10px;
+            border-left: 3px solid var(--primary-color);
+            margin-top: 10px;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Energiestoffwechsel im Sprint (Modell nach Heck/Mader) v2</h1>
+
+    <div class="main-container">
+        <div class="controls-container">
+            <h2>Parameter</h2>
+            <div class="controls-grid">
+
+                <div class="control-group" title="Initial concentration of Phosphocreatine, a high-energy phosphate buffer rapidly used to resynthesize ATP. (Source: Heck PDF p. 53, 54)">
+                    <label for="pcr0">PCr₀: <span class="value-display"><span id="pcr0-value">23</span> mmol/kgm</span></label>
+                    <input type="range" id="pcr0" min="10" max="30" step="0.5" value="23">
+                </div>
+
+                <div class="control-group" title="Initial concentration of free inorganic phosphate. Increases as PCr is broken down. (Source: Heck PDF p. 53, 54)">
+                    <label for="pi0">Pᵢ₀: <span class="value-display"><span id="pi0-value">3</span> mmol/kgm</span></label>
+                    <input type="range" id="pi0" min="1" max="10" step="0.5" value="3">
+                </div>
+
+                 <div class="control-group" title="Total sum of Adenine nucleotides (ATP+ADP+AMP). Assumed to be constant during short sprints. (Source: Heck PDF p. 53, 54 Gl. 4.3)">
+                    <label for="sa">S[A] (ATP+ADP+AMP): <span class="value-display"><span id="sa-value">7</span> mmol/kgm</span></label>
+                    <input type="range" id="sa" min="5" max="10" step="0.1" value="7">
+                </div>
+
+                <div class="control-group" title="Equilibrium constant for the Creatine Kinase reaction ([ATP][Pi]/[ADP][PCr]). This value corresponds to pH=7.0. It increases at lower pH. (Source: Heck PDF p. 53, 54 Gl. 4.1b, 4.2)">
+                    <label for="m1">M₁ (bei pH=7.0): <span class="value-display"><span id="m1-value">166</span></span></label>
+                    <input type="range" id="m1" min="50" max="300" step="1" value="166">
+                </div>
+
+                <div class="control-group" title="Equilibrium constant for the Adenylate Kinase reaction (2 ADP <=> ATP + AMP). Typically near 1. (Source: Heck PDF p. 53, 54 Gl. 4.5)">
+                    <label for="m3">M₃: <span class="value-display"><span id="m3-value">1.05</span></span></label>
+                    <input type="range" id="m3" min="0.8" max="1.2" step="0.01" value="1.05">
+                </div>
+
+                 <div class="control-group" title="Estimated percentage of total body mass actively contracting during the sprint. Used for Watt-based calculations. Assumes 70kg total body mass. (Source: Heck PDF p. 53, 66)">
+                     <label for="active_mass_perc">Aktive Muskelmasse (% von 70kg): <span class="value-display"><span id="active_mass_perc-value">30</span> %</span></label>
+                    <input type="range" id="active_mass_perc" min="10" max="50" step="1" value="30">
+                    <span style="font-size: 0.9em; color: var(--secondary-color);">Entspricht <span id="active_mass_kg_display">21.0</span> kg</span>
+                </div>
+
+                 <div class="control-group" title="Choose how to define the energy demand: directly as ATP turnover rate or as mechanical power output (Watt). (Source: Heck PDF p. 55)">
+                    <label>ATP Verbrauchsmodus:</label>
+                    <div class="radio-group">
+                        <label><input type="radio" name="atp_mode" value="direct" checked> Direkt (mmol/kgm/s)</label>
+                        <label><input type="radio" name="atp_mode" value="watt"> Leistung (Watt)</label>
+                    </div>
+                </div>
+
+                 <div id="atp-verbrauch-direct-group" class="control-group" title="Rate of ATP hydrolysis driving muscle contraction. Higher values represent higher intensity. (Source: Heck PDF p. 55)">
+                    <label for="atp_verbrauch_direct">ATP Verbrauch: <span class="value-display"><span id="atp_verbrauch_direct-value">3</span> mmol/kgm/s</span></label>
+                    <input type="range" id="atp_verbrauch_direct" min="1" max="5" step="0.1" value="3">
+                </div>
+
+                <div id="atp-verbrauch-watt-group" class="control-group hidden" title="Mechanical power output. Converted to ATP consumption using an estimated factor (~0.0435 mmol/s/kgm per W/kgm based on aerobic efficiency, may underestimate anaerobic burst). (Source: Heck PDF p. 63, 79)">
+                    <label for="atp_verbrauch_watt">Leistung: <span class="value-display"><span id="atp_verbrauch_watt-value">1500</span> W</span></label>
+                    <input type="range" id="atp_verbrauch_watt" min="500" max="3000" step="50" value="1500">
+                     <span style="font-size: 0.9em; color: var(--secondary-color);">Berechneter Verbrauch: <span id="watt_equiv_atp_display">?.??</span> mmol/kgm/s</span>
+                     <small>(Hinweis: Watt-Umrechnung basiert auf aerober Effizienz, könnte anaeroben Burst unterschätzen)</small>
+                </div>
+
+
+                 <div class="control-group" title="Maximal rate of glycolysis/lactate production, influenced by enzyme capacity, fiber type, training status etc. Can be set in different units. (Source: Heck PDF p. 52, 58 Gl. 4.14)">
+                    <label for="v_la_max">Maximale Laktatbildungsrate (vLa_max): <span class="value-display"><span id="v_la_max-value">60</span> <span id="v_la_max-unit">mmol/kgm/min</span></span></label>
+                    <input type="range" id="v_la_max" min="10" max="150" step="5" value="60">
+                     <div class="unit-select-group">
+                        <label><input type="radio" name="la_unit" value="min" checked> mmol/kgm/min</label>
+                        <label><input type="radio" name="la_unit" value="L_s"> mmol/L/s</label>
+                    </div>
+                 </div>
+
+            </div>
+        </div>
+
+        <div class="chart-container">
+            <canvas id="sprintChart"></canvas>
+        </div>
+    </div>
+
+
+    <script>
+        const ctx = document.getElementById('sprintChart').getContext('2d');
+
+        // --- Constants ---
+        const VOLREL = 0.75; // L water per kg muscle mass (PDF p. 53)
+        const KS2 = 0.15**3; // Glycolysis activation constant (PDF p. 58/Abb 4.6, approx 0.003375)
+        const WATT_TO_ATP_FACTOR = 0.0435; // Approx. mmol ATP/s/kgm per Watt/kgm (Derived from PDF p.63/79 O2 data, see thought process)
+        const TOTAL_BODY_MASS_KG = 70; // Assumed for muscle mass calculation
+
+        // --- DOM Elements ---
+        const sliders = {
+            pcr0: document.getElementById('pcr0'),
+            pi0: document.getElementById('pi0'),
+            sa: document.getElementById('sa'),
+            m1: document.getElementById('m1'),
+            m3: document.getElementById('m3'),
+            active_mass_perc: document.getElementById('active_mass_perc'),
+            atp_verbrauch_direct: document.getElementById('atp_verbrauch_direct'),
+            atp_verbrauch_watt: document.getElementById('atp_verbrauch_watt'),
+            v_la_max: document.getElementById('v_la_max')
+        };
+
+        const values = {
+            pcr0: document.getElementById('pcr0-value'),
+            pi0: document.getElementById('pi0-value'),
+            sa: document.getElementById('sa-value'),
+            m1: document.getElementById('m1-value'),
+            m3: document.getElementById('m3-value'),
+            active_mass_perc: document.getElementById('active_mass_perc-value'),
+            atp_verbrauch_direct: document.getElementById('atp_verbrauch_direct-value'),
+            atp_verbrauch_watt: document.getElementById('atp_verbrauch_watt-value'),
+            v_la_max: document.getElementById('v_la_max-value')
+        };
+
+        const displays = {
+            active_mass_kg: document.getElementById('active_mass_kg_display'),
+            v_la_max_unit: document.getElementById('v_la_max-unit'),
+            watt_equiv_atp: document.getElementById('watt_equiv_atp_display')
+        };
+
+        const radioGroups = {
+             atp_mode: document.querySelectorAll('input[name="atp_mode"]'),
+             la_unit: document.querySelectorAll('input[name="la_unit"]')
+        };
+
+        const controlGroups = {
+             directATP: document.getElementById('atp-verbrauch-direct-group'),
+             wattATP: document.getElementById('atp-verbrauch-watt-group')
+        };
+
+
+        // --- Chart Configuration ---
+        let sprintChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [], // Time steps
+                datasets: [
+                     {
+                        label: 'PCr (mmol/kgm)',
+                        data: [],
+                        borderColor: 'rgb(0, 0, 255)', // Blue
+                        borderWidth: 2.5,
+                        yAxisID: 'yConc',
+                        tension: 0.1,
+                        pointRadius: 0, pointHoverRadius: 4 // No points, hover enabled
+                    },
+                    {
+                        label: 'ATP (mmol/kgm)',
+                        data: [],
+                        borderColor: 'rgb(0, 128, 0)', // Green
+                        borderWidth: 2.5,
+                         yAxisID: 'yConc',
+                         tension: 0.1,
+                         pointRadius: 0, pointHoverRadius: 4
+                    },
+                     {
+                        label: 'ADP (mmol/kgm)',
+                        data: [],
+                        borderColor: 'rgb(255, 0, 0)', // Red
+                        borderWidth: 2.5,
+                         yAxisID: 'yConc',
+                         tension: 0.1,
+                         pointRadius: 0, pointHoverRadius: 4
+                    },
+                     {
+                        label: 'AMP (mmol/kgm)',
+                        data: [],
+                        borderColor: 'rgb(255, 165, 0)', // Orange
+                        borderWidth: 2.5,
+                         yAxisID: 'yConc',
+                         tension: 0.1,
+                         pointRadius: 0, pointHoverRadius: 4
+                    },
+                    {
+                        label: 'Laktatbildungsrate', // Unit added dynamically
+                        data: [],
+                        borderColor: 'rgb(128, 0, 128)', // Purple
+                        borderWidth: 2.5,
+                        yAxisID: 'yRate',
+                        tension: 0.1,
+                        pointRadius: 0, pointHoverRadius: 4
+                    },
+                     {
+                        label: 'Muskellaktat (mmol/kgm)',
+                        data: [],
+                        borderColor: 'rgb(255, 192, 203)', // Pink
+                        borderWidth: 2.5,
+                        yAxisID: 'yConc',
+                        tension: 0.1,
+                        pointRadius: 0, pointHoverRadius: 4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: {
+                    duration: 0 // Disable animation for faster updates
+                },
+                 plugins: {
+                    title: {
+                        display: true,
+                        text: 'Modellierter Verlauf im Sprint',
+                        font: { size: 18 }
+                    },
+                     legend: {
+                        position: 'bottom'
+                     },
+                    tooltip: {
+                        enabled: true,
+                        mode: 'index',
+                        intersect: false,
+                        position: 'nearest',
+                         callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    // Append unit for rate dynamically
+                                    if (label.includes('Laktatbildungsrate')) {
+                                        const selectedUnit = document.querySelector('input[name="la_unit"]:checked').value;
+                                        label += (selectedUnit === 'min') ? ' (mmol/kgm/min)' : ' (mmol/L/s)';
+                                    }
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null) {
+                                    label += context.parsed.y.toFixed(3);
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Zeit (s)'
+                        },
+                        ticks: {
+                             source: 'labels', // Use generated labels
+                             stepSize: 1, // Try to show every 1s
+                             autoSkip: true,
+                             maxTicksLimit: 16 // Limit ticks to prevent clutter
+                        }
+                    },
+                    yConc: { // Primary Y-axis for concentrations
+                        type: 'linear',
+                        position: 'left',
+                        beginAtZero: true,
+                         //max: 30, // Adjusted dynamically
+                        title: {
+                            display: true,
+                            text: 'Konzentration (mmol/kgm)'
+                        }
+                    },
+                     yRate: { // Secondary Y-axis for lactate rate
+                        type: 'linear',
+                        position: 'right',
+                        beginAtZero: true,
+                        //max: 150, // Adjusted dynamically
+                        title: {
+                            display: true,
+                            text: 'Laktatbildungsrate' // Unit added dynamically
+                        },
+                         grid: {
+                            drawOnChartArea: false, // only draw grid lines for primary axis
+                         }
+                    }
+                },
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                }
+            }
+        });
+
+        // --- Calculation Logic ---
+        const calculateMetabolism = (params) => {
+            const { PCr0, Pi0, SA, M1, M3, ActiveMassKg, ATP_verbrauch_mode, ATP_verbrauch_direct, ATP_verbrauch_watt, vLa_max_input, LaRateUnit } = params;
+
+            const SC = PCr0 + Pi0; // S[C] = [PCr] + [Pi] initial sum
+
+            // Determine ATP consumption rate in mmol/kgm/s
+            let ATP_verbrauch_calc = 0;
+            if (ATP_verbrauch_mode === 'direct') {
+                ATP_verbrauch_calc = ATP_verbrauch_direct;
+            } else { // 'watt' mode
+                if (ActiveMassKg > 0) {
+                    const wattPerKgm = ATP_verbrauch_watt / ActiveMassKg;
+                    ATP_verbrauch_calc = wattPerKgm * WATT_TO_ATP_FACTOR;
+                } else {
+                    ATP_verbrauch_calc = 0; // Avoid division by zero
+                }
+                 displays.watt_equiv_atp.textContent = ATP_verbrauch_calc.toFixed(3); // Show calculated value
+            }
+
+
+            // Convert vLa_max input to internal units (mmol/kgm/s)
+            let vLa_max_per_kgm_s = 0;
+            if (LaRateUnit === 'min') { // Input is mmol/kgm/min
+                vLa_max_per_kgm_s = vLa_max_input / 60.0;
+            } else { // Input is mmol/L/s
+                vLa_max_per_kgm_s = vLa_max_input * VOLREL; // mmol/L/s * (L/kgm) = mmol/kgm/s
+            }
+
+
+            const timeStep = 0.1; // seconds
+            const maxTime = 15.0; // seconds
+
+            let time = 0;
+            let PCr = PCr0;
+            let Pi = Pi0;
+            let ATP = 0; // Calculated below
+            let ADP = 0; // Calculated below
+            let AMP = 0; // Calculated below
+            let La_m = 0.5; // Start with a small basal lactate
+
+            const results = {
+                time: [],
+                pcr: [],
+                atp: [],
+                adp: [],
+                amp: [],
+                la_rate: [], // Stored in the selected output unit
+                la_m: []
+            };
+
+            // --- Initial state (t=0) calculation ---
+             let Q_t0 = 0;
+             if (PCr > 1e-9 && Pi > 1e-9) { // Avoid division by zero at t=0
+                 Q_t0 = M1 * PCr / Pi;
+                 if (Q_t0 < 1e-9) Q_t0 = 1e-9;
+                 ADP = (SA * Q_t0) / (M3 + Q_t0 + Q_t0**2);
+                 ATP = ADP * Q_t0;
+                 AMP = SA - ATP - ADP;
+             } else { // Fallback if initial state is problematic
+                 ATP = SA * 0.98; ADP = SA * 0.019; AMP = SA * 0.001;
+             }
+             // Clamp initial values
+             ATP = Math.max(0, Math.min(SA, ATP));
+             ADP = Math.max(0, Math.min(SA - ATP, ADP));
+             AMP = Math.max(0, SA - ATP - ADP);
+
+
+             results.time.push(time.toFixed(1)); // Store time labels
+             results.pcr.push(PCr);
+             results.atp.push(ATP);
+             results.adp.push(ADP);
+             results.amp.push(AMP);
+             // Calculate initial rate in output units
+             let initial_rate_output = 0; // Assume 0 rate at t=0
+             results.la_rate.push(initial_rate_output);
+             results.la_m.push(La_m);
+
+            // --- Simulation loop ---
+            while (time < maxTime) {
+                time += timeStep;
+
+                // 1. PCr Depletion due to ATP consumption
+                const atpNeeded = ATP_verbrauch_calc * timeStep;
+                let pcrUsed = 0;
+                if (PCr > 0) {
+                    pcrUsed = Math.min(PCr, atpNeeded);
+                    PCr -= pcrUsed;
+                }
+                PCr = Math.max(0, PCr);
+
+                // 2. Update Pi
+                Pi = SC - PCr;
+                Pi = Math.max(1e-9, Pi); // Prevent Pi <= 0
+
+                // 3. Calculate ADP, ATP, AMP
+                 let Q = 0;
+                 if (Pi > 1e-9 && PCr > 1e-9) { // Need both PCr and Pi > 0 for equilibrium calculation
+                    Q = M1 * PCr / Pi;
+                    if (Q < 1e-9) Q = 1e-9;
+                    ADP = (SA * Q) / (M3 + Q + Q**2);
+                    ATP = ADP * Q;
+                    AMP = SA - ATP - ADP;
+                 } else if (PCr <= 1e-9) { // PCr depleted, equilibrium shifts drastically
+                    // Assume ATP is now lower, ADP/AMP higher
+                    // Approximation: Find ADP such that ATP+ADP+AMP = SA and ATP/ADP ratio is low
+                    // This part is less defined by the simple model, focus shifts to glycolysis/oxidation
+                    // Let's just use the limit where Q -> 0
+                    ADP = SA / (1 + M3); // Simplified from eq 4.10 as Q->0
+                    ATP = 1e-9; // Essentially zero
+                    AMP = SA - ADP;
+                 }
+                 else { // Pi is near zero (shouldn't happen if SC=PCr0+Pi0) - fallback
+                      ATP = SA * 0.98; ADP = SA * 0.019; AMP = SA * 0.001;
+                 }
+
+
+                // Clamp values
+                ATP = Math.max(0, Math.min(SA, ATP));
+                ADP = Math.max(0, Math.min(SA - ATP, ADP));
+                AMP = Math.max(0, SA - ATP - ADP);
+
+                // 4. Calculate Lactate Production Rate (mmol/kgm/s)
+                let v_La_rate_kgm_s = 0;
+                if (ADP > 1e-9) {
+                   v_La_rate_kgm_s = vLa_max_per_kgm_s * (ADP**3) / (KS2 + ADP**3);
+                }
+                v_La_rate_kgm_s = Math.max(0, v_La_rate_kgm_s);
+
+                // 5. Update Muscle Lactate Concentration
+                La_m += v_La_rate_kgm_s * timeStep;
+                La_m = Math.max(0, La_m);
+
+                // Store results
+                // Only push labels for integer seconds for cleaner axis
+                 if (Math.abs(time - Math.round(time)) < timeStep / 2 || time >= maxTime) {
+                    results.time.push(Math.round(time).toFixed(0));
+                 } else {
+                     results.time.push(''); // Empty label for intermediate points
+                 }
+                // results.time.push(time.toFixed(1)); // Alternative: show all labels
+                results.pcr.push(PCr);
+                results.atp.push(ATP);
+                results.adp.push(ADP);
+                results.amp.push(AMP);
+
+                // Convert calculated rate (mmol/kgm/s) to the selected output unit
+                 let v_La_rate_output;
+                if (LaRateUnit === 'min') { // Output as mmol/kgm/min
+                    v_La_rate_output = v_La_rate_kgm_s * 60.0;
+                } else { // Output as mmol/L/s
+                    v_La_rate_output = v_La_rate_kgm_s / VOLREL;
+                }
+                results.la_rate.push(v_La_rate_output);
+                results.la_m.push(La_m);
+            }
+
+            return results;
+        };
+
+
+        // --- Update Logic ---
+        const updateChart = () => {
+            const activeMassPerc = parseFloat(sliders.active_mass_perc.value);
+            const activeMassKg = (activeMassPerc / 100) * TOTAL_BODY_MASS_KG;
+            displays.active_mass_kg.textContent = activeMassKg.toFixed(1);
+
+            const selectedATPMode = document.querySelector('input[name="atp_mode"]:checked').value;
+            const selectedLaUnit = document.querySelector('input[name="la_unit"]:checked').value;
+
+            const currentParams = {
+                PCr0: parseFloat(sliders.pcr0.value),
+                Pi0: parseFloat(sliders.pi0.value),
+                SA: parseFloat(sliders.sa.value),
+                M1: parseFloat(sliders.m1.value),
+                M3: parseFloat(sliders.m3.value),
+                ActiveMassKg: activeMassKg,
+                ATP_verbrauch_mode: selectedATPMode,
+                ATP_verbrauch_direct: parseFloat(sliders.atp_verbrauch_direct.value),
+                ATP_verbrauch_watt: parseFloat(sliders.atp_verbrauch_watt.value),
+                vLa_max_input: parseFloat(sliders.v_la_max.value),
+                LaRateUnit: selectedLaUnit
+            };
+
+            // Update displayed values in labels
+            for (const key in sliders) {
+                 if (values[key]) {
+                    values[key].textContent = sliders[key].value;
+                 }
+            }
+             // Update vLa_max unit display
+             displays.v_la_max_unit.textContent = (selectedLaUnit === 'min') ? 'mmol/kgm/min' : 'mmol/L/s';
+
+
+            // Toggle visibility of ATP input groups
+            if (selectedATPMode === 'direct') {
+                controlGroups.directATP.classList.remove('hidden');
+                controlGroups.wattATP.classList.add('hidden');
+                displays.watt_equiv_atp.textContent = '---'; // Clear watt equivalent display
+            } else {
+                controlGroups.directATP.classList.add('hidden');
+                controlGroups.wattATP.classList.remove('hidden');
+                 // Calculate and display equivalent ATP consumption for info *before* running full simulation
+                 if (activeMassKg > 0) {
+                    const wattPerKgm = currentParams.ATP_verbrauch_watt / activeMassKg;
+                    const equivATP = wattPerKgm * WATT_TO_ATP_FACTOR;
+                    displays.watt_equiv_atp.textContent = equivATP.toFixed(3);
+                 } else {
+                     displays.watt_equiv_atp.textContent = '0.00';
+                 }
+            }
+
+            // Perform calculations
+            const results = calculateMetabolism(currentParams);
+
+            // Dynamically adjust Y-axis limits
+            const maxConcData = Math.max(...results.pcr, ...results.atp, ...results.adp, ...results.amp, ...results.la_m);
+            const maxConcLimit = Math.ceil(Math.max(10, maxConcData * 1.1, currentParams.PCr0 + currentParams.Pi0));
+            const maxRateData = Math.max(...results.la_rate);
+            // Estimate max possible rate based on slider for better axis scaling
+            let maxRateLimit = 20;
+            if (selectedLaUnit === 'min') {
+                maxRateLimit = Math.ceil(Math.max(20, maxRateData * 1.1, currentParams.vLa_max_input * 1.1));
+            } else { // mmol/L/s
+                 maxRateLimit = Math.ceil(Math.max(5, maxRateData * 1.1, (currentParams.vLa_max_input / 45) * 1.1)); // Rough max conversion
+            }
+
+
+             sprintChart.options.scales.yConc.max = maxConcLimit;
+             sprintChart.options.scales.yRate.max = maxRateLimit;
+
+             // Update rate axis title with correct unit
+             const rateAxisTitle = (selectedLaUnit === 'min') ? 'Laktatrate (mmol/kgm/min)' : 'Laktatrate (mmol/L/s)';
+             sprintChart.options.scales.yRate.title.text = rateAxisTitle;
+
+
+            // Update chart data
+            sprintChart.data.labels = results.time;
+            sprintChart.data.datasets[0].data = results.pcr;
+            sprintChart.data.datasets[1].data = results.atp;
+            sprintChart.data.datasets[2].data = results.adp;
+            sprintChart.data.datasets[3].data = results.amp;
+            sprintChart.data.datasets[4].data = results.la_rate;
+            sprintChart.data.datasets[5].data = results.la_m;
+
+            sprintChart.update();
+        };
+
+        // --- Event Listeners ---
+        for (const key in sliders) {
+            sliders[key].addEventListener('input', updateChart);
+        }
+         radioGroups.atp_mode.forEach(radio => radio.addEventListener('change', updateChart));
+         radioGroups.la_unit.forEach(radio => radio.addEventListener('change', updateChart));
+
+
+        // --- Initial Setup ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set initial active mass display
+             const initialMassPerc = parseFloat(sliders.active_mass_perc.value);
+             const initialMassKg = (initialMassPerc / 100) * TOTAL_BODY_MASS_KG;
+             displays.active_mass_kg.textContent = initialMassKg.toFixed(1);
+             // Initial chart draw
+            updateChart();
+        });
+
+    </script>
+
+</body>
+</html>
