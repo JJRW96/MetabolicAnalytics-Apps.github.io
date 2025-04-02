@@ -1,32 +1,3 @@
----
-title: "Cadence Test"
-format:
-  html:
-    resources: 
-      - shinylive-sw.js
-    fig-responsive: true
-
-filters:
-  - shinylive
-
-execute:
-  message: false
-  engine: knitr
-  echo: false
-  warning: false
-  error: false
-  
-bibliography: references_all.bib
-lang: eng
-number-sections: false
-editor: 
-  markdown: 
-    wrap: 72
----
-
-```{r}
-#| results: "hide"
-
 # Required packages
 library(readxl)
 library(dplyr)
@@ -946,7 +917,7 @@ plot <- plot_ly() %>%
             marker = list(color = '#EF5350', size = 10)) %>%
   
   layout(
-    title = "VO₂ Steady State vs. Cadence",
+    title = "V̇O<sub>2,SS</sub> vs. Cadence",
     xaxis = list(title = "Cadence [rpm]", 
                  range = c(0, 200), 
                  tickvals = seq(0, 200, 20)),
@@ -956,7 +927,7 @@ plot <- plot_ly() %>%
                  tickformat = '.0f'),
     showlegend = TRUE,
     legend = list(
-      x = 0.02,
+      x = 0.90,
       y = 1.00,
       xanchor = "left",
       yanchor = "top",
@@ -1040,32 +1011,5 @@ plot_diff <- plot_ly() %>%
     )
   )
 
-
-```
-
-```{r}
-#| label: fig-CT_0_Watt
-#| fig-cap: "Cadence Test - 0 Watt"
-#| fig-cap-location: top
-#| fig-height: 7
-
-plot1
-```
-
-```{r}
-#| label: fig-CT_200_Watt
-#| fig-cap: "Cadence Test - 200 Watt"
-#| fig-cap-location: top
-#| fig-height: 7
-
-plot2
-```
-
-```{r}
-#| label: fig-CT_0_vs_200
-#| fig-cap: "VO<sub>2,SS</sub> x Cadence at 0 and 200 Watt"
-#| fig-cap-location: top
-#| fig-height: 7
-
-plot
-```
+# Plot anzeigen
+plot_diff

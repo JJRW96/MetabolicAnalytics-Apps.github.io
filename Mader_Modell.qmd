@@ -16,7 +16,7 @@ execute:
   warning: false
   error: false
 bibliography: references_all.bib
-lang: de
+lang: eng
 number-sections: false
 editor: 
   markdown: 
