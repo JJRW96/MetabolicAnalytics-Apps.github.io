@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Training Data Converter</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Root variables for color scheme */
+        :root {
+            --primary-color: #2683C6;
+            --secondary-color: #9C85C0;  
+            --accent-color: #EF5350;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --border-color: #dee2e6;
+            --gradient-start: #f1f8ff;
+            --gradient-end: #ffffff;
+        }
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+            background-color: #f5f5f5;
+            color: var(--dark-color);
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-family: monospace;
+            resize: vertical;
+        }
+        
+        button {
+            padding: 10px 15px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+            margin-top: 10px;
+        }
+        
+        button:hover {
+            background-color: #1a6eae;
+        }
+        
+        .output-container {
+            width: 100%;
+            overflow-x: auto;
+        }
+        
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 20px;
+        }
+        
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 8px;
+            text-align: left;
+        }
+        
+        th {
+            background-color: rgba(38, 131, 198, 0.05);
+            font-weight: bold;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        .file-input-container {
+            margin-bottom: 10px;
+        }
+        
+        .result-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .main-button {
+            background-color: var(--primary-color);
+            font-size: 18px;
+            padding: 12px 20px;
+        }
+        
+        .main-button:hover {
+            background-color: #1a6eae;
+        }
+        
+        .loading {
+            display: none;
+            margin-top: 10px;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 2s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error {
+            color: var(--accent-color);
+            background-color: #ffebee;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            display: none;
+        }
+        
+        .info {
+            color: var(--primary-color);
+            background-color: #e3f2fd;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            display: none;
+        }
+        
+        .note {
+            font-style: italic;
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .fit-note {
+            background-color: #fff3e0;
+            border-left: 4px solid #ff9800;
+            padding: 10px;
+            margin: 15px 0;
+        }
+        
+        .fit-note a {
+            color: #ff9800;
+            font-weight: bold;
+            text-decoration: none;
+        }
+        
+        .fit-note a:hover {
+            text-decoration: underline;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+        }
+        
+        /* Purpose note */
+        .purpose-note {
+            background-color: rgba(38, 131, 198, 0.05);
+            border-left: 4px solid var(--primary-color);
+            padding: 12px;
+            margin: 15px 0;
+            border-radius: 4px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+        
+        h2 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+        
+        /* Custom file input styling */
+        .custom-file-input {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+        
+        .custom-file-input input {
+            position: absolute;
+            width: 0.1px;
+            height: 0.1px;
+            opacity: 0;
+            overflow: hidden;
+            z-index: -1;
+        }
+        
+        .custom-file-input label {
+            display: inline-block;
+            padding: 8px 15px;
+            background-color: #f8f9fa;
+            color: #495057;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .custom-file-input label:hover {
+            background-color: #e9ecef;
+        }
+        
+        .file-name {
+            margin-left: 10px;
+            font-size: 0.9em;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <h1 class="app-title">Training Data Converter</h1>
+        <div class="container">
+            <div class="input-section">
+                <div class="info-card">
+                    <h3>Purpose</h3>
+                    <p>This converter extracts time, power, and cadence data from training files and converts them to the correct format for use with the Mader's Metabolic Simulation app. The output format is designed to be compatible with the exercise simulation component.</p>
+                    
+                    <h3>Note about .fit-files</h3>
+                    <p>Due to limitations, direct .fit-file processing is not supported. Please convert your fit files to csv first using the <a href="https://gotoes.org/strava/convert_fit_files_to_csv.php" target="_blank">GOTOES .fit to .csv Converter</a> tool.</p>
+                </div>
+
+                <div class="upload-section">
+                    <h3>Upload your files</h3>
+                    <div class="custom-file-input">
+                        <input type="file" id="fileInput" accept=".csv,.xlsx,.xls,.tcx">
+                        <label for="fileInput">Choose file</label>
+                        <span id="fileName" class="file-name"></span>
+                    </div>
+                    <p class="supported-formats">Supported formats: .csv & .tcx</p>
+                    
+                    <h3>Or paste your data directly</h3>
+                    <textarea id="inputData" placeholder="Paste your data here..."></textarea>
+                    
+                    <button id="convertAndDownloadBtn" class="main-button">
+                        <span class="button-text">Convert and Download</span>
+                        <span class="button-icon">↓</span>
+                    </button>
+                    
+                    <div id="loading" class="loading">
+                        <div class="spinner"></div> 
+                        <span>Processing data...</span>
+                    </div>
+                    <div id="errorMessage" class="error"></div>
+                    <div id="infoMessage" class="info"></div>
+                </div>
+            </div>
+            
+            <div class="output-section">
+                <h2>Preview of converted data</h2>
+                <div class="output-container">
+                    <table id="outputTable">
+                        <thead>
+                            <tr>
+                                <th>t_s</th>
+                                <th>power</th>
+                                <th>cadence</th>
+                            </tr>
+                        </thead>
+                        <tbody id="outputBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const fileInput = document.getElementById('fileInput');
+            const fileName = document.getElementById('fileName');
+            const inputData = document.getElementById('inputData');
+            const convertAndDownloadBtn = document.getElementById('convertAndDownloadBtn');
+            const outputBody = document.getElementById('outputBody');
+            const loadingDiv = document.getElementById('loading');
+            const errorMessageDiv = document.getElementById('errorMessage');
+            const infoMessageDiv = document.getElementById('infoMessage');
+            
+            // Variable to store the original file name
+            let originalFileName = '';
+            // Variable to track if we're dealing with tcx data
+            let isTcxData = false;
+            // Variable to store tcx processed data directly
+            let tcxProcessedData = null;
+
+            // Show selected filename
+            fileInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                // Store original file name
+                originalFileName = file.name.replace(/\.[^/.]+$/, ""); // Remove extension
+                
+                // Display selected filename
+                fileName.textContent = file.name;
+                
+                // Clear textarea and messages when a file is selected
+                inputData.value = '';
+                errorMessageDiv.style.display = 'none';
+                infoMessageDiv.style.display = 'none';
+                tcxProcessedData = null;
+                
+                loadingDiv.style.display = 'flex';
+                
+                const fileNameLower = file.name.toLowerCase();
+                const fileExtension = fileNameLower.substring(fileNameLower.lastIndexOf('.') + 1);
+                
+                // Set flag based on file extension
+                isTcxData = (fileExtension === 'tcx');
+                
+                if (fileExtension === 'tcx') {
+                    // Handle TCX as XML
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        try {
+                            const xmlContent = e.target.result;
+                            // Process the TCX directly and store the processed data
+                            tcxProcessedData = processTcxDirectly(xmlContent);
+                            // Also show a preview in the textarea
+                            const previewData = "TCX file loaded and processed. Contains " + tcxProcessedData.length + 
+                                               " data points with power and cadence information.\n\n" +
+                                               "Preview of first few data points:\n" +
+                                               "t_s\tpower\tcadence\n" +
+                                               tcxProcessedData.slice(0, 5).map(row => 
+                                                  `${row.t_s}\t${row.power}\t${row.cadence}`).join('\n');
+                            
+                            inputData.value = previewData;
+                            
+                            loadingDiv.style.display = 'none';
+                            showInfo(`tcx file processed successfully with ${tcxProcessedData.length} data points. Click "Convert and Download" to save the data.`);
+                        } catch (error) {
+                            loadingDiv.style.display = 'none';
+                            showError(`Error processing tcx file: ${error.message}`);
+                        }
+                    };
+                    reader.onerror = function() {
+                        loadingDiv.style.display = 'none';
+                        showError('Error reading file.');
+                    };
+                    reader.readAsText(file);
+                } else {
+                    // Handle CSV/XLS/XLSX files
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        inputData.value = e.target.result;
+                        loadingDiv.style.display = 'none';
+                        showInfo('File loaded successfully. Click "Convert and Download" to process the data.');
+                    };
+                    reader.onerror = function(e) {
+                        loadingDiv.style.display = 'none';
+                        showError('Error reading file: ' + e.target.error);
+                    };
+                    reader.readAsText(file);
+                }
+            });
+            
+            // Process TCX directly without conversion to CSV first
+            function processTcxDirectly(xmlContent) {
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(xmlContent, "text/xml");
+                
+                // Get all trackpoints
+                const trackpoints = xmlDoc.getElementsByTagName('Trackpoint');
+                if (trackpoints.length === 0) {
+                    throw new Error('No trackpoints found in tcx file.');
+                }
+                
+                // Define namespaces that might be used in the TCX file
+                const nsMap = {
+                    'ns1': 'http://www.garmin.com/xmlschemas/TrackPointExtension/v1',
+                    'ns2': 'http://www.garmin.com/xmlschemas/ActivityExtension/v2',
+                    'ns3': 'http://www.garmin.com/xmlschemas/ActivityExtension/v2',
+                    'ns4': 'http://www.garmin.com/xmlschemas/ProfileExtension/v1',
+                    'ns5': 'http://www.garmin.com/xmlschemas/ActivityGoals/v1'
+                };
+                
+                // Get the activity start time to calculate relative seconds
+                let activityStartTime = null;
+                const activityElements = xmlDoc.getElementsByTagName('Activity');
+                if (activityElements.length > 0) {
+                    const idElements = activityElements[0].getElementsByTagName('Id');
+                    if (idElements.length > 0) {
+                        activityStartTime = new Date(idElements[0].textContent);
+                    }
+                }
+                
+                if (!activityStartTime && trackpoints.length > 0) {
+                    // Use first trackpoint time if activity start time not found
+                    const timeElement = trackpoints[0].getElementsByTagName('Time')[0];
+                    if (timeElement) {
+                        activityStartTime = new Date(timeElement.textContent);
+                    }
+                }
+                
+                if (!activityStartTime) {
+                    activityStartTime = new Date(); // Fallback to current time if nothing found
+                }
+                
+                // Process and extract data from trackpoints
+                const result = [];
+                
+                for (let i = 0; i < trackpoints.length; i++) {
+                    const trackpoint = trackpoints[i];
+                    
+                    // Get time and calculate seconds from activity start
+                    const timeElement = trackpoint.getElementsByTagName('Time')[0];
+                    let seconds = 0;
+                    
+                    if (timeElement) {
+                        const trackpointTime = new Date(timeElement.textContent);
+                        seconds = Math.round((trackpointTime - activityStartTime) / 1000);
+                        if (seconds < 0) seconds = 0; // Safety check
+                    } else {
+                        // If no time element, use index as seconds (1 per second)
+                        seconds = i;
+                    }
+                    
+                    // Get cadence
+                    const cadElement = trackpoint.getElementsByTagName('Cadence')[0];
+                    const cadence = cadElement ? cadElement.textContent : '';
+                    
+                    // Initialize power
+                    let power = '';
+                    
+                    // Check for extensions
+                    const extensions = trackpoint.getElementsByTagName('Extensions');
+                    if (extensions && extensions.length > 0) {
+                        // Try different namespace patterns for power
+                        for (const ns in nsMap) {
+                            // Look for TPX extension
+                            const tpxElements = extensions[0].getElementsByTagName(`${ns}:TPX`);
+                            if (tpxElements && tpxElements.length > 0) {
+                                const wattsElements = tpxElements[0].getElementsByTagName(`${ns}:Watts`);
+                                if (wattsElements && wattsElements.length > 0) {
+                                    power = wattsElements[0].textContent;
+                                    break;
+                                }
+                            }
+                            
+                            // Direct power reference
+                            const powerElements = extensions[0].getElementsByTagName(`${ns}:Watts`) || 
+                                                 extensions[0].getElementsByTagName(`${ns}:Power`);
+                            if (powerElements && powerElements.length > 0 && !power) {
+                                power = powerElements[0].textContent;
+                                break;
+                            }
+                        }
+                        
+                        // Also try without namespace if not found with namespace
+                        if (!power) {
+                            const tpxElementsNoNs = extensions[0].getElementsByTagName('TPX');
+                            if (tpxElementsNoNs && tpxElementsNoNs.length > 0) {
+                                const wattsElements = tpxElementsNoNs[0].getElementsByTagName('Watts');
+                                if (wattsElements && wattsElements.length > 0) {
+                                    power = wattsElements[0].textContent;
+                                }
+                            }
+                            
+                            const powerElementsNoNs = extensions[0].getElementsByTagName('Watts') || 
+                                                    extensions[0].getElementsByTagName('Power');
+                            if (powerElementsNoNs && powerElementsNoNs.length > 0 && !power) {
+                                power = powerElementsNoNs[0].textContent;
+                            }
+                        }
+                    }
+                    
+                    // Add to result only if power or cadence exists
+                    if (power || cadence) {
+                        result.push({
+                            t_s: seconds,
+                            power: power,
+                            cadence: cadence
+                        });
+                    }
+                }
+                
+                return result;
+            }
+
+            // Convert and download with one click
+            convertAndDownloadBtn.addEventListener('click', function() {
+                try {
+                    loadingDiv.style.display = 'flex';
+                    errorMessageDiv.style.display = 'none';
+                    infoMessageDiv.style.display = 'none';
+                    
+                    let processedData;
+                    
+                    // If we have pre-processed TCX data, use that directly
+                    if (isTcxData && tcxProcessedData) {
+                        processedData = tcxProcessedData;
+                        showInfo(`Using pre-processed TCX data with ${processedData.length} points.`);
+                    } else {
+                        // Otherwise process from text input
+                        const rawData = inputData.value.trim();
+                        if (!rawData) {
+                            showError('Please enter data or upload a file.');
+                            loadingDiv.style.display = 'none';
+                            return;
+                        }
+                        
+                        // Check if data is already in the correct format
+                        const isAlreadyCorrectFormat = checkIfAlreadyCorrectFormat(rawData);
+                        
+                        if (isAlreadyCorrectFormat) {
+                            // If data is already in correct format, just parse it without modifying values
+                            processedData = parseAlreadyCorrectData(rawData);
+                            showInfo('The data is already in the correct format. No conversion needed.');
+                        } else {
+                            // Convert data if it's not in the right format
+                            processedData = convertData(rawData);
+                            if (processedData.length === 0) {
+                                loadingDiv.style.display = 'none';
+                                showError('No valid data found or could not identify required columns.');
+                                return;
+                            }
+                            showInfo(`Successfully converted ${processedData.length} data points.`);
+                        }
+                    }
+                    
+                    // Display preview in the table
+                    displayPreview(processedData);
+                    
+                    // Download csv file
+                    downloadCsv(processedData);
+                    
+                    loadingDiv.style.display = 'none';
+                    
+                } catch (error) {
+                    console.error(error);
+                    loadingDiv.style.display = 'none';
+                    showError('Error converting data: ' + error.message);
+                }
+            });
+            
+            // Detect delimiter in data
+            function detectDelimiter(data) {
+                const firstLine = data.split('\n')[0];
+                
+                // Possible delimiters to check
+                const delimiters = ['\t', ';', ','];
+                let bestDelimiter = ','; // Default
+                let maxCount = 0;
+                
+                // Count occurrences of each delimiter
+                for (const delimiter of delimiters) {
+                    const count = (firstLine.match(new RegExp(delimiter, 'g')) || []).length;
+                    if (count > maxCount) {
+                        maxCount = count;
+                        bestDelimiter = delimiter;
+                    }
+                }
+                
+                return bestDelimiter;
+            }
+            
+            // Check if data is already in correct format (t_s, power, cadence)
+            function checkIfAlreadyCorrectFormat(data) {
+                const lines = data.split('\n');
+                if (lines.length < 2) return false;
+                
+                const delimiter = detectDelimiter(data);
+                const header = lines[0].toLowerCase().trim();
+                const headerParts = header.split(delimiter).map(h => h.trim());
+                
+                // Check if header matches the expected format (t_s, power, cadence)
+                return (headerParts.length >= 3 && 
+                        headerParts[0].toLowerCase() === 't_s' && 
+                        headerParts[1].toLowerCase() === 'power' && 
+                        headerParts[2].toLowerCase() === 'cadence');
+            }
+            
+            // Parse already correct data - maintain the original values
+            function parseAlreadyCorrectData(data) {
+                const lines = data.split('\n');
+                const delimiter = detectDelimiter(data);
+                const result = [];
+                
+                // Skip header
+                for (let i = 1; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (!line) continue;
+                    
+                    const parts = line.split(delimiter).map(part => part.trim());
+                    if (parts.length >= 3) {
+                        // Keep values as they are
+                        result.push({
+                            t_s: parts[0],
+                            power: parts[1],
+                            cadence: parts[2]
+                        });
+                    }
+                }
+                
+                return result;
+            }
+            
+            // Show error message
+            function showError(message) {
+                errorMessageDiv.textContent = message;
+                errorMessageDiv.style.display = 'block';
+            }
+            
+            // Show info message
+            function showInfo(message) {
+                infoMessageDiv.textContent = message;
+                infoMessageDiv.style.display = 'block';
+            }
+            
+            // Function to detect if a line contains multiple values in a single field
+            // (like "0;50;70" in a CSV where ; should be the delimiter between columns)
+            function detectCombinedValues(line, delimiter) {
+                const parts = line.split(delimiter);
+                
+                // Check if any part contains another common delimiter
+                for (const part of parts) {
+                    if (part.includes(';') || part.includes(',') || part.includes('\t')) {
+                        return true;
+                    }
+                }
+                
+                return false;
+            }
+
+            // Function to convert data
+            function convertData(rawData) {
+                const lines = rawData.split('\n');
+                if (lines.length < 2) {
+                    throw new Error('Not enough data lines found');
+                }
+                
+                // Check if the data has combined values (like "0;50;70")
+                const firstDataLine = lines[1].trim();
+                const primaryDelimiter = detectDelimiter(rawData);
+                const hasCombinedValues = detectCombinedValues(firstDataLine, primaryDelimiter);
+                
+                // If we have combined values, we need to handle that special case
+                if (hasCombinedValues) {
+                    return handleCombinedValues(rawData);
+                }
+                
+                // Check if GOTOES CSV format
+                const isGotoesFormat = lines[0].trim().startsWith('GOTOES_CSV');
+                
+                // Get header
+                const header = lines[0];
+                const headerParts = header.split(primaryDelimiter).map(h => h.trim().replace(/"/g, ''));
+                
+                // Define possible column name mappings
+                const powerColumnNames = ['power', 'p', 'leistung', 'normleistung', 'watt', 'w', 'ns1:watts', 'watts'];
+                const cadenceColumnNames = ['cadence', 'cad', 'trittfrequenz', 'trittfreq', 'rpm', 'kadenz', 'trittrate', 'ns1:cad'];
+                const timeColumnNames = ['time', 'timestamp', 'zeit', 'time2', 'datetime', 't_s'];
+                
+                // Find indexes for important columns
+                let powerIndex = -1;
+                let cadenceIndex = -1;
+                let timeIndex = -1;
+                
+                // Try to find matching column names
+                for (let i = 0; i < headerParts.length; i++) {
+                    const columnName = headerParts[i].toLowerCase();
+                    
+                    // Look for power columns
+                    for (const name of powerColumnNames) {
+                        if (columnName === name || columnName.includes(name)) {
+                            powerIndex = i;
+                            break;
+                        }
+                    }
+                    
+                    // Look for cadence columns
+                    for (const name of cadenceColumnNames) {
+                        if (columnName === name || columnName.includes(name)) {
+                            cadenceIndex = i;
+                            break;
+                        }
+                    }
+                    
+                    // Look for time columns
+                    for (const name of timeColumnNames) {
+                        if (columnName === name || columnName.includes(name)) {
+                            timeIndex = i;
+                            break;
+                        }
+                    }
+                }
+                
+                // Special case for GOTOES format
+                if (isGotoesFormat) {
+                    // For GOTOES format, power is typically the 9th column (index 8) and cadence is 6th column (index 5)
+                    const gotoesHeader = headerParts.map(h => h.toLowerCase());
+                    
+                    // Find power and cadence in GOTOES format
+                    if (gotoesHeader.includes('power')) {
+                        powerIndex = gotoesHeader.indexOf('power');
+                    } else {
+                        // Default power position in GOTOES
+                        powerIndex = 8;
+                    }
+                    
+                    if (gotoesHeader.includes('cadence')) {
+                        cadenceIndex = gotoesHeader.indexOf('cadence');
+                    } else {
+                        // Default cadence position in GOTOES
+                        cadenceIndex = 5;
+                    }
+                }
+                
+                // Special case for example files provided
+                // Check for ns1:Watts as power and Cadence as cadence
+                if (headerParts.includes('ns1:Watts') && headerParts.includes('Cadence')) {
+                    powerIndex = headerParts.indexOf('ns1:Watts');
+                    cadenceIndex = headerParts.indexOf('Cadence');
+                }
+                
+                // Check if any of the required columns were found
+                if (powerIndex === -1 && cadenceIndex === -1) {
+                    showError('Could not find power or cadence columns. Please ensure your data has these columns.');
+                    return [];
+                }
+                
+                // Extract data
+                const data = [];
+                
+                // Start from correct line based on format
+                const startLine = isGotoesFormat ? 1 : 1;
+                
+                let timeCounter = 1; // Start time counter for cases where time is not provided
+                
+                for (let i = startLine; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (!line) continue;
+                    
+                    const parts = line.split(primaryDelimiter).map(part => part.trim().replace(/"/g, ''));
+                    
+                    // Extract time, power, and cadence if the columns exist
+                    const time = timeIndex >= 0 && timeIndex < parts.length && parts[timeIndex] !== '' 
+                        ? parts[timeIndex] : timeCounter.toString();
+                    
+                    const power = powerIndex >= 0 && powerIndex < parts.length && parts[powerIndex] !== '' 
+                        ? parts[powerIndex] : '';
+                    
+                    const cadence = cadenceIndex >= 0 && cadenceIndex < parts.length && parts[cadenceIndex] !== '' 
+                        ? parts[cadenceIndex] : '';
+                    
+                    // Only add rows with valid data
+                    if (power !== '' || cadence !== '') {
+                        data.push({
+                            t_s: time,
+                            power: power,
+                            cadence: cadence
+                        });
+                        
+                        // Increment time counter only if we're using the counter for time
+                        if (timeIndex < 0 || timeIndex >= parts.length || parts[timeIndex] === '') {
+                            timeCounter++;
+                        }
+                    }
+                }
+                
+                return data;
+            }
+            
+            // Function to handle combined values in a single field
+            function handleCombinedValues(rawData) {
+                const lines = rawData.split('\n');
+                const result = [];
+                
+                // Determine the secondary delimiter (inside fields)
+                const firstDataLine = lines[1].trim();
+                const secondaryDelimiter = firstDataLine.includes(';') ? ';' : 
+                                           firstDataLine.includes(',') ? ',' : '\t';
+                
+                // Process header
+                const header = lines[0].trim();
+                const primaryDelimiter = detectDelimiter(rawData);
+                const headerColumns = header.split(primaryDelimiter);
+                
+                // Skip header row
+                for (let i = 1; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (!line) continue;
+                    
+                    const parts = line.split(primaryDelimiter);
+                    
+                    // Check if first field contains time, power, cadence values
+                    if (parts.length > 0 && parts[0].includes(secondaryDelimiter)) {
+                        const values = parts[0].split(secondaryDelimiter);
+                        
+                        // If we have at least 3 values, assume time, power, cadence
+                        if (values.length >= 3) {
+                            result.push({
+                                t_s: values[0].trim(),
+                                power: values[1].trim(),
+                                cadence: values[2].trim()
+                            });
+                        }
+                    }
+                }
+                
+                if (result.length === 0) {
+                    // If the split didn't work, try another approach
+                    // Process each line and look for patterns like "0;50;70"
+                    for (let i = 1; i < lines.length; i++) {
+                        const line = lines[i].trim();
+                        if (!line) continue;
+                        
+                        // Try to find strings that match pattern: number;number;number
+                        const matches = line.match(/(\d+)[;,](\d+)[;,](\d+)/);
+                        if (matches && matches.length >= 4) {
+                            result.push({
+                                t_s: matches[1],
+                                power: matches[2],
+                                cadence: matches[3]
+                            });
+                        }
+                    }
+                }
+                
+                return result;
+            }
+
+            // Function to display preview
+            function displayPreview(data) {
+                outputBody.innerHTML = '';
+                
+                // Show only first 100 rows in preview to avoid browser slowdown
+                const displayData = data.slice(0, 100);
+                
+                displayData.forEach(row => {
+                    const tr = document.createElement('tr');
+                    
+                    const tdTime = document.createElement('td');
+                    tdTime.textContent = row.t_s;
+                    tr.appendChild(tdTime);
+                    
+                    const tdPower = document.createElement('td');
+                    tdPower.textContent = row.power;
+                    tr.appendChild(tdPower);
+                    
+                    const tdCadence = document.createElement('td');
+                    tdCadence.textContent = row.cadence;
+                    tr.appendChild(tdCadence);
+                    
+                    outputBody.appendChild(tr);
+                });
+                
+                if (data.length > 100) {
+                    const tr = document.createElement('tr');
+                    const td = document.createElement('td');
+                    td.colSpan = 3;
+                    td.textContent = `... (${data.length - 100} more rows)`;
+                    td.style.textAlign = 'center';
+                    td.style.fontStyle = 'italic';
+                    tr.appendChild(td);
+                    outputBody.appendChild(tr);
+                }
+            }
+
+            // Function to download csv file
+            function downloadCsv(data) {
+                // Create csv content
+                let csvContent = 't_s,power,cadence\n';
+                
+                data.forEach(row => {
+                    csvContent += `${row.t_s},${row.power},${row.cadence}\n`;
+                });
+                
+                // Create and download file
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                
+                // Create filename - either based on original file or current date
+                let downloadFilename;
+                if (originalFileName) {
+                    downloadFilename = `${originalFileName}_converted.csv`;
+                } else {
+                    const date = new Date();
+                    const dateString = date.toISOString().replace(/[:.]/g, '-').substring(0, 19);
+                    downloadFilename = `converted_data_${dateString}.csv`;
+                }
+                
+                a.download = downloadFilename;
+                
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+        });
+    </script>
+</body>
+</html>

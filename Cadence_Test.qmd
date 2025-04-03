@@ -1,5 +1,5 @@
 ---
-title: "Cadence Test"
+title: "Cadence Tests"
 format:
   html:
     resources: 
@@ -17,7 +17,6 @@ execute:
   error: false
   
 bibliography: references_all.bib
-lang: eng
 number-sections: false
 editor: 
   markdown: 
@@ -988,7 +987,7 @@ predicted_cubic <- cubic_model(df_DT1_SS$avg_rpm)
 r2_0watt_cubic <- round(calculate_r_squared(df_DT1_SS$VO2_SS, predicted_cubic), 4)
 
 # Complete equation: y = ax³ + y0
-eq_0watt_cubic <- sprintf("V̇O<sub>2,SS-0Watt</sub> = %.6f·Cadence<sup>3</sup> + %.2f", 
+eq_0watt_cubic <- sprintf("V̇O<sub>2,SS-0 Watt</sub> (Cadence) = %.6f·Cadence<sup>3</sup> + %.2f", 
                           coef_0watt_cubic, first_vo2_0watt)
 
 # 2. Model: Cubic + Linear with fixed y-intercept at first point
@@ -1001,7 +1000,7 @@ predicted_cubic_linear <- cubic_linear_model(df_DT1_SS$avg_rpm)
 r2_0watt_cubic_linear <- round(calculate_r_squared(df_DT1_SS$VO2_SS, predicted_cubic_linear), 4)
 
 # Complete equation: y = ax + bx³ + y0
-eq_0watt_cubic_linear <- sprintf("V̇O<sub>2,SS-0Watt</sub> = %.2f·Cadence + %.6f·Cadence<sup>3</sup> + %.2f", 
+eq_0watt_cubic_linear <- sprintf("V̇O<sub>2,SS-0 Watt</sub> (Cadence) = %.2f·Cadence + %.6f·Cadence<sup>3</sup> + %.2f", 
                                  coef_0watt_cubic_linear[1], coef_0watt_cubic_linear[2], first_vo2_0watt)
 
 # 3. Model: Parabolic function (y = ax² + bx + c) without constraints
@@ -1010,7 +1009,7 @@ coef_0watt_parabolic <- coef(model_0watt_parabolic)
 r2_0watt_parabolic <- round(summary(model_0watt_parabolic)$r.squared, 4)
 
 # Complete equation: y = ax² + bx + c
-eq_0watt_parabolic <- sprintf("V̇O<sub>2,SS-0Watt</sub> = %.6f·Cadence<sup>2</sup> + %.2f·Cadence + %.2f", 
+eq_0watt_parabolic <- sprintf("V̇O<sub>2,SS-0 Watt</sub> (Cadence) = %.6f·Cadence<sup>2</sup> + %.2f·Cadence + %.2f", 
                               coef_0watt_parabolic[2], coef_0watt_parabolic[3], coef_0watt_parabolic[1])
 
 # Parabola model for 200 Watt points (y = ax² + bx + c)
@@ -1018,7 +1017,7 @@ model_200watt <- lm(VO2_SS ~ I(avg_rpm^2) + avg_rpm,
                     data = df_DT2_SS[-c(1, 2, nrow(df_DT2_SS)), ])
 r2_200watt <- round(summary(model_200watt)$r.squared, 4)
 coef_200watt <- coef(model_200watt)
-eq_200watt <- sprintf("V̇O<sub>2,SS-200Watt</sub> = %.2f·Cadence<sup>2</sup> + %.2f·Cadence + %.2f", 
+eq_200watt <- sprintf("V̇O<sub>2,SS-200 Watt</sub> (Cadence) = %.2f·Cadence<sup>2</sup> + %.2f·Cadence + %.2f", 
                       coef_200watt[2], coef_200watt[3], coef_200watt[1])
 
 # Create interpolation data with 0.1 step size (extended to 200 rpm)
@@ -1195,7 +1194,7 @@ plot_all <- plot_ly() %>%
     ),
     showlegend = TRUE,
     legend = list(
-      x = 0.07,
+      x = 0.09,
       y = 1.00,
       xanchor = "left",
       yanchor = "top",
@@ -1204,7 +1203,7 @@ plot_all <- plot_ly() %>%
     annotations = list(
       # 0 Watt Model 1 (Cubic)
       list(
-        x = 0.23,
+        x = 0.25,
         y = 6000 + 800,
         text = eq_0watt_cubic,
         showarrow = FALSE,
@@ -1215,7 +1214,7 @@ plot_all <- plot_ly() %>%
         yref = "y"
       ),
       list(
-        x = 0.23,
+        x = 0.25,
         y = 5700 + 800,
         text = paste("R<sup>2</sup> =", r2_0watt_cubic),
         showarrow = FALSE,
@@ -1228,7 +1227,7 @@ plot_all <- plot_ly() %>%
       
       # 0 Watt Model 2 (Cubic + Linear)
       list(
-        x = 0.23,
+        x = 0.25,
         y = 5400 + 800,
         text = eq_0watt_cubic_linear,
         showarrow = FALSE,
@@ -1239,7 +1238,7 @@ plot_all <- plot_ly() %>%
         yref = "y"
       ),
       list(
-        x = 0.23,
+        x = 0.25,
         y = 5100 + 800,
         text = paste("R<sup>2</sup> =", r2_0watt_cubic_linear),
         showarrow = FALSE,
@@ -1252,7 +1251,7 @@ plot_all <- plot_ly() %>%
       
       # 0 Watt Model 3 (Parabolic)
       list(
-        x = 0.23,
+        x = 0.25,
         y = 4800 + 800,
         text = eq_0watt_parabolic,
         showarrow = FALSE,
@@ -1263,7 +1262,7 @@ plot_all <- plot_ly() %>%
         yref = "y"
       ),
       list(
-        x = 0.23,
+        x = 0.25,
         y = 4500 + 800,
         text = paste("R<sup>2</sup> =", r2_0watt_parabolic),
         showarrow = FALSE,
@@ -1276,7 +1275,7 @@ plot_all <- plot_ly() %>%
       
       # 200 Watt Model annotations
       list(
-        x = 0.23,
+        x = 0.25,
         y = 4200 + 800,
         text = eq_200watt,
         showarrow = FALSE,
@@ -1287,7 +1286,7 @@ plot_all <- plot_ly() %>%
         yref = "y"
       ),
       list(
-        x = 0.23,
+        x = 0.25,
         y = 3900 + 800,
         text = paste("R<sup>2</sup> =", r2_200watt),
         showarrow = FALSE,
@@ -1300,7 +1299,7 @@ plot_all <- plot_ly() %>%
       
       # CE curve annotation
       list(
-        x = 0.23,
+        x = 0.25,
         y = 3600 + 800,
         text = "CE = V̇O<sub>2,Diff</sub> / 200W",
         showarrow = FALSE,
@@ -1339,7 +1338,7 @@ predicted_cubic_linear <- cubic_linear_model(df_DT1_SS$avg_rpm)
 r2_0watt_cubic_linear <- round(calculate_r_squared(df_DT1_SS$VO2_SS, predicted_cubic_linear), 4)
 
 # Complete equation: y = ax + bx³ + y0
-eq_0watt_cubic_linear <- sprintf("V̇O<sub>2,SS-0Watt</sub> = %.2f·Cadence + %.6f·Cadence<sup>3</sup> + %.2f", 
+eq_0watt_cubic_linear <- sprintf("V̇O<sub>2,SS-0 Watt</sub> (Cadence) = %.2f·Cadence + %.6f·Cadence<sup>3</sup> + %.2f", 
                                  coef_0watt_cubic_linear[1], coef_0watt_cubic_linear[2], first_vo2_0watt)
 
 # Parabola model for 200 Watt points (y = ax² + bx + c)
@@ -1347,7 +1346,7 @@ model_200watt <- lm(VO2_SS ~ I(avg_rpm^2) + avg_rpm,
                     data = df_DT2_SS[-c(1, 2, nrow(df_DT2_SS)), ])
 r2_200watt <- round(summary(model_200watt)$r.squared, 4)
 coef_200watt <- coef(model_200watt)
-eq_200watt <- sprintf("V̇O<sub>2,SS-200Watt</sub> = %.2f·Cadence<sup>2</sup> + %.2f·Cadence + %.2f", 
+eq_200watt <- sprintf("V̇O<sub>2,SS-200 Watt</sub> (Cadence) = %.2f·Cadence<sup>2</sup> + %.2f·Cadence + %.2f", 
                       coef_200watt[2], coef_200watt[3], coef_200watt[1])
 
 # Create interpolation data with 0.1 step size (extended to 200 rpm)
@@ -1642,7 +1641,7 @@ plot2
 
 ```{r}
 #| label: fig-CT_0_vs_200_all
-#| fig-cap: "VO<sub>2,SS</sub> x Cadence at 0 and 200 Watt"
+#| fig-cap: "VO<sub>2,SS</sub> x Cadence + Cycline Efficiency at 0 and 200 Watt"
 #| fig-cap-location: top
 #| fig-height: 7
 
@@ -1651,7 +1650,7 @@ plot_all
 
 ```{r}
 #| label: fig-CT_0_vs_200
-#| fig-cap: "VO<sub>2,SS</sub> x Cadence at 0 and 200 Watt"
+#| fig-cap: "VO<sub>2,SS</sub> x Cadence + Cycline Efficiency at 0 and 200 Watt"
 #| fig-cap-location: top
 #| fig-height: 7
 

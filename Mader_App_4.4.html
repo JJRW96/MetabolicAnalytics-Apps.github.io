@@ -1056,13 +1056,32 @@
                     </label>
                 </div>
                   
-                  <div class="checkbox-container">
-                      <label class="fancy-checkbox">
-                          <input type="checkbox" id="smooth_power" name="smooth_power">
-                          <span class="checkmark"></span>
-                          Smooth power curve (15-point window)
-                      </label>
-                  </div>
+                <button id="smooth_power" type="button">Smooth Power Curve (10-point window)</button>
+
+                <div class="control-group">
+                    <div class="header-section">
+                        <div class="control-label">View Time Window</div>
+                        <div class="tooltip info-icon">ⓘ
+                            <span class="tooltiptext">Adjust the time window displayed in the plot without affecting the simulation calculations.</span>
+                        </div>
+                    </div>
+                    
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <label for="view_time_start">Start Time (s):</label>
+                            <span id="view_time_start-value" class="slider-value">0</span>
+                        </div>
+                        <input type="range" id="view_time_start" class="range-slider" min="0" max="3600" value="0" step="1">
+                    </div>
+                    
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <label for="view_time_end">End Time (s):</label>
+                            <span id="view_time_end-value" class="slider-value">3600</span>
+                        </div>
+                        <input type="range" id="view_time_end" class="range-slider" min="0" max="3600" value="3600" step="1">
+                    </div>
+                </div>
               </div>
 
               <div class="control-group">
@@ -1521,20 +1540,20 @@
         w_prime_balance_min: -5.0,
         use_w_prime_balance_abort: true,
         use_lactate_abort: false, 
-        
+        // View window state
+        view_time_start: 0,
+        view_time_end: 3600,
         // Substrate utilization parameters 
         show_substrate: false,
         energy_unit: "g/h",
         rest_kh_percentage: 20,
         show_kh_adjust: false,
         swap_axes: false, // Still in state but not shown in UI
-        
         // Cadence Dependency Tab 1
         cadence_dependent: false,
         cadence: 80,
         vo2max_dependent: false,
         vlamax_dependent: false,
-        
         // Tab 2 Parameters
         step_watt: 20,
         step_duration: 180,
@@ -1737,8 +1756,14 @@
             use_file_cadence: document.getElementById('use_file_cadence'),
             
             // Notification
-            notification: document.getElementById('notification')
-        };
+            notification: document.getElementById('notification'),
+
+            // View time window
+            view_time_start: document.getElementById('view_time_start'),
+            view_time_startValue: document.getElementById('view_time_start-value'),
+            view_time_end: document.getElementById('view_time_end'),
+            view_time_endValue: document.getElementById('view_time_end-value')
+            };
     
     // Tab switching logic
     elements.tabs.forEach(tab => {
@@ -3902,16 +3927,16 @@
             },
             margin: {l: 80, r: 80, t: 60, b: 80},
             xaxis: {
-                title: {
-                    text: "Time (s)",
-                    font: {
-                        size: 14
-                    }
-                },
-                range: [0, maxTimeValue],
-                showgrid: true,
-                gridcolor: 'rgba(200,200,200,0.2)'
+            title: {
+                text: "Time (s)",
+                font: {
+                    size: 14
+                }
             },
+            range: [appState.view_time_start, appState.view_time_end],
+            showgrid: true,
+            gridcolor: 'rgba(200,200,200,0.2)'
+        },
             yaxis: {
                 title: {
                     text: "Power (W) / Cadence (rpm) / Glycogen-Stores (g)",
@@ -4624,10 +4649,19 @@
         updateStepTestPlot();
     });
     
-    elements.smooth_power.addEventListener('change', function() {
-        appState.smooth_power = this.checked;
+elements.smooth_power.addEventListener('click', function() {
+    // Get current power data
+    const powerData = createPowerData();
+    
+    if (powerData && powerData.power && powerData.power.length > 10) {
+        // Apply 10-point window smoothing
+        appState.power_data.power = smoothData(powerData.power, 10);
+        showNotification("Power curve smoothed with 10-point window", 'info');
         updateStepTestPlot();
-    });
+    } else {
+        showNotification("Not enough data points to smooth", 'warning');
+    }
+});
     
     elements.has_header.addEventListener('change', function() {
         appState.has_header = this.checked;
@@ -4755,6 +4789,26 @@ showNotification("Example interval data loaded with cadence values", 'info');
 
 // Update plot
 updateStepTestPlot();
+
+// Update time window sliders for example data
+if (appState.interval_data && appState.interval_data.length > 0) {
+    const timePoints = appState.interval_data.map(d => d.time_s);
+    const minTime = Math.min(...timePoints);
+    const maxTime = Math.max(...timePoints);
+    
+    // Update slider ranges
+    elements.view_time_start.min = minTime;
+    elements.view_time_start.max = maxTime;
+    elements.view_time_start.value = minTime;
+    appState.view_time_start = minTime;
+    elements.view_time_startValue.textContent = minTime;
+    
+    elements.view_time_end.min = minTime;
+    elements.view_time_end.max = maxTime;
+    elements.view_time_end.value = maxTime;
+    appState.view_time_end = maxTime;
+    elements.view_time_endValue.textContent = maxTime;
+}
 });
 
 
@@ -4806,23 +4860,6 @@ function findColumnIndices(headers) {
     // Find cadence column
     let cadenceIdx = normalizedHeaders.indexOf("cadence");
     
-    // For GOTOES CSV, if columns not found, try to find them by position
-    // This is a fallback for files with many columns
-    if (timeIdx === -1 && normalizedHeaders.length > 10 && normalizedHeaders.includes("gotoes_csv")) {
-        // In GOTOES format, timestamp is typically the 2nd column
-        timeIdx = 1;
-    }
-    
-    if (powerIdx === -1 && normalizedHeaders.length > 10 && normalizedHeaders.includes("gotoes_csv")) {
-        // In GOTOES format, power is typically the 10th column
-        powerIdx = 9;
-    }
-    
-    if (cadenceIdx === -1 && normalizedHeaders.length > 10 && normalizedHeaders.includes("gotoes_csv")) {
-        // In GOTOES format, cadence is typically the 7th column
-        cadenceIdx = 6;
-    }
-    
     console.log("Column indices - Time:", timeIdx, "Power:", powerIdx, "Cadence:", cadenceIdx);
     
     return { timeIdx, powerIdx, cadenceIdx };
@@ -4850,9 +4887,7 @@ function validateCadence(value) {
 
 // Function to process CSV data
 function processCSVData(contents) {
-    // Check for GOTOES format
-    const isGOTOES = contents.includes("GOTOES_CSV");
-    
+
     // Detect delimiter (try to be smarter about it)
     let delimiter = ';';
     const firstLine = contents.split('\n')[0];
@@ -4868,10 +4903,10 @@ function processCSVData(contents) {
         delimiter = '\t';
     }
     
-    console.log("Detected delimiter:", delimiter, "Is GOTOES format:", isGOTOES);
+    console.log("Detected delimiter:", delimiter);
     
     const rows = contents.split('\n');
-    return { rows, delimiter, isGOTOES };
+    return { rows, delimiter };
 }
 
 // Function to process XLSX data
@@ -4951,15 +4986,15 @@ elements.power_data.addEventListener('change', function(e) {
         const reader = new FileReader();
         reader.onload = function(e) {
             const contents = e.target.result;
-            const { rows, delimiter, isGOTOES } = processCSVData(contents);
-            processFileData(rows, delimiter, file.name, isGOTOES);
+            const { rows, delimiter } = processCSVData(contents);
+            processFileData(rows, delimiter, file.name);
         };
         reader.readAsText(file);
     }
 });
 
 // Function to process file data regardless of source
-function processFileData(rows, delimiter, fileName, isGOTOES = false) {
+function processFileData(rows, delimiter, fileName) {
     try {
         console.log("Processing file:", fileName);
         console.log("First few rows:", rows.slice(0, 3));
@@ -4992,14 +5027,6 @@ function processFileData(rows, delimiter, fileName, isGOTOES = false) {
             if (indices.powerIdx !== -1) powerIdx = indices.powerIdx;
             if (indices.cadenceIdx !== -1) cadenceIdx = indices.cadenceIdx;
             
-            // Special handling for GOTOES format
-            if (isGOTOES) {
-                console.log("Handling GOTOES format with specific column indices");
-                // In GOTOES format, these are the typical column positions
-                if (indices.timeIdx === -1) timeIdx = 1; // timestamp is column 2
-                if (indices.powerIdx === -1) powerIdx = 9; // power is column 10
-                if (indices.cadenceIdx === -1) cadenceIdx = 6; // cadence is column 7
-            }
         }
         
         console.log("Using columns - Time:", timeIdx, "Power:", powerIdx, "Cadence:", cadenceIdx);
@@ -5131,6 +5158,25 @@ function processFileData(rows, delimiter, fileName, isGOTOES = false) {
                 cadence: cadence
             };
             
+            // Update time window sliders
+            if (appState.power_data && appState.power_data.time_s && appState.power_data.time_s.length > 0) {
+                const minTime = Math.min(...appState.power_data.time_s);
+                const maxTime = Math.max(...appState.power_data.time_s);
+                
+                // Update slider ranges
+                elements.view_time_start.min = minTime;
+                elements.view_time_start.max = maxTime;
+                elements.view_time_start.value = minTime;
+                appState.view_time_start = minTime;
+                elements.view_time_startValue.textContent = minTime;
+                
+                elements.view_time_end.min = minTime;
+                elements.view_time_end.max = maxTime;
+                elements.view_time_end.value = maxTime;
+                appState.view_time_end = maxTime;
+                elements.view_time_endValue.textContent = maxTime;
+            }
+
             // Show notification
             let message = `${time_s.length} data points loaded and interpolated to 1-second intervals`;
             if (hasCadenceData) {
@@ -5242,6 +5288,29 @@ function processFileData(rows, delimiter, fileName, isGOTOES = false) {
     const initialDeltaEta = calculateDeltaEfficiency(appState.CEVO2);
     document.getElementById('delta-eta-value').textContent = 
         `${initialDeltaEta.min.toFixed(1)}-${initialDeltaEta.max.toFixed(1)}%`;
+
+    // Event Listeners für Zeitfenster-Slider
+    elements.view_time_start.addEventListener('input', function() {
+        appState.view_time_start = parseInt(this.value);
+        // Ensure start time is less than end time
+        if (appState.view_time_start >= appState.view_time_end) {
+            appState.view_time_start = appState.view_time_end - 1;
+            this.value = appState.view_time_start;
+        }
+        elements.view_time_startValue.textContent = appState.view_time_start;
+        updateStepTestPlot();
+    });
+
+    elements.view_time_end.addEventListener('input', function() {
+        appState.view_time_end = parseInt(this.value);
+        // Ensure end time is greater than start time
+        if (appState.view_time_end <= appState.view_time_start) {
+            appState.view_time_end = appState.view_time_start + 1;
+            this.value = appState.view_time_end;
+        }
+        elements.view_time_endValue.textContent = appState.view_time_end;
+        updateStepTestPlot();
+    });
     
     // Update plot once more to ensure everything is correct
     updateStepTestPlot();
