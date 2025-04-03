@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FIT/FIT.gz zu CSV Konverter (Komplett Offline)</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+            line-height: 1.6;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-width: 600px;
+            margin: 20px auto;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        input[type="file"] {
+            display: block;
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: calc(100% - 22px); /* Adjust width considering padding and border */
+        }
+         input[type="file"]::file-selector-button {
+            margin-right: 10px;
+            padding: 8px 12px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+         }
+         input[type="file"]::file-selector-button:hover {
+             background-color: #2980b9;
+         }
+        button {
+            display: block;
+            width: 100%;
+            padding: 12px 20px;
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #27ae60;
+        }
+        button:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+        }
+        #status {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #ecf0f1;
+            border-radius: 4px;
+            border: 1px solid #bdc3c7;
+            min-height: 30px; /* Ensure space even when empty */
+            word-wrap: break-word; /* Prevent long error messages from overflowing */
+        }
+        #downloadLinkContainer {
+             margin-top: 20px;
+             text-align: center;
+        }
+         #downloadLinkContainer a {
+             display: inline-block;
+             padding: 10px 15px;
+             background-color: #3498db;
+             color: white;
+             text-decoration: none;
+             border-radius: 4px;
+             transition: background-color 0.3s ease;
+         }
+         #downloadLinkContainer a:hover {
+            background-color: #2980b9;
+         }
+    </style>
+
+    <script>
+!function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var t;t="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof self?self:this,t.pako=e()}}(function(){return function e(t,r,i){function n(s,a){if(!r[s]){if(!t[s]){var c="function"==typeof require&&require;if(!a&&c)return c(s,!0);if(o)return o(s,!0);var u=new Error("Cannot find module '"+s+"'");throw u.code="MODULE_NOT_FOUND",u}var h=r[s]={exports:{}};t[s][0].call(h.exports,function(e){var r=t[s][1][e];return n(r||e)},h,h.exports,e,t,r,i)}return r[s].exports}for(var o="function"==typeof require&&require,s=0;s<i.length;s++)n(i[s]);return n}({1:[function(e,t,r){"use strict";const i=e("./zlib/inflate"),n=e("./utils/common"),o=e("./utils/strings"),s=e("./zlib/constants"),a={Inflate:i.Inflate,deflate:null,deflateRaw:null,gzip:null,gzipRaw:null,inflate:i.inflate,inflateRaw:i.inflateRaw,ungzip:i.inflate,constants:s};n.assign(a,{assign:n.assign,flattenChunks:n.flattenChunks,msg:n.msg,string2buf:n.string2buf,buf2string:n.buf2string,utf8border:o.utf8border,struncate:o.struncate}),t.exports=a},{
+"./utils/common":2,"./utils/strings":3,"./zlib/constants":5,"./zlib/inflate":11}],2:[function(e,t,r){"use strict";const i="undefined"!=typeof Uint8Array&&"undefined"!=typeof Uint16Array&&"undefined"!=typeof Int32Array;r.assign=function(e){const t=Array.prototype.slice.call(arguments,1);for(;t.length;){const r=t.shift();if(r){if("object"!=typeof r)throw new TypeError(r+"must be object");for(const t in r)Object.prototype.hasOwnProperty.call(r,t)&&(e[t]=r[t])}}return e},r.flattenChunks=e=>{let t=0;for(let r=0,i=e.length;r<i;r++)t+=e[r].length;const i=new Uint8Array(t);t=0;for(let r=0,n=e.length;r<n;r++){let n=e[r];i.set(n,t),t+=n.length}return i},r.msg=function(e,t){let r=e;if(!t)return"";r+=" (",r+=t.toString(),r+=")",r+=" "+({1:"Need dictionary",0:"Stream end",["-1"]:"File error",["-2"]:"Stream error",["-3"]:"Data error",["-4"]:"Insufficient memory",["-5"]:"Buffer error",["-6"]:"Incompatible version"})[e],r+=e.message||""}let n=new Uint8Array(0);r.string2buf=function(e){let t=e.length,r=0;const i=new Uint8Array(4*t);for(let n=0;n<t;n++){let t=e.charCodeAt(n);if(t>=55296&&t<=57343){const i=e.charCodeAt(n+1);if(n++,t>=55296&&t<=56319&&i>=56320&&i<=57343)t=1024*(t-55296)+i-56320+65536}if(128>t)i[r++]=t;else if(2048>t)i[r++]=192|t>>>6,i[r++]=128|63&t;else if(65536>t)i[r++]=224|t>>>12,i[r++]=128|t>>>6&63,i[r++]=128|63&t;else{if(!(2097152>t))throw new Error("Invalid code point");i[r++]=240|t>>>18,i[r++]=128|t>>>12&63,i[r++]=128|t>>>6&63,i[r++]=128|63&t}}return i.subarray(0,r)},r.buf2binstring=function(e){let t="";for(let r=0,i=e.length;r<i;r++)t+=String.fromCharCode(e[r]);return t},r.buf2string=function(e,t){let r,i,o="",s=0;const a=t||e.length,c=new Uint16Array(32768);for(;;){try{i=s+32768>a?a:s+32768,r=e.subarray(s,i);break}catch(u){r=e.slice(s,i)}s+=32768;if(s>=a)break}for(let t=0,n=r.length;t<n;t++){let e=r[t];if(128>e)o+=String.fromCharCode(e);else if(224>e)o+=String.fromCharCode((31&e)<<6|63&r[++t]);else if(240>e)o+=String.fromCharCode((15&e)<<12|(63&r[++t])<<6|63&r[++t]);else{let i=r[++t];o+=String.fromCharCode(((7&e)<<18|(63&i)<<12|(63&r[++t])<<6|63&r[++t])-65536)}}return o},r.utf8border=(e,t)=>{let r=t||e.length;r>e.length&&(r=e.length);let i=r-1;for(;i>=0&&128==(192&e[i]);)i--;return 0>i?r:0===i?r:i+([0,0,0,0,1,1,1,1,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,6,6,6,6])[e[i]]>r?i:r}},{
+"./zlib/constants":5,"./zlib/inflate":11,"./zlib/zstream":13}],3:[function(e,t,r){"use strict";r.struncate=(e,t)=>{if(!(t>=0&&~~t===t))return e;if(!(e&&"string"==typeof e))return e;t=~~t||256;let r="",i=0,n=0;const o=e.length;for(;i<o&&n<t;){let t=e.charCodeAt(i++);if(t>=55296&&t<=56319&&i<o){const n=e.charCodeAt(i);n>=56320&&n<=57343?(r+=e[i-1]+e[i],i++):r+=e[i-1]}else r+=e[i-1];n++}return r}},{
+"./utils/common":2,"./utils/strings":3,"./zlib/adler32":4,"./zlib/crc32":6,"./zlib/deflate":7,"./zlib/gzheader":8,"./zlib/inffast":9,"./zlib/inftrees":10,"./zlib/inflate":11,"./zlib/messages":12,"./zlib/zstream":13}],4:[function(e,t,r){"use strict";t.exports=(e,t,r,i)=>{let n=65535&e|0,o=e>>>16&65535|0,s=0;for(;0!==r;){s=r>2e3?2e3:r,r-=s;do{n+=t[i++],o+=n}while(--s);n%=65521,o%=65521}return n|o<<16|0}},{
+"./zlib/adler32":4,"./zlib/crc32":6,"./zlib/deflate":7,"./zlib/gzheader":8,"./zlib/inffast":9,"./zlib/inftrees":10,"./zlib/inflate":11,"./zlib/messages":12,"./zlib/zstream":13}],5:[function(e,t,r){"use strict";t.exports={Z_NO_FLUSH:0,Z_PARTIAL_FLUSH:1,Z_SYNC_FLUSH:2,Z_FULL_FLUSH:3,Z_FINISH:4,Z_BLOCK:5,Z_TREES:6,Z_OK:0,Z_STREAM_END:1,Z_NEED_DICT:2,Z_ERRNO:-1,Z_STREAM_ERROR:-2,Z_DATA_ERROR:-3,Z_MEM_ERROR:-4,Z_BUF_ERROR:-5,Z_VERSION_ERROR:-6,Z_NO_COMPRESSION:0,Z_BEST_SPEED:1,Z_BEST_COMPRESSION:9,Z_DEFAULT_COMPRESSION:-1,Z_FILTERED:1,Z_HUFFMAN_ONLY:2,Z_RLE:3,Z_FIXED:4,Z_DEFAULT_STRATEGY:0,Z_BINARY:0,Z_TEXT:1,Z_ASCII:1,Z_UNKNOWN:2,Z_DEFLATED:8}},{
+"./zlib/constants":5}],6:[function(e,t,r){"use strict";let i=null;t.exports=(e,t,r,n)=>{let o=i||(i=function(){let e=new Uint32Array(256);for(let t=0;t<256;t++){let r=t;for(let i=0;i<8;i++)r=1&r?3988292384^r>>>1:r>>>1;e[t]=r}return e}());let s=n+r;e^=-1;for(let r=n;r<s;r++)e=e>>>8^o[255&(e^t[r])];return-1^e}},{
+"./zlib/adler32":4,"./zlib/crc32":6,"./zlib/deflate":7,"./zlib/gzheader":8,"./zlib/inffast":9,"./zlib/inftrees":10,"./zlib/inflate":11,"./zlib/messages":12,"./zlib/zstream":13}],7:[function(e,t,r){"use strict"},{
+"./utils/common":2,"./zlib/trees":14,"./zlib/adler32":4,"./zlib/crc32":6,"./zlib/messages":12}],8:[function(e,t,r){"use strict";t.exports=class{constructor(){this.text=0,this.time=0,this.xflags=0,this.os=0,this.extra=null,this.extra_len=0,this.name="",this.comment="",this.hcrc=0,this.done=false}}},{}],9:[function(e,t,r){"use strict";const i=15,n=852,o=592;t.exports=function(e,t){let r,s,a,c,u,h,f,l,_,d,g,p,b,m,w,v,y,k,x,S,z,E,C,N;const B=e.state;r=e.next_in,E=e.input,s=r+e.avail_in,a=e.next_out,C=e.output,c=a+e.avail_out,u=B.dmax,h=B.wsize,f=B.whave,l=B.wnext,_=B.window,d=B.hold,g=B.bits,p=B.lencode,b=B.distcode,m=B.lenbits,w=B.distbits;let A=B.nlen,D=B.ndist,I=(1<<m)-1,U=(1<<w)-1;e:for(;;){let e=g;for(;e<i;){if(r>=s)break e;B.flags--,d+=E[r++]<<e,e+=8}if(e<B.have)break e;if(B.have=0,e-=B.have,B.flags&B.lencode?p:B.distcode,p[d&I].bits,B.flags=p[d&I].op,p[d&I].bits,p[d&I].val,v=p[d&I].bits,B.flags)for(;;){if(e-=v,d>>>v,y=b[d&U].bits,B.flags=b[d&U].op,B.flags)for(;;){if(e-=y,d>>>y,x=b[d&U].val,B.flags)for(;;){if(e-=y,d>>>y,k=b[d&U].bits,B.flags=b[d&U].op,B.flags)for(;;){if(e-=k,d>>>k,S=b[d&U].val,B.flags)for(;;){if(e-=k,d>>>k,z=b[d&U].bits,B.flags=b[d&U].op,B.flags)for(;;){if(e-=z,d>>>z,N=b[d&U].val,!(B.flags&64))throw new Error("invalid distance code");for(;;){if(B.lens[B.have]=N,B.have++,B.have>=B.nlen+B.ndist){B.mode=16;break e}let t=p[d&I].bits;if(!(e>=t))break;if(d&=I,B.flags=p[d&I].op,B.flags)for(;;){if(e-=t,d>>>t,y=b[d&U].bits,B.flags=b[d&U].op,B.flags)for(;;){if(e-=y,d>>>y,x=b[d&U].val,B.flags)for(;;){if(e-=y,d>>>y,k=b[d&U].bits,B.flags=b[d&U].op,B.flags)for(;;){if(e-=k,d>>>k,S=b[d&U].val,B.flags)for(;;){if(e-=k,d>>>k,z=b[d&U].bits,B.flags=b[d&U].op,B.flags)for(;;){if(e-=z,d>>>z,N=b[d&U].val,!(B.flags&64))throw new Error("invalid distance code");break}else N=b[d&U].val;break}else S=b[d&U].val;break}else k=b[d&U].val;break}else x=b[d&U].val;break}else y=b[d&U].val;break}else t=b[d&I].val}else t=b[d&I].val}}}else N=b[d&U].val}else S=b[d&U].val}else k=b[d&U].val}else x=b[d&U].val}else y=b[d&U].val}else v=b[d&I].val;for(;;){if(B.mode=7;break e}v=p[d&I].bits,d&=I,e<v&&(d+=E[r++]<<e,e+=8),B.flags=p[d&I].op,p[d&I].bits,p[d&I].val,y=p[d&I].bits,d>>>y,B.flags?k=p[d&I].val+258:(B.mode=12,e:for(;;){if(0===B.head)B.head=p;else B.mode=9;for(;;){if(0===B.len){B.mode=7;break e}B.len--,B.dist=p;break e}}),k=p[d&I].bits,B.flags=p[d&I].op,!(B.flags&64)){if(!(B.flags&32)){B.mode=7;break e}B.mode=16,e.next_in=r,e.avail_in=r<s?s-r:0,e.next_out=a,e.avail_out=a<c?c-a:0,B.hold=d,B.bits=e,e.msg=B.head?"Need dictionary":"Stream end";return B.mode=30,1}}}e.next_in=r,e.avail_in=r<s?s-r:0,e.next_out=a,e.avail_out=a<c?c-a:0,B.hold=d,B.bits=e}},{
+"./zlib/inftrees":10}],10:[function(e,t,r){"use strict";const i=e("./utils/common"),n=15,o=[3,4,5,6,7,8,9,10,11,13,15,17,19,23,27,31,35,43,51,59,67,83,99,115,131,163,195,227,258,0,0],s=[16,16,16,16,16,16,16,16,17,17,17,17,18,18,18,18,19,19,19,19,20,20,20,20,21,21,21,21,16,72,78],a=[1,2,3,4,5,7,9,13,17,25,33,49,65,97,129,193,257,385,513,769,1025,1537,2049,3073,4097,6145,8193,12289,16385,24577,0,0],c=[16,16,16,16,17,17,18,18,19,19,20,20,21,21,22,22,23,23,24,24,25,25,26,26,27,27,28,28,29,29,64,64];t.exports=(e,t,r,u,h,f,l,_)=>{let d,g,p,b,m,w,v,y,k,x=_.bits,S=0,z=0,E=0,C=0,N=0,B=0,A=0,D=0,I=0,U=0,Z=null;const T=new i.Buf16(n+1),O=new i.Buf16(n+1),M=new i.Buf16(n+1),F=new i.Buf16(n+1);for(S=0;S<=n;S++)T[S]=0;for(z=0;z<r;z++)T[e[t+z]]++;for(N=x,C=n;C>=1&&0===T[C];C--);if(N>C&&(N=C),0===C){h[f++]=new i.Buf32(2097152),h[f++]=new i.Buf32(2097152),_.bits=1;return 0}for(E=1;E<C&&0===T[E];E++);N<E&&(N=E);let L=1;for(S=1;S<=n;S++)if(L<<=1,L-=T[S],0>L)return-1;if(L>0&&(0===u||1!==C))return-1;for(O[1]=0,S=1;S<n;S++)O[S+1]=O[S]+T[S];for(z=0;z<r;z++)0!==e[t+z]&&(M[O[e[t+z]]++]=z);if(0===u?Z=k=M:(1===u?Z=o:Z=a,U=1===u?-1:0,B=0),S=0,z=0,E=N,m=f,w=x,A=0,p=-1,I=1<<x,D=I-1,1===u&&I>852||2===u&&I>592)return 1;let P;for(;;){v=E-A,M[z]<l?(y=0,P=M[z]):(M[z]>_?(y=Z[U+M[z]],P=s[U+M[z]]):(y=96,P=0)),d=1<<(E-A),g=1<<w;for(E=g;E>d;)g-=d,d<<=1;for(;g-=d,d<<=1,A+=w,w=E-A,M[z]<l?y=0:M[z]>_?y=Z[U+M[z]]:y=96,d=1<<(E-A),!(A+w<=N&&d>=g););if(p!==E){0===A&&(p=E),A=E;break}A=0}if(I+=1<<A,1===u&&I>852||2===u&&I>592)return 1;p=E,h[m]=new i.Buf32(I);const R=h[m];for(z=0;z<I;z++)R[z]=new i.Buf32(0);const V=h[m];for(z=0;;z++){if(M[z]<l?(y=0,P=M[z]):(M[z]>_?(y=Z[U+M[z]],P=s[U+M[z]]):(y=96,P=0)),d=1<<(E-A),g=1<<w,b=g,E-=A;b>d;)g-=d,d<<=1;if(b=1<<E,V[S]=E<<24|A<<16|P|0,S+=b,A=E+w,A+w<=N){for(E=A;;E++){if(b=1<<E,!(b>g))break}}else{E=A,V[S]=E<<24|A<<16|y|0,S+=d;continue}if(z===O[p])break}if(O[p]!==z)return-1;_.bits=p;return 0}},{
+"./utils/common":2}],11:[function(e,t,r){"use strict";const i=e("./utils/common"),n=e("./zlib/adler32"),o=e("./zlib/crc32"),s=e("./zlib/inflate_fast"),a=e("./zlib/inftrees"),c=1,u=2,h=3,f=4,l=5,_=6,d=7,g=8,p=9,b=10,m=11,w=12,v=13,y=14,k=15,x=16,S=17,z=18,E=19,C=20,N=21,B=22,A=23,D=24,I=25,U=26,Z=27,T=28,O=29,M=30,F=31,L=32,P=852,R=592,V=15,j=-1,W=-2,G=-3,H=-4,K=-5;function Q(){this.mode=0,this.last=false,this.wrap=0,this.havedict=false,this.flags=0,this.dmax=0,this.check=0,this.total=0,this.head=null,this.wbits=0,this.wsize=0,this.whave=0,this.wnext=0,this.window=null,this.hold=0,this.bits=0,this.length=0,this.offset=0,this.extra=0,this.lencode=null,this.distcode=null,this.lenbits=0,this.distbits=0,this.ncode=0,this.nlen=0,this.ndist=0,this.have=0,this.next=null,this.lens=new i.Buf16(320),this.work=new i.Buf16(288),this.codes=new i.Buf32(0),this.lendyn=null,this.distdyn=null,this.sane=0,this.back=0,this.was=0}const X=e=>{(e||(e={})).mode=12;const t=new Q;return t.window=null,t.mode=v,e.windowBits||(e.windowBits=V),e.dictionary?15>e.windowBits?(e.windowBits=15,t.mode=31,t.wrap=0):e.windowBits>V&&(t.mode=31,t.wrap=0,e.windowBits-=16):e.wrap&&(e.wrap!==c&&e.wrap!==u&&e.wrap!==h||(t.wrap=e.wrap)),t.wbits=e.windowBits,t.wsize=1<<t.wbits,t.dmax=t.wsize,t.wnext=0,t.whave=0,t};r.inflateReset=e=>{if(!e||!e.state)return W;const t=e.state;return t.wsize=0,t.whave=0,t.wnext=0,t.mode=v,t.last=0,t.havedict=0,t.dmax=32768,t.head=null,t.hold=0,t.bits=0,t.lencode=t.lendyn=new i.Buf32(P),t.distcode=t.distdyn=new i.Buf32(R),t.sane=1,t.back=-1,0},r.inflateReset2=(e,t)=>{let r;if(!e||!e.state)return W;const n=e.state;return t<-V||t>V?W:(t?(r=0,t<0&&(r=1,t=-t)):(r=1,t=V),n.wbits=t,n.wsize=1<<t,n.wrap=r,n.wnext=0,n.whave=0,r?r===h&&t>8?n.dmax=1<<t-8:n.dmax=1<<t:n.dmax=32768,r.inflateReset(e))},r.inflateResetKeep=e=>{if(!e||!e.state)return W;const t=e.state;return t.wsize=0,t.whave=0,t.wnext=0,t.mode=v,t.last=0,t.havedict=0,t.dmax=32768,t.head=null,t.hold=0,t.bits=0,t.lencode=t.lendyn=new i.Buf32(P),t.distcode=t.distdyn=new i.Buf32(R),t.sane=1,t.back=-1,0},r.inflateInit=e=>{const t=X(e);return t.mode===M?W:t},r.inflateInit2=(e,t)=>{let r=X(e);return r.mode===M?W:r.wbits=t,r.wsize=1<<r.wbits,r.dmax=r.wsize,r.wnext=0,r.whave=0,t<-V||t>V?W:r},r.inflate=(e,t)=>{let r,c,u,l,g,p,b,y,k,x,E,C,N,B,A,D,I,U,Z,T,O,M,F,L,P;const R=0,V=new i.Buf8(4);let $=new i.Buf8(1);V[2]=0,V[3]=0;let q=t===j?W:0;if(!e||!e.state||!e.output||!e.input&&0!==e.avail_in){e.msg="Stream statement error";return W}r=e.state;if(!r.window)return r.mode=31,W;p=e.next_in,F=e.input,b=e.avail_in,y=e.next_out,L=e.output,k=e.avail_out,x=r.hold,E=r.bits,C=r.wsize,N=r.window;let Y=r.wnext,J=r.whave;switch(r.mode){case v:if(0===r.wrap)r.mode=w;else{for(;E<16;){if(0===b)break switch;b--,x+=F[p++]<<E,E+=8}if(16&r.wrap&&x===35615){r.check=o(0,null,0,0),V[0]=255&x,V[1]=x>>>8&255,r.check=o(r.check,V,2,0),x=0,E=0,r.mode=f;break}if(!(r.wrap&1)&&(x&15)!==8)return e.msg="incorrect header check",r.mode=M,W;if(15&x||(E=0,r.mode=g),r.flags=0,r.head&&(r.head.done=false),!(r.wrap&1)||(255&x)>V||x>>8&255){e.msg="incorrect header check";return r.mode=M,W}r.wbits=255&x,r.dmax=1<<r.wbits,r.check=n(0,null,0,0),x=0,E=0,r.mode=g}break;case y:for(;E<32;){if(0===b)break switch;b--,x+=F[p++]<<E,E+=8}if(r.head&&(r.head.time=x),r.wrap&2&&32===E){V[0]=255&x,V[1]=x>>>8&255,V[2]=x>>>16&255,V[3]=x>>>24&255,r.check=o(r.check,V,4,0),x=0,E=0,r.mode=k}r.mode=S;case S:if(!(r.wrap&2))break;for(;E<16;){if(0===b)break switch;b--,x+=F[p++]<<E,E+=8}if(r.head&&(r.head.xflags=255&x,r.head.os=x>>8),r.wrap&2&&16===E&&(V[0]=255&x,V[1]=x>>>8&255,r.check=o(r.check,V,2,0)),x=0,E=0,r.mode=z)break;case z:if(!(r.wrap&2))break;for(;E<16;){if(0===b)break switch;b--,x+=F[p++]<<E,E+=8}if(r.head&&(r.head.extra_len=x),r.wrap&2&&16===E&&(V[0]=255&x,V[1]=x>>>8&255,r.check=o(r.check,V,2,0)),r.length=0,r.mode=E)break;case E:if(!(r.wrap&2))break;if(r.length=r.head?r.head.extra_len:0,r.length){for(let t=r.length;E<8&&t>0;){if(0===b)break switch;b--,x+=F[p++]<<E,E+=8,t--}r.head&&(r.head.extra=new Uint8Array(r.length)),r.wrap&2&&8===E&&(V[0]=255&x,r.check=o(r.check,V,1,0)),E=0,r.length--}r.mode=C;case C:if(!(r.wrap&2))break;if(r.length){for(let t=r.length;E<8&&t>0;){if(0===b)break switch;b--,x+=F[p++]<<E,E+=8,t--}r.head&&(r.head.extra[r.head.extra_len-r.length-1]=x),r.wrap&2&&8===E&&(V[0]=255&x,r.check=o(r.check,V,1,0)),E=0,r.length--}else r.length=0,r.mode=N;case N:if(!(r.wrap&2))break;for(let t=0;E<8&&0===t;){if(0===b)break switch;b--,x+=F[p++]<<E,E+=8,t=F[p-1]}if(r.head&&(r.head.name+=String.fromCharCode(x)),r.wrap&2&&8===E&&(V[0]=255&x,r.check=o(r.check,V,1,0)),E=0,0===t)r.mode=B;break;case B:if(!(r.wrap&2))break;for(let t=0;E<8&&0===t;){if(0===b)break switch;b--,x+=F[p++]<<E,E+=8,t=F[p-1]}if(r.head&&(r.head.comment+=String.fromCharCode(x)),r.wrap&2&&8===E&&(V[0]=255&x,r.check=o(r.check,V,1,0)),E=0,0===t)r.mode=A;break;case A:if(!(r.wrap&2))break;for(;E<16;){if(0===b)break switch;b--,x+=F[p++]<<E,E+=8}if(r.head&&(r.head.hcrc=x&65535),r.wrap&2&&16===E&&x!==r.check){e.msg="header crc mismatch",r.mode=M;break}x=0,E=0,r.mode=w;case w:if(0===b)break switch;if(c=e.avail_out,u=e.next_out,l=e.avail_in,g=e.next_in,P=e.state,R=P.mode,0===R||1===R||2===R){if(P.last)return P.mode=3,e.msg="invalid block type",W;for(;P.bits<3;){if(0===l)return P.hold=x,P.bits=E,e.next_in=g,e.avail_in=l,e.next_out=u,e.avail_out=c,q}P.last=1&x,x>>>=1,E-=1,R=3&x,x>>>=2,E-=2,P.mode=R,P.mode===R?R+7:9}else P.mode=R;if(0===R||1===R||2===R){if(0===R){for(;E<32;){if(0===l)return P.hold=x,P.bits=E,e.next_in=g,e.avail_in=l,e.next_out=u,e.avail_out=c,q;l--,x+=F[g++]<<E,E+=8}if(x>>>16!=65535-x&65535){e.msg="invalid stored block lengths";return W}P.length=65535&x,x=0,E=0,P.mode=6}if(1===R){const t=[null,null];if(P.lencode=t[0],P.lenbits=9,P.distcode=t[1],P.distbits=5,a(0,P.lencode,0,288,t,0,P.work,P.opts),a(1,P.distcode,0,32,t,288,P.work,P.opts),P.mode=7,q=0){P.hold=x,P.bits=E,e.next_in=g,e.avail_in=l,e.next_out=u,e.avail_out=c;break switch}}if(2===R){for(;E<14;){if(0===l)return P.hold=x,P.bits=E,e.next_in=g,e.avail_in=l,e.next_out=u,e.avail_out=c,q;l--,x+=F[g++]<<E,E+=8}P.nlen=257+(31&x),x>>>=5,E-=5,P.ndist=1+(31&x),x>>>=5,E-=5,P.ncode=4+(x&15),x>>>=4,E-=4;if(P.nlen>286||P.ndist>30){e.msg="too many length or distance symbols";return W}P.have=0,P.mode=8}if(q=0)break switch;P.mode=d}case d:if(P.back=-1,0===c)return e.next_out=u,e.avail_out=c,e.next_in=g,e.avail_in=l,P.hold=x,P.bits=E,q;for(;P.need;){if(0===l)return e.next_in=g,e.avail_in=l,e.next_out=u,e.avail_out=c,P.hold=x,P.bits=E,q;c--,L[u++]=P.window[P.wnext++],P.need--,P.wnext===P.wsize&&(P.wnext=0,P.whave=P.wsize)}if(0===P.length){e.next_in=g,e.avail_in=l,e.next_out=u,e.avail_out=c,P.hold=x,P.bits=E;break switch}q=s(e,q);case g:for(;E<14+P.nlen+P.ndist;){if(0===l)return P.hold=x,P.bits=E,e.next_in=g,e.avail_in=l,e.next_out=u,e.avail_out=c,q;l--,x+=F[g++]<<E,E+=8}if(P.have<P.ncode){for(;P.have<P.ncode;){for(;E<3;){if(0===l)return P.hold=x,P.bits=E,e.next_in=g,e.avail_in=l,e.next_out=u,e.avail_out=c,q;l--,x+=F[g++]<<E,E+=8}P.lens[[16,17,18,0,8,7,9,6,10,5,11,4,12,3,13,2,14,1,15][P.have++]]=7&x,x>>>=3,E-=3}for(;P.have<19;P.have++)P.lens[[16,17,18,0,8,7,9,6,10,5,11,4,12,3,13,2,14,1,15][P.have++]]=0}if(P.lencode=P.lendyn,P.lenbits=7,P.back=a(0,P.lens,0,19,P.lencode,0,P.work,{bits:P.lenbits}),-1===P.back)return e.msg="invalid code lengths set",W;P.have=0,P.mode=p;case p:for(;P.have<P.nlen+P.ndist;){for(;;){I=P.lencode[x&((1<<P.lenbits)-1)];U=I>>>24,Z=I>>>16&255,T=65535&I;if(!(U<=E))break;if(0===T)P.lens[P.have++]=0;else if(16===T){for(A=U+2;E<A;){if(0===l)return P.hold=x,P.bits=E,e.next_in=g,e.avail_in=l,e.next_out=u,e.avail_out=c,q;l--,x+=F[g++]<<E,E+=8}x>>>=U,E-=U,O=P.lens[P.have-1];D=3+(3&x);x>>>=2,E-=2;if(P.have+D>P.nlen+P.ndist){e.msg="invalid bit length repeat";return W}for(;D--;)P.lens[P.have++]=O}else if(17===T){for(A=U+3;E<A;){if(0===l)return P.hold=x,P.bits=E,e.next_in=g,e.avail_in=l,e.next_out=u,e.avail_out=c,q;l--,x+=F[g++]<<E,E+=8}x>>>=U,E-=U,O=0,D=3+(7&x);x>>>=3,E-=3;if(P.have+D>P.nlen+P.ndist){e.msg="invalid bit length repeat";return W}for(;D--;)P.lens[P.have++]=O}else{for(A=U+7;E<A;){if(0===l)return P.hold=x,P.bits=E,e.next_in=g,e.avail_in=l,e.next_out=u,e.avail_out=c,q;l--,x+=F[g++]<<E,E+=8}x>>>=U,E-=U,O=0,D=11+(127&x);x>>>=7,E-=7;if(P.have+D>P.nlen+P.ndist){e.msg="invalid bit length repeat";return W}for(;D--;)P.lens[P.have++]=O}x>>>=U,E-=U}if(0===l)return P.hold=x,P.bits=E,e.next_in=g,e.avail_in=l,e.next_out=u,e.avail_out=c,q;x+=F[g++]<<E,E+=8}if(P.have>P.nlen+P.ndist){e.msg="invalid bit length repeat";return W}if(0===P.lens[256]){e.msg="invalid code -- missing end-of-block";return W}P.lenbits=9;P.back=a(0,P.lens,0,P.nlen,P.lencode,0,P.work,{bits:P.lenbits});if(-1===P.back)return e.msg="invalid literal/lengths set",W;P.distbits=6;P.distcode=P.distdyn;P.back=a(1,P.lens,P.nlen,P.ndist,P.distcode,0,P.work,{bits:P.distbits});if(-1===P.back)return e.msg="invalid distances set",W;P.mode=7;case b:if(1===r.last)return r.mode=T,e.msg=r.head?"Need dictionary":"Stream end",1;r.mode=d}switch(r.mode){case M:q=G;break switch;case F:return K;case L:return W;default:return W}e.next_in=p,e.avail_in=b,e.next_out=y,e.avail_out=k,r.hold=x,r.bits=E,r.wsize=C,r.whave=J,r.wnext=Y,r.window=N,r.mode=R;return q},r.inflateEnd=e=>{if(!e||!e.state)return W;let t=e.state;return t.window&&(t.window=null),e.state=null,0};const Y={header:{},inflateReset:r.inflateReset,inflateReset2:r.inflateReset2,inflateResetKeep:r.inflateResetKeep,inflateInit:r.inflateInit,inflateInit2:r.inflateInit2,inflate:r.inflate,inflateEnd:r.inflateEnd,inflateInfo:null};t.exports=Y},{
+"./utils/common":2,"./zlib/adler32":4,"./zlib/constants":5,"./zlib/crc32":6,"./zlib/gzheader":8,"./zlib/inffast":9,"./zlib/inftrees":10,"./zlib/zstream":13}],12:[function(e,t,r){"use strict";t.exports={0:"",1:"need dictionary",2:"stream end",3:"file error",4:"stream error",5:"data error",6:"insufficient memory",7:"buffer error",8:"incompatible version",9:"incomplete deflate data"}},{}],13:[function(e,t,r){"use strict";t.exports=class{constructor(){this.input=null,this.next_in=0,this.avail_in=0,this.total_in=0,this.output=null,this.next_out=0,this.avail_out=0,this.total_out=0,this.msg="",this.state=null,this.data_type=2,this.adler=0}}},{}],14:[function(e,t,r){"use strict"},{
+"./utils/common":2}]},{},[1])(1)});
+
+    </script>
+    <script>
+(function(global, factory) { typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() : typeof define === 'function' && define.amd ? define(factory) : (global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.FitParser = factory()); })(this, (function () { 'use strict';var defineProperty = { exports: {} };var _Object$defineProperty = require$$0;
+
+var _objectDefineProperty = _Object$defineProperty;
+
+defineProperty.exports = _objectDefineProperty;
+defineProperty.exports.default = defineProperty.exports;var require$<span class="math-inline">0 \= \{
+"\_\_esModule"\: true,
+"default"\: function \(obj, key, value\) \{
+key \= \_toPropertyKey\(key\);
+if \(key in obj\) \{
+Object\.defineProperty\(obj, key, \{
+value\: value,
+enumerable\: true,
+configurable\: true,
+writable\: true
+\}\);
+\} else \{
+obj\[key\] \= value;
+\}
+return obj;
+\}
+\};
+var \_toPrimitive \= require</span>$0$1;
+
+var _typeof = require$$0$2;
+
+function _toPropertyKey(arg) {
+  var key = _toPrimitive(arg, "string");
+  return _typeof(key) === "symbol" ? key : String(key);
+}var require$$0$1 = {
+	"__esModule": true,
+	"default": function _toPrimitive(input, hint) {
+	  if (_typeof(input) !== "object" || input === null) return input;
+	  var prim = input[Symbol.toPrimitive];
+	  if (prim !== undefined) {
+	    var res = prim.call(input, hint || "default");
+	    if (_typeof(res) !== "object") return res;
+	    throw new TypeError("@@toPrimitive must return a primitive value.");
+	  }
+	  return (hint === "string" ? String : Number)(input);
+	}
+};
+
+var require$$0$2 = {
+	"__esModule": true,
+	"default": function _typeof(obj) {
+	  "@babel/helpers - typeof";
+
+	  return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) {
+	    return typeof obj;
+	  } : function (obj) {
+	    return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
+	  }, _typeof(obj);
+	}
+};var _defineProperty = defineProperty.exports;
+
+function _defineProperty$1(obj, key, value) {
+  key = _toPropertyKey(key);
+  if (key in obj) {
+    Object.defineProperty(obj, key, {
+      value: value,
+      enumerable: true,
+      configurable: true,
+      writable: true
+    });
+  } else {
+    obj[key] = value;
+  }
+  return obj;
+}var _defineProperty_1 = _defineProperty$1;// Based off: https://github.com/jrifkin/fit-string-parser
+
+var tools = {
+  messages: {},
+  types: {
+    file_id: 0,
+    capabilities: 1,
+    device_settings: 2,
+    user_profile: 3,
+    hrm_profile: 4,
+    sdm_profile: 5,
+    bike_profile: 6,
+    zones_target: 7,
+    hr_zone: 8,
+    power_zone: 9,
+    met_zone: 10,
+    sport: 11,
+    goal: 12,
+    session: 18,
+    lap: 19,
+    record: 20,
+    event: 21,
+    device_info: 23,
+    workout: 26,
+    workout_step: 27,
+    schedule: 28,
+    weight_scale: 30,
+    course: 31,
+    course_point: 32,
+    totals: 33,
+    activity: 34,
+    software: 35,
+    file_capabilities: 37,
+    mesg_capabilities: 38,
+    field_capabilities: 39,
+    file_creator: 49,
+    blood_pressure: 51,
+    speed_zone: 53,
+    monitoring: 55,
+    training_file: 72,
+    hrv: 78,
+    ant_rx: 80,
+    ant_tx: 81,
+    ant_channel_id: 82,
+    length: 101,
+    monitoring_info: 103,
+    pad: 105,
+    slave_device: 106,
+    connectivity: 127,
+    weather_conditions: 128,
+    weather_alert: 129,
+    cadence_zone: 131,
+    hr: 132,
+    segment_lap: 142,
+    memo_glob: 145,
+    segment_id: 147,
+    segment_leaderboard_entry: 148,
+    segment_point: 149,
+    segment_file: 150,
+    workout_session: 158,
+    watchface_settings: 159,
+    gps_metadata: 160,
+    camera_event: 161,
+    timestamp_correlation: 162,
+    gyroscope_data: 164,
+    accelerometer_data: 165,
+    three_d_sensor_calibration: 167,
+    video_frame: 169,
+    obdii_data: 174,
+    nmea_sentence: 177,
+    aviation_attitude: 178,
+    video: 184,
+    video_title: 185,
+    video_description: 186,
+    video_clip: 187,
+    ohr_settings: 188,
+    exd_screen_configuration: 200,
+    exd_data_field_configuration: 201,
+    exd_data_concept_configuration: 202,
+    field_description: 206,
+    developer_data_id: 207,
+    magnetometer_data: 208,
+    barometer_data: 209,
+    one_d_sensor_calibration: 210,
+    set: 225,
+    stress_level: 227,
+    dive_settings: 258,
+    dive_gas: 259,
+    dive_alarm: 262,
+    exercise_title: 264,
+    dive_summary: 268,
+    jump: 285,
+    climb_pro: 317,
+    tank_update: 409,
+    tank_summary: 410,
+    mfg_range_min: 0xFF00,
+    // 0xFF00 - 0xFFFE
+    mfg_range_max: 0xFFFE // 0xFF00 - 0xFFFE
+  },
+
+  fields: {
+    // file_id message, type 0
+    file_id: {
+      0: 'type',
+      1: 'manufacturer',
+      2: 'product',
+      3: 'serial_number',
+      4: 'time_created',
+      5: 'number',
+      8: 'product_name'
+    },
+    // file_creator message, type 49
+    file_creator: {
+      0: 'software_version',
+      1: 'hardware_version'
+    },
+    // software message, type 35
+    software: {
+      3: 'version',
+      5: 'part_number'
+    },
+    // slave_device message, type 106
+    slave_device: {
+      0: 'manufacturer',
+      1: 'product'
+    },
+    // capabilities message, type 1
+    capabilities: {
+      0: 'languages',
+      1: 'sports',
+      21: 'workouts_supported',
+      23: 'connectivity_supported'
+    },
+    // file_capabilities message, type 37
+    file_capabilities: {
+      0: 'type',
+      1: 'flags',
+      2: 'directory',
+      3: 'max_count',
+      4: 'max_size'
+    },
+    // mesg_capabilities message, type 38
+    mesg_capabilities: {
+      0: 'file',
+      1: 'mesg_num',
+      2: 'count_type',
+      3: 'count'
+    },
+    // field_capabilities message, type 39
+    field_capabilities: {
+      0: 'file',
+      1: 'mesg_num',
+      2: 'field_num',
+      3: 'count'
+    },
+    // device_settings message, type 2
+    device_settings: {
+      0: 'active_time_zone',
+      1: 'utc_offset',
+      2: 'time_offset',
+      4: 'time_mode',
+      5: 'time_zone_offset',
+      12: 'backlight_mode',
+      32: 'activity_tracker_enabled',
+      36: 'clock_time',
+      39: 'pages_enabled',
+      40: 'move_alert_enabled',
+      41: 'date_mode',
+      46: 'display_orientation',
+      47: 'mounting_side',
+      55: 'default_page',
+      56: 'autosync_min_steps',
+      57: 'autosync_min_time',
+      80: 'lactate_threshold_autodetect_enabled',
+      86: 'ble_auto_upload_enabled',
+      89: 'auto_sync_frequency',
+      134: 'number_of_screens',
+      170: 'tap_sensitivity'
+    },
+    // user_profile message, type 3
+    user_profile: {
+      254: 'message_index',
+      0: 'friendly_name',
+      1: 'gender',
+      2: 'age',
+      3: 'height',
+      4: 'weight',
+      5: 'language',
+      6: 'elev_setting',
+      7: 'weight_setting',
+      8: 'resting_heart_rate',
+      9: 'default_max_running_heart_rate',
+      10: 'default_max_biking_heart_rate',
+      11: 'default_max_heart_rate',
+      12: 'hr_setting',
+      13: 'speed_setting',
+      14: 'dist_setting',
+      16: 'power_setting',
+      17: 'activity_class',
+      18: 'position_setting',
+      21: 'temperature_setting',
+      22: 'local_id',
+      23: 'global_id',
+      28: 'wake_time',
+      // Dates. Offset from 12/31/1989
+      29: 'sleep_time',
+      // Dates. Offset from 12/31/1989
+      30: 'height_setting',
+      31: 'user_running_step_length',
+      32: 'user_walking_step_length',
+      49: 'depth_setting',
+      50: 'dive_count'
+    },
+    // hrm_profile message, type 4
+    hrm_profile: {
+      254: 'message_index',
+      0: 'enabled',
+      1: 'hrm_ant_id',
+      2: 'log_hrv_enabled',
+      3: 'hrm_ant_id_trans_type'
+    },
+    // sdm_profile message, type 5
+    sdm_profile: {
+      254: 'message_index',
+      0: 'enabled',
+      1: 'sdm_ant_id',
+      2: 'sdm_cal
