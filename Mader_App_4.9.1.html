@@ -746,9 +746,9 @@ Hinzufügen:
                         <span id="gross-eta-value" class="slider-value">FAT<sub>max</sub>:20.3% | MLSS=23.1%</span>
                         <div class="tooltip info-icon" style="margin-left: 5px;">ⓘ
                             <span class="tooltiptext">                                  
-                                <p>Gross efficiency is the ratio of work done to total energy expenditure:</p>
-                                <p>η<sub>gross</sub> = (Power output [kJ/min]) / (Total energy expenditure [kJ/min])</p>
-                                <p>Values are calculated at FAT<sub>max</sub> and MLSS power outputs using the predicted RQ to determine caloric equivalents.</p>
+                                <p>Gross efficiency is the ratio of mechanical work performed to total aerobic energy expenditure:</p>
+                                <p>η<sub>gross</sub> = (Power output [Watt]) / (Aerobic energy expenditure [Watt])</p>
+                                <p>Typically ranging from 19-22% in cycling. Values are calculated at both FAT<sub>max</sub> and MLSS power outputs using the predicted RQ to determine caloric equivalents.</p>
                             </span>
                         </div>
                     </div>
@@ -758,9 +758,9 @@ Hinzufügen:
                         <span id="net-eta-value" class="slider-value">FAT<sub>max</sub>=24.2% | MLSS=27.5%</span>
                         <div class="tooltip info-icon" style="margin-left: 5px;">ⓘ
                             <span class="tooltiptext">                                  
-                                <p>Net efficiency is the ratio of work done to energy expenditure above rest:</p>
-                                <p>η<sub>net</sub> = (Power output [kJ/min]) / (Total energy expenditure - Resting energy expenditure [kJ/min])</p>
-                                <p>This accounts for the baseline energy cost and generally yields higher values than gross efficiency.</p>
+                                <p>Net efficiency is the ratio of mechanical work performed to aerobic energy expenditure above resting level:</p>
+                                <p>η<sub>net</sub> = (Power output [Watt]) / (Aerobic energy expenditure - Resting energy expenditure [Watt])</p>
+                                <p>By eliminating the influence of resting metabolism, net efficiency yields systematically higher values than gross efficiency, typically between 19-24% in cycling. This calculation accounts for the energy that's actually used for the exercise itself rather than basic bodily functions.</p>
                             </span>
                         </div>
                     </div>
@@ -847,38 +847,6 @@ Hinzufügen:
                       </div>
                       <span class="slider-value">?</span>
                   </div>
-
-                  <div id="cadence-efficiency-values" style="display:none; margin-top: 15px; background-color: rgba(38, 131, 198, 0.05); padding: 10px; border-left: 3px solid var(--primary-color);">
-                    <div class="parameter-row">
-                        <div class="parameter-label">Delta Efficiency (Δη):</div>
-                        <span id="cadence-delta-eta-value" class="slider-value">24.7-26.5%</span>
-                        <div class="tooltip info-icon" style="margin-left: 5px;">ⓘ
-                            <span class="tooltiptext">
-                                <p>Delta efficiency based on cadence-dependent CE value.</p>
-                            </span>
-                        </div>
-                    </div>
-                    
-                    <div class="parameter-row">
-                        <div class="parameter-label">η<sub>gross</sub> (Fat<sub>max</sub> | MLSS):</div>
-                        <span id="cadence-gross-eta-value" class="slider-value">FAT<sub>max</sub>:20.3% | MLSS=23.1%</span>
-                        <div class="tooltip info-icon" style="margin-left: 5px;">ⓘ
-                            <span class="tooltiptext">
-                                <p>Gross efficiency values at FAT<sub>max</sub> and MLSS power outputs based on cadence-dependent values.</p>
-                            </span>
-                        </div>
-                    </div>
-                    
-                    <div class="parameter-row">
-                        <div class="parameter-label">η<sub>net</sub> (Fat<sub>max</sub> | MLSS):</div>
-                        <span id="cadence-net-eta-value" class="slider-value">FAT<sub>max</sub>=24.2% | MLSS=27.5%</span>
-                        <div class="tooltip info-icon" style="margin-left: 5px;">ⓘ
-                            <span class="tooltiptext">
-                                <p>Net efficiency values at FAT<sub>max</sub> and MLSS power outputs based on cadence-dependent values.</p>
-                            </span>
-                        </div>
-                    </div>
-                </div>
               </div>
                   
                   <div class="small-text">Based on the research from Dunst et al. (2025) showing how metabolic parameters vary with cycling cadence.</div>
@@ -1823,10 +1791,6 @@ Hinzufügen:
             cadenceControls: document.getElementById('cadence-controls'),
             vo2max_dependent: document.getElementById('vo2max_dependent'),
             vlamax_dependent: document.getElementById('vlamax_dependent'),
-            cadence_efficiency_values: document.getElementById('cadence-efficiency-values'),
-            cadence_delta_eta_value: document.getElementById('cadence-delta-eta-value'),
-            cadence_gross_eta_value: document.getElementById('cadence-gross-eta-value'),
-            cadence_net_eta_value: document.getElementById('cadence-net-eta-value'),
             
             // Tab 2 Elements
             step_watt: document.getElementById('step_watt'),
@@ -3159,76 +3123,20 @@ Hinzufügen:
                 `${deltaEta.min.toFixed(1)}-${deltaEta.max.toFixed(1)}%`;
         }
 
-        // Update efficiency values display in the UI
-    const fatmaxIdx = vals.PD_min.indexOf(Math.max(...vals.PD_min));
-    // Find index of MLSS (PD closest to zero)
-    let minAbsPD = Infinity;
-    let pdZeroIdx = 0;
-    for (let i = 0; i < vals.PD_min.length; i++) {
-        const absPD = Math.abs(vals.PD_min[i]);
-        if (absPD < minAbsPD) {
-            minAbsPD = absPD;
-            pdZeroIdx = i;
-        }
-    }
-
-    // Get RQ values at FATmax and MLSS
-    const fatmaxRQ = vals.predicted_rq && vals.predicted_rq.length > fatmaxIdx ? 
-        vals.predicted_rq[fatmaxIdx] : 0.85;
-    const mlssRQ = vals.predicted_rq && vals.predicted_rq.length > pdZeroIdx ? 
-        vals.predicted_rq[pdZeroIdx] : 0.95;
-
-    // Calculate efficiency values at FATmax and MLSS
-    const fatmaxEfficiency = calculateEfficiency(
-        vals.P[fatmaxIdx], 
-        vals.VO2ss[fatmaxIdx], 
-        fatmaxRQ, 
-        vals.effective_values.VO2Base
-    );
-
-    const mlssEfficiency = calculateEfficiency(
-        vals.P[pdZeroIdx], 
-        vals.VO2ss[pdZeroIdx], 
-        mlssRQ, 
-        vals.effective_values.VO2Base
-    );
-
-    // Also update the delta efficiency based on the effective CE value (could be cadence-dependent)
-    if (appState.cadence_dependent) {
-        const effectiveCE = vals.effective_values.CEVO2;
-        const deltaEta = calculateDeltaEfficiency(effectiveCE);
-        document.getElementById('delta-eta-value').textContent = 
-            `${deltaEta.min.toFixed(1)}-${deltaEta.max.toFixed(1)}%`;
-    }
-
-    // Update UI elements
-    if (document.getElementById('gross-eta-value')) {
-        document.getElementById('gross-eta-value').innerHTML = 
-            `${fatmaxEfficiency.gross.toFixed(1)}% | ${mlssEfficiency.gross.toFixed(1)}%`;
-    }
-
-    if (document.getElementById('net-eta-value')) {
-        document.getElementById('net-eta-value').innerHTML = 
-            `${fatmaxEfficiency.net.toFixed(1)}% | ${mlssEfficiency.net.toFixed(1)}%`;
-    }
-
-    // Cadence-specific efficiency values
-    if (appState.cadence_dependent) {
-        if (elements.cadence_gross_eta_value) {
-            elements.cadence_gross_eta_value.innerHTML = 
+        // Update UI elements
+        if (document.getElementById('gross-eta-value')) {
+            document.getElementById('gross-eta-value').innerHTML = 
                 `${fatmaxEfficiency.gross.toFixed(1)}% | ${mlssEfficiency.gross.toFixed(1)}%`;
         }
 
-        if (elements.cadence_net_eta_value) {
-            elements.cadence_net_eta_value.innerHTML = 
+        if (document.getElementById('net-eta-value')) {
+            document.getElementById('net-eta-value').innerHTML = 
                 `${fatmaxEfficiency.net.toFixed(1)}% | ${mlssEfficiency.net.toFixed(1)}%`;
         }
-        
-        const effectiveCE = vals.effective_values.CEVO2;
-        const deltaEta = calculateDeltaEfficiency(effectiveCE);
-        if (elements.cadence_delta_eta_value) {
-            elements.cadence_delta_eta_value.textContent = 
-                `${deltaEta.min.toFixed(1)}-${deltaEta.max.toFixed(1)}%`;
+
+        // Update substrate plot if enabled
+        if (appState.show_substrate) {
+            updateSubstratePlot();
         }
     }
 
@@ -3334,36 +3242,7 @@ Hinzufügen:
         elements.valuesContainer.innerHTML = outputText;
     }
 
-    // Update UI elements
-    if (document.getElementById('gross-eta-value')) {
-            document.getElementById('gross-eta-value').innerHTML = 
-                `${fatmaxEfficiency.gross.toFixed(1)}% | ${mlssEfficiency.gross.toFixed(1)}%`;
-        }
-
-        if (document.getElementById('net-eta-value')) {
-            document.getElementById('net-eta-value').innerHTML = 
-                `${fatmaxEfficiency.net.toFixed(1)}% | ${mlssEfficiency.net.toFixed(1)}%`;
-        }
-
-        // Cadence-specific efficiency values
-        if (appState.cadence_dependent) {
-            if (elements.cadence_gross_eta_value) {
-                elements.cadence_gross_eta_value.innerHTML = 
-                    `${fatmaxEfficiency.gross.toFixed(1)}% | ${mlssEfficiency.gross.toFixed(1)}%`;
-            }
-
-            if (elements.cadence_net_eta_value) {
-                elements.cadence_net_eta_value.innerHTML = 
-                    `${fatmaxEfficiency.net.toFixed(1)}% | ${mlssEfficiency.net.toFixed(1)}%`;
-            }
-            
-            const effectiveCE = vals.effective_values.CEVO2;
-            const deltaEta = calculateDeltaEfficiency(effectiveCE);
-            if (elements.cadence_delta_eta_value) {
-                elements.cadence_delta_eta_value.textContent = 
-                    `${deltaEta.min.toFixed(1)}-${deltaEta.max.toFixed(1)}%`;
-            }
-        }
+    
     
     // Function to create power data for step test
     function createPowerData() {
@@ -4383,8 +4262,6 @@ Hinzufügen:
         }
     }
     
-    
-    
     // Function to calculate delta efficiency (Δη) from CE value
     function calculateDeltaEfficiency(ceValue, rq = null) {
         if (rq !== null) {
@@ -4398,12 +4275,12 @@ Hinzufügen:
         } else {
             // Without RQ, use the range approach
             // Caloric equivalent range based on RQ values
-            const calorEquivalentMin = 19.619; // Lower bound (RQ=0.7)
-            const calorEquivalentMax = 21.131; // Upper bound (RQ=1.0)
+            const calorEquivalentMin = 21.131; // Lower bound
+            const calorEquivalentMax = 19.619; // Upper bound
             
             // Calculate efficiency range (expressed as decimal)
-            const etaMin = 1 / ((ceValue * calorEquivalentMax) / 60);
-            const etaMax = 1 / ((ceValue * calorEquivalentMin) / 60);
+            const etaMin = 1 / ((ceValue * calorEquivalentMin) / 60);
+            const etaMax = 1 / ((ceValue * calorEquivalentMax) / 60);
             
             // Return range as percentage values
             return {
@@ -4414,17 +4291,46 @@ Hinzufügen:
     }
 
     // Function to calculate RQ based on carbohydrate percentage
-function calculateRQ(carbPercentage) {
-    // Ensure carbPercentage is a valid number
-    if (isNaN(carbPercentage) || carbPercentage === null || carbPercentage === undefined) {
-        return 0.85; // Default value if invalid
+    function calculateRQ(carbPercentage) {
+        // Linear relationship: 0% CHO = 0.70 RQ, 100% CHO = 1.00 RQ
+        return 0.70 + (carbPercentage / 100) * 0.30;
+    }
+
+    // Function to get caloric equivalent based on RQ using Stegemann's table
+    function getKalorischesEquivalent(rq) {
+        // Stegemann data (1990)
+        const stegemann = {
+            rq: [0.700, 0.710, 0.720, 0.730, 0.740, 0.750, 0.760, 0.770, 0.780, 0.790, 
+                0.800, 0.810, 0.820, 0.830, 0.840, 0.850, 0.860, 0.870, 0.880, 0.890, 
+                0.900, 0.910, 0.920, 0.930, 0.940, 0.950, 0.960, 0.970, 0.980, 0.990, 1.000],
+            kJ_lO2: [19.619, 19.636, 19.686, 19.737, 19.791, 19.841, 19.887, 19.946, 20.009, 20.046, 
+                    20.101, 20.151, 20.201, 20.256, 20.306, 20.356, 20.411, 20.461, 20.515, 20.561, 
+                    20.616, 20.666, 20.716, 20.771, 20.821, 20.871, 20.926, 20.976, 21.026, 21.081, 21.131],
+            kcal_lO2: [4.686, 4.690, 4.702, 4.714, 4.727, 4.739, 4.750, 4.764, 4.779, 4.788, 
+                    4.801, 4.813, 4.825, 4.838, 4.850, 4.862, 4.875, 4.887, 4.900, 4.911, 
+                    4.924, 4.936, 4.948, 4.961, 4.973, 4.985, 4.998, 5.010, 5.022, 5.035, 5.047]
+        };
+    
+    // Ensure RQ is within valid range
+    const boundedRQ = Math.max(0.70, Math.min(1.00, rq));
+    
+    // Find closest RQ value in table
+    let closestIdx = 0;
+    let minDiff = Math.abs(boundedRQ - stegemann.rq[0]);
+    
+    for (let i = 1; i < stegemann.rq.length; i++) {
+        const diff = Math.abs(boundedRQ - stegemann.rq[i]);
+        if (diff < minDiff) {
+            minDiff = diff;
+            closestIdx = i;
+        }
     }
     
-    // Clamp the percentage between 0 and 100
-    const percentage = Math.max(0, Math.min(100, carbPercentage));
-    
-    // Linear relationship: 0% CHO = 0.70 RQ, 100% CHO = 1.00 RQ
-    return 0.70 + (percentage / 100) * 0.30;
+    // Return both kJ and kcal values
+    return {
+        kJ_lO2: stegemann.kJ_lO2[closestIdx],
+        kcal_lO2: stegemann.kcal_lO2[closestIdx]
+    };
 }
 
 // Function to calculate efficiency values
@@ -4681,35 +4587,19 @@ function calculateEfficiency(power, vo2, rq, vo2base) {
     elements.cadence_dependent.addEventListener('change', function() {
         appState.cadence_dependent = this.checked;
         elements.cadenceControls.style.display = appState.cadence_dependent ? 'block' : 'none';
-        elements.cadence_efficiency_values.style.display = appState.cadence_dependent ? 'block' : 'none';
         
         // Show/hide the linear CE control based on both cadence and curvilinear settings
         if (this.checked) {
             elements.linearCeControl.style.display = 'none';
-            
-            // Calculate initial values when enabling cadence dependency
-            const effectiveCE = calculateCadenceDependentCEVO2(appState.cadence);
-            const deltaEta = calculateDeltaEfficiency(effectiveCE);
-            
-            // Update both the main delta-eta-value and the cadence-specific one
-            document.getElementById('delta-eta-value').textContent = 
-                `${deltaEta.min.toFixed(1)}-${deltaEta.max.toFixed(1)}%`;
-                
-            if (elements.cadence_delta_eta_value) {
-                elements.cadence_delta_eta_value.textContent = 
-                    `${deltaEta.min.toFixed(1)}-${deltaEta.max.toFixed(1)}%`;
-            }
-            
-            // Force an update to recalculate all values with cadence dependency
-            updatePlot();
-            
+        } else if (!appState.curvilinear) {
+            elements.linearCeControl.style.display = 'block';
+        }
+        
+        updatePlot();
+        
+        if (this.checked) {
             // Show notification about cadence dependency
-            showNotification(`Cadence dependency enabled at ${appState.cadence} rpm. Using model from Dunst et al. (2025) with CE = ${effectiveCE.toFixed(2)} ml·min⁻¹·W⁻¹ and V̇O<sub>2,Base</sub> = ${Math.round(calculateCadenceDependentVO2Base(appState.cadence))} ml·min⁻¹`, 'info');
-        } else {
-            if (!appState.curvilinear) {
-                elements.linearCeControl.style.display = 'block';
-            }
-            updatePlot();
+            showNotification(`Cadence dependency enabled at ${appState.cadence} rpm. Using model from Dunst et al. (2025) with CE = ${calculateCadenceDependentCEVO2(appState.cadence).toFixed(2)} ml·min⁻¹·W⁻¹ and V̇O<sub>2,Base</sub> = ${Math.round(calculateCadenceDependentVO2Base(appState.cadence))} ml·min⁻¹`, 'info');
         }
     });
     
@@ -4722,10 +4612,6 @@ function calculateEfficiency(power, vo2, rq, vo2base) {
             const effectiveCE = calculateCadenceDependentCEVO2(appState.cadence);
             const deltaEta = calculateDeltaEfficiency(effectiveCE);
             document.getElementById('delta-eta-value').textContent = 
-                `${deltaEta.min.toFixed(1)}-${deltaEta.max.toFixed(1)}%`;
-            
-            // Also update cadence-specific efficiency values
-            elements.cadence_delta_eta_value.textContent = 
                 `${deltaEta.min.toFixed(1)}-${deltaEta.max.toFixed(1)}%`;
         }
         
@@ -5773,15 +5659,6 @@ function processFileData(rows, delimiter, fileName) {
     const initialDeltaEta = calculateDeltaEfficiency(appState.CEVO2);
     document.getElementById('delta-eta-value').textContent = 
         `${initialDeltaEta.min.toFixed(1)}-${initialDeltaEta.max.toFixed(1)}%`;
-
-    // Explicitly initialize cadence efficiency values
-    if (elements.cadence_delta_eta_value) {
-        elements.cadence_delta_eta_value.textContent = 
-            `${initialDeltaEta.min.toFixed(1)}-${initialDeltaEta.max.toFixed(1)}%`;
-    }
-    
-    // Force an update to get initial values for efficiency
-    updatePlot();
 
     // Event Listeners für Zeitfenster-Slider
     elements.view_time_start.addEventListener('input', function() {
