@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" lang="eng" xml:lang="eng"><head>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
 <meta name="generator" content="quarto-1.5.45">
@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Mader’s metabolic model – ShinyApps</title>
+<title>Cycling Power Calculator – ShinyApps</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -20,27 +20,7 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
-/* CSS for citations */
-div.csl-bib-body { }
-div.csl-entry {
-  clear: both;
-  margin-bottom: 0em;
-}
-.hanging-indent div.csl-entry {
-  margin-left:2em;
-  text-indent:-2em;
-}
-div.csl-left-margin {
-  min-width:2em;
-  float:left;
-}
-div.csl-right-inline {
-  margin-left:2em;
-  padding-left:1em;
-}
-div.csl-indent {
-  margin-left: 2em;
-}</style>
+</style>
 
 
 <script src="site_libs/quarto-nav/quarto-nav.js"></script>
@@ -50,8 +30,7 @@ div.csl-indent {
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
-<link href="./Cadence_Test.html" rel="next">
-<link href="./about.html" rel="prev">
+<link href="./Critical_Power.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
@@ -91,35 +70,6 @@ div.csl-indent {
   }
 }</script>
 
-  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
-
-<script type="text/javascript">
-const typesetMath = (el) => {
-  if (window.MathJax) {
-    // MathJax Typeset
-    window.MathJax.typeset([el]);
-  } else if (window.katex) {
-    // KaTeX Render
-    var mathElements = el.getElementsByClassName("math");
-    var macros = [];
-    for (var i = 0; i < mathElements.length; i++) {
-      var texText = mathElements[i].firstChild;
-      if (mathElements[i].tagName == "SPAN") {
-        window.katex.render(texText.data, mathElements[i], {
-          displayMode: mathElements[i].classList.contains('display'),
-          throwOnError: false,
-          macros: macros,
-          fleqn: false
-        });
-      }
-    }
-  }
-}
-window.Quarto = {
-  typesetMath
-};
-</script>
 
 <link rel="stylesheet" href="styles.css">
 </head>
@@ -133,7 +83,7 @@ window.Quarto = {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./Mader_Modell.html">Mader’s metabolic model</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./Cycling_Forces.html">Cycling Power Calculator</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -169,7 +119,7 @@ window.Quarto = {
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./Mader_Modell.html" class="sidebar-item-text sidebar-link active">
+  <a href="./Mader_Modell.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Mader’s metabolic model</span></a>
   </div>
 </li>
@@ -187,7 +137,7 @@ window.Quarto = {
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./Cycling_Forces.html" class="sidebar-item-text sidebar-link">
+  <a href="./Cycling_Forces.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text">Cycling Power Calculator</span></a>
   </div>
 </li>
@@ -202,7 +152,7 @@ window.Quarto = {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Mader’s metabolic model</h1>
+<h1 class="title">Cycling Power Calculator</h1>
 </div>
 
 
@@ -219,84 +169,16 @@ window.Quarto = {
 </header>
 
 
-<div class="cell">
-<style type="text/css">
-p {
-  text-align: justify
-}
-caption, .figure-caption {
-  text-align: left;
-}
-figure.quarto-float-tbl figcaption {
-  text-align: left !important;
-}
-figure figcaption {
-  text-align: justify;
-}
-</style>
-</div>
 <p><strong>Please note: This website is currently under construction.</strong> I’m gradually adding more detailed explanations of the applications and developing additional models. The content will continue to expand over time.</p>
-<p>With this <strong><a href=".\File_Converter.html">File Converter App</a></strong>, you can <strong>convert and download .tcx files or .csv files</strong> to use them in the “Exercise Simulation” tab of the “Mader Simulation App”. Fit-files must first be converted to .csv format using <strong><a href="https://gotoes.org/strava/Combine_GPX_TCX_FIT_Files.php">GOTOES File Converter</a></strong> before you can use the File Converter to transform them into a format compatible with the Mader App.</p>
 <div style="position: relative; width: 100%; height: 800px;">
-<p><iframe src="Mader_App_5.1.html" style="position: absolute; width: 100%; height: 100%; border: none;"></iframe></p>
+<p><iframe src="Cycling_Forces_1.4.html" style="position: absolute; width: 100%; height: 100%; border: none;"></iframe></p>
 </div>
 <p><br></p>
-<p><a href=".\Mader_App_5.1.html">Link: Mader App</a></p>
-<p><a href="Example_Race_Data.csv" download="" class="btn btn-primary"> <i class="bi bi-download"></i> Download Example_Race_Data.csv </a></p>
+<p><a href=".\Cycling_Forces_1.4.html">Link: Mader App</a></p>
 
 
-<section id="bibliography" class="level1 unnumbered">
 
-
-</section>
-
-<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" data-line-spacing="2" role="list">
-<div id="ref-Brooks2012" class="csl-entry" role="listitem">
-Brooks, G. A. (2012). <span class="nocase">Bioenergetics of exercising humans.</span> <em>Comprehensive Physiology</em>, <em>2</em>(1), 537–562. <a href="https://doi.org/10.1002/cphy.c110007">https://doi.org/10.1002/cphy.c110007</a>
-</div>
-<div id="ref-Brooks2004" class="csl-entry" role="listitem">
-Brooks, G. A., Fahey, T. D., &amp; Baldwin, K. M. (2004). <em><span class="nocase">Exercise Physiology: Human Bioenergetics and Its Applications</span></em> (4. Edition, p. 928). McGraw-Hill Education Ltd.
-</div>
-<div id="ref-Dunst2024" class="csl-entry" role="listitem">
-Dunst, A. K., Hesse, C., &amp; Ueberschär, O. (2024). <span class="nocase">Understanding optimal cadence dynamics: a systematic analysis of the power-velocity relationship in track cyclists with increasing exercise intensity</span>. <em>Frontiers in Physiology</em>, <em>15</em>(April), 1–17. <a href="https://doi.org/10.3389/fphys.2024.1343601">https://doi.org/10.3389/fphys.2024.1343601</a>
-</div>
-<div id="ref-Dunst2025" class="csl-entry" role="listitem">
-Dunst, A. K., Hesse, C., &amp; Ueberschär, O. (2025). <span class="nocase">Enhancing endurance performance predictions: the role of movement velocity in metabolic simulations demonstrated by cycling cadence.</span> <em>European Journal of Applied Physiology</em>. <a href="https://doi.org/10.1007/s00421-024-05663-4">https://doi.org/10.1007/s00421-024-05663-4</a>
-</div>
-<div id="ref-Hauser2014" class="csl-entry" role="listitem">
-Hauser, T., Adam, J., &amp; Schulz, H. (2014). <span class="nocase">Comparison of calculated and experimental power in maximal lactate-steady state during cycling</span>. <em>Theoretical Biology and Medical Modelling</em>, <em>11</em>(1), 1–12. <a href="https://doi.org/10.1186/1742-4682-11-25">https://doi.org/10.1186/1742-4682-11-25</a>
-</div>
-<div id="ref-Hintzy-Cloutier2003" class="csl-entry" role="listitem">
-Hintzy-Cloutier, F., Zameziati, K., &amp; Belli, A. (2003). <a href="https://www.ncbi.nlm.nih.gov/pubmed/12629462"><span class="nocase">Influence of the base-line determination on work efficiency during submaximal cycling</span></a>. <em>Journal of Sports Medicine and Physical Fitness</em>, <em>43</em>(1), 51–56.
-</div>
-<div id="ref-Jeukendrup2019" class="csl-entry" role="listitem">
-Jeukendrup, A., &amp; Gleeson, M. (2019). <em><span>Sport Nutrition</span></em> (3. Edition, p. 602). Human Kinetics.
-</div>
-<div id="ref-Ji2021" class="csl-entry" role="listitem">
-Ji, S., Sommer, A., Bloch, W., &amp; Wahl, P. (2021). <span class="nocase">Comparison and performance validation of calculated and established anaerobic lactate thresholds in running</span>. <em>Medicina (Lithuania)</em>, <em>57</em>(10). <a href="https://doi.org/10.3390/medicina57101117">https://doi.org/10.3390/medicina57101117</a>
-</div>
-<div id="ref-Mader1984" class="csl-entry" role="listitem">
-Mader, A. (1984). <em><span class="nocase">Eine Theorie zur Berechnung der Dynamik und des steady state von Phosphorylierungszustand und Stoffwechselaktivit<span class="nocase">ä</span>t der Muskelzelle als Folge des Energeibedarfs</span></em> (p. 264) [PhD thesis]. Deutsche Sporthochschule K<span>ö</span>ln.
-</div>
-<div id="ref-Mader2003" class="csl-entry" role="listitem">
-Mader, A. (2003). <span class="nocase">Glycolysis and oxidative phosphorylation as a function of cytosolic phosphorylation state and power output of the muscle cell</span>. <em>European Journal of Applied Physiology</em>, <em>88</em>(4-5), 317–338. <a href="https://doi.org/10.1007/s00421-002-0676-3">https://doi.org/10.1007/s00421-002-0676-3</a>
-</div>
-<div id="ref-Mader1996" class="csl-entry" role="listitem">
-Mader, A., &amp; Allmer, H. (1996). <em><span class="nocase">Computersimulation: M<span class="nocase">ö</span>glichkeiten zur Theoriebildung und Ergebnisinterpretation</span></em> (p. 170). <a href="http://www.amazon.de/Computersimulation-M�glichkeiten-zur-Theoriebildung-Ergebnisinterpretation/dp/3883457310">http://www.amazon.de/Computersimulation-M�glichkeiten-zur-Theoriebildung-Ergebnisinterpretation/dp/3883457310</a>
-</div>
-<div id="ref-Mader1986" class="csl-entry" role="listitem">
-Mader, A., &amp; Heck, H. (1986). <span class="nocase">A theory of the metabolic origin of anaerobic threshold.</span> <em>International Journal of Sports Medicine</em>, <em>7 (Suppl.</em>, 45–65.
-</div>
-<div id="ref-Nolte2022" class="csl-entry" role="listitem">
-Nolte, S., Quittmann, O. J., &amp; Meden, V. (2022). <span class="nocase">Simulation of Steady-State Energy Metabolism in Cycling and Running</span>. <em>SportR<span class="math inline">\(\chi\)</span>iv</em>.
-</div>
-<div id="ref-Oezyener2001" class="csl-entry" role="listitem">
-Özyener, F., Rossiter, H. B., Ward, S. A., &amp; Whipp, B. J. (2001). <span class="nocase">Influence of exercise intensity on the on- and off-transient kinetics of pulmonary oxygen uptake in humans.</span> <em>The Journal of Physiology</em>, <em>533</em>(Pt 3), 891–902. <a href="https://doi.org/10.1111/j.1469-7793.2001.t01-1-00891.x">https://doi.org/10.1111/j.1469-7793.2001.t01-1-00891.x</a>
-</div>
-<div id="ref-Stegemann1991" class="csl-entry" role="listitem">
-Stegemann, J. (1991). <em><span>Leistungsphysiologie</span></em> (4. Edition, p. 385). Georg Thieme Verlag.
-</div>
-</div></section></div></main> <!-- /main -->
+</main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {
@@ -800,14 +682,11 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="./about.html" class="pagination-link" aria-label="About">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">About</span>
+      <a href="./Critical_Power.html" class="pagination-link" aria-label="Critical Power &amp; W'">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Critical Power &amp; W’</span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./Cadence_Test.html" class="pagination-link" aria-label="Cadence Tests">
-        <span class="nav-page-text">Cadence Tests</span> <i class="bi bi-arrow-right-short"></i>
-      </a>
   </div>
 </nav>
 </div> <!-- /content -->

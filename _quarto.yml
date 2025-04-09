@@ -28,6 +28,7 @@ website:
        - Mader_Modell.qmd
        - Cadence_Test.qmd
        - Critical_Power.qmd
+       - Cycling_Forces.qmd
        
 lang: en
 number-sections: true

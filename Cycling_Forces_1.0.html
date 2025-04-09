@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interaktiver Radfahr-Leistungsrechner</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: sans-serif;
+            line-height: 1.6;
+            margin: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #0056b3;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+         .section h2 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: #004085;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+         }
+        .input-group {
+            margin-bottom: 15px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .input-group label {
+            flex-basis: 200px; /* Fixed width for labels */
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        .input-group input[type="number"],
+        .input-group input[type="text"] {
+            flex-grow: 1;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            min-width: 100px; /* Minimum width for inputs */
+        }
+        .input-group span {
+            margin-left: 10px;
+            font-style: italic;
+            color: #555;
+            min-width: 50px; /* Ensure space for units */
+        }
+         .output-group {
+             margin-top: 20px;
+             padding: 15px;
+             background-color: #e9ecef;
+             border-radius: 5px;
+         }
+        .output-group p {
+            margin: 5px 0;
+            font-size: 1.1em;
+        }
+        .output-group strong {
+            color: #0056b3;
+        }
+        #powerChartContainer {
+            margin-top: 20px;
+            max-height: 350px;
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-top: 15px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .power-breakdown {
+            margin-top: 15px;
+            font-size: 0.9em;
+            color: #444;
+        }
+         .power-breakdown span {
+             display: inline-block;
+             min-width: 60px;
+             text-align: right;
+             font-weight: bold;
+         }
+
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            .input-group {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .input-group label {
+                flex-basis: auto;
+                margin-bottom: 5px;
+            }
+             .input-group input[type="number"],
+             .input-group input[type="text"] {
+                 width: calc(100% - 20px); /* Adjust width considering padding */
+             }
+            .input-group span {
+                 margin-left: 0;
+                 margin-top: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Interaktiver Radfahr-Leistungsrechner</h1>
+        <p style="text-align: center; font-size: 0.9em; color: #666;">Basierend auf dem Modell von Martin et al. (1998)</p>
+
+        <div class="section">
+            <h2>Interaktive Leistungsberechnung (Konstante Geschwindigkeit)</h2>
+            <form id="interactiveForm">
+                <div class="input-group">
+                    <label for="velocity">Geschwindigkeit (km/h):</label>
+                    <input type="number" id="velocity" value="30" step="0.1" min="0">
+                    <span id="velocity_ms">( m/s)</span>
+                </div>
+                <div class="input-group">
+                    <label for="riderMass">Fahrergewicht (kg):</label>
+                    <input type="number" id="riderMass" value="70" step="0.5" min="30">
+                    <span>kg</span>
+                </div>
+                <div class="input-group">
+                    <label for="bikeMass">Fahrradgewicht (kg):</label>
+                    <input type="number" id="bikeMass" value="9" step="0.1" min="1">
+                    <span>kg</span>
+                </div>
+                 <div class="input-group">
+                    <label for="totalMass">Gesamtmasse (m<sub>T</sub>):</label>
+                    <input type="number" id="totalMass" value="79" step="0.5" min="31" readonly style="background-color: #e9ecef;">
+                    <span>kg</span>
+                </div>
+                <div class="input-group">
+                    <label for="gradient">Steigung (%):</label>
+                    <input type="number" id="gradient" value="0" step="0.1" min="-20" max="20">
+                    <span>%</span>
+                </div>
+                <div class="input-group">
+                    <label for="cdA">Luftwiderstandsfläche (C<sub>d</sub>A) (m²):</label>
+                    <input type="number" id="cdA" value="0.27" step="0.001" min="0.1" max="0.8">
+                    <span>m²</span>
+                </div>
+                 <div class="input-group">
+                    <label for="crr">Rollwiderstandskoeffizient (C<sub>rr</sub>):</label>
+                    <input type="number" id="crr" value="0.004" step="0.0001" min="0.001" max="0.02">
+                    <span>(dim'los)</span>
+                </div>
+                 <div class="input-group">
+                    <label for="airDensity">Luftdichte (ρ) (kg/m³):</label>
+                    <input type="number" id="airDensity" value="1.225" step="0.001" min="0.9" max="1.4">
+                    <span>kg/m³</span>
+                </div>
+                 <div class="input-group">
+                    <label for="windSpeed">Windgeschwindigkeit (km/h):</label>
+                    <input type="number" id="windSpeed" value="0" step="0.1" min="-50" max="50">
+                    <span>km/h (pos=Rücken-, neg=Gegenwind)</span>
+                </div>
+            </form>
+
+            <div class="output-group">
+                <p>Erforderliche Gesamtleistung (P<sub>TOT</sub>): <strong><span id="totalPower">---</span> W</strong></p>
+                <p>Leistung pro kg Fahrergewicht: <strong><span id="powerPerKg">---</span> W/kg</strong></p>
+                <div class="power-breakdown">
+                    <p>Leistungsaufteilung:</p>
+                    - Luftwiderstand (P<sub>AT</sub>): <span id="powerAero">---</span> W<br>
+                    - Rollwiderstand (P<sub>RR</sub>): <span id="powerRolling">---</span> W<br>
+                    - Steigungswiderstand (P<sub>PE</sub>): <span id="powerPotential">---</span> W<br>
+                    - Mechanische Verluste (P<sub>WB</sub> + P<sub>C</sub>): <span id="powerMechanical">---</span> W
+                </div>
+            </div>
+
+            <div id="powerChartContainer">
+                <canvas id="powerChart"></canvas>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Streckenleistungsberechnung</h2>
+             <form id="courseForm">
+                <div class="input-group">
+                    <label for="courseLength">Streckenlänge (km):</label>
+                    <input type="number" id="courseLength" value="40" step="0.1" min="0.1">
+                    <span>km</span>
+                </div>
+                <div class="input-group">
+                    <label for="courseTime">Benötigte Zeit (hh:mm:ss):</label>
+                    <input type="text" id="courseTime" value="01:00:00" pattern="\d{1,2}:\d{2}:\d{2}">
+                    <span>Format: h:mm:ss</span>
+                </div>
+                 <div class="input-group">
+                    <label for="elevationGain">Höhenmeter (Hm):</label>
+                    <input type="number" id="elevationGain" value="100" step="1" min="0">
+                    <span>m</span>
+                </div>
+                <p style="text-align: center; margin: 10px 0;"><i>(Die durchschnittliche Steigung wird aus Länge und Höhenmetern berechnet)</i></p>
+                <p style="text-align: center; margin: 10px 0;"><i>(Nutzt Fahrer-/Fahrradgewicht, C<sub>d</sub>A, C<sub>rr</sub>, Luftdichte von oben. Wind & Beschl. = 0)</i></p>
+
+                <button type="button" id="calculateCourseBtn">Durchschnittliche Leistung berechnen</button>
+            </form>
+
+            <div class="output-group" id="courseOutput" style="display: none;">
+                 <p>Durchschnittliche Geschwindigkeit: <strong><span id="avgVelocity">---</span> km/h</strong></p>
+                 <p>Durchschnittliche Steigung: <strong><span id="avgGradient">---</span> %</strong></p>
+                <p>Erforderliche Ø Leistung (P<sub>TOT,avg</sub>): <strong><span id="avgTotalPower">---</span> W</strong></p>
+                <p>Ø Leistung pro kg Fahrergewicht: <strong><span id="avgPowerPerKg">---</span> W/kg</strong></p>
+                  <div class="power-breakdown">
+                    <p>Ø Leistungsaufteilung:</p>
+                    - Luftwiderstand (P<sub>AT,avg</sub>): <span id="avgPowerAero">---</span> W<br>
+                    - Rollwiderstand (P<sub>RR,avg</sub>): <span id="avgPowerRolling">---</span> W<br>
+                    - Steigungswiderstand (P<sub>PE,avg</sub>): <span id="avgPowerPotential">---</span> W<br>
+                    - Mechanische Verluste (P<sub>WB,avg</sub> + P<sub>C,avg</sub>): <span id="avgPowerMechanical">---</span> W
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Constants and Global Variables ---
+        const g = 9.81; // m/s^2
+        const Fw = 0.0044; // m^2 (Incremental drag area for wheels, from sample calculation)
+        const Ec = 0.97698; // Drivetrain efficiency (from SRM validation in paper, eq. 146)
+        let powerChart = null;
+
+        // --- DOM Elements ---
+        const interactiveForm = document.getElementById('interactiveForm');
+        const velocityInput = document.getElementById('velocity');
+        const velocityMsSpan = document.getElementById('velocity_ms');
+        const riderMassInput = document.getElementById('riderMass');
+        const bikeMassInput = document.getElementById('bikeMass');
+        const totalMassInput = document.getElementById('totalMass');
+        const gradientInput = document.getElementById('gradient');
+        const cdAInput = document.getElementById('cdA');
+        const crrInput = document.getElementById('crr');
+        const airDensityInput = document.getElementById('airDensity');
+        const windSpeedInput = document.getElementById('windSpeed');
+
+        const totalPowerSpan = document.getElementById('totalPower');
+        const powerPerKgSpan = document.getElementById('powerPerKg');
+        const powerAeroSpan = document.getElementById('powerAero');
+        const powerRollingSpan = document.getElementById('powerRolling');
+        const powerPotentialSpan = document.getElementById('powerPotential');
+        const powerMechanicalSpan = document.getElementById('powerMechanical');
+
+        const courseForm = document.getElementById('courseForm');
+        const courseLengthInput = document.getElementById('courseLength');
+        const courseTimeInput = document.getElementById('courseTime');
+        const elevationGainInput = document.getElementById('elevationGain');
+        const calculateCourseBtn = document.getElementById('calculateCourseBtn');
+        const courseOutputDiv = document.getElementById('courseOutput');
+        const avgVelocitySpan = document.getElementById('avgVelocity');
+        const avgGradientSpan = document.getElementById('avgGradient');
+        const avgTotalPowerSpan = document.getElementById('avgTotalPower');
+        const avgPowerPerKgSpan = document.getElementById('avgPowerPerKg');
+        const avgPowerAeroSpan = document.getElementById('avgPowerAero');
+        const avgPowerRollingSpan = document.getElementById('avgPowerRolling');
+        const avgPowerPotentialSpan = document.getElementById('avgPowerPotential');
+        const avgPowerMechanicalSpan = document.getElementById('avgPowerMechanical');
+
+
+        // --- Core Calculation Logic (based on Martin et al., 1998) ---
+        function calculatePowerComponents(Vg, m_T, Gr, CdA, Crr, rho, Vw) {
+            // Vg: Ground velocity (m/s)
+            // m_T: Total mass (kg)
+            // Gr: Gradient (decimal, e.g., 0.03 for 3%)
+            // CdA: Drag area (m^2)
+            // Crr: Coefficient of rolling resistance
+            // rho: Air density (kg/m^3)
+            // Vw: Wind velocity (m/s, positive for tailwind, negative for headwind)
+
+            if (Vg <= 0) {
+                return { PAT: 0, PRR: 0, PPE: 0, PWB: 0, PKE: 0, PNET: 0, PTOT: 0, PC: 0 };
+            }
+
+            // Air velocity relative to rider
+            const Va = Vg - Vw; // Simplified: direct head/tailwind
+
+            // 1. Aerodynamic Power (PAT) - Eq. 4 (using CdA+Fw)
+            const PAT = 0.5 * rho * (CdA + Fw) * Math.pow(Va, 2) * Vg;
+
+            // 2. Rolling Resistance Power (PRR) - Simplified Eq. 6a
+            const PRR = Vg * Crr * m_T * g;
+
+            // 3. Potential Energy Power (PPE) - Simplified Eq. 9a
+            const PPE = Vg * m_T * g * Gr;
+
+            // 4. Wheel Bearing Friction Power (PWB) - Eq. 7
+            const PWB = Vg * (91 + 8.7 * Vg) * 0.001;
+
+            // 5. Kinetic Energy Power (PKE) - Assume 0 for steady state
+            const PKE = 0;
+
+            // 6. Net Power (PNET) - Sum of resistances (Eq. 13 without PKE)
+            const PNET = PAT + PRR + PPE + PWB + PKE;
+
+            // 7. Total Power (PTOT) - Accounting for drivetrain efficiency (Eq. 15)
+            const PTOT = PNET / Ec;
+
+            // 8. Chain Friction Power (PC) - Difference between total and net
+            const PC = PTOT - PNET;
+
+             // Combine mechanical losses for simpler display/chart
+            const Pmech = PWB + PC;
+
+
+            return { PAT, PRR, PPE, PWB, PKE, PNET, PTOT, PC, Pmech };
+        }
+
+        // --- Update UI Functions ---
+        function updateInteractiveDisplay() {
+            // Get values from inputs
+            const V_kmh = parseFloat(velocityInput.value);
+            const Vg = V_kmh / 3.6; // Convert km/h to m/s
+            const riderMass = parseFloat(riderMassInput.value);
+            const bikeMass = parseFloat(bikeMassInput.value);
+            const m_T = riderMass + bikeMass;
+            const Gr_percent = parseFloat(gradientInput.value);
+            const Gr = Gr_percent / 100; // Convert % to decimal
+            const CdA = parseFloat(cdAInput.value);
+            const Crr = parseFloat(crrInput.value);
+            const rho = parseFloat(airDensityInput.value);
+            const Vw_kmh = parseFloat(windSpeedInput.value);
+            const Vw = Vw_kmh / 3.6; // Convert km/h to m/s
+
+            // Update displayed total mass
+             totalMassInput.value = m_T.toFixed(1);
+             velocityMsSpan.textContent = `(${Vg.toFixed(2)} m/s)`;
+
+
+            // Calculate power
+            const powers = calculatePowerComponents(Vg, m_T, Gr, CdA, Crr, rho, Vw);
+
+            // Display results
+            totalPowerSpan.textContent = powers.PTOT.toFixed(1);
+            powerPerKgSpan.textContent = (powers.PTOT / riderMass).toFixed(2);
+
+            powerAeroSpan.textContent = powers.PAT.toFixed(1);
+            powerRollingSpan.textContent = powers.PRR.toFixed(1);
+            powerPotentialSpan.textContent = powers.PPE.toFixed(1);
+            powerMechanicalSpan.textContent = powers.Pmech.toFixed(1); // Display combined PWB + PC
+
+            // Update chart
+            updateChart([powers.PAT, powers.PRR, powers.PPE, powers.Pmech]);
+        }
+
+        function updateChart(powerData) {
+            const ctx = document.getElementById('powerChart').getContext('2d');
+            const labels = ['Luftwiderstand (P_AT)', 'Rollwiderstand (P_RR)', 'Steigung (P_PE)', 'Mechanik (P_WB+P_C)'];
+
+            // Ensure positive values for chart display (height)
+            const displayData = powerData.map(p => Math.max(0, p)); // Show only positive contributions as bars
+            const backgroundColors = [
+                'rgba(255, 99, 132, 0.6)', // Red
+                'rgba(54, 162, 235, 0.6)', // Blue
+                'rgba(75, 192, 192, 0.6)', // Green
+                'rgba(153, 102, 255, 0.6)' // Purple
+            ];
+             const borderColors = [
+                'rgba(255, 99, 132, 1)',
+                'rgba(54, 162, 235, 1)',
+                'rgba(75, 192, 192, 1)',
+                'rgba(153, 102, 255, 1)'
+            ];
+
+
+            if (powerChart) {
+                powerChart.data.datasets[0].data = displayData;
+                powerChart.update();
+            } else {
+                powerChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Leistungskomponenten (W)',
+                            data: displayData,
+                            backgroundColor: backgroundColors,
+                            borderColor: borderColors,
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Leistung (Watt)'
+                                }
+                            }
+                        },
+                         plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        // Show actual value (including negative P_PE) in tooltip
+                                        let label = context.dataset.label || '';
+                                        if (label) {
+                                            label += ': ';
+                                        }
+                                        const actualValue = powerData[context.dataIndex];
+                                        label += actualValue.toFixed(1) + ' W';
+                                        return label;
+                                    }
+                                }
+                            },
+                            legend: {
+                                display: false // Hide legend as labels are clear
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // --- Course Calculation Logic ---
+         function parseTimeToSeconds(timeStr) {
+             const parts = timeStr.split(':');
+             if (parts.length !== 3) return NaN;
+             const h = parseInt(parts[0], 10);
+             const m = parseInt(parts[1], 10);
+             const s = parseInt(parts[2], 10);
+             if (isNaN(h) || isNaN(m) || isNaN(s)) return NaN;
+             return h * 3600 + m * 60 + s;
+         }
+
+        function calculateCoursePower() {
+            // Get course inputs
+            const length_km = parseFloat(courseLengthInput.value);
+            const timeStr = courseTimeInput.value;
+            const elevation_m = parseFloat(elevationGainInput.value);
+
+            // Get relevant parameters from interactive form
+            const riderMass = parseFloat(riderMassInput.value);
+            const bikeMass = parseFloat(bikeMassInput.value);
+            const m_T = riderMass + bikeMass;
+            const CdA = parseFloat(cdAInput.value);
+            const Crr = parseFloat(crrInput.value);
+            const rho = parseFloat(airDensityInput.value);
+
+             // Validate inputs
+             const time_s = parseTimeToSeconds(timeStr);
+             if (isNaN(time_s) || time_s <= 0 || isNaN(length_km) || length_km <= 0 || isNaN(elevation_m) || isNaN(m_T) || m_T <=0) {
+                 alert("Bitte gültige Werte für Strecke, Zeit, Höhenmeter und Massen eingeben.");
+                 return;
+             }
+
+            // Calculate derived values
+            const length_m = length_km * 1000;
+            // Approximate horizontal distance for gradient calculation (small angle approx)
+            const horizontal_dist_m = Math.sqrt(Math.max(0, length_m**2 - elevation_m**2));
+             const Gr_avg = horizontal_dist_m > 0 ? elevation_m / horizontal_dist_m : 0; // Avoid division by zero for vertical climb
+            //const Gr_avg = elevation_m / length_m; // simpler approximation often used
+            const Vg_avg = length_m / time_s; // Average velocity in m/s
+            const Vg_avg_kmh = Vg_avg * 3.6;
+
+            // Calculate average power (assuming Vw = 0, PKE = 0)
+             const avgPowers = calculatePowerComponents(Vg_avg, m_T, Gr_avg, CdA, Crr, rho, 0); // Wind = 0 for avg calc
+
+
+            // Display results
+            avgVelocitySpan.textContent = Vg_avg_kmh.toFixed(1);
+            avgGradientSpan.textContent = (Gr_avg * 100).toFixed(1);
+            avgTotalPowerSpan.textContent = avgPowers.PTOT.toFixed(1);
+            avgPowerPerKgSpan.textContent = (avgPowers.PTOT / riderMass).toFixed(2);
+
+            avgPowerAeroSpan.textContent = avgPowers.PAT.toFixed(1);
+            avgPowerRollingSpan.textContent = avgPowers.PRR.toFixed(1);
+            avgPowerPotentialSpan.textContent = avgPowers.PPE.toFixed(1);
+            avgPowerMechanicalSpan.textContent = avgPowers.Pmech.toFixed(1);
+
+            courseOutputDiv.style.display = 'block'; // Show the output section
+        }
+
+
+        // --- Event Listeners ---
+        // Recalculate interactive part on any input change
+        interactiveForm.addEventListener('input', updateInteractiveDisplay);
+
+         // Update total mass automatically when rider or bike mass changes
+        riderMassInput.addEventListener('input', () => {
+             totalMassInput.value = (parseFloat(riderMassInput.value || 0) + parseFloat(bikeMassInput.value || 0)).toFixed(1);
+        });
+         bikeMassInput.addEventListener('input', () => {
+             totalMassInput.value = (parseFloat(riderMassInput.value || 0) + parseFloat(bikeMassInput.value || 0)).toFixed(1);
+        });
+
+
+        // Calculate course power on button click
+        calculateCourseBtn.addEventListener('click', calculateCoursePower);
+
+        // --- Initial Calculation on Load ---
+        document.addEventListener('DOMContentLoaded', () => {
+            updateInteractiveDisplay(); // Run once to show initial values and chart
+        });
+
+    </script>
+</body>
+</html>

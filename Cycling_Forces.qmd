@@ -1,0 +1,37 @@
+---
+title: "Cycling Power Calculator"
+format:
+  html:
+    resources: 
+      - shinylive-sw.js
+    fig-responsive: true
+
+filters:
+  - shinylive
+
+execute:
+  message: false
+  engine: knitr
+  echo: false
+  warning: false
+  error: false
+  
+bibliography: references_all.bib
+number-sections: false
+editor: 
+  markdown: 
+    wrap: 72
+---
+
+**Please note: This website is currently under construction.** I'm gradually adding more detailed explanations of the applications and developing additional models. The content will continue to expand over time.
+
+
+<div style="position: relative; width: 100%; height: 800px;">
+  <iframe src="Cycling_Forces_1.4.html" style="position: absolute; width: 100%; height: 100%; border: none;"></iframe>
+</div>
+
+<br>
+
+[Link: Cycling Power Calculator](/Cycling_Forces_1.4.html)
+
+
