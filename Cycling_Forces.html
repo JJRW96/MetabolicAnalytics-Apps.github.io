@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>model_equations – ShinyApps</title>
+<title>Cycling Power Calculator – ShinyApps</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -23,24 +23,25 @@ ul.task-list li input[type="checkbox"] {
 </style>
 
 
-<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
-<script src="../site_libs/quarto-nav/headroom.min.js"></script>
-<script src="../site_libs/clipboard/clipboard.min.js"></script>
-<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
-<script src="../site_libs/quarto-search/fuse.min.js"></script>
-<script src="../site_libs/quarto-search/quarto-search.js"></script>
-<meta name="quarto:offset" content="../">
-<script src="../site_libs/quarto-html/quarto.js"></script>
-<script src="../site_libs/quarto-html/popper.min.js"></script>
-<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
-<script src="../site_libs/quarto-html/anchor.min.js"></script>
-<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-d4d76bf8491c20bad77d141916dc28e1.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-4379b0ccadffce622b03caf4c46266b3.css" rel="prefetch" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
-<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
-<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-6a00d7ebc5533775dc3675cb261d6cfe.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-0ed3b8ce94f9dbc3da4c5660203e5302.min.css" rel="prefetch" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./Critical_Power.html" rel="prev">
+<script src="site_libs/quarto-html/quarto.js"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-d4d76bf8491c20bad77d141916dc28e1.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-4379b0ccadffce622b03caf4c46266b3.css" rel="prefetch" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-6a00d7ebc5533775dc3675cb261d6cfe.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark-0ed3b8ce94f9dbc3da4c5660203e5302.min.css" rel="prefetch" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -70,7 +71,7 @@ ul.task-list li input[type="checkbox"] {
 }</script>
 
 
-<link rel="stylesheet" href="../styles.css">
+<link rel="stylesheet" href="styles.css">
 </head>
 
 <body class="nav-sidebar docked fullcontent">
@@ -82,7 +83,7 @@ ul.task-list li input[type="checkbox"] {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./Cycling_Forces.html">Cycling Power Calculator</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -96,8 +97,8 @@ ul.task-list li input[type="checkbox"] {
 <!-- sidebar -->
   <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
     <div class="pt-lg-2 mt-2 text-center sidebar-header">
-      <a href="../index.html" class="sidebar-logo-link">
-      <img src="../images/Logo_1.png" alt="" class="sidebar-logo py-0 d-lg-inline d-none">
+      <a href="./index.html" class="sidebar-logo-link">
+      <img src="./images/Logo_1.png" alt="" class="sidebar-logo py-0 d-lg-inline d-none">
       </a>
       <div class="sidebar-tools-main">
   <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
@@ -112,31 +113,31 @@ ul.task-list li input[type="checkbox"] {
     <ul class="list-unstyled mt-1">
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../about.html" class="sidebar-item-text sidebar-link">
+  <a href="./about.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">About</span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../Mader_Modell.html" class="sidebar-item-text sidebar-link">
+  <a href="./Mader_Modell.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Mader’s metabolic model</span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../Cadence_Test.html" class="sidebar-item-text sidebar-link">
+  <a href="./Cadence_Test.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Cadence Tests</span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../Critical_Power.html" class="sidebar-item-text sidebar-link">
+  <a href="./Critical_Power.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Critical Power &amp; W'</span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../Cycling_Forces.html" class="sidebar-item-text sidebar-link">
+  <a href="./Cycling_Forces.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text">Cycling Power Calculator</span></a>
   </div>
 </li>
@@ -147,156 +148,35 @@ ul.task-list li input[type="checkbox"] {
 <!-- margin-sidebar -->
     
 <!-- main -->
-<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"></header>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Cycling Power Calculator</h1>
+</div>
 
 
 
+<div class="quarto-title-meta">
 
-<section id="key-equations-and-parameters-from-mader-model" class="level1" data-number="1">
-<h1 data-number="1"><span class="header-section-number">1</span> Key Equations and Parameters from Mader Model</h1>
-<section id="overview" class="level2" data-number="1.1">
-<h2 data-number="1.1" class="anchored" data-anchor-id="overview"><span class="header-section-number">1.1</span> Overview</h2>
-<p>Based on the analysis of the Mader 2003 paper and the Heck 2022 paper, I’ve identified the key equations and parameters needed to implement the Mader model for simulating metabolic parameters during a step test.</p>
-</section>
-<section id="metabolic-parameters-to-model" class="level2" data-number="1.2">
-<h2 data-number="1.2" class="anchored" data-anchor-id="metabolic-parameters-to-model"><span class="header-section-number">1.2</span> Metabolic Parameters to Model</h2>
-<ol type="1">
-<li>VO2ss (Steady state oxygen uptake)</li>
-<li>VLamax (Maximum rate of lactate formation)</li>
-<li>VLaox (Rate of lactate elimination by oxidation)</li>
-<li>Pyruvate deficit</li>
-<li>Muscle lactate accumulation</li>
-<li>Blood lactate accumulation</li>
-<li>pH</li>
-<li>PCr (Phosphocreatine) values</li>
-<li>ATP values</li>
-</ol>
-</section>
-<section id="key-equations" class="level2" data-number="1.3">
-<h2 data-number="1.3" class="anchored" data-anchor-id="key-equations"><span class="header-section-number">1.3</span> Key Equations</h2>
-<section id="atp-pcr-equilibrium" class="level3" data-number="1.3.1">
-<h3 data-number="1.3.1" class="anchored" data-anchor-id="atp-pcr-equilibrium"><span class="header-section-number">1.3.1</span> ATP-PCr Equilibrium</h3>
-<p>The equilibrium of the cytosolic high energy phosphate system is described by:</p>
-<ol type="1">
-<li><a href="Concentration of cytosolic adenosine triphosphate" title="mmol/kg">ATP</a>/<a href="Concentration of cytosolic adenosine diphosphate" title="mmol/kg">ADP</a> = M1 * <a href="Concentration of phosphocreatine" title="mmol/kg muscle">PCr</a>/[Pi]
-<ul>
-<li>M1 is the apparent equilibrium constant</li>
-<li>M1 = M2 * [H+] where M2 = 1.66 * 10^9 mol^-1</li>
-</ul></li>
-<li><a href="Concentration of cytosolic adenosine diphosphate" title="mmol/kg">ADP</a> = <a href="Concentration of cytosolic adenosine triphosphate" title="mmol/kg">ATP</a> * [Pi] / (M2 * [H+] * <a href="Concentration of phosphocreatine" title="mmol/kg muscle">PCr</a>)
-<ul>
-<li>This equation allows calculation of free <a href="Concentration of cytosolic adenosine diphosphate" title="mmol/kg">ADP</a></li>
-</ul></li>
-<li><a href="Concentration of cytosolic adenosine triphosphate" title="mmol/kg">ATP</a> * <a href="Concentration of adenosine monophosphate" title="mmol/kg">AMP</a> = M3 * <a href="Concentration of cytosolic adenosine diphosphate" title="mmol/kg">ADP</a>^2
-<ul>
-<li>M3 is the equilibrium constant (0.85-1.05)</li>
-<li><a href="Concentration of adenosine monophosphate" title="mmol/kg">AMP</a> * <a href="Concentration of cytosolic adenosine diphosphate" title="mmol/kg">ADP</a> is approximately equivalent to <a href="Concentration of cytosolic adenosine diphosphate" title="mmol/kg">ADP</a>^3</li>
-</ul></li>
-<li>ΔGATP,cyt = ΔG0 + R * T * ln(<a href="Concentration of cytosolic adenosine triphosphate" title="mmol/kg">ATP</a>/(<a href="Concentration of cytosolic adenosine diphosphate" title="mmol/kg">ADP</a> * [Pi]))
-<ul>
-<li>ΔGATP,cyt represents the free energy of the CHEP system</li>
-<li>ΔG0 is the standard free energy of the <a href="Concentration of cytosolic adenosine triphosphate" title="mmol/kg">ATP</a>/<a href="Concentration of phosphocreatine" title="mmol/kg muscle">PCr</a> system (-30.6 kJ/mol)</li>
-</ul></li>
-</ol>
-</section>
-<section id="oxidative-phosphorylation-oxp" class="level3" data-number="1.3.2">
-<h3 data-number="1.3.2" class="anchored" data-anchor-id="oxidative-phosphorylation-oxp"><span class="header-section-number">1.3.2</span> Oxidative Phosphorylation (OxP)</h3>
-<p>The rate of oxidative phosphorylation can be calculated as a function of: 1. Free <a href="Concentration of cytosolic adenosine diphosphate" title="mmol/kg">ADP</a> as the substrate 2. A second driving force FDG resulting from the difference of free energy ΔGox,ap - ΔGATP,cyt</p>
-</section>
-<section id="glycolysis" class="level3" data-number="1.3.3">
-<h3 data-number="1.3.3" class="anchored" data-anchor-id="glycolysis"><span class="header-section-number">1.3.3</span> Glycolysis</h3>
-<p>Regulation of glycolysis is calculated as a function of: 1. Free <a href="Concentration of cytosolic adenosine diphosphate" title="mmol/kg">ADP</a> and <a href="Concentration of adenosine monophosphate" title="mmol/kg">AMP</a> at the level of PFK 2. PFK is inhibited by decreasing pH resulting from lactate accumulation</p>
-</section>
-<section id="lactate-distribution-and-elimination" class="level3" data-number="1.3.4">
-<h3 data-number="1.3.4" class="anchored" data-anchor-id="lactate-distribution-and-elimination"><span class="header-section-number">1.3.4</span> Lactate Distribution and Elimination</h3>
-<p>Calculated using a two-compartment model: 1. Active lactate producing space (muscle) 2. Passive space including lactate elimination by combustion</p>
-</section>
-</section>
-<section id="important-parameters" class="level2" data-number="1.4">
-<h2 data-number="1.4" class="anchored" data-anchor-id="important-parameters"><span class="header-section-number">1.4</span> Important Parameters</h2>
-<section id="oxygen-uptake" class="level3" data-number="1.4.1">
-<h3 data-number="1.4.1" class="anchored" data-anchor-id="oxygen-uptake"><span class="header-section-number">1.4.1</span> Oxygen Uptake</h3>
-<ul>
-<li>VO2: Oxygen uptake (ml/min or ml/min/kg body mass)</li>
-<li>VO2,a: Current VO2 (ml/s/kg muscle)</li>
-<li>VO2,a,rest: Current VO2 at rest (ml/s/kg muscle)</li>
-<li>VO2max: Maximal oxygen uptake (ml/s/kg muscle or body mass)</li>
-<li>VO2,ss: Steady state of VO2 (ml/s/kg muscle mass wet weight)</li>
-<li>tVO2: Time constant (seconds) of the rise of VO2 from the beginning of exercise</li>
-</ul>
-</section>
-<section id="lactate-parameters" class="level3" data-number="1.4.2">
-<h3 data-number="1.4.2" class="anchored" data-anchor-id="lactate-parameters"><span class="header-section-number">1.4.2</span> Lactate Parameters</h3>
-<ul>
-<li>vla: Rate of lactic acid formation (mmol/s/kg)</li>
-<li>vla,max: Maximal rate of glycolysis expressed as rate of lactic acid formation (mmol/s/kg)</li>
-<li>vla,max,pH: pH Dependent maximal rate of glycolysis (mmol/s/kg)</li>
-<li>vla,ox: Rate of lactate elimination by oxidation (mmol/min/kg)</li>
-<li>vla,ox,b: Rate of lactate elimination by oxidation in blood (mmol/min/kg)</li>
-<li>vla,ox,m: Rate of lactate elimination by oxidation in muscle (mmol/min/kg)</li>
-<li>vla,ss: Steady-state rate of gross lactic acid formation at pH above 7.4 (mmol/s/kg)</li>
-<li>vla,ss,pH: pH dependent steady-state gross rate of formation of lactic acid (mmol/s/kg)</li>
-<li></li>
-<li><a href="Concentration of lactate" title="mmol/l">la-</a>b: Concentration of lactate in blood (mmol/l)</li>
-<li><a href="Concentration of lactate" title="mmol/l">la-</a>m: Concentration of lactate in muscle (mmol/l)</li>
-<li><a href="Concentration of lactate" title="mmol/l">la-</a>ss: Steady state concentration of lactate during equilibrium of lactate production and oxidative elimination</li>
-</ul>
-</section>
-<section id="ph-and-related-parameters" class="level3" data-number="1.4.3">
-<h3 data-number="1.4.3" class="anchored" data-anchor-id="ph-and-related-parameters"><span class="header-section-number">1.4.3</span> pH and Related Parameters</h3>
-<ul>
-<li>pH: -log10[H+]</li>
-<li>pHm: Intracellular cytosolic pH</li>
-<li>dbuff: Coefficient equal to the mean buffering capacity of skeletal muscle</li>
-</ul>
-</section>
-<section id="pcr-and-atp-parameters" class="level3" data-number="1.4.4">
-<h3 data-number="1.4.4" class="anchored" data-anchor-id="pcr-and-atp-parameters"><span class="header-section-number">1.4.4</span> PCr and ATP Parameters</h3>
-<ul>
-<li></li>
-<li></li>
-<li></li>
-<li></li>
-<li>[GP]: Sum of concentrations of high energy phosphate compounds ([GP]=<a href="Concentration of cytosolic adenosine triphosphate" title="mmol/kg">ATP</a>+<a href="Concentration of phosphocreatine" title="mmol/kg muscle">PCr</a>) (mmol/kg)</li>
-</ul>
-</section>
-<section id="power-output-parameters" class="level3" data-number="1.4.5">
-<h3 data-number="1.4.5" class="anchored" data-anchor-id="power-output-parameters"><span class="header-section-number">1.4.5</span> Power Output Parameters</h3>
-<ul>
-<li>vGP,E: Power output expressed in terms of rate of GP consumption during contraction (mmol/s/kg)</li>
-<li>vGP,rest: Power output expressed in terms of rate of GP consumption at rest (mmol/s/kg)</li>
-<li>bPow: Rate of GP consumption per watt (mmol/kg/s/watt)</li>
-</ul>
-</section>
-</section>
-<section id="extended-mader-model-from-heck-2022" class="level2" data-number="1.5">
-<h2 data-number="1.5" class="anchored" data-anchor-id="extended-mader-model-from-heck-2022"><span class="header-section-number">1.5</span> Extended Mader Model (from Heck 2022)</h2>
-<p>The extended Mader model includes: 1. Two-compartment system for lactate (muscle and blood) 2. Consideration of hydrogen ion concentration 3. Delayed increase in oxygen supply (O2 deficit) 4. Closed feedback loop of ATP consumption and ATP resynthesis</p>
-</section>
-<section id="step-test-protocol-user-requirements" class="level2" data-number="1.6">
-<h2 data-number="1.6" class="anchored" data-anchor-id="step-test-protocol-user-requirements"><span class="header-section-number">1.6</span> Step Test Protocol (User Requirements)</h2>
-<ul>
-<li>30-second steps</li>
-<li>Starting power: 60 watts</li>
-<li>Increment: 20 watts per step</li>
-<li>Maximum power: 500 watts</li>
-<li>Default VO2max: 6000 ml/min</li>
-<li>Default VLamax: 0.70</li>
-</ul>
-</section>
-<section id="next-steps" class="level2" data-number="1.7">
-<h2 data-number="1.7" class="anchored" data-anchor-id="next-steps"><span class="header-section-number">1.7</span> Next Steps</h2>
-<ol type="1">
-<li>Implement the mathematical model in JavaScript</li>
-<li>Create the step test simulation logic</li>
-<li>Calculate all required metabolic parameters</li>
-<li>Develop interactive visualization with multiple y-axes</li>
-<li>Add sliders for VO2max and VLamax adjustment</li>
-</ol>
+    
+  
+    
+  </div>
+  
 
 
-</section>
-</section>
+</header>
+
+
+<p><strong>Please note: This website is currently under construction.</strong> I’m gradually adding more detailed explanations of the applications and developing additional models. The content will continue to expand over time.</p>
+<div style="position: relative; width: 100%; height: 800px;">
+<p><iframe src="Cycling_Forces_1.4.html" style="position: absolute; width: 100%; height: 100%; border: none;"></iframe></p>
+</div>
+<p><br></p>
+<p><a href="./Cycling_Forces_1.4.html">Link: Cycling Power Calculator</a></p>
+
+
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
@@ -799,6 +679,15 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   }
 });
 </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./Critical_Power.html" class="pagination-link" aria-label="Critical Power &amp; W'">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Critical Power &amp; W’</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+  </div>
+</nav>
 </div> <!-- /content -->
 <footer class="footer">
   <div class="nav-footer">
