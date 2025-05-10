@@ -1801,7 +1801,7 @@ plot_CT1_VO2SS_CE_cubic_cubic <- plot_ly() %>%
 plot_CT1_VO2SS_CE_cubic_cubic
 
 #######################################
-df_CT_SS_2 <- readRDS(file = "C:/Users/johan/OneDrive/Desktop/SpoWi/MetabolicAnalytics-Apps.github.io/rds/df_CT_SS_2.rds")
+df_CT_SS_2 <- readRDS(file = "rds/df_CT_SS_2.rds")
 
 # Get first data point value for 0 Watt points
 first_point_0watt <- df_DT1_SS[1, ]
