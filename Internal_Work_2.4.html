@@ -1,0 +1,2915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cycling Kinematics & P_Int Calculator</title>
+    <!-- Plotly.js via CDN for the Power Plot -->
+    <script src='https://cdn.plot.ly/plotly-latest.min.js'></script>
+    <!-- Konva.js via CDN for the Kinematics Simulation -->
+    <script src="https://unpkg.com/konva@8.3.0/konva.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Root variables based on the provided example */
+        :root {
+            --primary-color: #2683C6; /* General UI blue */
+            --secondary-color: #9C85C0; /* Lighter accent */
+            --accent-color: #EF5350;    /* Reddish accent */
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --border-color: #dee2e6;
+            --gradient-start: #f1f8ff;
+            --gradient-end: #ffffff;
+            --segment-thigh-color: #4CAF50; /* Green */
+            --segment-shank-color: #2196F3; /* Blue */
+            --segment-crank-color: #607D8B; /* Grey */
+            --joint-color: #FF9800; /* Orange */
+            --com-color: #9C27B0; /* Purple */
+             --hip-color: #E91E63; /* Pink/Red */
+             --axis-color: #CCCCCC; /* Light gray for axes */
+             --axis-text-color: #999999; /* Darker gray for axis text */
+             --upperbody-color: #7E7E7E; /* Medium gray for upper body segments */
+             --upperbody-joint-color: #505050; /* Darker gray for upper body joints */
+             --head-color: #606060; /* Gray for head */
+             --angle-color: #FF5722; /* Orange for angle text */
+        }
+
+        /* Base styles */
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #f5f5f5; color: var(--dark-color); line-height: 1.6; overflow: hidden; /* Prevent body scroll */ }
+        .container { display: flex; height: 100vh; max-width: 100%; }
+
+        /* Sidebar */
+        .sidebar {
+            width: 400px; /* Slightly wider for more parameters */
+            flex-shrink: 0;
+            background: linear-gradient(to bottom, var(--gradient-start), var(--gradient-end));
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            overflow-y: auto; /* Enable scrolling only for sidebar */
+            border-right: 1px solid var(--border-color);
+            max-height: 100vh; /* Ensure sidebar doesn't exceed viewport height */
+            position: relative;
+            z-index: 10;
+        }
+        .sidebar h1 { font-size: 1.5rem; color: var(--primary-color); margin-bottom: 20px; text-align: center; font-weight: 500; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
+
+        /* Main Content */
+        .main-content {
+             flex: 1;
+             padding: 25px;
+             display: flex;
+             flex-direction: column;
+             background-color: #fff;
+             overflow-y: auto; /* Enable scrolling for main content */
+             max-height: 100vh; /* Ensure main content doesn't exceed viewport height */
+        }
+        .main-content h2 { font-size: 1.4rem; color: var(--dark-color); margin-bottom: 15px; margin-top: 10px; text-align: center; font-weight: 500;}
+        .main-content h3 { font-size: 1.1rem; color: var(--primary-color); margin-bottom: 15px; text-align: center; font-weight: 500;}
+
+        /* Controls in Sidebar */
+        .control-group { margin-bottom: 18px; padding-bottom: 15px; border-bottom: 1px solid var(--border-color); background-color: white; border-radius: 6px; padding: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .control-group:last-child { border-bottom: none; margin-bottom: 0; }
+        .slider-container { margin-bottom: 12px; }
+        .slider-label { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 5px; font-size: 0.85rem; font-weight: 500; } /* Smaller font */
+        .slider-label label { flex-grow: 1; margin-right: 10px; }
+        .slider-value { min-width: 80px; text-align: right; font-weight: bold; color: var(--primary-color); font-size: 0.85rem; } /* Smaller font */
+        .range-slider { -webkit-appearance: none; width: 100%; height: 8px; border-radius: 5px; background: #ddd; outline: none; margin-top: 5px; cursor: pointer; }
+        .range-slider::-webkit-slider-runnable-track { height: 8px; background: linear-gradient(to right, var(--secondary-color), var(--primary-color)); border-radius: 5px; }
+        .range-slider::-moz-range-track { height: 8px; background: linear-gradient(to right, var(--secondary-color), var(--primary-color)); border-radius: 5px; }
+        .range-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--primary-color); cursor: pointer; margin-top: -4px; box-shadow: 0 1px 3px rgba(0,0,0,0.3); } /* Adjusted thumb size */
+        .range-slider::-moz-range-thumb { width: 16px; height: 16px; border-radius: 50%; background: var(--primary-color); cursor: pointer; border: none; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+
+        /* Output Area */
+        .output-area { background-color: var(--light-color); padding: 15px; border-radius: 8px; margin-top: 10px; margin-bottom: 20px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1); border: 1px solid var(--border-color); }
+        .output-area h3 { margin-top: 0; margin-bottom: 10px; font-size: 1.1rem; color: var(--primary-color); text-align: center; }
+        .output-area p { margin: 8px 0; font-size: 1em; display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; }
+        .output-area .label { color: #333; margin-right: 10px; font-weight: 500;}
+        .output-area .value { color: var(--dark-color); font-weight: 700; font-size: 1.1em; min-width: 100px; text-align: right; }
+        .output-area .unit { font-size: 0.9em; color: #555; margin-left: 5px;}
+
+        /* Plot Containers */
+        #simulationPlotContainer { min-height: 500px; height: 50vh; width: 100%; background-color: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); padding: 15px; margin-bottom: 25px; display: flex; justify-content: center; align-items: center; position: relative; }
+        #powerCyclePlotContainer { min-height: 300px; height: 25vh; width: 100%; background-color: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); padding: 15px; margin-bottom: 25px;}
+        #simulationCanvas { border-radius: 8px; /* Optional: match parent border-radius */ }
+
+        /* Metrics Dashboard */
+        #metricsDashboard {
+            min-height: 160px; /* Increased height to fit all values */
+            height: 15vh;
+            width: 100%;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            padding: 20px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .metric-card {
+            flex: 1;
+            min-width: 200px;
+            max-width: 300px;
+            height: 95%;
+            background: linear-gradient(to bottom, var(--gradient-start), var(--gradient-end));
+            border-radius: 8px;
+            padding: 12px;
+            margin: 0 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        
+        .metric-title {
+            font-size: 0.9rem;
+            color: var(--dark-color);
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+        
+        .metric-value {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            font-weight: 700;
+        }
+        
+        .angle-metrics {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            margin-top: 5px; /* Added some space */
+        }
+        
+        .angle-metric {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .angle-label {
+            font-size: 0.8rem;
+            color: var(--dark-color);
+            margin-bottom: 2px;
+        }
+        
+        .angle-value {
+            font-size: 1.1rem;
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        /* Axis labels */
+        .axis-label {
+            position: absolute;
+            font-size: 10px;
+            color: var(--axis-text-color);
+            pointer-events: none;
+        }
+        
+        /* Axis titles */
+        .axis-title {
+            position: absolute;
+            font-size: 12px;
+            color: var(--axis-text-color);
+            font-weight: bold;
+            pointer-events: none;
+        }
+
+        /* Tooltip for sliders */
+        .tooltip {
+          position: relative;
+          display: inline-block;
+        }
+        .tooltip .tooltiptext {
+          visibility: hidden;
+          width: 180px;
+          background-color: #555;
+          color: #fff;
+          text-align: center;
+          border-radius: 6px;
+          padding: 5px 8px;
+          position: absolute;
+          z-index: 1;
+          bottom: 125%; /* Position above the element */
+          left: 50%;
+          margin-left: -90px; /* Use half of the width to center */
+          opacity: 0;
+          transition: opacity 0.3s;
+          font-size: 0.8rem;
+          font-weight: normal;
+        }
+         .tooltip:hover .tooltiptext {
+           visibility: visible;
+           opacity: 1;
+         }
+        .tooltip-icon {
+            display: inline-block;
+            margin-left: 5px;
+            color: var(--primary-color);
+            cursor: help; /* Use help cursor for tooltips */
+            font-weight: bold;
+        }
+        
+        /* Manual Control mode toggle switch */
+        .mode-toggle-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+            margin: 0 10px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .toggle-slider {
+            background-color: var(--primary-color);
+        }
+        
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+        
+        .toggle-label {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        
+        /* Manual Control Slider Container */
+        #manualControlContainer {
+            display: none;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        #manualCrankAngle {
+            width: 100%;
+        }
+        
+        .manual-slider-label {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        
+        .manual-slider-value {
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        /* Optimization status indicator */
+        .optimization-status {
+            font-size: 0.8rem;
+            color: var(--primary-color);
+            text-align: center;
+            margin-top: 5px;
+            font-style: italic;
+        }
+        
+        /* Gender selection radio buttons */
+        .gender-selection {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 12px;
+        }
+        
+        .gender-option {
+            margin: 0 15px;
+        }
+        
+        .gender-option label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        
+        .gender-option input[type="radio"] {
+            margin-right: 6px;
+        }
+        
+        /* Auto Calculate checkbox */
+        .auto-calculate {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+        
+        .auto-calculate label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        
+        .auto-calculate input[type="checkbox"] {
+            margin-right: 8px;
+            width: 16px;
+            height: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h1>Cycling Kinematics & P<sub>Int</sub> Calculator</h1>
+
+            <div class="control-group">
+                 <div class="slider-container">
+                    <div class="slider-label">
+                        <label for="masse">Body Mass
+                            <span class="tooltip">
+                                <span class="tooltip-icon">?</span>
+                                <span class="tooltiptext">Total body mass of the cyclist in kg.</span>
+                            </span>
+                        </label>
+                        <span id="masseValue" class="slider-value">75 kg</span>
+                    </div>
+                    <input type="range" id="masse" class="range-slider" min="40" max="120" value="75" step="1">
+                </div>
+                
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <label for="bodyHeight">Body Height
+                            <span class="tooltip">
+                                <span class="tooltip-icon">?</span>
+                                <span class="tooltiptext">Total body height of the cyclist in cm.</span>
+                            </span>
+                        </label>
+                        <span id="bodyHeightValue" class="slider-value">180 cm</span>
+                    </div>
+                    <input type="range" id="bodyHeight" class="range-slider" min="140" max="220" value="180" step="1">
+                </div>
+                
+                <div class="gender-selection">
+                    <div class="gender-option">
+                        <label>
+                            <input type="radio" name="gender" id="maleOption" checked>
+                            Male
+                        </label>
+                    </div>
+                    <div class="gender-option">
+                        <label>
+                            <input type="radio" name="gender" id="femaleOption">
+                            Female
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="auto-calculate">
+                    <label>
+                        <input type="checkbox" id="autoCalculateLimbs" checked>
+                        Auto calculate limb length
+                    </label>
+                </div>
+            </div>
+
+             <div class="control-group">
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <label for="lOS">Thigh Length
+                             <span class="tooltip">
+                                <span class="tooltip-icon">?</span>
+                                <span class="tooltiptext">Length of the thigh segment (Greater trochanter to lateral femoral condyle) in meters.</span>
+                            </span>
+                        </label>
+                        <span id="lOSValue" class="slider-value">0.430 m</span>
+                    </div>
+                    <input type="range" id="lOS" class="range-slider" min="0.250" max="0.600" value="0.430" step="0.005">
+                </div>
+
+                 <div class="slider-container">
+                    <div class="slider-label">
+                        <label for="lUS">Shank Length
+                            <span class="tooltip">
+                                <span class="tooltip-icon">?</span>
+                                <span class="tooltiptext">Length of the shank segment (Lateral femoral condyle to lateral malleolus) in meters.</span>
+                            </span>
+                        </label>
+                        <span id="lUSValue" class="slider-value">0.565 m</span>
+                    </div>
+                    <input type="range" id="lUS" class="range-slider" min="0.300" max="0.800" value="0.565" step="0.005">
+                </div>
+             </div>
+
+             <div class="control-group">
+                <div id="optimizationStatus" class="optimization-status">
+                    Finding optimal saddle position...
+                </div>
+                
+                <div class="slider-container" id="saddleHeightContainer">
+                    <div class="slider-label">
+                        <label for="saddleHeight">Saddle Height
+                            <span class="tooltip">
+                                <span class="tooltip-icon">?</span>
+                                <span class="tooltiptext">Vertical position of the hip joint (saddle) relative to the bottom bracket in meters.</span>
+                            </span>
+                        </label>
+                        <span id="saddleHeightValue" class="slider-value">0.800 m</span>
+                    </div>
+                    <input type="range" id="saddleHeight" class="range-slider" min="0.40" max="1.00" value="0.80" step="0.001">
+                </div>
+
+                <div class="slider-container" id="saddleSetbackContainer">
+                    <div class="slider-label">
+                        <label for="saddleSetback">Saddle Setback
+                            <span class="tooltip">
+                                <span class="tooltip-icon">?</span>
+                                <span class="tooltiptext">Horizontal position of the hip joint (saddle) relative to the bottom bracket in meters. Negative values mean the saddle is behind the bottom bracket.</span>
+                            </span>
+                        </label>
+                        <span id="saddleSetbackValue" class="slider-value">-0.100 m</span>
+                    </div>
+                    <input type="range" id="saddleSetback" class="range-slider" min="-0.20" max="0.00" value="-0.100" step="0.001">
+                </div>
+             </div>
+
+             <div class="control-group">
+                 <div class="slider-container">
+                    <div class="slider-label">
+                        <label for="uOS">Thigh Circumference
+                            <span class="tooltip">
+                                <span class="tooltip-icon">?</span>
+                                <span class="tooltiptext">Maximum circumference of the thigh in meters. Used to approximate segment inertia.</span>
+                            </span>
+                        </label>
+                        <span id="uOSValue" class="slider-value">0.58 m</span>
+                    </div>
+                    <input type="range" id="uOS" class="range-slider" min="0.35" max="0.80" value="0.58" step="0.005">
+                </div>
+                 <div class="slider-container">
+                    <div class="slider-label">
+                        <label for="uUS">Shank Circumference
+                            <span class="tooltip">
+                                <span class="tooltip-icon">?</span>
+                                <span class="tooltiptext">Maximum circumference of the shank (calf) in meters. Used to approximate segment inertia.</span>
+                            </span>
+                        </label>
+                        <span id="uUSValue" class="slider-value">0.37 m</span>
+                    </div>
+                    <input type="range" id="uUS" class="range-slider" min="0.25" max="0.50" value="0.37" step="0.01">
+                </div>
+             </div>
+
+             <div class="control-group">
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <label for="lKurbel">Crank Length
+                            <span class="tooltip">
+                                <span class="tooltip-icon">?</span>
+                                <span class="tooltiptext">Length of the crank (Center of bottom bracket to center of pedal axle) in meters. Common lengths: 0.165, 0.170, 0.1725, 0.175.</span>
+                            </span>
+                        </label>
+                        <span id="lKurbelValue" class="slider-value">0.170 m</span>
+                    </div>
+                    <input type="range" id="lKurbel" class="range-slider" min="0.150" max="0.190" value="0.170" step="0.0025">
+                </div>
+                 <div class="slider-container">
+                    <div class="slider-label">
+                        <label for="nD">Cadence
+                             <span class="tooltip">
+                                <span class="tooltip-icon">?</span>
+                                <span class="tooltiptext">Revolutions Per Minute (RPM). Influences the segment speeds and thus the internal power and animation speed.</span>
+                            </span>
+                        </label>
+                        <span id="nDValue" class="slider-value">60 RPM</span>
+                    </div>
+                    <input type="range" id="nD" class="range-slider" min="40" max="140" value="60" step="1">
+                </div>
+            </div>
+
+            <div class="output-area">
+                <h3>Calculated Internal Power</h3>
+                <p>
+                    <span class="label">P<sub>Int</sub> (Model):</span>
+                    <span id="pIntValue" class="value">--</span>
+                    <span class="unit">Watt</span>
+                </p>
+                 <p style="font-size: 0.8em; color: #666; margin-top: 10px; text-align: center; display: block;">
+                    Calculated as the sum of average positive power changes for both legs over one cycle.
+                </p>
+            </div>
+
+             <!-- No calculate button needed anymore, calculation is dynamic -->
+
+        </div>
+
+        <div class="main-content">
+            <h2>Cycling Kinematic Simulation</h2>
+            
+            <!-- Mode toggle switch -->
+            <div class="mode-toggle-container">
+                <span class="toggle-label">Animation</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="modeToggle">
+                    <span class="toggle-slider"></span>
+                </label>
+                <span class="toggle-label">Manual Control</span>
+            </div>
+            
+            <!-- Manual control slider (initially hidden) -->
+            <div id="manualControlContainer">
+                <div class="manual-slider-label">
+                    <label for="manualCrankAngle">Crank Angle:</label>
+                    <span id="manualCrankAngleValue" class="manual-slider-value">0°</span>
+                </div>
+                <input type="range" id="manualCrankAngle" class="range-slider" min="0" max="359" value="0" step="1">
+            </div>
+            
+            <div id="simulationPlotContainer">
+                 <canvas id="simulationCanvas"></canvas> <!-- Konva simulation canvas will be here -->
+            </div>
+            
+            <!-- New metrics dashboard between simulation and power plot -->
+            <div id="metricsDashboard">
+                <div class="metric-card">
+                    <div class="metric-title">Cadence</div>
+                    <div class="metric-value" id="dashboardCadence">-- RPM</div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-title">Internal Power</div>
+                    <div class="metric-value" id="dashboardPower">-- W</div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-title">Hip Angle</div>
+                    <div class="angle-metrics">
+                        <div class="angle-metric">
+                            <div class="angle-label">Current</div>
+                            <div class="angle-value" id="currentHipAngle">--°</div>
+                        </div>
+                        <div class="angle-metric">
+                            <div class="angle-label">Min</div>
+                            <div class="angle-value" id="minHipAngle">--°</div>
+                        </div>
+                        <div class="angle-metric">
+                            <div class="angle-label">Max</div>
+                            <div class="angle-value" id="maxHipAngle">--°</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-title">Knee Angle</div>
+                    <div class="angle-metrics">
+                        <div class="angle-metric">
+                            <div class="angle-label">Current</div>
+                            <div class="angle-value" id="currentKneeAngle">--°</div>
+                        </div>
+                        <div class="angle-metric">
+                            <div class="angle-label">Min</div>
+                            <div class="angle-value" id="minKneeAngle">--°</div>
+                        </div>
+                        <div class="angle-metric">
+                            <div class="angle-label">Max</div>
+                            <div class="angle-value" id="maxKneeAngle">--°</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h2>Internal Power over Crank Cycle</h2>
+             <div id="powerCyclePlotContainer">
+                <div id="powerCyclePlot"></div> <!-- Plotly power cycle plot will be here -->
+            </div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Get DOM Elements ---
+            const sliders = {
+                masse: document.getElementById('masse'),
+                bodyHeight: document.getElementById('bodyHeight'), // New body height slider
+                lOS: document.getElementById('lOS'),
+                lUS: document.getElementById('lUS'),
+                saddleHeight: document.getElementById('saddleHeight'),
+                saddleSetback: document.getElementById('saddleSetback'),
+                uOS: document.getElementById('uOS'),
+                uUS: document.getElementById('uUS'),
+                lKurbel: document.getElementById('lKurbel'),
+                nD: document.getElementById('nD')
+            };
+        
+            const values = {
+                masse: document.getElementById('masseValue'),
+                bodyHeight: document.getElementById('bodyHeightValue'), // New body height value display
+                lOS: document.getElementById('lOSValue'),
+                lUS: document.getElementById('lUSValue'),
+                saddleHeight: document.getElementById('saddleHeightValue'),
+                saddleSetback: document.getElementById('saddleSetbackValue'),
+                uOS: document.getElementById('uOSValue'), 
+                uUS: document.getElementById('uUSValue'), 
+                lKurbel: document.getElementById('lKurbelValue'),
+                nD: document.getElementById('nDValue')
+            };
+        
+            // Get new controls
+            const maleOption = document.getElementById('maleOption');
+            const femaleOption = document.getElementById('femaleOption');
+            const autoCalculateLimbs = document.getElementById('autoCalculateLimbs');
+        
+            const pIntValueDisplay = document.getElementById('pIntValue');
+            const optimizationStatusDisplay = document.getElementById('optimizationStatus');
+            const simulationPlotContainer = document.getElementById('simulationPlotContainer');
+            const simulationCanvas = document.getElementById('simulationCanvas');
+            const powerCyclePlotDiv = document.getElementById('powerCyclePlot');
+            
+            // Containers
+            const saddleHeightContainer = document.getElementById('saddleHeightContainer');
+            const saddleSetbackContainer = document.getElementById('saddleSetbackContainer');
+            
+            // Dashboard values
+            const dashboardCadence = document.getElementById('dashboardCadence');
+            const dashboardPower = document.getElementById('dashboardPower');
+            const currentHipAngle = document.getElementById('currentHipAngle');
+            const minHipAngle = document.getElementById('minHipAngle');
+            const maxHipAngle = document.getElementById('maxHipAngle');
+            const currentKneeAngle = document.getElementById('currentKneeAngle');
+            const minKneeAngle = document.getElementById('minKneeAngle');
+            const maxKneeAngle = document.getElementById('maxKneeAngle');
+            
+            // Manual control elements
+            const modeToggle = document.getElementById('modeToggle');
+            const manualControlContainer = document.getElementById('manualControlContainer');
+            const manualCrankAngleSlider = document.getElementById('manualCrankAngle');
+            const manualCrankAngleValue = document.getElementById('manualCrankAngleValue');
+            
+            let isManualMode = false; // Animation mode by default
+            let isOptimizing = false; // Flag to prevent multiple concurrent optimization runs
+            let ignoreNextSaddleUpdate = false; // Flag to prevent feedback loops
+            let ignoreLimbLengthUpdate = false; // Flag to prevent feedback loops with auto calculate
+            
+            // --- Tables for auto calculating limb lengths ---
+            // Male data table
+            const maleLimbLengthData = [
+                {height: 1.40, lOS: 0.262, lUS: 0.357},
+                {height: 1.41, lOS: 0.266, lUS: 0.362},
+                {height: 1.42, lOS: 0.270, lUS: 0.367},
+                {height: 1.43, lOS: 0.274, lUS: 0.373},
+                {height: 1.44, lOS: 0.278, lUS: 0.378},
+                {height: 1.45, lOS: 0.283, lUS: 0.383},
+                {height: 1.46, lOS: 0.287, lUS: 0.388},
+                {height: 1.47, lOS: 0.291, lUS: 0.394},
+                {height: 1.48, lOS: 0.295, lUS: 0.399},
+                {height: 1.49, lOS: 0.299, lUS: 0.404},
+                {height: 1.50, lOS: 0.303, lUS: 0.409},
+                {height: 1.51, lOS: 0.307, lUS: 0.415},
+                {height: 1.52, lOS: 0.312, lUS: 0.420},
+                {height: 1.53, lOS: 0.316, lUS: 0.425},
+                {height: 1.54, lOS: 0.320, lUS: 0.430},
+                {height: 1.55, lOS: 0.324, lUS: 0.436},
+                {height: 1.56, lOS: 0.328, lUS: 0.441},
+                {height: 1.57, lOS: 0.332, lUS: 0.446},
+                {height: 1.58, lOS: 0.336, lUS: 0.451},
+                {height: 1.59, lOS: 0.340, lUS: 0.457},
+                {height: 1.60, lOS: 0.345, lUS: 0.462},
+                {height: 1.61, lOS: 0.349, lUS: 0.467},
+                {height: 1.62, lOS: 0.353, lUS: 0.472},
+                {height: 1.63, lOS: 0.357, lUS: 0.478},
+                {height: 1.64, lOS: 0.361, lUS: 0.483},
+                {height: 1.65, lOS: 0.365, lUS: 0.488},
+                {height: 1.66, lOS: 0.369, lUS: 0.493},
+                {height: 1.67, lOS: 0.374, lUS: 0.499},
+                {height: 1.68, lOS: 0.378, lUS: 0.504},
+                {height: 1.69, lOS: 0.382, lUS: 0.509},
+                {height: 1.70, lOS: 0.386, lUS: 0.515},
+                {height: 1.71, lOS: 0.390, lUS: 0.520},
+                {height: 1.72, lOS: 0.394, lUS: 0.525},
+                {height: 1.73, lOS: 0.398, lUS: 0.530},
+                {height: 1.74, lOS: 0.402, lUS: 0.536},
+                {height: 1.75, lOS: 0.407, lUS: 0.541},
+                {height: 1.76, lOS: 0.411, lUS: 0.546},
+                {height: 1.77, lOS: 0.415, lUS: 0.551},
+                {height: 1.78, lOS: 0.419, lUS: 0.557},
+                {height: 1.79, lOS: 0.423, lUS: 0.562},
+                {height: 1.80, lOS: 0.427, lUS: 0.567},
+                {height: 1.81, lOS: 0.431, lUS: 0.572},
+                {height: 1.82, lOS: 0.436, lUS: 0.578},
+                {height: 1.83, lOS: 0.440, lUS: 0.583},
+                {height: 1.84, lOS: 0.444, lUS: 0.588},
+                {height: 1.85, lOS: 0.448, lUS: 0.593},
+                {height: 1.86, lOS: 0.452, lUS: 0.599},
+                {height: 1.87, lOS: 0.456, lUS: 0.604},
+                {height: 1.88, lOS: 0.460, lUS: 0.609},
+                {height: 1.89, lOS: 0.464, lUS: 0.614},
+                {height: 1.90, lOS: 0.469, lUS: 0.620},
+                {height: 1.91, lOS: 0.473, lUS: 0.625},
+                {height: 1.92, lOS: 0.477, lUS: 0.630},
+                {height: 1.93, lOS: 0.481, lUS: 0.635},
+                {height: 1.94, lOS: 0.485, lUS: 0.641},
+                {height: 1.95, lOS: 0.489, lUS: 0.646},
+                {height: 1.96, lOS: 0.493, lUS: 0.651},
+                {height: 1.97, lOS: 0.498, lUS: 0.657},
+                {height: 1.98, lOS: 0.502, lUS: 0.662},
+                {height: 1.99, lOS: 0.506, lUS: 0.667},
+                {height: 2.00, lOS: 0.510, lUS: 0.672},
+                {height: 2.01, lOS: 0.514, lUS: 0.678},
+                {height: 2.02, lOS: 0.518, lUS: 0.683},
+                {height: 2.03, lOS: 0.522, lUS: 0.688},
+                {height: 2.04, lOS: 0.526, lUS: 0.693},
+                {height: 2.05, lOS: 0.531, lUS: 0.699},
+                {height: 2.06, lOS: 0.535, lUS: 0.704},
+                {height: 2.07, lOS: 0.539, lUS: 0.709},
+                {height: 2.08, lOS: 0.543, lUS: 0.714},
+                {height: 2.09, lOS: 0.547, lUS: 0.720},
+                {height: 2.10, lOS: 0.551, lUS: 0.725},
+                {height: 2.11, lOS: 0.555, lUS: 0.730},
+                {height: 2.12, lOS: 0.560, lUS: 0.735},
+                {height: 2.13, lOS: 0.564, lUS: 0.741},
+                {height: 2.14, lOS: 0.568, lUS: 0.746},
+                {height: 2.15, lOS: 0.572, lUS: 0.751},
+                {height: 2.16, lOS: 0.576, lUS: 0.756},
+                {height: 2.17, lOS: 0.580, lUS: 0.762},
+                {height: 2.18, lOS: 0.584, lUS: 0.767},
+                {height: 2.19, lOS: 0.588, lUS: 0.772},
+                {height: 2.20, lOS: 0.593, lUS: 0.777}
+            ];
+            
+            // Female data table
+            const femaleLimbLengthData = [
+                {height: 1.40, lOS: 0.295, lUS: 0.387},
+                {height: 1.41, lOS: 0.299, lUS: 0.392},
+                {height: 1.42, lOS: 0.302, lUS: 0.397},
+                {height: 1.43, lOS: 0.306, lUS: 0.402},
+                {height: 1.44, lOS: 0.310, lUS: 0.407},
+                {height: 1.45, lOS: 0.313, lUS: 0.412},
+                {height: 1.46, lOS: 0.317, lUS: 0.416},
+                {height: 1.47, lOS: 0.321, lUS: 0.421},
+                {height: 1.48, lOS: 0.325, lUS: 0.426},
+                {height: 1.49, lOS: 0.328, lUS: 0.431},
+                {height: 1.50, lOS: 0.332, lUS: 0.436},
+                {height: 1.51, lOS: 0.336, lUS: 0.440},
+                {height: 1.52, lOS: 0.339, lUS: 0.445},
+                {height: 1.53, lOS: 0.343, lUS: 0.450},
+                {height: 1.54, lOS: 0.347, lUS: 0.455},
+                {height: 1.55, lOS: 0.350, lUS: 0.460},
+                {height: 1.56, lOS: 0.354, lUS: 0.465},
+                {height: 1.57, lOS: 0.358, lUS: 0.469},
+                {height: 1.58, lOS: 0.361, lUS: 0.474},
+                {height: 1.59, lOS: 0.365, lUS: 0.479},
+                {height: 1.60, lOS: 0.369, lUS: 0.484},
+                {height: 1.61, lOS: 0.372, lUS: 0.489},
+                {height: 1.62, lOS: 0.376, lUS: 0.493},
+                {height: 1.63, lOS: 0.380, lUS: 0.498},
+                {height: 1.64, lOS: 0.384, lUS: 0.503},
+                {height: 1.65, lOS: 0.387, lUS: 0.508},
+                {height: 1.66, lOS: 0.391, lUS: 0.513},
+                {height: 1.67, lOS: 0.395, lUS: 0.517},
+                {height: 1.68, lOS: 0.398, lUS: 0.522},
+                {height: 1.69, lOS: 0.402, lUS: 0.527},
+                {height: 1.70, lOS: 0.406, lUS: 0.532},
+                {height: 1.71, lOS: 0.409, lUS: 0.537},
+                {height: 1.72, lOS: 0.413, lUS: 0.542},
+                {height: 1.73, lOS: 0.417, lUS: 0.546},
+                {height: 1.74, lOS: 0.420, lUS: 0.551},
+                {height: 1.75, lOS: 0.424, lUS: 0.556},
+                {height: 1.76, lOS: 0.428, lUS: 0.561},
+                {height: 1.77, lOS: 0.432, lUS: 0.566},
+                {height: 1.78, lOS: 0.435, lUS: 0.570},
+                {height: 1.79, lOS: 0.439, lUS: 0.575},
+                {height: 1.80, lOS: 0.443, lUS: 0.580},
+                {height: 1.81, lOS: 0.446, lUS: 0.585},
+                {height: 1.82, lOS: 0.450, lUS: 0.590},
+                {height: 1.83, lOS: 0.454, lUS: 0.594},
+                {height: 1.84, lOS: 0.457, lUS: 0.599},
+                {height: 1.85, lOS: 0.461, lUS: 0.604},
+                {height: 1.86, lOS: 0.465, lUS: 0.609},
+                {height: 1.87, lOS: 0.468, lUS: 0.614},
+                {height: 1.88, lOS: 0.472, lUS: 0.619},
+                {height: 1.89, lOS: 0.476, lUS: 0.623},
+                {height: 1.90, lOS: 0.479, lUS: 0.628},
+                {height: 1.91, lOS: 0.483, lUS: 0.633},
+                {height: 1.92, lOS: 0.487, lUS: 0.638},
+                {height: 1.93, lOS: 0.491, lUS: 0.643},
+                {height: 1.94, lOS: 0.494, lUS: 0.647},
+                {height: 1.95, lOS: 0.498, lUS: 0.652},
+                {height: 1.96, lOS: 0.502, lUS: 0.657},
+                {height: 1.97, lOS: 0.505, lUS: 0.662},
+                {height: 1.98, lOS: 0.509, lUS: 0.667},
+                {height: 1.99, lOS: 0.513, lUS: 0.671},
+                {height: 2.00, lOS: 0.516, lUS: 0.676},
+                {height: 2.01, lOS: 0.520, lUS: 0.681},
+                {height: 2.02, lOS: 0.524, lUS: 0.686},
+                {height: 2.03, lOS: 0.527, lUS: 0.691},
+                {height: 2.04, lOS: 0.531, lUS: 0.696},
+                {height: 2.05, lOS: 0.535, lUS: 0.700},
+                {height: 2.06, lOS: 0.539, lUS: 0.705},
+                {height: 2.07, lOS: 0.542, lUS: 0.710},
+                {height: 2.08, lOS: 0.546, lUS: 0.715},
+                {height: 2.09, lOS: 0.550, lUS: 0.720},
+                {height: 2.10, lOS: 0.553, lUS: 0.724},
+                {height: 2.11, lOS: 0.557, lUS: 0.729},
+                {height: 2.12, lOS: 0.561, lUS: 0.734},
+                {height: 2.13, lOS: 0.564, lUS: 0.739},
+                {height: 2.14, lOS: 0.568, lUS: 0.744},
+                {height: 2.15, lOS: 0.572, lUS: 0.748},
+                {height: 2.16, lOS: 0.575, lUS: 0.753},
+                {height: 2.17, lOS: 0.579, lUS: 0.758},
+                {height: 2.18, lOS: 0.583, lUS: 0.763},
+                {height: 2.19, lOS: 0.586, lUS: 0.768},
+                {height: 2.20, lOS: 0.590, lUS: 0.773}
+            ];
+        
+            // --- Global Konva Variables ---
+            let stage, layer;
+            let crankLine, thighLine, shankLine;
+            let bbPoint, pedalPoint, kneePoint, hipPoint, spOSPoint, spUSPoint;
+            
+            // Upper body parts
+            let shoulderPoint, elbowPoint, wristPoint, headPoint, neckPoint;
+            let torsoLine, upperArmLine, forearmLine, neckLine;
+            
+            let kinematicsAnimation; // To store the Konva animation object
+            let axisLabels = []; // Store axis labels for cleanup
+            let axisTitles = []; // Store axis titles for cleanup
+        
+            // --- Constants and Initial Setup ---
+            const N_STEPS = 360; // Number of steps per revolution (matches R script's 'n')
+            let P3X_OFFSET = -0.150; // Initial hip X offset (negative = left of BB)
+            let P3Y = 0.750; // Initial hip Y position
+            let VIS_SCALE = 500; // Pixels per meter for visualization
+            let VIS_X_OFFSET, VIS_Y_OFFSET; // Will be set dynamically
+            let aspectRatio = 1; // Equal scaling for x and y
+            const MIN_Y_DISPLAY = -0.2; // Cut off y-axis display below this value
+            
+            // Optimization targets - updated as per request
+            const TARGET_MIN_KNEE_ANGLE = 80; // Target for minimum knee angle
+            const TARGET_MAX_KNEE_ANGLE = 160; // Target for maximum knee angle
+            const TARGET_KNEE_PEDAL_X_DIFF = 0.035; // 
+            
+            // Upper body model coordinates (relative to P3/hip)
+            const UPPER_BODY_COORDS = {
+                // Relative to hip (P3)
+                LSJC_X: 0.60 + P3X_OFFSET, // Shoulder X relative to hip (gespiegelt)
+                LSJC_Y: 1.00 - 0.68, // Shoulder Y relative to hip
+                LEJC_X: 0.80 + P3X_OFFSET, // Elbow X relative to hip (gespiegelt)
+                LEJC_Y: 0.75 - 0.68, // Elbow Y relative to hip
+                LWJC_X: 1.05 + P3X_OFFSET, // Wrist X relative to hip (gespiegelt)
+                LWJC_Y: 0.60 - 0.68, // Wrist Y relative to hip
+                LHead_X: 0.80 + P3X_OFFSET, // Head X relative to hip (gespiegelt)
+                LHead_Y: 1.15 - 0.68, // Head Y relative to hip
+                LNeck_X: 0.80 + P3X_OFFSET, // Neck X relative to hip (gespiegelt)
+                LNeck_Y: 1.15 - 0.68  // Neck Y relative to hip
+            };
+        
+            // --- Coordinate Conversion Functions ---
+            // Convert physical meters (with origin at BB) to screen pixels (with custom origin and scale)
+            function toCanvasX(metersX) {
+                // Mirrored along Y-axis: negative X becomes positive on canvas and vice versa
+                return VIS_X_OFFSET - metersX * VIS_SCALE;
+            }
+            
+            function toCanvasY(metersY) {
+                // Y axis is typically inverted in screen coordinates (0 at top)
+                // Cut off anything below MIN_Y_DISPLAY
+                const adjustedY = Math.max(metersY, MIN_Y_DISPLAY);
+                return VIS_Y_OFFSET - (adjustedY - MIN_Y_DISPLAY) * VIS_SCALE;
+            }
+        
+            // --- Initialize Konva Stage and Shapes ---
+            function setupKonva() {
+                stage = new Konva.Stage({
+                    container: 'simulationPlotContainer',
+                    width: simulationPlotContainer.clientWidth,
+                    height: simulationPlotContainer.clientHeight,
+                });
+                layer = new Konva.Layer();
+                stage.add(layer);
+        
+                // Create Shapes
+                // Lines represent the segments
+                crankLine = new Konva.Line({ 
+                    points: [0, 0, 0, 0], 
+                    stroke: varToString('--segment-crank-color'), 
+                    strokeWidth: 6, 
+                    lineCap: 'round',
+                    name: 'crankLine'
+                });
+                
+                thighLine = new Konva.Line({ 
+                    points: [0, 0, 0, 0], 
+                    stroke: varToString('--segment-thigh-color'), 
+                    strokeWidth: 10, 
+                    lineCap: 'round',
+                    name: 'thighLine'
+                });
+                
+                shankLine = new Konva.Line({ 
+                    points: [0, 0, 0, 0], 
+                    stroke: varToString('--segment-shank-color'), 
+                    strokeWidth: 10, 
+                    lineCap: 'round',
+                    name: 'shankLine'
+                });
+                
+                // Upper body lines
+                torsoLine = new Konva.Line({
+                    points: [0, 0, 0, 0],
+                    stroke: varToString('--upperbody-color'),
+                    strokeWidth: 8,
+                    lineCap: 'round',
+                    name: 'torsoLine'
+                });
+                
+                upperArmLine = new Konva.Line({
+                    points: [0, 0, 0, 0],
+                    stroke: varToString('--upperbody-color'),
+                    strokeWidth: 6,
+                    lineCap: 'round',
+                    name: 'upperArmLine'
+                });
+                
+                forearmLine = new Konva.Line({
+                    points: [0, 0, 0, 0],
+                    stroke: varToString('--upperbody-color'),
+                    strokeWidth: 5,
+                    lineCap: 'round',
+                    name: 'forearmLine'
+                });
+                
+                neckLine = new Konva.Line({
+                    points: [0, 0, 0, 0],
+                    stroke: varToString('--upperbody-color'),
+                    strokeWidth: 6,
+                    lineCap: 'round',
+                    name: 'neckLine'
+                });
+        
+                // Points represent the joints/locations and CoMs
+                bbPoint = new Konva.Circle({ 
+                    x: 0, y: 0, 
+                    radius: 6, 
+                    fill: varToString('--joint-color'),
+                    name: 'bbPoint'
+                });
+                
+                pedalPoint = new Konva.Circle({ 
+                    x: 0, y: 0, 
+                    radius: 8, 
+                    fill: varToString('--joint-color'),
+                    name: 'pedalPoint'
+                });
+                
+                kneePoint = new Konva.Circle({ 
+                    x: 0, y: 0, 
+                    radius: 8, 
+                    fill: varToString('--joint-color'),
+                    name: 'kneePoint'
+                });
+                
+                hipPoint = new Konva.Circle({ 
+                    x: 0, y: 0, 
+                    radius: 10, 
+                    fill: varToString('--hip-color'),
+                    name: 'hipPoint'
+                });
+                
+                spOSPoint = new Konva.Circle({ 
+                    x: 0, y: 0, 
+                    radius: 5, 
+                    fill: varToString('--com-color'),
+                    name: 'spOSPoint'
+                });
+                
+                spUSPoint = new Konva.Circle({ 
+                    x: 0, y: 0, 
+                    radius: 5, 
+                    fill: varToString('--com-color'),
+                    name: 'spUSPoint'
+                });
+                
+                // Upper body joints
+                shoulderPoint = new Konva.Circle({
+                    x: 0, y: 0,
+                    radius: 8,
+                    fill: varToString('--upperbody-joint-color'),
+                    name: 'shoulderPoint'
+                });
+                
+                elbowPoint = new Konva.Circle({
+                    x: 0, y: 0,
+                    radius: 7,
+                    fill: varToString('--upperbody-joint-color'),
+                    name: 'elbowPoint'
+                });
+                
+                wristPoint = new Konva.Circle({
+                    x: 0, y: 0,
+                    radius: 6,
+                    fill: varToString('--upperbody-joint-color'),
+                    name: 'wristPoint'
+                });
+                
+                headPoint = new Konva.Circle({
+                    x: 0, y: 0,
+                    radius: 20,
+                    fill: varToString('--head-color'),
+                    name: 'headPoint'
+                });
+                
+                neckPoint = new Konva.Circle({
+                    x: 0, y: 0,
+                    radius: 5,
+                    fill: varToString('--upperbody-joint-color'),
+                    name: 'neckPoint'
+                });
+        
+                // Add shapes to layer in drawing order (lines behind points)
+                // First add upper body items (they should be behind lower body)
+                layer.add(torsoLine);
+                layer.add(upperArmLine);
+                layer.add(forearmLine);
+                layer.add(neckLine);
+                
+                // Then add lower body lines
+                layer.add(crankLine);
+                layer.add(thighLine);
+                layer.add(shankLine);
+                
+                // Add upper body joints
+                layer.add(shoulderPoint);
+                layer.add(elbowPoint);
+                layer.add(wristPoint);
+                layer.add(neckPoint);
+                layer.add(headPoint);
+                
+                // Add lower body joints
+                layer.add(bbPoint);
+                layer.add(pedalPoint);
+                layer.add(kneePoint);
+                layer.add(hipPoint);
+                layer.add(spOSPoint);
+                layer.add(spUSPoint);
+        
+                // Create X/Y axes - will be positioned later
+                const xAxis = new Konva.Line({
+                    points: [0, 0, 0, 0],
+                    stroke: varToString('--axis-color'),
+                    strokeWidth: 1,
+                    dash: [4, 4],
+                    name: 'xAxis'
+                });
+                
+                const yAxis = new Konva.Line({
+                    points: [0, 0, 0, 0],
+                    stroke: varToString('--axis-color'),
+                    strokeWidth: 1,
+                    dash: [4, 4],
+                    name: 'yAxis'
+                });
+                
+                layer.add(xAxis);
+                layer.add(yAxis);
+                xAxis.zIndex(-1);
+                yAxis.zIndex(-1);
+        
+                layer.draw();
+            }
+        
+            // Function to create axis titles
+            function createAxisTitles() {
+                // Remove existing titles
+                removeAxisTitles();
+                
+                // Create X-axis title
+                const xTitle = document.createElement('div');
+                xTitle.className = 'axis-title';
+                xTitle.textContent = 'Position X (m)';
+                xTitle.style.left = (simulationPlotContainer.clientWidth / 2) + 'px';
+                xTitle.style.top = (simulationPlotContainer.clientHeight - 15) + 'px';
+                xTitle.style.transform = 'translateX(-50%)';
+                simulationPlotContainer.appendChild(xTitle);
+                axisTitles.push(xTitle);
+                
+                // Create Y-axis title
+                const yTitle = document.createElement('div');
+                yTitle.className = 'axis-title';
+                yTitle.textContent = 'Position Y (m)';
+                yTitle.style.left = '15px';
+                yTitle.style.top = (simulationPlotContainer.clientHeight / 2) + 'px';
+                yTitle.style.transform = 'translateY(-50%) rotate(-90deg)';
+                yTitle.style.transformOrigin = 'left center';
+                simulationPlotContainer.appendChild(yTitle);
+                axisTitles.push(yTitle);
+            }
+        
+            // Function to create axis labels
+            function createAxisLabels() {
+                // Remove any existing labels
+                removeAxisLabels();
+                
+                // Calculate visible range and step size
+                const containerWidth = simulationPlotContainer.clientWidth;
+                const containerHeight = simulationPlotContainer.clientHeight;
+                
+                // Get origin position
+                const originX = toCanvasX(0);
+                const originY = toCanvasY(0);
+                
+                // Use fixed step size of 0.2
+                const step = 0.2;
+                
+                // Calculate how many pixels per meter
+                let pixelsPerMeter = VIS_SCALE;
+                
+                // Calculate max visible values
+                const maxVisibleX = Math.max(containerWidth / pixelsPerMeter * 1.2, 1.0);
+                const maxVisibleY = Math.max(containerHeight / pixelsPerMeter * 1.2, 1.0);
+                
+                // Create X-axis labels
+                for (let x = -maxVisibleX; x <= maxVisibleX; x += step) {
+                    // Skip 0.0 and labels below 0.2 or -0.2
+                    if (Math.abs(x) < 0.001 || (Math.abs(x) < 0.2 && Math.abs(x) > 0)) continue;
+                    
+                    const labelX = toCanvasX(x);
+                    // Only add if within container bounds
+                    if (labelX >= 0 && labelX <= containerWidth) {
+                        const label = createAxisLabel(
+                            x.toFixed(1), // No "m" as requested
+                            labelX,
+                            originY + 15
+                        );
+                        axisLabels.push(label);
+                    }
+                }
+                
+                // Create Y-axis labels - starting from 0 and going up
+                for (let y = 0; y <= maxVisibleY; y += step) {
+                    // Skip 0.0 and labels below 0.2
+                    if (Math.abs(y) < 0.001 || (y < 0.2 && y > 0)) continue;
+                    
+                    const labelY = toCanvasY(y);
+                    // Only add if within container bounds
+                    if (labelY >= 0 && labelY <= containerHeight) {
+                        const label = createAxisLabel(
+                            y.toFixed(1), // No "m" as requested
+                            originX - 20,
+                            labelY
+                        );
+                        axisLabels.push(label);
+                    }
+                }
+                
+                // Origin label
+                const originLabel = createAxisLabel(
+                    "0",
+                    originX - 15,
+                    originY + 15
+                );
+                axisLabels.push(originLabel);
+            }
+            
+            // Helper function to create a single axis label
+            function createAxisLabel(text, x, y) {
+                const label = document.createElement('div');
+                label.className = 'axis-label';
+                label.textContent = text;
+                label.style.left = x + 'px';
+                label.style.top = y + 'px';
+                document.getElementById('simulationPlotContainer').appendChild(label);
+                return label;
+            }
+            
+            // Helper function to remove all axis labels
+            function removeAxisLabels() {
+                axisLabels.forEach(label => {
+                    if (label && label.parentNode) {
+                        label.parentNode.removeChild(label);
+                    }
+                });
+                axisLabels = [];
+            }
+            
+            // Helper function to remove all axis titles
+            function removeAxisTitles() {
+                axisTitles.forEach(title => {
+                    if (title && title.parentNode) {
+                        title.parentNode.removeChild(title);
+                    }
+                });
+                axisTitles = [];
+            }
+        
+            // Helper to get CSS variable color string
+            function varToString(variable) {
+                return getComputedStyle(document.documentElement).getPropertyValue(variable).trim();
+            }
+        
+            // --- Function to get limb lengths from height ---
+            function getLimbLengthsFromHeight(height, isMale) {
+                // Get the appropriate data table
+                const data = isMale ? maleLimbLengthData : femaleLimbLengthData;
+                
+                // Find the exact match or interpolate
+                const heightInM = height / 100; // Convert cm to m
+                
+                // Check if height is below minimum or above maximum
+                if (heightInM < data[0].height) {
+                    return data[0]; // Return minimum values
+                }
+                if (heightInM > data[data.length - 1].height) {
+                    return data[data.length - 1]; // Return maximum values
+                }
+                
+                // Find exact match
+                const exactMatch = data.find(d => Math.abs(d.height - heightInM) < 0.001);
+                if (exactMatch) {
+                    return exactMatch;
+                }
+                
+                // Find points for interpolation
+                let lowerIndex = 0;
+                for (let i = 0; i < data.length; i++) {
+                    if (data[i].height <= heightInM) {
+                        lowerIndex = i;
+                    } else {
+                        break;
+                    }
+                }
+                
+                const upperIndex = Math.min(lowerIndex + 1, data.length - 1);
+                
+                // Linear interpolation
+                const lowerPoint = data[lowerIndex];
+                const upperPoint = data[upperIndex];
+                
+                const ratio = (heightInM - lowerPoint.height) / (upperPoint.height - lowerPoint.height);
+                
+                return {
+                    height: heightInM,
+                    lOS: lowerPoint.lOS + ratio * (upperPoint.lOS - lowerPoint.lOS),
+                    lUS: lowerPoint.lUS + ratio * (upperPoint.lUS - lowerPoint.lUS)
+                };
+            }
+        
+            // --- Initial Value Display ---
+            function updateValueDisplay(id) {
+                const slider = sliders[id];
+                const display = values[id];
+                let unit = '';
+                let decimals = 0;
+                let value = parseFloat(slider.value);
+                switch (id) {
+                    case 'masse': unit = ' kg'; decimals = 0; break;
+                    case 'bodyHeight': unit = ' cm'; decimals = 0; break; // New body height slider
+                    case 'lOS':
+                    case 'lUS':
+                    case 'saddleHeight':
+                    case 'saddleSetback':
+                    case 'uOS':
+                    case 'uUS':
+                    case 'lKurbel': unit = ' m'; decimals = 3; break; // 3 decimal places for lengths
+                    case 'nD': unit = ' RPM'; decimals = 0; break;
+                }
+                 if (id === 'lKurbel') { // Add common crank lengths info
+                     const commonLengths = [0.165, 0.170, 0.1725, 0.175];
+                     if (commonLengths.includes(value)) {
+                          display.textContent = `${value.toFixed(decimals)}${unit}`;
+                     } else {
+                          display.textContent = `${value.toFixed(decimals)}${unit} (Custom)`;
+                     }
+                 } else {
+                     display.textContent = `${value.toFixed(decimals)}${unit}`;
+                 }
+        
+                // Also update dashboard display
+                if (id === 'nD') {
+                    dashboardCadence.textContent = `${value.toFixed(0)} RPM`;
+                }
+            }
+        
+            // --- Update limb lengths based on body height ---
+            function updateLimbLengths() {
+                if (!autoCalculateLimbs.checked || ignoreLimbLengthUpdate) {
+                    return;
+                }
+                
+                const bodyHeight = parseFloat(sliders.bodyHeight.value);
+                const isMale = maleOption.checked;
+                
+                const { lOS, lUS } = getLimbLengthsFromHeight(bodyHeight, isMale);
+                
+                // Update sliders with the calculated limb lengths
+                ignoreLimbLengthUpdate = true; // Prevent feedback loops
+                
+                // Set thigh length
+                sliders.lOS.value = lOS;
+                updateValueDisplay('lOS');
+                
+                // Set shank length
+                sliders.lUS.value = lUS;
+                updateValueDisplay('lUS');
+                
+                ignoreLimbLengthUpdate = false;
+                
+                // Now trigger optimization based on new limb lengths
+                stopKinematicsAnimation();
+                findOptimalSaddlePosition();
+            }
+        
+            Object.keys(sliders).forEach(id => {
+                updateValueDisplay(id); // Initial display
+                
+                sliders[id].addEventListener('input', () => {
+                    // First update the displayed value
+                    updateValueDisplay(id);
+                    
+                    // Special handling for body height slider
+                    if (id === 'bodyHeight') {
+                        updateLimbLengths();
+                        return; // The updateLimbLengths function will handle further calculations
+                    }
+                    
+                    // Special handling for saddle position sliders
+                    if (id === 'saddleHeight' || id === 'saddleSetback') {
+                        if (ignoreNextSaddleUpdate) {
+                            // Ignore this update if we're setting the values programmatically
+                            ignoreNextSaddleUpdate = false;
+                            return;
+                        }
+                        
+                        // Manual saddle position update
+                        if (id === 'saddleHeight') {
+                            P3Y = parseFloat(sliders.saddleHeight.value);
+                        } else if (id === 'saddleSetback') {
+                            P3X_OFFSET = parseFloat(sliders.saddleSetback.value);
+                        }
+                        // Update UPPER_BODY_COORDS with new P3X_OFFSET
+                        updateUpperBodyCoords(P3X_OFFSET);
+                        calculateKinematicsAndPower();
+                    } else if (id === 'lOS' || id === 'lUS' || id === 'lKurbel') {
+                        // If one of the length parameters changes, optimize saddle position
+                        stopKinematicsAnimation();
+                        findOptimalSaddlePosition();
+                    } else {
+                        // For other parameters just recalculate
+                        calculateKinematicsAndPower();
+                    }
+                });
+            });
+        
+            // Listen for gender selection changes
+            maleOption.addEventListener('change', function() {
+                if (this.checked && autoCalculateLimbs.checked) {
+                    updateLimbLengths();
+                }
+            });
+            
+            femaleOption.addEventListener('change', function() {
+                if (this.checked && autoCalculateLimbs.checked) {
+                    updateLimbLengths();
+                }
+            });
+            
+            // Listen for auto calculate checkbox changes
+            autoCalculateLimbs.addEventListener('change', function() {
+                if (this.checked) {
+                    // If checked, update limb lengths based on body height
+                    updateLimbLengths();
+                }
+                // If unchecked, do nothing - user will set limb lengths manually
+            });
+        
+            // --- Angle Calculation Functions ---
+            // Calculate angle between three points in degrees
+            function calculateAngle(p1, p2, p3) {
+                // p2 is the vertex point
+                const a = Math.sqrt(Math.pow(p3.x - p2.x, 2) + Math.pow(p3.y - p2.y, 2));
+                const b = Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2));
+                const c = Math.sqrt(Math.pow(p3.x - p1.x, 2) + Math.pow(p3.y - p1.y, 2));
+                
+                // Law of cosines
+                const cosAngle = (a*a + b*b - c*c) / (2 * a * b);
+                // Account for floating point errors
+                const safeArg = Math.max(-1, Math.min(1, cosAngle));
+                
+                // Convert to degrees
+                return Math.acos(safeArg) * (180 / Math.PI);
+            }
+        
+            // Function to update upper body coordinates when P3X_OFFSET changes
+            function updateUpperBodyCoords(newP3X) {
+                UPPER_BODY_COORDS.LSJC_X = 0.60 + newP3X;
+                UPPER_BODY_COORDS.LEJC_X = 0.80 + newP3X;
+                UPPER_BODY_COORDS.LWJC_X = 1.05 + newP3X;
+                UPPER_BODY_COORDS.LHead_X = 0.80 + newP3X;
+                UPPER_BODY_COORDS.LNeck_X = 0.80 + newP3X;
+            }
+        
+            // --- Optimization Function for saddle position (five-step process) ---
+            async function findOptimalSaddlePosition() {
+                // Prevent multiple concurrent optimization runs
+                if (isOptimizing) return;
+        
+                isOptimizing = true;
+                optimizationStatusDisplay.textContent = 'Finding optimal saddle position...';
+        
+                try {
+                    // Get current biomechanical parameters
+                    const lOS = parseFloat(sliders.lOS.value);
+                    const lUS = parseFloat(sliders.lUS.value);
+                    const lKurbel = parseFloat(sliders.lKurbel.value);
+                    
+                    // STEP 1: Find optimal saddle height
+                    optimizationStatusDisplay.textContent = 'Step 1/5: Optimizing saddle height...';
+                    
+                    // Calculate min/max possible height based on slider boundaries
+                    const minPossibleHeight = parseFloat(sliders.saddleHeight.min);
+                    const maxPossibleHeight = parseFloat(sliders.saddleHeight.max);
+                    
+                    // Temporary setback value for height optimization
+                    const initialSetback = -0.10;
+                    P3X_OFFSET = initialSetback;
+                    updateUpperBodyCoords(initialSetback);
+                    
+                    // Set values for slider
+                    ignoreNextSaddleUpdate = true;
+                    sliders.saddleSetback.value = initialSetback;
+                    updateValueDisplay('saddleSetback');
+                    
+                    let bestHeight = null;
+                    let bestHeightDiff = Number.MAX_VALUE;
+                    let bestMinKneeAngle = null;
+                    let bestMaxKneeAngle = null;
+                    let lastValidHeight = null;
+                    
+                    // Increase saddle height in 1.0cm steps
+                    for (let testHeight = minPossibleHeight; testHeight <= maxPossibleHeight; testHeight += 0.010) {
+                        // Set the height to test
+                        P3Y = testHeight;
+                        
+                        // Visualize the current test step
+                        ignoreNextSaddleUpdate = true;
+                        sliders.saddleHeight.value = testHeight;
+                        updateValueDisplay('saddleHeight');
+                        
+                        // Calculate the current configuration and display it
+                        try {
+                            await calculateKinematicsAndPowerAsync();
+                            
+                            // Test if this configuration is valid
+                            let isValid = isConfigurationValid(lOS, lUS, lKurbel, P3X_OFFSET, testHeight);
+                            
+                            if (isValid) {
+                                lastValidHeight = testHeight;
+                                
+                                // Calculate knee angles directly from current calculatedData
+                                if (calculatedData && calculatedData.kneeAngles) {
+                                    const minKneeAngle = Math.min(...calculatedData.kneeAngles);
+                                    const maxKneeAngle = Math.max(...calculatedData.kneeAngles);
+                                    
+                                    // Calculate difference from target angles
+                                    const minKneeDiff = Math.abs(minKneeAngle - TARGET_MIN_KNEE_ANGLE);
+                                    const maxKneeDiff = Math.abs(maxKneeAngle - TARGET_MAX_KNEE_ANGLE);
+                                    const totalDiff = minKneeDiff + maxKneeDiff;
+                                    
+                                    // Update status
+                                    optimizationStatusDisplay.textContent = `Step 1/5: Testing height ${testHeight.toFixed(3)}m - Min knee: ${Math.round(minKneeAngle)}°, Max knee: ${Math.round(maxKneeAngle)}°, Diff: ${totalDiff.toFixed(1)}`;
+                                    
+                                    console.log(`Test height: ${testHeight.toFixed(3)}m - Min knee: ${Math.round(minKneeAngle)}°, Max knee: ${Math.round(maxKneeAngle)}°, Diff: ${totalDiff.toFixed(1)}`);
+                                    
+                                    // Store better results
+                                    if (totalDiff < bestHeightDiff) {
+                                        bestHeightDiff = totalDiff;
+                                        bestHeight = testHeight;
+                                        bestMinKneeAngle = minKneeAngle;
+                                        bestMaxKneeAngle = maxKneeAngle;
+                                        
+                                        console.log(`New best height found: ${bestHeight.toFixed(3)}m with diff: ${bestHeightDiff.toFixed(1)}`);
+                                    } else if (bestHeight !== null) {
+                                        // If difference increases again, break
+                                        // But only if we already found a valid value
+                                        if (totalDiff > bestHeightDiff * 1.1) {
+                                            console.log(`Stopping step 1 at height ${testHeight.toFixed(3)}m, as difference is increasing`);
+                                            break;
+                                        }
+                                    }
+                                }
+                            } else {
+                                optimizationStatusDisplay.textContent = `Step 1/5: Height ${testHeight.toFixed(3)}m - Invalid configuration`;
+                                console.log(`Invalid configuration at height ${testHeight.toFixed(3)}m`);
+                                
+                                // If current configuration is invalid, and we already found a valid one,
+                                // take the last valid one
+                                if (lastValidHeight !== null && bestHeight === null) {
+                                    bestHeight = lastValidHeight;
+                                }
+                                // If current configuration is invalid and we already found a best one,
+                                // we can stop
+                                if (bestHeight !== null) {
+                                    break;
+                                }
+                            }
+                        } catch (error) {
+                            // Error in calculation (likely segments too short)
+                            console.log(`Error at height ${testHeight.toFixed(3)}m: ${error.message}`);
+                            
+                            // Use last valid or best height found so far
+                            if (bestHeight === null && lastValidHeight !== null) {
+                                bestHeight = lastValidHeight;
+                            }
+                            
+                            // Don't interrupt the optimization, continue with next value
+                            continue;
+                        }
+                    }
+                    
+                    // If nothing found, use the last valid height
+                    if (bestHeight === null && lastValidHeight !== null) {
+                        bestHeight = lastValidHeight;
+                        console.log(`No optimal height found, using last valid: ${bestHeight.toFixed(3)}m`);
+                    }
+                    
+                    // If still nothing found, error message
+                    if (bestHeight === null) {
+                        throw new Error("No valid saddle position found. Please use different segment lengths.");
+                    }
+                    
+                    // Apply best height
+                    P3Y = bestHeight;
+                    
+                    // Transfer height to slider
+                    ignoreNextSaddleUpdate = true;
+                    sliders.saddleHeight.value = bestHeight;
+                    updateValueDisplay('saddleHeight');
+                    
+                    // Recalculate with the new height
+                    await calculateKinematicsAndPowerAsync();
+                    
+                    console.log(`Step 1 completed - Best height: ${bestHeight.toFixed(3)}m (Min knee: ${bestMinKneeAngle?.toFixed(1) || 'n/a'}°, Max knee: ${bestMaxKneeAngle?.toFixed(1) || 'n/a'}°)`);
+                    
+                    // STEP 2: Find optimal setback
+                    optimizationStatusDisplay.textContent = 'Step 2/5: Optimizing saddle setback...';
+                    
+                    // Now with fixed height, find optimal setback
+                    const minSetback = parseFloat(sliders.saddleSetback.min);
+                    const maxSetback = parseFloat(sliders.saddleSetback.max);
+                    
+                    let bestSetback = null;
+                    let bestSetbackDiff = Number.MAX_VALUE;
+                    let bestKneeXDiff = null;
+                    let lastValidSetback = null;
+                    
+                    // Test from maximum to minimum setback
+                    for (let testSetback = maxSetback; testSetback >= minSetback; testSetback -= 0.005) {
+                        // Set the setback to test
+                        P3X_OFFSET = testSetback;
+                        updateUpperBodyCoords(testSetback);
+                        
+                        // Visualize the current test step
+                        ignoreNextSaddleUpdate = true;
+                        sliders.saddleSetback.value = testSetback;
+                        updateValueDisplay('saddleSetback');
+                        
+                        // Calculate current configuration and display it
+                        try {
+                            await calculateKinematicsAndPowerAsync();
+                            
+                            // Test if this configuration is valid
+                            let isValid = isConfigurationValid(lOS, lUS, lKurbel, testSetback, bestHeight);
+                            
+                            if (isValid) {
+                                lastValidSetback = testSetback;
+                                
+                                // Calculate knee-to-pedal X-difference at 90°
+                                if (calculatedData) {
+                                    const index90deg = calculatedData.grad.findIndex(g => Math.abs(g - 90) < 0.5);
+                                    let kneeXDiff = null;
+                                    
+                                    if (index90deg !== -1) {
+                                        kneeXDiff = calculatedData.P2x[index90deg] - calculatedData.P1x[index90deg];
+                                        
+                                        // Calculate difference from target value
+                                        const xDiffDiff = Math.abs(kneeXDiff - TARGET_KNEE_PEDAL_X_DIFF);
+                                        
+                                        // Update status
+                                        optimizationStatusDisplay.textContent = `Step 2/5: Testing setback ${testSetback.toFixed(3)}m - Knee-Pedal X-Diff: ${kneeXDiff.toFixed(3)}m, Target diff: ${xDiffDiff.toFixed(3)}m`;
+                                        
+                                        console.log(`Test setback: ${testSetback.toFixed(3)}m - X-Diff: ${kneeXDiff.toFixed(3)}m, Target diff: ${xDiffDiff.toFixed(3)}m`);
+                                        
+                                        // Store better results
+                                        if (xDiffDiff < bestSetbackDiff) {
+                                            bestSetbackDiff = xDiffDiff;
+                                            bestSetback = testSetback;
+                                            bestKneeXDiff = kneeXDiff;
+                                            
+                                            console.log(`New best setback found: ${bestSetback.toFixed(3)}m with diff: ${bestSetbackDiff.toFixed(3)}`);
+                                        } else if (bestSetback !== null) {
+                                            // If difference increases again, break
+                                            // But only if we already found a valid value
+                                            if (xDiffDiff > bestSetbackDiff * 1.1) {
+                                                console.log(`Stopping step 2 at setback ${testSetback.toFixed(3)}m, as difference is increasing`);
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                            } else {
+                                optimizationStatusDisplay.textContent = `Step 2/5: Setback ${testSetback.toFixed(3)}m - Invalid configuration`;
+                                console.log(`Invalid configuration at setback ${testSetback.toFixed(3)}m`);
+                                
+                                // If current configuration is invalid, and we already found a valid one,
+                                // take the last valid one
+                                if (lastValidSetback !== null && bestSetback === null) {
+                                    bestSetback = lastValidSetback;
+                                }
+                                // If current configuration is invalid and we already found a best one,
+                                // we can stop
+                                if (bestSetback !== null) {
+                                    break;
+                                }
+                            }
+                        } catch (error) {
+                            // Error in calculation (likely segments too short)
+                            console.log(`Error at setback ${testSetback.toFixed(3)}m: ${error.message}`);
+                            
+                            // Use last valid or best setback found so far
+                            if (bestSetback === null && lastValidSetback !== null) {
+                                bestSetback = lastValidSetback;
+                            }
+                            
+                            // Don't interrupt the optimization, continue with next value
+                            continue;
+                        }
+                    }
+                    
+                    // If nothing found, use the last valid setback
+                    if (bestSetback === null && lastValidSetback !== null) {
+                        bestSetback = lastValidSetback;
+                        console.log(`No optimal setback found, using last valid: ${bestSetback.toFixed(3)}m`);
+                    }
+                    
+                    // If still nothing found, error message
+                    if (bestSetback === null) {
+                        throw new Error("No valid saddle position found. Please use different segment lengths.");
+                    }
+                    
+                    // Apply best setback
+                    P3X_OFFSET = bestSetback;
+                    updateUpperBodyCoords(bestSetback);
+                    
+                    // Transfer setback to slider
+                    ignoreNextSaddleUpdate = true;
+                    sliders.saddleSetback.value = bestSetback;
+                    updateValueDisplay('saddleSetback');
+                    
+                    // Recalculate with the new setback
+                    await calculateKinematicsAndPowerAsync();
+                    
+                    // Calculate X-difference for output
+                    if (calculatedData) {
+                        const index90deg = calculatedData.grad.findIndex(g => Math.abs(g - 90) < 0.5);
+                        if (index90deg !== -1) {
+                            bestKneeXDiff = calculatedData.P2x[index90deg] - calculatedData.P1x[index90deg];
+                        }
+                    }
+                    
+                    console.log(`Step 2 completed - Best setback: ${bestSetback.toFixed(3)}m (Knee-Pedal X-Diff: ${bestKneeXDiff?.toFixed(3) || 'n/a'}m)`);
+                    
+                    // STEP 3: Fine-tune saddle height with found setback
+                    optimizationStatusDisplay.textContent = 'Step 3/5: Fine-tuning saddle height...';
+                    
+                    // Repeat step 1, now with optimal setback
+                    // Start from current height - 0.100m but not less than minPossibleHeight
+                    let startHeight = Math.max(bestHeight - 0.050, 0.400);
+                    
+                    bestHeight = null;
+                    bestHeightDiff = Number.MAX_VALUE;
+                    bestMinKneeAngle = null;
+                    bestMaxKneeAngle = null;
+                    lastValidHeight = null;
+                    
+                    // Increase saddle height in 0.2cm steps
+                    for (let testHeight = startHeight; testHeight <= maxPossibleHeight; testHeight += 0.002) {
+                        // Set the height to test
+                        P3Y = testHeight;
+                        
+                        // Visualize the current test step
+                        ignoreNextSaddleUpdate = true;
+                        sliders.saddleHeight.value = testHeight;
+                        updateValueDisplay('saddleHeight');
+                        
+                        // Calculate current configuration and display it
+                        try {
+                            await calculateKinematicsAndPowerAsync();
+                            
+                            // Test if this configuration is valid
+                            let isValid = isConfigurationValid(lOS, lUS, lKurbel, bestSetback, testHeight);
+                            
+                            if (isValid) {
+                                lastValidHeight = testHeight;
+                                
+                                // Calculate knee angles directly from current calculatedData
+                                if (calculatedData && calculatedData.kneeAngles) {
+                                    const minKneeAngle = Math.min(...calculatedData.kneeAngles);
+                                    const maxKneeAngle = Math.max(...calculatedData.kneeAngles);
+                                    
+                                    // Calculate difference from target angles
+                                    const minKneeDiff = Math.abs(minKneeAngle - TARGET_MIN_KNEE_ANGLE);
+                                    const maxKneeDiff = Math.abs(maxKneeAngle - TARGET_MAX_KNEE_ANGLE);
+                                    const totalDiff = minKneeDiff + maxKneeDiff;
+                                    
+                                    // Update status
+                                    optimizationStatusDisplay.textContent = `Step 3/5: Testing height ${testHeight.toFixed(3)}m - Min knee: ${Math.round(minKneeAngle)}°, Max knee: ${Math.round(maxKneeAngle)}°, Diff: ${totalDiff.toFixed(1)}`;
+                                    
+                                    console.log(`Test height (Step 3): ${testHeight.toFixed(3)}m - Min knee: ${Math.round(minKneeAngle)}°, Max knee: ${Math.round(maxKneeAngle)}°, Diff: ${totalDiff.toFixed(1)}`);
+                                    
+                                    // Store better results
+                                    if (totalDiff < bestHeightDiff) {
+                                        bestHeightDiff = totalDiff;
+                                        bestHeight = testHeight;
+                                        bestMinKneeAngle = minKneeAngle;
+                                        bestMaxKneeAngle = maxKneeAngle;
+                                        
+                                        console.log(`New best height (Step 3) found: ${bestHeight.toFixed(3)}m with diff: ${bestHeightDiff.toFixed(1)}`);
+                                    } else if (bestHeight !== null) {
+                                        // If difference increases again, break
+                                        // But only if we already found a valid value
+                                        if (totalDiff > bestHeightDiff * 1.1) {
+                                            console.log(`Stopping step 3 at height ${testHeight.toFixed(3)}m, as difference is increasing`);
+                                            break;
+                                        }
+                                    }
+                                }
+                            } else {
+                                optimizationStatusDisplay.textContent = `Step 3/5: Height ${testHeight.toFixed(3)}m - Invalid configuration`;
+                                console.log(`Invalid configuration at height (Step 3) ${testHeight.toFixed(3)}m`);
+                                
+                                // If current configuration is invalid, and we already found a valid one,
+                                // take the last valid one
+                                if (lastValidHeight !== null && bestHeight === null) {
+                                    bestHeight = lastValidHeight;
+                                }
+                                // If current configuration is invalid and we already found a best one,
+                                // we can stop
+                                if (bestHeight !== null) {
+                                    break;
+                                }
+                            }
+                        } catch (error) {
+                            // Error in calculation (likely segments too short)
+                            console.log(`Error at height (Step 3) ${testHeight.toFixed(3)}m: ${error.message}`);
+                            
+                            // Use last valid or best height found so far
+                            if (bestHeight === null && lastValidHeight !== null) {
+                                bestHeight = lastValidHeight;
+                            }
+                            
+                            // Don't interrupt the optimization, continue with next value
+                            continue;
+                        }
+                    }
+                    
+                    // If nothing found, use the last valid height
+                    if (bestHeight === null && lastValidHeight !== null) {
+                        bestHeight = lastValidHeight;
+                        console.log(`No optimal height found in Step 3, using last valid: ${bestHeight.toFixed(3)}m`);
+                    }
+                    
+                    // If still nothing found, error message
+                    if (bestHeight === null) {
+                        throw new Error("No valid saddle position found. Please use different segment lengths.");
+                    }
+                    
+                    // Apply final best height
+                    P3Y = bestHeight;
+                    
+                    // Transfer height to slider
+                    ignoreNextSaddleUpdate = true;
+                    sliders.saddleHeight.value = bestHeight;
+                    updateValueDisplay('saddleHeight');
+                    
+                    // Intermediate calculation
+                    await calculateKinematicsAndPowerAsync();
+                    
+                    // STEP 4: Fine-tune setback again (repeat step 2)
+                    optimizationStatusDisplay.textContent = 'Step 4/5: Fine-tuning saddle setback again...';
+                    
+                    // Start from previous setback + 0.040 but not greater than 0
+                    let startSetback = Math.min(bestSetback + 0.040, 0.000);
+                    
+                    // Repeat setback optimization with new height
+                    bestSetback = null;
+                    bestSetbackDiff = Number.MAX_VALUE;
+                    bestKneeXDiff = null;
+                    lastValidSetback = null;
+                    
+                    // Test from starting setback to minimum setback
+                    for (let testSetback = startSetback; testSetback >= minSetback; testSetback -= 0.001) {
+                        // Set the setback to test
+                        P3X_OFFSET = testSetback;
+                        updateUpperBodyCoords(testSetback);
+                        
+                        // Visualize the current test step
+                        ignoreNextSaddleUpdate = true;
+                        sliders.saddleSetback.value = testSetback;
+                        updateValueDisplay('saddleSetback');
+                        
+                        // Calculate current configuration and display it
+                        try {
+                            await calculateKinematicsAndPowerAsync();
+                            
+                            // Test if this configuration is valid
+                            let isValid = isConfigurationValid(lOS, lUS, lKurbel, testSetback, bestHeight);
+                            
+                            if (isValid) {
+                                lastValidSetback = testSetback;
+                                
+                                // Calculate knee-to-pedal X-difference at 90°
+                                if (calculatedData) {
+                                    const index90deg = calculatedData.grad.findIndex(g => Math.abs(g - 90) < 0.5);
+                                    let kneeXDiff = null;
+                                    
+                                    if (index90deg !== -1) {
+                                        kneeXDiff = calculatedData.P2x[index90deg] - calculatedData.P1x[index90deg];
+                                        
+                                        // Calculate difference from target value
+                                        const xDiffDiff = Math.abs(kneeXDiff - TARGET_KNEE_PEDAL_X_DIFF);
+                                        
+                                        // Update status
+                                        optimizationStatusDisplay.textContent = `Step 4/5: Testing setback ${testSetback.toFixed(3)}m - Knee-Pedal X-Diff: ${kneeXDiff.toFixed(3)}m, Target diff: ${xDiffDiff.toFixed(3)}m`;
+                                        
+                                        console.log(`Test setback (Step 4): ${testSetback.toFixed(3)}m - X-Diff: ${kneeXDiff.toFixed(3)}m, Target diff: ${xDiffDiff.toFixed(3)}m`);
+                                        
+                                        // Store better results
+                                        if (xDiffDiff < bestSetbackDiff) {
+                                            bestSetbackDiff = xDiffDiff;
+                                            bestSetback = testSetback;
+                                            bestKneeXDiff = kneeXDiff;
+                                            
+                                            console.log(`New best setback (Step 4) found: ${bestSetback.toFixed(3)}m with diff: ${bestSetbackDiff.toFixed(3)}`);
+                                        } else if (bestSetback !== null) {
+                                            // If difference increases again, break
+                                            if (xDiffDiff > bestSetbackDiff * 1.1) {
+                                                console.log(`Stopping step 4 at setback ${testSetback.toFixed(3)}m, as difference is increasing`);
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                            } else {
+                                optimizationStatusDisplay.textContent = `Step 4/5: Setback ${testSetback.toFixed(3)}m - Invalid configuration`;
+                                console.log(`Invalid configuration at setback (Step 4) ${testSetback.toFixed(3)}m`);
+                                
+                                if (lastValidSetback !== null && bestSetback === null) {
+                                    bestSetback = lastValidSetback;
+                                }
+                                if (bestSetback !== null) {
+                                    break;
+                                }
+                            }
+                        } catch (error) {
+                            // Error in calculation (likely segments too short)
+                            console.log(`Error at setback (Step 4) ${testSetback.toFixed(3)}m: ${error.message}`);
+                            
+                            // Use last valid or best setback found so far
+                            if (bestSetback === null && lastValidSetback !== null) {
+                                bestSetback = lastValidSetback;
+                            }
+                            
+                            // Don't interrupt the optimization, continue with next value
+                            continue;
+                        }
+                    }
+                    
+                    // If nothing found, use the last valid setback
+                    if (bestSetback === null && lastValidSetback !== null) {
+                        bestSetback = lastValidSetback;
+                        console.log(`No optimal setback found in Step 4, using last valid: ${bestSetback.toFixed(3)}m`);
+                    }
+                    
+                    // If still nothing found, error message
+                    if (bestSetback === null) {
+                        throw new Error("No valid saddle position found. Please use different segment lengths.");
+                    }
+                    
+                    // Apply best setback
+                    P3X_OFFSET = bestSetback;
+                    updateUpperBodyCoords(bestSetback);
+                    
+                    // Transfer setback to slider
+                    ignoreNextSaddleUpdate = true;
+                    sliders.saddleSetback.value = bestSetback;  
+                    updateValueDisplay('saddleSetback');
+                    
+                    // Intermediate calculation
+                    await calculateKinematicsAndPowerAsync();
+                    
+                    // STEP 5: Final height optimization (repeat step 3)
+                    optimizationStatusDisplay.textContent = 'Step 5/5: Final height optimization...';
+                    
+                    // Start from current height - 0.050m but not less than 0.500
+                    startHeight = Math.max(bestHeight - 0.020, 0.400);
+                    
+                    // Height optimization one last time
+                    bestHeight = null;
+                    bestHeightDiff = Number.MAX_VALUE;
+                    bestMinKneeAngle = null;
+                    bestMaxKneeAngle = null;
+                    lastValidHeight = null;
+                    
+                    // Increase saddle height in 0.1cm steps
+                    for (let testHeight = startHeight; testHeight <= maxPossibleHeight; testHeight += 0.001) {
+                        // Set the height to test
+                        P3Y = testHeight;
+                        
+                        // Visualize the current test step
+                        ignoreNextSaddleUpdate = true;
+                        sliders.saddleHeight.value = testHeight;
+                        updateValueDisplay('saddleHeight');
+                        
+                        // Calculate current configuration and display it
+                        try {
+                            await calculateKinematicsAndPowerAsync();
+                            
+                            // Test if this configuration is valid
+                            let isValid = isConfigurationValid(lOS, lUS, lKurbel, bestSetback, testHeight);
+                            
+                            if (isValid) {
+                                lastValidHeight = testHeight;
+                                
+                                // Calculate knee angles directly from current calculatedData
+                                if (calculatedData && calculatedData.kneeAngles) {
+                                    const minKneeAngle = Math.min(...calculatedData.kneeAngles);
+                                    const maxKneeAngle = Math.max(...calculatedData.kneeAngles);
+                                    
+                                    // Calculate difference from target angles
+                                    const minKneeDiff = Math.abs(minKneeAngle - TARGET_MIN_KNEE_ANGLE);
+                                    const maxKneeDiff = Math.abs(maxKneeAngle - TARGET_MAX_KNEE_ANGLE);
+                                    const totalDiff = minKneeDiff + maxKneeDiff;
+                                    
+                                    // Update status
+                                    optimizationStatusDisplay.textContent = `Step 5/5: Testing height ${testHeight.toFixed(3)}m - Min knee: ${Math.round(minKneeAngle)}°, Max knee: ${Math.round(maxKneeAngle)}°, Diff: ${totalDiff.toFixed(1)}`;
+                                    
+                                    console.log(`Test height (Step 5): ${testHeight.toFixed(3)}m - Min knee: ${Math.round(minKneeAngle)}°, Max knee: ${Math.round(maxKneeAngle)}°, Diff: ${totalDiff.toFixed(1)}`);
+                                    
+                                    // Store better results
+                                    if (totalDiff < bestHeightDiff) {
+                                        bestHeightDiff = totalDiff;
+                                        bestHeight = testHeight;
+                                        bestMinKneeAngle = minKneeAngle;
+                                        bestMaxKneeAngle = maxKneeAngle;
+                                        
+                                        console.log(`New best height (Step 5) found: ${bestHeight.toFixed(3)}m with diff: ${bestHeightDiff.toFixed(1)}`);
+                                    } else if (bestHeight !== null) {
+                                        // If difference increases again, break
+                                        if (totalDiff > bestHeightDiff * 1.1) {
+                                            console.log(`Stopping step 5 at height ${testHeight.toFixed(3)}m, as difference is increasing`);
+                                            break;
+                                        }
+                                    }
+                                }
+                            } else {
+                                optimizationStatusDisplay.textContent = `Step 5/5: Height ${testHeight.toFixed(3)}m - Invalid configuration`;
+                                console.log(`Invalid configuration at height (Step 5) ${testHeight.toFixed(3)}m`);
+                                
+                                if (lastValidHeight !== null && bestHeight === null) {
+                                    bestHeight = lastValidHeight;
+                                }
+                                if (bestHeight !== null) {
+                                    break;
+                                }
+                            }
+                        } catch (error) {
+                            // Error in calculation (likely segments too short)
+                            console.log(`Error at height (Step 5) ${testHeight.toFixed(3)}m: ${error.message}`);
+                            
+                            // Use last valid or best height found so far
+                            if (bestHeight === null && lastValidHeight !== null) {
+                                bestHeight = lastValidHeight;
+                            }
+                            
+                            // Don't interrupt the optimization, continue with next value
+                            continue;
+                        }
+                    }
+                    
+                    // If nothing found, use the last valid height
+                    if (bestHeight === null && lastValidHeight !== null) {
+                        bestHeight = lastValidHeight;
+                        console.log(`No optimal height found in Step 5, using last valid: ${bestHeight.toFixed(3)}m`);
+                    }
+                    
+                    // If still nothing found, error message
+                    if (bestHeight === null) {
+                        throw new Error("No valid saddle position found. Please use different segment lengths.");
+                    }
+                    
+                    // Apply final best height
+                    P3Y = bestHeight;
+                    
+                    // Transfer height to slider
+                    ignoreNextSaddleUpdate = true;
+                    sliders.saddleHeight.value = bestHeight;
+                    updateValueDisplay('saddleHeight');
+                    
+                    // Final calculation
+                    try {
+                        await calculateKinematicsAndPowerAsync();
+                        
+                        // Update angles and X-differences for final status
+                        let finalMinKneeAngle = null;
+                        let finalMaxKneeAngle = null;
+                        let finalKneeXDiff = null;
+                        
+                        if (calculatedData) {
+                            finalMinKneeAngle = Math.min(...calculatedData.kneeAngles);
+                            finalMaxKneeAngle = Math.max(...calculatedData.kneeAngles);
+                            
+                            const index90deg = calculatedData.grad.findIndex(g => Math.abs(g - 90) < 0.5);
+                            if (index90deg !== -1) {
+                                finalKneeXDiff = calculatedData.P2x[index90deg] - calculatedData.P1x[index90deg];
+                            }
+                        }
+                        
+                        console.log(`Optimization completed - Final height: ${bestHeight.toFixed(3)}m, Setback: ${bestSetback.toFixed(3)}m, Min knee: ${finalMinKneeAngle?.toFixed(1) || 'n/a'}°, Max knee: ${finalMaxKneeAngle?.toFixed(1) || 'n/a'}°`);
+        
+                        // Update status
+                        optimizationStatusDisplay.textContent = `Optimized: Saddle height ${bestHeight.toFixed(3)}m, Setback ${bestSetback.toFixed(3)}m, Min knee: ${Math.round(finalMinKneeAngle || 0)}°, Max knee: ${Math.round(finalMaxKneeAngle || 0)}°, KneePedal-X: ${finalKneeXDiff?.toFixed(3) || 'n/a'}m`;
+                    } catch (error) {
+                        console.error("Final calculation error:", error);
+                        optimizationStatusDisplay.textContent = `Optimization completed with best values, but final calculation failed. Using best values found.`;
+                    }
+                } catch (error) {
+                    console.error("Optimization Error:", error);
+                    optimizationStatusDisplay.textContent = `Optimization error: ${error.message}. Using defaults.`;
+                    calculateKinematicsAndPower();
+                }
+                
+                // Reset optimization flag when done
+                isOptimizing = false;
+            }
+        
+            // Asynchronous version of calculateKinematicsAndPower function
+            function calculateKinematicsAndPowerAsync() {
+                return new Promise((resolve, reject) => {
+                    try {
+                        calculateKinematicsAndPower((success) => {
+                            if (success !== false) {
+                                resolve();
+                            } else {
+                                reject(new Error("Calculation failed"));
+                            }
+                        });
+                    } catch (error) {
+                        reject(error);
+                    }
+                });
+            }
+        
+            // Check if a configuration is valid (possible to pedal)
+            function isConfigurationValid(lOS, lUS, lKurbel, saddleSetback, saddleHeight) {
+                try {
+                    // Check if the geometry is physically possible
+                    for (let phi = 0; phi < 360; phi++) {
+                        const phi_rad = phi * Math.PI / 180;
+                        
+                        // Pedal position at this crank angle
+                        const P1x = lKurbel * Math.sin(phi_rad);
+                        const P1y = lKurbel * Math.cos(phi_rad);
+                        
+                        // Hip position
+                        const hipPos = [saddleSetback, saddleHeight];
+                        const pedalPos = [P1x, P1y];
+                        
+                        // Distance between hip and pedal
+                        const hipToPedalDist = Math.sqrt(
+                            Math.pow(hipPos[0] - pedalPos[0], 2) + 
+                            Math.pow(hipPos[1] - pedalPos[1], 2)
+                        );
+                        
+                        // Check against triangle inequality
+                        if (hipToPedalDist > lOS + lUS) {
+                            // Leg segments are too short
+                            return false;
+                        }
+                        if (hipToPedalDist < Math.abs(lOS - lUS)) {
+                            // Pedal is too close to the hip
+                            return false;
+                        }
+                    }
+                    
+                    return true;
+                } catch (error) {
+                    console.error("Error in isConfigurationValid:", error);
+                    return false;
+                }
+            }
+        
+            // Calculate X-difference between knee and pedal at 90° crank angle
+            function calculateKneePedalXDiff(lOS, lUS, lKurbel, saddleSetback, saddleHeight) {
+                try {
+                    // Hip position
+                    const hipPos = [saddleSetback, saddleHeight];
+                    
+                    // 90° crank angle
+                    const phi_rad = 90 * Math.PI / 180;
+                    
+                    // Pedal position at 90°
+                    const P1x = lKurbel * Math.sin(phi_rad);
+                    const P1y = lKurbel * Math.cos(phi_rad);
+                    const pedalPos = [P1x, P1y];
+                    
+                    // Calculate knee position
+                    const kneePos = findKneePosition(hipPos, pedalPos, lOS, lUS);
+                    
+                    if (!kneePos) {
+                        return null;
+                    }
+                    
+                    // X-difference between knee and pedal (NOT pedal minus knee)
+                    // Positive = knee is in front of pedal, Negative = knee is behind pedal
+                    return kneePos[0] - P1x;
+                } catch (error) {
+                    console.error("Error in calculateKneePedalXDiff:", error);
+                    return null;
+                }
+            }
+        
+            // Helper function to calculate knee position
+            function findKneePosition(hipPos, pedalPos, thighLength, shankLength) {
+                try {
+                    // Calculate distance between hip and pedal
+                    const hipPedalDist = Math.sqrt(
+                        Math.pow(hipPos[0] - pedalPos[0], 2) + 
+                        Math.pow(hipPos[1] - pedalPos[1], 2)
+                    );
+                    
+                    // Check if physically possible
+                    if (hipPedalDist > thighLength + shankLength || 
+                        hipPedalDist < Math.abs(thighLength - shankLength)) {
+                        return null;
+                    }
+                    
+                    // Calculate the partial distance from hip to intersection point
+                    // Using law of cosines
+                    const a = thighLength;
+                    const b = hipPedalDist;
+                    const c = shankLength;
+                    const partDist = (a*a + b*b - c*c) / (2*b);
+                    
+                    // Calculate unit vector from hip to pedal
+                    const unitVec = [
+                        (pedalPos[0] - hipPos[0]) / hipPedalDist,
+                        (pedalPos[1] - hipPos[1]) / hipPedalDist
+                    ];
+                    
+                    // Calculate knee position
+                    const kneePos = [
+                        hipPos[0] + unitVec[0] * partDist,
+                        hipPos[1] + unitVec[1] * partDist
+                    ];
+                    
+                    return kneePos;
+                } catch (error) {
+                    console.error("Error in findKneePosition:", error);
+                    return null;
+                }
+            }
+        
+            // --- Calculation Logic (Ported from R) ---
+            let calculatedData = null; // Store calculated kinematics data
+        
+            function calculateKinematicsAndPower(callback) {
+            // --- Get Input Parameters ---
+            const Masse = parseFloat(sliders.masse.value);
+            const lOS = parseFloat(sliders.lOS.value);
+            const lUS = parseFloat(sliders.lUS.value);
+            const uOS = parseFloat(sliders.uOS.value);
+            const uUS = parseFloat(sliders.uUS.value);
+            const lKurbel = parseFloat(sliders.lKurbel.value);
+            const nD = parseFloat(sliders.nD.value);
+        
+             // Show placeholder or "calculating" state
+             pIntValueDisplay.textContent = '...';
+             dashboardPower.textContent = '... W';
+             currentHipAngle.textContent = '...';
+             currentKneeAngle.textContent = '...';
+             minHipAngle.textContent = '...';
+             maxHipAngle.textContent = '...';
+             minKneeAngle.textContent = '...';
+             maxKneeAngle.textContent = '...';
+        
+            // Use setTimeout to allow UI update before heavy calculation
+            setTimeout(() => {
+                try {
+                    // --- Constants and derived values ---
+                    const rRelOS = 0.1416; // Relative segment mass Thigh
+                    const rRelUS = 0.0433; // Relative segment mass Shank
+                    const lambdaOS = 0.4095; // CoM distance from proximal Thigh
+                    const lambdaUS = 0.4459; // CoM distance from proximal Shank
+                    const thetaKurbel = 0.002; // Crank inertia [kg m^2] approx.
+        
+                    const delta_phi1_rad = (2 * Math.PI) / N_STEPS; // Angle step in radians
+                    const phi1_rad = Array.from({ length: N_STEPS }, (_, i) => i * delta_phi1_rad); // Crank angle [rad] (starts at 0 = 12 o'clock)
+                    const grad = phi1_rad.map(rad => rad * 180 / Math.PI); // Crank angle [deg]
+                    const nD_Hz = nD / 60; // Cadence in Hz
+                    const T_cycle = 1 / nD_Hz; // Period duration [s]
+                    const delta_t = T_cycle / N_STEPS; // Time step [s]
+                    const time = Array.from({ length: N_STEPS }, (_, i) => i * delta_t); // Time array [s]
+                    // const omega = 2 * Math.PI * nD_Hz; // Average angular velocity [rad/s] (not directly used in loop)
+        
+                    // Segment masses [kg]
+                    const mOS = Masse * rRelOS;
+                    const mUS = Masse * rRelUS;
+        
+                    // Segment Moments of Inertia [kg m^2] (Approximation as cylinders)
+                    const rOS_cyl = uOS / (2 * Math.PI);
+                    const rUS_cyl = uUS / (2 * Math.PI);
+                    const thetaOS = (1 / 4) * mOS * rOS_cyl**2 + (1 / 12) * mOS * lOS**2;
+                    const thetaUS = (1 / 4) * mUS * rUS_cyl**2 + (1 / 12) * mUS * lUS**2;
+        
+                    // --- Calculation for Hip Position (P3) ---
+                    // P3 is now directly set from sliders
+                    const P3 = [P3X_OFFSET, P3Y]; // Hip coordinates [m]
+                    
+                    // Calculate the distance between hip and bottom bracket
+                    const S = Math.sqrt(P3[0]**2 + P3[1]**2);
+                    const delta = Math.acos(Math.max(-1, Math.min(1, P3[1] / S)));
+                    
+                    // Calculate connecting length 'c' (distance between crank axle P1 and hip P3) for all crank angles
+                    const c = phi1_rad.map(phi => 
+                        Math.sqrt(lKurbel**2 + S**2 - 2 * S * lKurbel * Math.cos(phi + delta))
+                    );
+        
+                    // Check if any c is too long (physically impossible for segments lOS + lUS to connect P1 and P3)
+                    const tolerance = 1e-6;
+                    const isConfigurationPossible = !c.some(ci => (lOS + lUS) < ci - tolerance);
+                    const isConfigurationPossible2 = !c.some(ci => Math.abs(lOS - lUS) > ci + tolerance);
+                    
+                    if (!isConfigurationPossible) {
+                        // Modified to continue optimization process without alerts
+                        console.error(`The leg segments (${lOS.toFixed(3)}m + ${lUS.toFixed(3)}m) are too short to reach the pedal at some points in the revolution. Try adjusting the saddle position or segment lengths.`);
+                        if (callback) callback(false);
+                        return;
+                    }
+                    
+                    if (!isConfigurationPossible2) {
+                        // Modified to continue optimization process without alerts
+                        console.error(`The leg segments cannot be arranged at some points in the revolution because the pedal is too close to the hip. Try adjusting the saddle position.`);
+                        if (callback) callback(false);
+                        return;
+                    }
+        
+                    // --- Kinematic Calculations for each step ---
+                     // P1 (Pedal) coordinates. R used sin for x, cos for y starting phi1=0 (+Y), CW. Let's stick to this.
+                     const P1x_arr = phi1_rad.map(phi => lKurbel * Math.sin(phi));
+                     const P1y_arr = phi1_rad.map(phi => lKurbel * Math.cos(phi));
+        
+                    // Angle calculations for the leg segments
+                     const alpha = phi1_rad.map((phi, i) => {
+                         const sinArg = lKurbel * Math.sin(phi + delta) / c[i];
+                         return Math.asin(Math.max(-1, Math.min(1, sinArg))); // Angle at P3 vertex
+                     });
+                     const beta = phi1_rad.map((phi, i) => {
+                         const cosArg = (lOS**2 + c[i]**2 - lUS**2) / (2 * lOS * c[i]);
+                         return Math.acos(Math.max(-1, Math.min(1, cosArg))); // Angle at P2 vertex
+                     });
+        
+                     // P2 (Knee) coordinates based on R's formula
+                     const P2x_arr = alpha.map((a, i) => P3[0] + lOS * Math.cos(Math.PI / 2 - (a + beta[i] + delta)));
+                     const P2y_arr = alpha.map((a, i) => P3[1] - lOS * Math.sin(Math.PI / 2 - (a + beta[i] + delta)));
+        
+                    // Segment angle calculations used in R for omega (relative segment angles?)
+                     const phi2_arr = P2x_arr.map((p2x_val, i) => {
+                        const cosArg = (p2x_val - P1x_arr[i]) / lUS;
+                        // Using acos here gives angle relative to X axis for Shank. Range 0-PI.
+                        return Math.acos(Math.max(-1, Math.min(1, cosArg)));
+                     });
+                     const phi3_arr = P2y_arr.map((p2y_val, i) => {
+                         const cosArg = (P3[1] - p2y_val) / lOS;
+                         // Using acos here gives angle relative to Y axis for Thigh. Range 0-PI.
+                        return Math.acos(Math.max(-1, Math.min(1, cosArg)));
+                     });
+        
+                    // Centers of Mass (SpOS, SpUS) - linear interpolation along segment
+                    const SpOSx_arr = P2x_arr.map((p2x_val, i) => P3[0] - lambdaOS * (P3[0] - p2x_val));
+                    const SpOSy_arr = P2y_arr.map((p2y_val, i) => P3[1] - lambdaOS * (P3[1] - p2y_val));
+                    const SpUSx_arr = P1x_arr.map((p1x_val, i) => P2x_arr[i] - lambdaUS * (P2x_arr[i] - p1x_val));
+                    const SpUSy_arr = P1y_arr.map((p1y_val, i) => P2y_arr[i] - lambdaUS * (P2y_arr[i] - p1y_val));
+        
+                    // --- Calculate Hip and Knee Angles for each frame ---
+                    const hipAngles = [];
+                    const kneeAngles = [];
+        
+                    for (let i = 0; i < N_STEPS; i++) {
+                        // For hip angle, calculate angle between shoulder-hip and hip-knee lines
+                        const shoulderX = P3[0] + UPPER_BODY_COORDS.LSJC_X - P3[0]; // Adjust to make hip the origin
+                        const shoulderY = P3[1] + UPPER_BODY_COORDS.LSJC_Y - P3[1];
+                        const kneeX = P2x_arr[i] - P3[0]; // Adjust to make hip the origin
+                        const kneeY = P2y_arr[i] - P3[1];
+                        
+                        // Calculate angle between vectors
+                        const v1 = { x: shoulderX, y: shoulderY };
+                        const v2 = { x: kneeX, y: kneeY };
+                        const origin = { x: 0, y: 0 }; // Hip is the origin
+                        
+                        const hipAngle = calculateAngle(v1, origin, v2);
+                        hipAngles.push(hipAngle);
+                        
+                        // For knee angle, calculate angle between hip-knee and knee-ankle lines
+                        const hipX = P3[0] - P2x_arr[i]; // Adjust to make knee the origin
+                        const hipY = P3[1] - P2y_arr[i];
+                        const ankleX = P1x_arr[i] - P2x_arr[i]; // Adjust to make knee the origin
+                        const ankleY = P1y_arr[i] - P2y_arr[i];
+                        
+                        const v3 = { x: hipX, y: hipY };
+                        const v4 = { x: ankleX, y: ankleY };
+                        const kneeOrigin = { x: 0, y: 0 }; // Knee is the origin
+                        
+                        const kneeAngle = calculateAngle(v3, kneeOrigin, v4);
+                        kneeAngles.push(kneeAngle);
+                    }
+        
+                    // Find min and max angles
+                    const minHipAngleVal = Math.min(...hipAngles);
+                    const maxHipAngleVal = Math.max(...hipAngles);
+                    const minKneeAngleVal = Math.min(...kneeAngles);
+                    const maxKneeAngleVal = Math.max(...kneeAngles);
+                    
+                    // Find knee X difference at 90° crank angle
+                    const index90deg = grad.findIndex(g => Math.abs(g - 90) < 0.5);
+                    const kneeXDiff90 = index90deg !== -1 ? P2x_arr[index90deg] - P1x_arr[index90deg] : null;
+        
+                    // --- Velocity Calculation ---
+                    // Cyclic Differentiation: R's diff(x) gives x[i+1]-x[i], with last being x[0]-x[n-1]
+                    function cyclicDiff(arr) {
+                        const diffArr = [];
+                        for (let i = 0; i < arr.length -1 ; i++) { diffArr.push(arr[i+1] - arr[i]); }
+                        diffArr.push(arr[0] - arr[arr.length - 1]); // Wrap around
+                        return diffArr;
+                    }
+        
+                    const diffSpOSx = cyclicDiff(SpOSx_arr);
+                    const diffSpOSy = cyclicDiff(SpOSy_arr);
+                    const diffSpUSx = cyclicDiff(SpUSx_arr);
+                    const diffSpUSy = cyclicDiff(SpUSy_arr);
+        
+                    // Magnitude of velocity vectors
+                    const vOS_arr = diffSpOSx.map((dx, i) => Math.sqrt(dx**2 + diffSpOSy[i]**2) / delta_t);
+                    const vUS_arr = diffSpUSx.map((dx, i) => Math.sqrt(dx**2 + diffSpUSy[i]**2) / delta_t);
+        
+                    // --- Kinetic Energy Calculations ---
+                    // Translational KE
+                    const Ekin_trans_arr = vOS_arr.map((vos_val, i) => 0.5 * (mOS * vos_val**2 + mUS * vUS_arr[i]**2));
+        
+                    // Rotational KE
+                     // Angular velocities as per R script (using cyclicDiff on phi2 and phi3 arrays)
+                    const delta_phi2 = cyclicDiff(phi2_arr); // Simple diff as in R, potentially ignoring PI wrap issues
+                    const delta_phi3 = cyclicDiff(phi3_arr); // Simple diff as in R
+        
+                    const omega_SpOS_arr = delta_phi2.map(dphi => dphi / delta_t); // As per R script logic
+                    const omega_SpUS_arr = delta_phi3.map(dphi => dphi / delta_t); // As per R script logic
+                     const omega_Kurbel = (delta_phi1_rad / delta_t); // Constant angular velocity of crank
+        
+                    const Ekin_rot_arr = omega_SpOS_arr.map((wos, i) => 0.5 * (thetaOS * wos**2 + thetaUS * omega_SpUS_arr[i]**2 + thetaKurbel * omega_Kurbel**2));
+        
+                    // --- Power Calculation (Internal Work) ---
+                    // Change in Total KE
+                    const delta_Ekin_trans = cyclicDiff(Ekin_trans_arr);
+                    const delta_Ekin_rot = cyclicDiff(Ekin_rot_arr);
+                    const delta_Ekin_ges = delta_Ekin_trans.map((det, i) => det + delta_Ekin_rot[i]);
+        
+                    // Instantaneous Power (Right Leg) P = dE/dt
+                    const PInt_Zyklus_Rechts = delta_Ekin_ges.map(dE => dE / delta_t);
+        
+                    // Positive Power only (work done by muscles)
+                    const PInt_Zyklus_Rechts_Positiv = PInt_Zyklus_Rechts.map(P => Math.max(0, P));
+        
+                    // Left Leg Power (Phase shifted by 180 degrees = N_STEPS/2 steps)
+                    const verschieben = N_STEPS / 2;
+                    const PInt_Zyklus_Links = [
+                        ...PInt_Zyklus_Rechts.slice(verschieben),
+                        ...PInt_Zyklus_Rechts.slice(0, verschieben)
+                    ];
+                    const PInt_Zyklus_Links_Positiv = PInt_Zyklus_Links.map(P => Math.max(0, P));
+        
+                    // Average Internal Power (Model) - Average of positive components
+                    const mean = arr => arr.reduce((a, b) => a + b, 0) / arr.length;
+                    const PInt_Modell_Value = mean(PInt_Zyklus_Rechts_Positiv) + mean(PInt_Zyklus_Links_Positiv);
+                    
+                    // --- Upper Body Coordinates ---
+            // Calculate upper body parts positions relative to hip position P3
+            const shoulderX = P3[0] + UPPER_BODY_COORDS.LSJC_X;
+            const shoulderY = P3[1] + UPPER_BODY_COORDS.LSJC_Y;
+            const elbowX = P3[0] + UPPER_BODY_COORDS.LEJC_X;
+            const elbowY = P3[1] + UPPER_BODY_COORDS.LEJC_Y;
+            const wristX = P3[0] + UPPER_BODY_COORDS.LWJC_X;
+            const wristY = P3[1] + UPPER_BODY_COORDS.LWJC_Y;
+            const headX = P3[0] + UPPER_BODY_COORDS.LHead_X;
+            const headY = P3[1] + UPPER_BODY_COORDS.LHead_Y;
+            const neckX = P3[0] + UPPER_BODY_COORDS.LNeck_X;
+            const neckY = P3[1] + UPPER_BODY_COORDS.LNeck_Y;
+
+            // --- Store Calculated Data for Animation/Plotting ---
+            calculatedData = {
+                grad: grad,
+                P1x: P1x_arr, P1y: P1y_arr,
+                P2x: P2x_arr, P2y: P2y_arr,
+                P3x: P3[0], P3y: P3[1], // P3 is fixed
+                SpOSx: SpOSx_arr, SpOSy: SpOSy_arr,
+                SpUSx: SpUSx_arr, SpUSy: SpUSy_arr,
+                PInt_Rechts_Positiv: PInt_Zyklus_Rechts_Positiv,
+                PInt_Links_Positiv: PInt_Zyklus_Links_Positiv,
+                PInt_Modell_Mean: PInt_Modell_Value,
+                T_cycle: T_cycle, // Cycle duration for animation timing
+                delta_t: delta_t, // Time step for velocity calculations (not direct animation step)
+                nD: nD, // Store cadence for display
+                
+                // Upper body fixed positions
+                shoulderX: shoulderX,
+                shoulderY: shoulderY,
+                elbowX: elbowX,
+                elbowY: elbowY,
+                wristX: wristX,
+                wristY: wristY,
+                headX: headX,
+                headY: headY,
+                neckX: neckX,
+                neckY: neckY,
+                
+                // Angles
+                hipAngles: hipAngles,
+                kneeAngles: kneeAngles,
+                minHipAngle: minHipAngleVal,
+                maxHipAngle: maxHipAngleVal,
+                minKneeAngle: minKneeAngleVal,
+                maxKneeAngle: maxKneeAngleVal,
+                
+                // Difference metrics
+                kneeXDiff90: kneeXDiff90
+            };
+
+            // --- Update Output Display ---
+            pIntValueDisplay.textContent = PInt_Modell_Value.toFixed(1);
+            dashboardPower.textContent = PInt_Modell_Value.toFixed(1) + " W";
+            
+            // Update angle displays in dashboard - now without decimal places
+            minHipAngle.textContent = Math.round(minHipAngleVal) + "°";
+            maxHipAngle.textContent = Math.round(maxHipAngleVal) + "°";
+            minKneeAngle.textContent = Math.round(minKneeAngleVal) + "°";
+            maxKneeAngle.textContent = Math.round(maxKneeAngleVal) + "°";
+            
+            // Set initial current angles
+            const initialFrame = 0;
+            currentHipAngle.textContent = Math.round(hipAngles[initialFrame]) + "°";
+            currentKneeAngle.textContent = Math.round(kneeAngles[initialFrame]) + "°";
+
+            // --- Update Plots and Animation ---
+            updatePlots();
+            setScaleForEqualAspectRatio();
+            updateAxes();
+            
+            // Reset manual slider to 0 position
+            manualCrankAngleSlider.value = 0;
+            manualCrankAngleValue.textContent = "0°";
+            
+            // Update display based on current mode
+            if (isManualMode) {
+                updateManualPosition(0); // Update for 0 deg position
+            } else {
+                startKinematicsAnimation();
+            }
+            
+            if (callback) callback(true);
+
+        } catch (error) {
+            console.error("Calculation Error:", error);
+            
+            // Don't show alert during optimization, just log the error and continue
+            if (!isOptimizing) {
+                alert("Calculation Error: " + error.message + "\nPlease check your input values.");
+            }
+             
+            pIntValueDisplay.textContent = 'Error';
+            dashboardPower.textContent = 'Error';
+            calculatedData = null; // Clear invalid data
+            stopKinematicsAnimation(); // Stop animation on error
+             
+            if (callback) callback(false);
+        }
+    }, 10); // Small delay to allow UI update
+}
+
+// Calculate the appropriate scale to maintain equal aspect ratio
+function setScaleForEqualAspectRatio() {
+    if (!calculatedData) return;
+    
+    // Get container dimensions
+    const containerWidth = simulationPlotContainer.clientWidth;
+    const containerHeight = simulationPlotContainer.clientHeight;
+    
+    // Get relevant points for scaling
+    const { 
+        P1x, P1y, P2x, P2y, P3x, P3y, SpOSx, SpOSy, SpUSx, SpUSy,
+        shoulderX, shoulderY, elbowX, elbowY, wristX, wristY, headX, headY, neckX, neckY
+    } = calculatedData;
+    
+    // Find the maximum absolute values to determine required scale
+    // Include both lower body and upper body points
+    let maxX = Math.max(
+        ...P1x.map(Math.abs),
+        ...P2x.map(Math.abs),
+        ...SpOSx.map(Math.abs),
+        ...SpUSx.map(Math.abs),
+        Math.abs(P3x),
+        Math.abs(shoulderX),
+        Math.abs(elbowX),
+        Math.abs(wristX),
+        Math.abs(headX),
+        Math.abs(neckX),
+        Math.abs(0) // Origin
+    );
+    
+    // Only consider Y coordinates above MIN_Y_DISPLAY
+    let maxY = Math.max(
+        ...P1y.filter(y => y > MIN_Y_DISPLAY).map(Math.abs),
+        ...P2y.filter(y => y > MIN_Y_DISPLAY).map(Math.abs),
+        ...SpOSy.filter(y => y > MIN_Y_DISPLAY).map(Math.abs),
+        ...SpUSy.filter(y => y > MIN_Y_DISPLAY).map(Math.abs),
+        Math.abs(P3y),
+        Math.abs(shoulderY),
+        Math.abs(elbowY),
+        Math.abs(wristY),
+        Math.abs(headY),
+        Math.abs(neckY),
+        Math.abs(0) // Origin
+    );
+    
+    // Adjust maxY to account for the MIN_Y_DISPLAY cutoff
+    maxY = maxY - MIN_Y_DISPLAY;
+    
+    // Ensure Y axis extends at least to some minimum value
+    maxY = Math.max(maxY, 1.4);
+    
+    // Add % margin
+    maxX *= 1.1;
+    maxY *= 1.0;
+    
+    // Calculate scales that would fit each dimension
+    const xScale = containerWidth / (1 * maxX);
+    const yScale = containerHeight / (1.5 * maxY);
+    
+    // Use the smaller scale to ensure equal aspect ratio
+    VIS_SCALE = Math.min(xScale, yScale);
+    
+    // Set offsets to center the display
+    VIS_X_OFFSET = containerWidth / 2;
+    VIS_Y_OFFSET = containerHeight * 0.8; // Position the x-axis lower to show more of the upper body
+    
+    // Update axis labels with the new scale
+    createAxisLabels();
+    createAxisTitles();
+}
+
+// Update axes with the new scale and offsets
+function updateAxes() {
+    if (!layer) return;
+    
+    const xAxis = layer.find('.xAxis')[0];
+    const yAxis = layer.find('.yAxis')[0];
+    
+    if (!xAxis || !yAxis) return;
+    
+    // Get container dimensions
+    const containerWidth = simulationPlotContainer.clientWidth;
+    const containerHeight = simulationPlotContainer.clientHeight;
+    
+    // X-axis - extends across entire width
+    xAxis.points([
+        0, toCanvasY(0),  
+        containerWidth, toCanvasY(0)
+    ]);
+    
+    // Y-axis - extends only from origin upward (not below MIN_Y_DISPLAY)
+    yAxis.points([
+        toCanvasX(0), toCanvasY(MIN_Y_DISPLAY),
+        toCanvasX(0), 0
+    ]);
+    
+    layer.batchDraw();
+}
+
+// --- Konva Animation ---
+function startKinematicsAnimation() {
+     if (!calculatedData) return; // Don't start if calculation failed
+
+    stopKinematicsAnimation(); // Stop any existing animation first
+
+     const { 
+         grad, P1x, P1y, P2x, P2y, P3x, P3y, SpOSx, SpOSy, SpUSx, SpUSy, T_cycle,
+         shoulderX, shoulderY, elbowX, elbowY, wristX, wristY, headX, headY, neckX, neckY,
+         hipAngles, kneeAngles
+     } = calculatedData;
+     
+     const numFrames = grad.length;
+     let frameIndex = 0;
+     const frameDuration_ms = (T_cycle / numFrames) * 1000; // Duration of one frame in milliseconds
+
+     kinematicsAnimation = new Konva.Animation(function(frame) {
+         if (!calculatedData) return; // Stop if data becomes invalid during animation
+
+         // Determine current frame index based on elapsed time within the cycle duration
+         // Use modulo to loop
+         const elapsedInCycle = frame.time % (T_cycle * 1000); // elapsed time within one cycle
+         frameIndex = Math.floor((elapsedInCycle / (T_cycle * 1000)) * numFrames);
+         // Ensure index is within bounds (should be handled by modulo, but double check)
+         frameIndex = Math.min(frameIndex, numFrames - 1);
+
+        // Update positions of shapes
+        const current_P1x = P1x[frameIndex], current_P1y = P1y[frameIndex];
+        const current_P2x = P2x[frameIndex], current_P2y = P2y[frameIndex];
+        const current_SpOSx = SpOSx[frameIndex], current_SpOSy = SpOSy[frameIndex];
+        const current_SpUSx = SpUSx[frameIndex], current_SpUSy = SpUSy[frameIndex];
+        const current_hipAngle = hipAngles[frameIndex];
+        const current_kneeAngle = kneeAngles[frameIndex];
+
+        // Convert meters to canvas pixels
+        const c_P1x = toCanvasX(current_P1x), c_P1y = toCanvasY(current_P1y);
+        const c_P2x = toCanvasX(current_P2x), c_P2y = toCanvasY(current_P2y);
+        const c_P3x = toCanvasX(P3x), c_P3y = toCanvasY(P3y); // P3 is fixed in space
+        const c_SpOSx = toCanvasX(current_SpOSx), c_SpOSy = toCanvasY(current_SpOSy);
+        const c_SpUSx = toCanvasX(current_SpUSx), c_SpUSy = toCanvasY(current_SpUSy);
+        const c_BB_x = toCanvasX(0), c_BB_y = toCanvasY(0); // BB point at origin
+        
+        // Upper body points (fixed relative to hip)
+        const c_shoulder_x = toCanvasX(shoulderX), c_shoulder_y = toCanvasY(shoulderY);
+        const c_elbow_x = toCanvasX(elbowX), c_elbow_y = toCanvasY(elbowY);
+        const c_wrist_x = toCanvasX(wristX), c_wrist_y = toCanvasY(wristY);
+        const c_head_x = toCanvasX(headX), c_head_y = toCanvasY(headY);
+        const c_neck_x = toCanvasX(neckX), c_neck_y = toCanvasY(neckY);
+
+        // Update lower body segment lines (points are [x1, y1, x2, y2, ...])
+        crankLine.points([c_BB_x, c_BB_y, c_P1x, c_P1y]);
+        shankLine.points([c_P1x, c_P1y, c_P2x, c_P2y]);
+        thighLine.points([c_P2x, c_P2y, c_P3x, c_P3y]);
+        
+        // Update upper body segment lines
+        torsoLine.points([c_P3x, c_P3y, c_shoulder_x, c_shoulder_y]);
+        upperArmLine.points([c_shoulder_x, c_shoulder_y, c_elbow_x, c_elbow_y]);
+        forearmLine.points([c_elbow_x, c_elbow_y, c_wrist_x, c_wrist_y]);
+        neckLine.points([c_shoulder_x, c_shoulder_y, c_neck_x, c_neck_y]);
+
+        // Update lower body joint/point positions
+        bbPoint.position({ x: c_BB_x, y: c_BB_y });
+        pedalPoint.position({ x: c_P1x, y: c_P1y });
+        kneePoint.position({ x: c_P2x, y: c_P2y });
+        hipPoint.position({ x: c_P3x, y: c_P3y }); 
+        spOSPoint.position({ x: c_SpOSx, y: c_SpOSy });
+        spUSPoint.position({ x: c_SpUSx, y: c_SpUSy });
+        
+        // Update upper body joint positions
+        shoulderPoint.position({ x: c_shoulder_x, y: c_shoulder_y });
+        elbowPoint.position({ x: c_elbow_x, y: c_elbow_y });
+        wristPoint.position({ x: c_wrist_x, y: c_wrist_y });
+        headPoint.position({ x: c_head_x, y: c_head_y });
+        neckPoint.position({ x: c_neck_x, y: c_neck_y });
+        
+        // Update angle display in dashboard - without decimal places
+        currentHipAngle.textContent = Math.round(current_hipAngle) + "°";
+        currentKneeAngle.textContent = Math.round(current_kneeAngle) + "°";
+
+     }, layer); // Attach animation to the layer
+
+     // Start the animation
+     kinematicsAnimation.start();
+}
+
+function stopKinematicsAnimation() {
+    if (kinematicsAnimation) {
+        kinematicsAnimation.stop();
+    }
+}
+
+// Function to update position in manual mode
+function updateManualPosition(crankAngle) {
+    if (!calculatedData) return;
+    
+    // Find the closest angle in our data array
+    const { 
+        grad, P1x, P1y, P2x, P2y, P3x, P3y, SpOSx, SpOSy, SpUSx, SpUSy,
+        shoulderX, shoulderY, elbowX, elbowY, wristX, wristY, headX, headY, neckX, neckY,
+        hipAngles, kneeAngles
+    } = calculatedData;
+    
+    // Find index of closest crank angle
+    let closestIndex = 0;
+    let minDiff = 360;
+    
+    for (let i = 0; i < grad.length; i++) {
+        const diff = Math.abs(grad[i] - crankAngle);
+        if (diff < minDiff) {
+            minDiff = diff;
+            closestIndex = i;
+        }
+    }
+    
+    // Get the data for this specific angle
+    const current_P1x = P1x[closestIndex], current_P1y = P1y[closestIndex];
+    const current_P2x = P2x[closestIndex], current_P2y = P2y[closestIndex];
+    const current_SpOSx = SpOSx[closestIndex], current_SpOSy = SpOSy[closestIndex];
+    const current_SpUSx = SpUSx[closestIndex], current_SpUSy = SpUSy[closestIndex];
+    const current_hipAngle = hipAngles[closestIndex];
+    const current_kneeAngle = kneeAngles[closestIndex];
+    
+    // Convert meters to canvas pixels
+    const c_P1x = toCanvasX(current_P1x), c_P1y = toCanvasY(current_P1y);
+    const c_P2x = toCanvasX(current_P2x), c_P2y = toCanvasY(current_P2y);
+    const c_P3x = toCanvasX(P3x), c_P3y = toCanvasY(P3y); // P3 is fixed in space
+    const c_SpOSx = toCanvasX(current_SpOSx), c_SpOSy = toCanvasY(current_SpOSy);
+    const c_SpUSx = toCanvasX(current_SpUSx), c_SpUSy = toCanvasY(current_SpUSy);
+    const c_BB_x = toCanvasX(0), c_BB_y = toCanvasY(0); // BB point at origin
+    
+    // Upper body points (fixed relative to hip)
+    const c_shoulder_x = toCanvasX(shoulderX), c_shoulder_y = toCanvasY(shoulderY);
+    const c_elbow_x = toCanvasX(elbowX), c_elbow_y = toCanvasY(elbowY);
+    const c_wrist_x = toCanvasX(wristX), c_wrist_y = toCanvasY(wristY);
+    const c_head_x = toCanvasX(headX), c_head_y = toCanvasY(headY);
+    const c_neck_x = toCanvasX(neckX), c_neck_y = toCanvasY(neckY);
+    
+    // Update lower body segment lines (points are [x1, y1, x2, y2, ...])
+    crankLine.points([c_BB_x, c_BB_y, c_P1x, c_P1y]);
+    shankLine.points([c_P1x, c_P1y, c_P2x, c_P2y]);
+    thighLine.points([c_P2x, c_P2y, c_P3x, c_P3y]);
+    
+    // Update upper body segment lines
+    torsoLine.points([c_P3x, c_P3y, c_shoulder_x, c_shoulder_y]);
+    upperArmLine.points([c_shoulder_x, c_shoulder_y, c_elbow_x, c_elbow_y]);
+    forearmLine.points([c_elbow_x, c_elbow_y, c_wrist_x, c_wrist_y]);
+    neckLine.points([c_shoulder_x, c_shoulder_y, c_neck_x, c_neck_y]);
+    
+    // Update lower body joint/point positions
+    bbPoint.position({ x: c_BB_x, y: c_BB_y });
+    pedalPoint.position({ x: c_P1x, y: c_P1y });
+    kneePoint.position({ x: c_P2x, y: c_P2y });
+    hipPoint.position({ x: c_P3x, y: c_P3y }); 
+    spOSPoint.position({ x: c_SpOSx, y: c_SpOSy });
+    spUSPoint.position({ x: c_SpUSx, y: c_SpUSy });
+    
+    // Update upper body joint positions
+    shoulderPoint.position({ x: c_shoulder_x, y: c_shoulder_y });
+    elbowPoint.position({ x: c_elbow_x, y: c_elbow_y });
+    wristPoint.position({ x: c_wrist_x, y: c_wrist_y });
+    headPoint.position({ x: c_head_x, y: c_head_y });
+    neckPoint.position({ x: c_neck_x, y: c_neck_y });
+    
+    // Update angle display in dashboard - without decimal places
+    currentHipAngle.textContent = Math.round(current_hipAngle) + "°";
+    currentKneeAngle.textContent = Math.round(current_kneeAngle) + "°";
+    
+    // Redraw layer
+    layer.batchDraw();
+}
+
+ // Resize Konva stage when container size changes (e.g. window resize)
+ function resizeKonvaStage() {
+    const containerWidth = simulationPlotContainer.clientWidth;
+    const containerHeight = simulationPlotContainer.clientHeight;
+    
+    if (stage) {
+        stage.width(containerWidth);
+        stage.height(containerHeight);
+        
+        if (calculatedData) {
+            // Recalculate scale and offsets based on new container size
+            setScaleForEqualAspectRatio();
+            updateAxes();
+        }
+        
+        layer.batchDraw(); // Redraw the layer
+    } else {
+        // If stage not initialized, maybe just set canvas size
+        simulationCanvas.width = containerWidth;
+        simulationCanvas.height = containerHeight;
+    }
+ }
+ 
+ // Add event listener for window resize
+ window.addEventListener('resize', resizeKonvaStage);
+ // Initial resize/setup
+ resizeKonvaStage();
+
+// --- Plotly Power Plot ---
+function updatePlots() {
+     if (!calculatedData) return; // Don't plot if no valid data
+
+    const { grad, PInt_Rechts_Positiv, PInt_Links_Positiv, PInt_Modell_Mean } = calculatedData;
+
+    const powerCycleLayout = {
+        title: 'Instantaneous Positive Internal Power per Leg',
+        xaxis: { title: 'Crank Angle (°)', range: [0, 360], tickmode: 'linear', dtick: 60 },
+        yaxis: { title: 'Power (Watt)', rangemode: 'tozero' },
+        showlegend: true,
+        legend: { x: 0.5, y: -0.2, xanchor: 'center', orientation: 'h' },
+         margin: { l: 60, r: 30, b: 80, t: 50 }, /* Increased bottom margin for horizontal legend */
+         hovermode: 'x unified' /* Show tooltip for all traces at the same x value */
+    };
+
+    const powerCycleTraces = [
+        { x: grad, y: PInt_Rechts_Positiv, type: 'scatter', mode: 'lines', name: 'Right Leg (Positive)', line: { color: varToString('--accent-color'), width: 2 } },
+        { x: grad, y: PInt_Links_Positiv, type: 'scatter', mode: 'lines', name: 'Left Leg (Positive)', line: { color: varToString('--primary-color'), width: 2 } },
+        { x: grad, y: Array(grad.length).fill(PInt_Modell_Mean), type: 'scatter', mode: 'lines', name: 'Average P_Int (Model)', line: { color: 'grey', width: 1.5, dash: 'dash' } },
+    ];
+
+     // Plotly.react is efficient; it updates the existing plot if it exists, otherwise creates a new one.
+    Plotly.react(powerCyclePlotDiv, powerCycleTraces, powerCycleLayout);
+}
+
+// --- Manual control setup ---
+// Handle mode toggle
+modeToggle.addEventListener('change', function() {
+    isManualMode = this.checked;
+    
+    if (isManualMode) {
+        // Switch to manual mode
+        stopKinematicsAnimation();
+        manualControlContainer.style.display = 'block';
+        
+        // Set initial manual position
+        const crankAngle = parseInt(manualCrankAngleSlider.value);
+        updateManualPosition(crankAngle);
+    } else {
+        // Switch to animation mode
+        manualControlContainer.style.display = 'none';
+        startKinematicsAnimation();
+    }
+});
+
+// Handle manual slider input
+manualCrankAngleSlider.addEventListener('input', function() {
+    const crankAngle = parseInt(this.value);
+    manualCrankAngleValue.textContent = crankAngle + "°";
+    updateManualPosition(crankAngle);
+});
+
+// --- Initial Setup and Calculation on Load ---
+setupKonva(); // Initialize Konva stage and layer
+
+// Delay first optimization for more stability
+setTimeout(() => {
+    console.log("Running initial optimization...");
+    
+    // Set initial values based on body height if auto calculate is checked
+    if (autoCalculateLimbs.checked) {
+        updateLimbLengths();
+    } else {
+        findOptimalSaddlePosition();
+    }
+}, 200);
+
+}); // End DOMContentLoaded
+    </script>
+</body>
+</html>

@@ -300,8 +300,8 @@ calculate_min_VO2_SS <- function(data, start_time, end_time) {
 }
 
 # Read Excel file (sheet "Spiro")
-#file_path <- "C:/Users/johan/OneDrive/Desktop/SpoWi/WS 22,23/Masterarbeit - Wirkungsgrad/Formel, Berechnungen/Drehzahltest_2.0/Spiro_Will.xlsx"
-file_path <- "Spiro_Will.xlsx"
+#file_path <- "C:/Users/johan/OneDrive/Desktop/SpoWi/WS 22,23/Masterarbeit - Wirkungsgrad/Formel, Berechnungen/Drehzahltest_2.0/Spiro_Will_01_04_2025.xlsx"
+file_path <- "Spiro_Will_01_04_2025.xlsx"
 df <- read_excel(file_path, sheet = "Spiro")
 
 # Liste der Laktatwerte
@@ -357,54 +357,93 @@ df <- clean_outliers(df, "VCO2_t", window_size = 15, threshold = 1.5)
 # Apply additional outlier detection for respiratory gases
 df <- detect_gas_outliers(df)
 
-# Calculate the lowest average VO2 over 120s
-df_for_rest_vo2 <- df %>% 
-  select(t_s, VO2_t) %>% 
-  filter(!is.na(VO2_t) & !is.na(t_s))
+### Calculate the lowest average VO2 over 120s ###
 
-# Define time limits for the search
-search_start_time <- 0
-search_end_time <- 2000
-window_k <- 120 
-
-# Calculate rolling average for VO2 over the *entire* dataset
-rolling_vo2_avg_full <- tryCatch({
-  rollmean(df_for_rest_vo2$VO2_t, k = window_k, fill = NA, align = "right", na.rm = TRUE)
-}, warning = function(w) {
-  cat("Warning occurred in rollmean (possibly fewer than", window_k, "data points):", conditionMessage(w), "\n")
-  rep(NA_real_, nrow(df_for_rest_vo2))
-}, error = function(e) {
-  cat("Error occurred in rollmean:", conditionMessage(e), "\n")
-  rep(NA_real_, nrow(df_for_rest_vo2))
-})
-
-# Find the indices in the original DataFrame that correspond to the time window
-time_indices_in_range <- which(df_for_rest_vo2$t_s >= search_start_time & df_for_rest_vo2$t_s <= search_end_time)
-
-# Ensure that rolling_vo2_avg_full has the same length as df_for_rest_vo2
-if(length(rolling_vo2_avg_full) == nrow(df_for_rest_vo2)) {
+# Calculate the lowest average VO2 over a specified time window (e.g., 120s)
+calculate_vo2_rest <- function(df, window_duration = 120, start_time = 0, end_time = NULL) {
+  # Prepare data
+  df_for_rest_vo2 <- df %>% 
+    select(t_s, VO2_t) %>% 
+    filter(!is.na(VO2_t) & !is.na(t_s)) %>%
+    arrange(t_s)  # Ensure data is sorted by time
   
-  # Select the rolling averages that are within the time window
-  rolling_vo2_avg_in_range <- rolling_vo2_avg_full[time_indices_in_range]
-  
-  # Check if valid averages were found in the time range
-  if (length(rolling_vo2_avg_in_range) > 0 && any(!is.na(rolling_vo2_avg_in_range))) {
-    
-    # Find the lowest average value only in the specified time range
-    min_rolling_vo2_l_min <- min(rolling_vo2_avg_in_range, na.rm = TRUE)
-    
-    # Create and display text message
-    message_vo2_rest <- sprintf("VO2_rest (lowest 120s average between %.0fs and %.0fs) is %.3f l/min", 
-                                search_start_time, search_end_time, min_rolling_vo2_l_min)
-    cat(message_vo2_rest, "\n")
-    
-  } else {
-    cat(sprintf("No valid 120s average values found in the time range %.0fs to %.0fs.\n",
-                search_start_time, search_end_time))
+  # If end_time is not specified, use the maximum time in the dataset
+  if (is.null(end_time)) {
+    end_time <- max(df_for_rest_vo2$t_s, na.rm = TRUE)
   }
-} else {
-  cat("Error: Length of rolling average does not match data length.\n")
+  
+  # Filter data within the time range
+  df_in_range <- df_for_rest_vo2 %>%
+    filter(t_s >= start_time & t_s <= end_time)
+  
+  if (nrow(df_in_range) == 0) {
+    cat("No data found in the specified time range.\n")
+    return(NULL)
+  }
+  
+  # Get all unique time points as potential window starts
+  unique_times <- unique(df_in_range$t_s)
+  window_means <- numeric(length(unique_times))
+  window_data_counts <- numeric(length(unique_times))
+  
+  # For each potential starting time point, calculate the mean VO2 over the window_duration
+  for (i in 1:length(unique_times)) {
+    window_start <- unique_times[i]
+    window_end <- window_start + window_duration
+    
+    # Get data points within this window
+    window_data <- df_for_rest_vo2 %>% 
+      filter(t_s >= window_start & t_s < window_end)
+    
+    if (nrow(window_data) > 0) {
+      window_means[i] <- mean(window_data$VO2_t, na.rm = TRUE)
+      window_data_counts[i] <- nrow(window_data)
+    } else {
+      window_means[i] <- NA
+      window_data_counts[i] <- 0
+    }
+  }
+  
+  # Remove windows with too few data points (optional)
+  min_data_points <- 3  # Minimum required data points for a valid window
+  valid_indices <- which(!is.na(window_means) & window_data_counts >= min_data_points)
+  
+  if (length(valid_indices) == 0) {
+    cat(sprintf("No valid %ds average values found with sufficient data points in the time range %.0fs to %.0fs.\n",
+                window_duration, start_time, end_time))
+    return(NULL)
+  }
+  
+  # Find the window with the lowest average VO2
+  min_idx <- which.min(window_means[valid_indices])
+  min_window_index <- valid_indices[min_idx]
+  min_window_start <- unique_times[min_window_index]
+  min_window_end <- min_window_start + window_duration
+  min_vo2_value <- window_means[min_window_index]
+  data_points_count <- window_data_counts[min_window_index]
+  
+  # Convert to L/min
+  min_vo2_l_min <- min_vo2_value / 1000
+  
+  # Create and display text message
+  message_vo2_rest <- sprintf("VO2_rest (lowest %ds average between %.0fs and %.0fs) is %.3f l/min", 
+                              window_duration, start_time, end_time, min_vo2_l_min)
+  cat(message_vo2_rest, "\n")
+  cat(sprintf("This window spans from %.1fs to %.1fs and includes %d data points.\n",
+              min_window_start, min_window_end, data_points_count))
+  
+  # Return result
+  return(list(
+    vo2_rest = min_vo2_l_min,
+    window_start = min_window_start,
+    window_end = min_window_end,
+    data_points = data_points_count
+  ))
 }
+
+calculate_vo2_rest(df, start_time = 0, end_time = 2000)
+
+################
 
 # Smooth curves with individual window sizes for each curve
 columns_to_smooth <- c("VO2_t", "VCO2_t", "HF", "RPM")

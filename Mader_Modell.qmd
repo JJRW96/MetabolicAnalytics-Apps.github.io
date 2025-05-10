@@ -23,7 +23,7 @@ editor:
     wrap: 72
     
 nocite: |
-  @Hintzy-Cloutier2003, @Dunst2025, @Dunst2024; @Mader2003; @Hauser2014; @Ji2021; @Nolte2022; @Mader1984; @Mader1986; @Mader1996; @Oezyener2001; @Jeukendrup2005; @Brooks2004; @Brooks2012; @Jeukendrup2019; @Stegemann1991; @Friedman1998; @Friedman1999
+  @Hintzy-Cloutier2003, @Dunst2025, @Dunst2024; @Mader2003; @Hauser2014; @Ji2021; @Nolte2022; @Mader1984; @Mader1986; @Mader1996; @Oezyener2001; @Jeukendrup2005; @Brooks2004; @Brooks2012; @Jeukendrup2019; @Stegemann1991; @Friedlander1998; @Friedlander1999
     
 ---
 
@@ -43,25 +43,465 @@ figure figcaption {
 }
 ```
 
-**Please note: This website is currently under construction.** I'm gradually adding more detailed explanations of the applications and developing additional models. The content will continue to expand over time.
+**Please note: This website is currently under construction.** I'm gradually adding more detailed explanations of the applications and developing additional models. Consequently, some features may not yet be fully implemented or might not always function as expected. Furthermore, please be aware that the models presented here (specifically in Tab 2) are currently primarily for illustrative purposes and may not be exclusively based on strictly scientifically validated physiological and metabolic factors at this stage.**The model underlying Tab 2 has also not yet been tested or validated using real-world data.** The content will continue to expand over time, and the scientific basis and functionality will be successively improved.
 
 With this **[File Converter App](/File_Converter.html)**, you can **convert and download .tcx files or .csv files** to use them in the "Exercise Simulation" tab of the "Mader Simulation App".
 Fit-files must first be converted to .csv format using **[GOTOES File Converter](https://gotoes.org/strava/Combine_GPX_TCX_FIT_Files.php)** before you can use the File Converter to transform them into a format compatible with the Mader App.
 
 
 <div style="position: relative; width: 100%; height: 800px;">
-  <iframe src="Mader_App_5.1.html" style="position: absolute; width: 100%; height: 100%; border: none;"></iframe>
+  <iframe src="Mader_App_9.0.html" style="position: absolute; width: 100%; height: 100%; border: none;"></iframe>
 </div>
 
 <br>
 
-[Link: Mader App](/Mader_App_5.1.html)
+[Fullscreen-Link: Mader App](/Mader_App_9.0.html)
 
 <a href="Example_Race_Data.csv" download class="btn btn-primary">
   <i class="bi bi-download"></i> Download Example_Race_Data.csv
 </a>
 
+# Mader's Metabolic Simulation App: A Feature Guide
 
+The Mader's Metabolic Simulation App is an interactive, web-based tool designed to model, simulate, and visualize multifaceted aspects of human exercise metabolism. The application's core framework is rooted in the established metabolic principles and sophisticated mathematical models developed by Dr. Alois Mader and his collaborators (e.g., @Mader1984; @Mader1986; @Mader1996; @Mader2003). This tool can be used to explore complex physiological interactions in two primary modes:
 
+1.  **Steady-state metabolic responses** to a spectrum of power outputs. This mode allows for detailed examination of the intricate relationships between mechanical power, oxygen uptake ($\dot{V}O_2$), the kinetics of lactate production ($vLa_{SS}$) and lactate oxidation ($vLa_{ox}$), the resulting pyruvate deficit (PD), and the theoretical lactate accumulation. This is accessible via the "P-V̇O₂-La Dynamics" tab.
+2.  **Dynamic metabolic changes** as they unfold during exercise. This mode facilitates the simulation of physiological responses to predefined exercise protocols, such as incremental step tests, or to custom-loaded power data from actual training sessions or laboratory tests. This is found in the "Exercise Simulation" tab.
 
+## Main Application Tabs
 
+The application is structured into two primary tabs, each dedicated to a distinct yet complementary approach to metabolic modeling:
+
+1.  **P-V̇O₂-La Dynamics:** This tab is foundational for understanding the metabolic system under conditions of equilibrium. It models physiological responses assuming that, at each discrete power output level, the body has achieved a stable metabolic state. This mode can be used for dissecting fundamental physiological relationships, identifying critical metabolic thresholds (like MLSS and Fat<sub>max</sub>), and understanding how individual physiological parameters shape an athlete's steady-state performance capacity.
+2.  **Exercise Simulation:** This tab transitions from steady-state assumptions to the simulation of dynamic, time-dependent metabolic responses. It allows users to model how physiological variables change during continuous or intermittent exercise protocols, where steady states may not be achieved or are constantly being perturbed. This is particularly useful for analyzing the demands of specific training sessions, predicting metabolic responses to race scenarios, understanding the impact of $\dot{V}O_2$ kinetics, and exploring the interplay of energy systems over time.
+
+## Tab 1: P-V̇O₂-La Dynamics (Steady-State Model)
+
+This section of the application is dedicated to exploring the metabolic responses of the human body under the assumption that a physiological steady state has been reached for each given power output. The calculations are primarily based on Prof. Mader's comprehensive metabolic model, which intricately links aerobic energy production with anaerobic glycolysis and lactate metabolism.
+
+### Control Panel: P-V̇O₂-La Dynamics
+
+Located in the sidebar, this panel contains several control groups that allow the user to precisely adjust the model parameters for the steady-state analysis. Each parameter influences the shape and characteristics of the P-$\dot{V}O_2$-La curves.
+
+#### **Oxygen Demand Settings**
+
+This section defines the fundamental relationship between mechanical power output (P, typically in Watts) and the corresponding steady-state oxygen uptake ($\dot{V}O_{2,SS}$, typically in ml·min⁻¹). This P-$\dot{V}O_2$ relationship is a cornerstone of exercise physiology, as its slope and intercept reflect the overall efficiency of converting metabolic energy into external mechanical work.
+
+*   **Curvilinear CE relationship (Checkbox):** This toggle allows the user to select between two distinct mathematical models for describing the P-$\dot{V}O_2$ relationship:
+    *   **Linear Model (Unchecked - Default):** This model assumes a constant oxygen cost per unit of work performed above the baseline oxygen uptake ($\dot{V}O_{2,Base}$). The relationship is mathematically defined as:
+        $$ \dot{V}O_{2,SS} = CE \cdot P + \dot{V}O_{2,Base} $$
+        In this equation, $CE$ (Cost of Exercise) represents the slope of the line ($\Delta\dot{V}O_2 / \Delta P$), indicating the volume of oxygen (in ml/min) required for each additional Watt of power output. $\dot{V}O_{2,Base}$ is the y-intercept, representing the oxygen uptake during rest + oxygen uptake of unloaded cycling (i.e., the metabolic cost associated with moving the limbs against minimal internal resistance without performing significant external work on the ergometer).
+    *   **Curvilinear Model (Checked):** This model implements a quadratic (second-order polynomial) relationship. It acknowledges the widely observed physiological phenomenon that mechanical efficiency often decreases at higher exercise intensities, particularly above the lactate threshold or critical power. This leads to a disproportionally greater increase in $\dot{V}O_2$ for a given increment in power output. This upward deviation from linearity is related to the "$\dot{V}O_2$ slow component" observed during prolonged constant-load exercise [@Zoladz1995; @Barstow1994; @Hintzy-Cloutier2003], but here it's applied to describe the steady-state $\dot{V}O_2$ across different intensities. The formula used is:
+        $$ \dot{V}O_{2,SS} = a \cdot P^2 + CE_{Start} \cdot P + \dot{V}O_{2,Base} $$
+        $CE_{Start}$ represents the initial slope (and thus initial efficiency) at very low power outputs. The coefficient $a$ determines the degree of curvature of the P-$\dot{V}O_2$ relationship. Within the app, this coefficient $a$ is automatically calculated. This calculation is designed such that the slope of this curvilinear P-$\dot{V}O_2$ relationship, specifically at the power output where $\dot{V}O_{2,SS}$ would theoretically intersect $\dot{V}O_{2,max}$, matches the user-defined $CE_{Target}$ value. This sophisticated approach allows for a more nuanced representation of how efficiency changes across the intensity spectrum.
+
+*   **CE (ml·min⁻¹·W⁻¹):**
+    *   This slider sets the constant Cost of Exercise ($CE$). While the app's slider offers a broad range (8 to 15 ml·min⁻¹·W⁻¹), typical physiological values for well-trained cyclists often fall within a narrower band, generally between 10.0 and 12.0 ml·min⁻¹·W⁻¹ [@Astrand2003; @Rassouli2015]. Values outside this range can certainly occur, depending on factors like training status (untrained individuals may have higher CEs), muscle fiber type composition, pedaling technique, and even equipment (e.g., aerodynamic drag at higher speeds, though this model primarily focuses on ergometer cycling). Lower CE values inherently indicate higher gross mechanical efficiency for the external work performed.
+    *   **Delta Efficiency (Δη):** This derived metric quantifies the efficiency of converting metabolic energy into additional mechanical work, specifically the efficiency of the work performed *above* the $\dot{V}O_{2,Base}$ level. It is calculated from the $CE$ value and the caloric equivalent of oxygen (energy yield per liter of O₂ consumed). A critical point is that the caloric equivalent of oxygen is not constant; it varies depending on the substrate mixture being oxidized, which is reflected by the Respiratory Quotient (RQ). RQ values typically range from approximately 0.70 (pure fat oxidation) to 1.00 (pure carbohydrate oxidation), corresponding to caloric equivalents from approximately 19.6 kJ·L O₂⁻¹ to 21.1 kJ·L O₂⁻¹ [@Stegemann1991]. Because the app dynamically calculates a predicted RQ based on the modeled substrate utilization, Δη is presented as a range (e.g., 24.7-26.5%) to account for this RQ variability across intensities. Conceptually, Δη can be thought of as:
+        $$ \Delta\eta = \frac{\text{Change in Work Rate}}{\text{Change in Energy Expenditure Rate above } \dot{V}O_{2,Base}} $$
+        A more direct calculation based on CE is:
+        $$ \Delta\eta = \frac{1}{\left( \frac{CE \cdot \text{Caloric Equivalent per L O}_2}{60} \right)} $$
+        where CE is in ml O₂·min⁻¹·W⁻¹, Caloric Equivalent per L O₂ is in kJ·L O₂⁻¹, and the division by 60 converts the denominator (which represents oxygen cost in kJ per kJ of work) from a per Watt basis to a per kJ/min basis to match the numerator (implicitly 1 kJ/min of work for 1 kJ/min of energy expenditure if efficiency were 100%). Note: 1 W = 1 J·s⁻¹ = 0.06 kJ·min⁻¹.
+
+    *   **η<sub>gross</sub> (Fat<sub>max</sub> | MLSS):** Gross efficiency (η<sub>gross</sub>) is a fundamental measure of whole-body mechanical efficiency. It is calculated as the ratio of the mechanical work performed (Power output, converted from Watts to kJ/min) to the total aerobic energy expenditure (also in kJ/min, derived from $\dot{V}O_{2,SS}$ and its caloric equivalent):
+        $$ \eta_{\text{gross}} = \frac{\text{Power output [kJ/min]}}{\text{Total Aerobic Energy Expenditure [kJ/min]}} \times 100\% $$
+        The Mader App calculates and displays η<sub>gross</sub> at two physiologically significant power outputs:
+        1.  **Fat<sub>max</sub>:** The power output at which the rate of fat oxidation is maximal. This intensity is often targeted in training for enhancing fat metabolism.
+        2.  **MLSS (Maximal Lactate Steady State):** The highest power output that can theoretically be sustained for a prolonged period (e.g., 30-60 minutes) without a continual rise in blood lactate concentration. This is a critical marker of endurance performance.
+        The app uses its internal model to predict the RQ at these specific intensities (Fat<sub>max</sub> and MLSS) to determine the most accurate caloric equivalent for oxygen for these η<sub>gross</sub> calculations. Typical gross efficiencies observed in cycling are in the range of 19-22% [@Coyle1991; @Faria2005].
+
+    *   **η<sub>net</sub> (Fat<sub>max</sub> | MLSS):** Net efficiency (η<sub>net</sub>) is conceptually similar to gross efficiency but aims to isolate the efficiency of the muscular work itself by subtracting the energy expenditure at rest ($\dot{V}O_{2,Base}$). The formula is:
+        $$ \eta_{\text{net}} = \frac{\text{Power output [kJ/min]}}{(\text{Total Aerobic Energy Expenditure [kJ/min]}) - (\text{Energy Expenditure at } \dot{V}O_{2,Base} \text{ [kJ/min]})} \times 100\% $$
+        Net efficiency values are typically higher than gross efficiency values because the "baseline" metabolic cost is excluded from the denominator. In cycling, η<sub>net</sub> values often range from 19-24%, although precise values depend heavily on how the baseline energy expenditure is defined and measured [@DiPrampero1979b; @Stainbsy1980]. The app calculates η<sub>net</sub> at both Fat<sub>max</sub> and MLSS, again using predicted RQs for caloric equivalents.
+
+*   **CE<sub>Start</sub> (ml·min⁻¹·W⁻¹):** (Visible and active only when the Curvilinear model is selected)
+    *   This slider sets the initial slope of the $\dot{V}O_2$-P curve, representing the oxygen cost (and thus efficiency) at very low power outputs, near the $\dot{V}O_{2,Base}$.
+*   **CE<sub>Target</sub> (ml·min⁻¹·W⁻¹):** (Visible and active only when the Curvilinear model is selected)
+    *   This slider sets the target slope of the $\dot{V}O_2$-P curve specifically at the power output corresponding to $\dot{V}O_{2,max}$. This parameter is crucial for defining the extent of the "tail-up" or steepening of the curvilinear P-$\dot{V}O_2$ relationship at high exercise intensities.
+
+#### **Cadence Dependency**
+
+This section introduces an feature allowing users to incorporate the effects of pedaling rate on metabolic parameters. The underlying model for these adjustments is primarily based on the research and formulas published by @Dunst2025. The general physiological principle is that there's an optimal cadence range where mechanical and metabolic efficiency are maximized. Deviating from this optimal range, either by pedaling too slowly or too quickly, typically increases the oxygen cost for a given power output due to factors such as increased internal work (cost of limb movement), less favorable muscle force-velocity characteristics, or altered muscle recruitment patterns [@Foss2005; @Chavarren1999].
+
+*   **Enable U-Shaped Cadence Dependency (Checkbox):**
+    *   When this box is checked, the app dynamically adjusts key metabolic parameters ($CE$, $\dot{V}O_{2,Base}$, and optionally $\dot{V}O_{2,max}$ and $vLa_{max}$) based on the cadence value selected by the user.
+*   **Cadence (rpm) (Slider):**
+    *   Allows the user to set the cycling cadence in revolutions per minute (rpm). The default value is 80 rpm, but the slider typically covers a wide physiological range (e.g., 20-200 rpm). While preferred cadences in trained cyclists often hover around 80-100 rpm during submaximal, steady-state cycling [@Lucia2001a], optimal cadences can vary with intensity and individual characteristics.
+*   **CE-Dependency (Informational - automatically applied if cadence dependency is enabled):**
+    *   Indicates that the Cost of Exercise ($CE$) is no longer a fixed input (if the linear model was active) but becomes a dynamic function of the selected cadence. The app uses the quadratic formula derived by @Dunst2025:
+        $CE(rpm) = 0.0004 \cdot rpm^2 - 0.094 \cdot rpm + 16.857$.
+        This U-shaped function implies a minimum CE (highest efficiency) at a certain cadence, with CE increasing at lower and higher cadences.
+*   **$\dot{V}O_{2,Base}$ Dependency (Informational - automatically applied if cadence dependency is enabled):**
+    *   Similarly, the baseline oxygen uptake ($\dot{V}O_{2,Base}$) also becomes cadence-dependent, reflecting the metabolic cost of $\dot{V}O_{2}$ at Rest + additional $\dot{V}O_{2}$ for unloaded pedaling at different speeds. The formula from @Dunst2025 is:
+        $\dot{V}O_{2,Base}(rpm) = 0.172 \cdot rpm^2 - 14.460 \cdot rpm + 548.039$.
+        This also typically describes a U-shaped relationship.
+*   **Include $\dot{V}O_{2,max}$ Dependency (Checkbox):**
+    *   If this option is checked, the individual's $\dot{V}O_{2,max}$ is also modeled as being influenced by cadence. This is presented as an experimental feature, qualitatively based on figures in @Dunst2025 which suggest that $\dot{V}O_{2,max}$ might be slightly lower at very low or very high cadences, with an optimal range typically around 80-90 rpm. The physiological basis could relate to optimal muscle recruitment and force-velocity characteristics for achieving maximal aerobic power.
+*   **Include vLa<sub>max</sub> Dependency (Checkbox):**
+    *   If this option is checked, the maximal rate of lactate production (vLa<sub>max</sub>) is adjusted based on the selected cadence, using the formula proposed by @Dunst2025:
+        $vLa_{max}(rpm) = -0.0002 \cdot rpm^2 + 0.00931 \cdot rpm$.
+        It is important to note, as highlighted in the app's tooltip and by @Dunst2025, that this observed cadence-dependency of vLa<sub>max</sub> (often showing higher vLa<sub>max</sub> at higher cadences) might be partly or wholly an artifact of common sprint testing methodologies (e.g., isokinetic sprints where higher cadences might facilitate greater recruitment of fast-twitch fibers or alter torque production) rather than a true change in the intrinsic maximal glycolytic capacity of the muscle.
+
+#### **Physiological Input-Parameters**
+
+These sliders allow the user to define the core physiological characteristics of the simulated individual. These parameters are fundamental to Mader's metabolic model and significantly influence all calculated outputs.
+
+*   **$\dot{V}O_{2,max}$ (ml·min⁻¹):**
+    *   Maximal oxygen uptake. This is a cornerstone of aerobic fitness assessment, representing the highest rate at which an individual can take up, transport, and utilize oxygen during maximal, dynamic exercise [@Astrand2003; @Levine2008]. It sets the upper limit for aerobic ATP resynthesis.
+*   **$\dot{V}O_{2,max}$ (ml·min⁻¹·kg⁻¹):**
+    *   Maximal oxygen uptake expressed relative to body mass (in kilograms). This normalized value allows for comparisons of aerobic fitness between individuals of different body sizes. This slider is dynamically linked to the absolute $\dot{V}O_{2,max}$ slider and the Body Mass slider; changing any one of these three will automatically update the others to maintain consistency.
+*   **$\dot{V}O_{2,Base}$ (ml·min⁻¹):**
+    *   Oxygen uptake at Rest as well as oxygen uptake for unloaded cycling (i.e., cycling at zero external power output on the ergometer, but still involving the metabolic cost of limb movement, postural support, and elevated cardiorespiratory activity compared to true rest). This value is critical as it forms the y-intercept of the P-$\dot{V}O_2$ relationship. It can be estimated using the "$\dot{V}O_{2,Base}$ Calculation" utility (see below) which estimates true resting $\dot{V}O_2$, or it can be set manually based on typical values or direct measurements from unloaded cycling. 
+*   **vLa<sub>max</sub> (mmol·l⁻¹·s⁻¹):**
+    *   Maximal rate of lactate production. This parameter reflects the peak enzymatic capacity of the anaerobic glycolytic pathway to produce lactate (and ATP) per unit of time and per liter of blood/distribution volume [@Mader1984; @Mader1996]. It is a crucial determinant of an individual's anaerobic capacity and significantly influences lactate accumulation kinetics and substrate utilization patterns. Typical values can range widely, from approximately 0.3 mmol·l⁻¹·s⁻¹ in highly trained endurance athletes to over 1.0 mmol·l⁻¹·s⁻¹ in elite sprint athletes.
+*   **HR<sub>max</sub> (bpm):**
+    *   Maximal heart rate achievable by the individual during exhaustive exercise. Commonly estimated by formulas like "220 - age", but this has large individual variability. Direct measurement is preferred for accuracy.
+*   **HR<sub>Base</sub> (bpm):**
+    *   Baseline heart rate at rest.
+*   **CE<sub>HR</sub> (bpm·W⁻¹):**
+    *   Heart Rate Efficiency, also commonly referred to as the HR-Power slope. It describes the increment in heart rate (in beats per minute) for each Watt increase in external power output during steady-state incremental exercise. Typical values in cyclists range from 0.25 to 0.45 bpm·W⁻¹. Lower values are generally indicative of better cardiovascular efficiency, often reflecting a larger stroke volume response to increasing exercise intensity.
+*   **Weight-based values (Checkbox):**
+    *   If checked, the x-axis of the main P-$\dot{V}O_2$-La plot and several displayed output values (e.g., power, $\dot{V}O_2$) will be normalized to the individual's body mass. This is useful for comparing individuals of different sizes, as many physiological parameters scale with body mass. Power would be displayed in W·kg⁻¹ and $\dot{V}O_2$ in ml·min⁻¹·kg⁻¹.
+
+#### **$\dot{V}O_{2,Base}$ Calculation**
+
+This utility provides a method to estimate an individual's true basal metabolic rate (BMR) using the widely recognized Harris-Benedict equation [@Harris1918]. This BMR is then converted into an equivalent resting oxygen uptake. While this calculated resting $\dot{V}O_2$ is not always directly the $\dot{V}O_{2,Base}$ used in this model, it can serve as a physiologically grounded reference point for setting or evaluating the $\dot{V}O_{2,Base}$ parameter without the additional oxygen cost of unloaded cycling.
+
+*   **Gender (Radio buttons: Male/Female):** Selects the appropriate gender-specific version of the Harris-Benedict formula, as metabolic rates differ between sexes.
+*   **Body Mass (kg) (Slider):** Input for the Harris-Benedict formula. Also used for weight-based normalizations throughout the app if the "Weight-based values" checkbox is active.
+*   **Age (years) (Slider):** Input for the Harris-Benedict formula, as BMR typically declines with age.
+*   **Height (cm) (Slider):** Input for the Harris-Benedict formula.
+*   **Calculate $\dot{V}O_{2,Base}$ Button:**
+    *   When clicked, the app calculates BMR in kilocalories per day (kcal/day) using the selected inputs and the Harris-Benedict equations:
+        *   Men: BMR = 66.5 + (13.75 × weight in kg) + (5.003 × height in cm) – (6.775 × age in years)
+        *   Women: BMR = 655.1 + (9.563 × weight in kg) + (1.850 × height in cm) – (4.676 × age in years)
+    *   This BMR (kcal/day) is then converted to a resting $\dot{V}O_2$ value (in ml/min) using standard caloric equivalents for oxygen (approximately 4.825 kcal per liter of O₂ consumed at a typical resting RQ of 0.82-0.85, or a more generic ~5 kcal/L O₂).
+    *   The $\dot{V}O_{2,Base}$ slider in the "Physiological Input-Parameters" section is automatically updated with this calculated resting $\dot{V}O_2$ value.
+    *   **Important Distinction:** It's crucial to remember that the $\dot{V}O_{2,Base}$ parameter in Mader's model represents oxygen uptake during *unloaded cycling*. This value is inherently higher than the true basal resting $\dot{V}O_2$ (as estimated by Harris-Benedict) because it includes the metabolic cost of limb movement, maintaining posture on the bike, and slightly elevated cardiorespiratory activity. The Harris-Benedict calculation here provides a physiological baseline for resting energy expenditure.
+
+#### **Substrate Utilization**
+
+This section enables the modeling and visualization of how the body utilizes carbohydrates (CHO) and fats for aerobic energy production across different exercise intensities. The model's approach is rooted in the lactate balance concept from Mader's framework [@Mader2003], where the interplay between lactate production and oxidation serves as an indicator of the relative reliance on CHO versus fat metabolism.
+
+*   **Show Substrate Utilization (Checkbox):**
+    *   If this box is checked:
+        1.  A dedicated **Substrate Utilization Plot** appears below the main P-V̇O₂-La plot. This plot displays the *percentage* contribution of CHO and Fat to total aerobic energy expenditure across the range of power outputs.
+        2.  Traces representing the *absolute* rates of CHO and Fat oxidation (in the units selected via the "Energy Unit" dropdown) are added to the main P-V̇O₂-La plot. These are typically plotted on a third y-axis (yaxis3) to accommodate their different scale compared to $\dot{V}O_2$ or lactate rates.
+*   **Energy Unit (Dropdown menu):** (Visible only if "Show Substrate Utilization" is checked)
+    *   Allows the user to select the preferred units for displaying the absolute substrate oxidation rates. Options are:
+        *   `g/h` (grams per hour): Useful for nutritional planning and understanding fuel mass turnover.
+        *   `kcal/h` (kilocalories per hour): A common unit for energy expenditure.
+        *   `kJ/h` (kilojoules per hour): The SI unit for energy expenditure.
+*   **Adjust CHO utilization at rest (Checkbox):** (Visible only if "Show Substrate Utilization" is checked)
+    *   If checked, this feature allows the user to manually influence the modeled CHO utilization percentage specifically at rest (0 Watts power output). The Mader model, by default, calculates CHO utilization based purely on its internal lactate kinetics ($vLa_{SS}/vLa_{ox}$ ratio). However, empirical studies often show that at true rest, particularly in a post-absorptive state, fat oxidation predominates, and CHO contribution might be around 35-40% [@Brooks2012; @Friedlander1998; @Friedlander1999]. This option allows users to align the model's resting substrate use more closely with such empirical observations or specific dietary conditions if desired.
+*   **Resting CHO percentage (%) (Slider):** (Visible only if "Adjust CHO utilization at rest" is checked)
+    *   A slider (0-100%) to set the target CHO utilization percentage at rest (0 Watts). The application will then adjust the entire CHO utilization curve proportionally to pass through (or near) this user-defined resting value, while still adhering to the model's logic at higher intensities (e.g., approaching 100% CHO at MLSS).
+
+**Model Basis for Substrate Utilization:**
+The Mader model posits a strong link between lactate metabolism and substrate choice. The fundamental idea is that increased glycolytic flux (leading to lactate production, $vLa_{SS}$) signifies a shift towards carbohydrate utilization. Conversely, conditions favoring lactate clearance and oxidation ($vLa_{ox}$) are associated with a greater capacity for, and reliance on, fat oxidation.
+The model calculates the percentage CHO contribution based on the ratio of $vLa_{SS}$ to $vLa_{ox}$. As exercise intensity increases and $vLa_{SS}$ rises (potentially exceeding $vLa_{ox}$), CHO% increases, approaching 100% at or above MLSS (where PD ≤ 0). Fat oxidation percentage is calculated as (100 - CHO%).
+The absolute rates of CHO and fat oxidation (in g/h, kcal/h, or kJ/h) are then derived from the total aerobic energy expenditure (calculated from $\dot{V}O_{2,SS}$ and its caloric equivalent) and these percentages. Standard energy yields (e.g., ~4.1 kcal/g for CHO, ~9.45 kcal/g for fat) are used for these conversions.
+Crucially, the predicted Respiratory Quotient (RQ = $\dot{V}CO_2 / \dot{V}O_2$) is calculated from this modeled substrate mix (RQ ≈ 0.70 for 100% fat, RQ ≈ 1.00 for 100% CHO). This dynamically predicted RQ is then used in conjunction with established tables (similar to those by @Stegemann1991) to determine the precise caloric equivalent of oxygen (e.g., kJ·l O₂⁻¹ or kcal·l O₂⁻¹) at each power output. This RQ-dependent caloric equivalent is then used for the accurate calculation of all efficiency metrics (Δη, η<sub>gross</sub>, η<sub>net</sub>). This creates a physiologically consistent loop where substrate use influences RQ, which influences caloric equivalent, which influences efficiency calculations. The intensity at which fat oxidation is maximal (Fat<sub>max</sub>) typically occurs where the Pyruvate Deficit is highest. For a detailed understanding of factors influencing fat oxidation, refer to reviews like @Achten2004.
+
+#### **Plot Settings**
+
+*   **Lock Y-Axis / Lock X-Axis (Checkboxes):**
+    *   When checked (default state), the respective axis range on the main P-V̇O₂-La plot remains fixed, regardless of changes to input parameters. This is highly beneficial for visual comparison, as it allows the user to clearly see how alterations in (for example) $\dot{V}O_{2,max}$ or $CE$ shift the curves relative to a constant scale.
+    *   If unchecked, the axis will auto-scale to optimally fit the currently plotted data. This can be useful for initial exploration if the parameter changes result in data that goes off the fixed scale, but makes direct comparison of curve shifts more difficult.
+
+### Main Plot: P-V̇O₂-La Dynamics
+
+This central graphical output is the primary visualization for the steady-state model, displaying the complex interrelationships between power output and key metabolic variables.
+
+*   **X-Axis:** Power output (P). Units are Watts (W) by default, or Watts per kilogram body mass (W·kg⁻¹) if the "Weight-based values" option is selected in the sidebar.
+*   **Primary Y-Axis (Left side of plot):** Oxygen Uptake ($\dot{V}O_2$). Units are milliliters per minute (ml·min⁻¹) or ml·min⁻¹·kg⁻¹ if weight-based.
+    *   **$\dot{V}O_{2,SS}$ (Solid Blue Line):** This trace represents the calculated steady-state oxygen uptake at each power output, up to the individual's defined $\dot{V}O_{2,max}$. The shape of this curve is determined by whether the linear or curvilinear CE model is selected, and by the specific CE parameters.
+    *   **$\dot{V}O_{2,SS,extrapolated}$ (Dashed Blue Line):** This line shows the theoretical $\dot{V}O_2$ demand if it were not physiologically constrained by the individual's $\dot{V}O_{2,max}$. It essentially continues the P-$\dot{V}O_2$ relationship defined by the CE model beyond the point where $\dot{V}O_{2,max}$ is reached.
+    *   **$\dot{V}O_{2,max}$ Line (Dotted Grey Horizontal Line):** A clear visual representation of the individual's maximal oxygen uptake, serving as the ceiling for the $\dot{V}O_{2,SS}$ curve.
+*   **Secondary Y-Axis (Right side of plot - typically labeled `yaxis2`):** This axis displays variables related to lactate kinetics. Rates are typically in mmol·l⁻¹·min⁻¹, and accumulation in mmol·l⁻¹.
+    *   **vLa<sub>SS</sub> (Dashed Red Line):** The steady-state rate of lactate production into the blood/distribution volume. In Mader's model, $vLa_{SS}$ is a function of the relative exercise intensity (related to the difference between $\dot{V}O_{2,max}$ and current $\dot{V}O_{2,SS}$), the individual's maximal glycolytic capacity (vLa<sub>max</sub>), and constants reflecting enzyme kinetics and substrate availability.
+    *   **vLa<sub>ox</sub> (Dashed Light Blue Line):** The steady-state rate of lactate oxidation or clearance from the blood/distribution volume. This is primarily dependent on the aerobic metabolic rate ($\dot{V}O_{2,SS}$), as lactate is oxidized in various tissues (muscle, heart, liver) or converted to glucose (gluconeogenesis), both processes requiring oxygen directly or indirectly.
+    *   **PD (Pyruvate Deficit) (Solid Purple Line):** Calculated as the difference: $vLa_{ox} - vLa_{SS}$.
+        *   A **positive PD** indicates that the capacity for lactate elimination ($vLa_{ox}$) exceeds the rate of lactate production ($vLa_{SS}$). This state is typically associated with lower to moderate exercise intensities and often correlates with a higher proportion of fat oxidation.
+        *   A **negative PD** indicates that lactate production ($vLa_{SS}$) exceeds the elimination capacity ($vLa_{ox}$), leading to a net accumulation of lactate if the exercise were sustained.
+        *   **FAT<sub>max</sub> (Vertical Dotted Grey Line Annotation):** This line is drawn at the power output where the Pyruvate Deficit (PD) reaches its maximum positive value. This intensity is often considered to approximate the point of maximal fat oxidation, as a large PD implies a metabolic environment conducive to fat metabolism (lower glycolytic flux relative to oxidative capacity).
+        *   **MLSS (Maximal Lactate Steady State) (Vertical Dotted Grey Line Annotation):** This line is drawn at the power output where PD is theoretically zero (i.e., $vLa_{SS} = vLa_{ox}$). This represents the highest exercise intensity at which lactate production and elimination are balanced, allowing for a stable (though elevated) blood lactate concentration during prolonged, constant-load exercise. MLSS is a critical determinant of endurance performance [@Heck2022].
+    *   **La<sub>Accumulation</sub> (Solid Dark Red Line):** This trace represents the *theoretical* steady-state blood lactate concentration that would result if exercise at that specific power output were maintained indefinitely. It is derived from the net balance of lactate production and elimination (i.e., the integral of -PD over time, assuming a starting lactate concentration). It's important to note that this is a *modeled steady-state prediction* and not a dynamic simulation of blood lactate changes over a fixed exercise duration.
+*   **Tertiary Y-Axis (Right side, typically further out - `yaxis3`, visible only if "Show Substrate Utilization" is checked):** This axis is dedicated to displaying the absolute rates of substrate utilization, in the units selected by the user (g/h, kcal/h, or kJ/h).
+    *   **CHO (Unit) (Dotted Pink Line):** Shows the absolute rate of carbohydrate oxidation at each power output.
+    *   **Fat (Unit) (Dotted Green Line):** Shows the absolute rate of fat oxidation at each power output.
+
+The plot is richly annotated, providing values for FAT<sub>max</sub> power, MLSS power, and the absolute $\dot{V}O_{2,max}$ value. Additionally, the specific mathematical formula currently being used to define the $\dot{V}O_2$-P relationship (linear or curvilinear, and reflecting any cadence-dependent adjustments to CE and $\dot{V}O_{2,Base}$) is displayed directly on the plot for clarity.
+
+### Substrate Utilization Plot
+
+This second plot appears below the main P-V̇O₂-La plot *only if* the "Show Substrate Utilization" option is enabled in the control panel. It provides a percentage-based view of fuel use.
+
+*   **X-Axis:** Power output (P), consistent with the main plot's x-axis (W or W·kg⁻¹).
+*   **Y-Axis:** Percentage of Total Aerobic Energy Expenditure (%), ranging from 0 to 100%.
+    *   **CHO-Utilization (%) (Dotted Pink Line):** Illustrates the relative contribution of carbohydrate oxidation to the total aerobic energy production at each power output. This typically increases with intensity.
+    *   **Fat-Utilization (%) (Dotted Dark Green Line):** Shows the relative contribution of fat oxidation. This typically decreases with increasing intensity, especially above Fat<sub>max</sub>.
+This plot effectively visualizes the "substrate crossover" concept, which describes the shift from predominantly fat utilization at lower intensities to predominantly carbohydrate utilization at higher intensities [@Brooks2004]. The intersection of these two curves (if it occurs) roughly indicates the intensity where CHO and fat contribute equally to aerobic energy supply.
+
+### Values Display Area
+
+Located directly below the plot(s), this dynamic text area provides a numerical summary of key metabolic parameters calculated at two physiologically significant anchor points: **FAT<sub>max</sub>** and **MLSS**. For each of these intensity points, the following information is typically displayed:
+
+*   **Power output** (in W or W·kg⁻¹, matching the plot setting).
+*   **Steady-state $\dot{V}O_{2,SS}$** (absolute in ml·min⁻¹ or relative in ml·min⁻¹·kg⁻¹) and also expressed as a percentage of the individual's $\dot{V}O_{2,max}$ (e.g., "MLSS at 75% $\dot{V}O_{2,max}$").
+*   **Rate of lactate production ($vLa_{SS}$** in mmol·l⁻¹·min⁻¹).
+*   **Rate of lactate oxidation ($vLa_{ox}$** in mmol·l⁻¹·min⁻¹).
+*   **Pyruvate Deficit (PD)** in mmol·l⁻¹·min⁻¹.
+*   **Theoretical Lactate Accumulation (La<sub>Accumulation</sub>)** in mmol·l⁻¹.
+*   **If substrate utilization is shown:**
+    *   Absolute carbohydrate oxidation rate (in the units selected by the user: g/h, kcal/h, or kJ/h) and its percentage contribution to total aerobic energy.
+    *   Absolute fat oxidation rate (in selected units) and its percentage contribution.
+    *   Predicted Respiratory Quotient (RQ) at that specific intensity.
+*   **Calculated gross efficiency (η<sub>gross</sub>)** in %.
+*   **Calculated net efficiency (η<sub>net</sub>)** in %.
+
+Additionally, if cadence dependency is active, this display area will also show the *effective* $CE$, $\dot{V}O_{2,Base}$, and, if their respective dependencies are enabled, the *effective* $\dot{V}O_{2,max}$ and $vLa_{max}$ values that correspond to the user-selected cadence. This provides full transparency on how cadence adjustments are impacting the core model parameters.
+
+## Tab 2: Exercise Simulation (Dynamic Model)
+
+This tab allows users to move beyond steady-state assumptions and simulate the dynamic, time-dependent metabolic responses of an individual to a defined exercise protocol. This is invaluable for understanding how various physiological systems adapt and interact during non-steady-state conditions, such as those encountered in interval training, races with variable pacing, or ramp tests.
+
+### Control Panel: Exercise Simulation
+
+#### **Step Test / Exercise Simulation Parameters**
+
+These controls are used to define the exercise protocol for the simulation, either by generating a standard step test or by loading power data from an external file.
+
+*   **Step Increment (Watts):** If generating an incremental step test, this parameter sets the magnitude of the power increase for each successive step (e.g., an increment of 20 Watts).
+*   **Step Duration (s):** For a generated step test, this defines the duration (in seconds) of each constant-power stage (e.g., 180 seconds for 3-minute stages).
+*   **Maximum Power (Watts):** This sets the highest power output that will be targeted in a *generated* incremental step test. The simulation will incrementally increase power up to this level, or until an abort criterion is met.
+*   **Power Adjustment (%):** A global scaling factor (ranging from 0% to 200%) that is applied to *all* power values in the current workout, regardless of whether the workout was generated by the app or loaded from an external file. This allows users to easily scale a given workout to simulate higher or lower absolute intensities, for instance, to match different fitness levels or to explore the effects of relative intensity changes.
+*   **Load Example Exercise Data Button:** Loads a pre-defined sample interval workout directly into the simulation. This sample dataset typically includes time, power, and often cadence values, providing a quick way to see the dynamic simulation in action.
+*   **Insert workout file / File Upload:**
+    *   This feature allows users to upload their own workout data from external files. Supported file formats include `.csv` (comma-separated values), `.txt` (often tab-separated, but other delimiters may be auto-detected), `.xlsx` (modern Excel format), and `.xls` (older Excel format).
+    *   The app expects the file to contain columns for time (or timestamp), power, and optionally, cadence. The data will be parsed and interpolated to a 1-second resolution for the simulation.
+    *   **File has headers (Checkbox):** This should be checked (it is by default) if the first row of the uploaded file contains descriptive column names (e.g., "Time", "Power_Watts", "Cadence_rpm"). If unchecked, the app will assume the data begins from the very first row and will attempt to use a default column order (typically Time, Power, then Cadence if present).
+    *   **Uploaded workout data gap processing (Radio buttons):** This option determines how the app handles missing data points or time gaps when it interpolates the uploaded data to a 1-second resolution:
+        *   **Maintain last values (Default):** If there is a gap in the recorded data (e.g., a recording device missed a few seconds), the power output (and cadence, if available) from the *last valid preceding data point* will be carried forward to fill the missing seconds. This method is often preferred for visualizing structured interval training where power is intended to be constant during an interval, and brief recording dropouts should not appear as zero power.
+        *   **Insert zero values:** If there is a gap, the power (and cadence) for the missing seconds will be set to zero. This method is more appropriate for analyzing training sessions that include distinct rest periods where the actual power output is indeed zero, and these rests should be accurately reflected in the simulation.
+*   **Smooth Power Curve (5-point window) Button:** When clicked, this applies a 5-point moving average filter to the currently loaded or generated power data. This can be useful for reducing noise or very rapid, short-lived fluctuations in recorded power data, providing a smoother and potentially more physiologically representative input for the metabolic simulation. Cadence data, if present, is typically smoothed with a slightly wider window (e.g., 10-point).
+*   **Display Window Settings:** These controls allow users to customize the visible range of the plot axes for the simulation plot *without* altering the underlying simulation data or the calculations themselves. This is purely a visualization tool to help focus on specific portions or aspects of the simulation.
+    *   **Adjust X-Axis range (Checkbox):** When checked, enables manual adjustment of the time (horizontal) axis.
+        *   **Start Time (s) / End Time (s) (Sliders):** These sliders allow the user to define the visible start and end times on the x-axis of the simulation plot. This is useful for zooming into specific phases of a long workout.
+    *   **Adjust Y-Axis ranges (Checkbox):** When checked, enables manual adjustment of the various y-axes on the simulation plot.
+        *   **Power Y-Axis Maximum (Slider):** Sets the maximum displayed value for the primary Y-axis (which typically shows Power, Cadence, MPA, Strain Score, and Glycogen).
+        *   **$\dot{V}O_2$ Y-Axis Maximum (Slider):** Sets the maximum displayed value for the tertiary Y-axis (which typically shows $\dot{V}O_2$ and O₂ Deficit related variables).
+        *   **Lactate Y-Axis Minimum / Maximum (Sliders):** Sets the minimum and maximum displayed values for the secondary Y-axis (which typically shows Lactate, W' Balance, PCr, pH, various rates, RQ, and HR).
+
+#### **Cadence Dependency**
+
+This section mirrors the functionality of Tab 1 but applies the cadence-dependent metabolic adjustments dynamically throughout the exercise simulation, based on the work of @Dunst2025.
+
+*   **Enable U-Shaped Cadence Dependency (Checkbox):** If checked, metabolic parameters such as $CE$ and $\dot{V}O_{2,Base}$ (and optionally $\dot{V}O_{2,max}$ and $vLa_{max}$) will be adjusted at each time step of the simulation based on the cadence at that specific moment.
+*   **Fixed Cadence (rpm) (Slider):** This value is used if "Use cadence from file" is unchecked, or if an uploaded file lacks cadence data, but cadence dependency is enabled. It sets a constant cadence that will be assumed for the entire simulation for the purpose of parameter adjustments.
+*   **Use cadence from file (if available) (Checkbox):**
+    *   If this box is checked, AND cadence data is present in an uploaded workout file, AND "Enable U-Shaped Cadence Dependency" is active, the simulation will use the time-varying cadence values directly from the file to modulate the metabolic parameters at each second.
+    *   If no cadence data is found in the file, or if this option is unchecked, the "Fixed Cadence" value will be used for cadence-dependent calculations if the main cadence dependency is enabled.
+*   The specific dependencies for **CE ($\text{CEV̇O}_2$) Dependency**, **$\dot{V}O_{2,Base}$ Dependency**, **Include $\dot{V}O_{2,max}$ Dependency**, and **Include vLa<sub>max</sub> Dependency** can be individually toggled on or off, functioning identically to their counterparts in Tab 1, but their effects are applied dynamically based on the instantaneous cadence during the simulation.
+
+#### **Physiological Parameters (Dynamic Simulation)**
+
+These parameters are crucial for governing the kinetic (time-dependent) responses of the various metabolic and physiological systems modeled in the simulation.
+
+*   **$\dot{V}O_2$ Start (ml·min⁻¹):**
+    *   This sets the initial oxygen uptake value ($\dot{V}O_2$) at the very beginning (time = 0 seconds) of the simulation. The slider for this parameter is dynamically constrained to be between the current effective $\dot{V}O_{2,Base}$ (which can vary if cadence dependency is active) and the current effective $\dot{V}O_{2,max}$. The default starting value is often set to approximate the $\dot{V}O_2$ that would be observed at the Fat<sub>max</sub> intensity (as determined in Tab 1). This assumes the exercise often starts from a low-intensity active baseline rather than complete, supine rest. This initial $\dot{V}O_2$ value significantly influences the calculation of the initial oxygen deficit.
+*   **$\dot{V}O_{2,on}$ time constant (τ<sub>on</sub>) (s):**
+    *   This parameter defines the characteristic speed of the exponential rise of $\dot{V}O_2$ towards its new, higher target (steady-state) value whenever exercise intensity increases or exercise begins from a lower baseline. A smaller τ<sub>on</sub> value indicates faster "on" kinetics, meaning $\dot{V}O_2$ reaches its target more quickly. Typical values for τ<sub>on</sub> in healthy individuals during moderate intensity exercise range from about 20 seconds in highly trained athletes to 40 seconds or more in less trained or older individuals [@Whipp1972; @Barstow1991]. The fundamental equation describing an exponential rise to a new steady state is often given as:
+        $$ \dot{V}O_2(t) = \dot{V}O_{2,initial} + (\dot{V}O_{2,target} - \dot{V}O_{2,initial}) \cdot (1 - e^{-(t - t_{delay})/\tau_{on}}) $$
+        Where $t_{delay}$ is the initial time delay (see below). The app implements this step-wise.
+    *   **Intensity-Dependent τ<sub>on</sub> (Checkbox):**
+        *   If this option is checked, τ<sub>on</sub> is not a single fixed value for all upward transitions. Instead, it is dynamically calculated for each second of the simulation based on the $\dot{V}O_2$ (expressed as a percentage of the current $\dot{V}O_{2,max}$) of the *immediately preceding* time step. The underlying base formula is $\tau_{on\_base} = 0.38 \cdot \text{PreviousIntensity%} + 6$ seconds. The slider value for τ<sub>on</sub> then acts as the specific τ<sub>on</sub> that would occur if the preceding intensity was exactly 50% of $\dot{V}O_{2,max}$. This means the slider effectively sets an offset to this formula, allowing the user to shift the entire linear τ<sub>on</sub>-intensity relationship. This feature aims to simulate the physiological observation that $\dot{V}O_2$ on-kinetics can be slower if an exercise bout is initiated from an already elevated metabolic rate (e.g., due to prior high-intensity work or insufficient recovery).
+*   **$\dot{V}O_{2,off}$ time constant (τ<sub>off</sub>) (s):**
+    *   This parameter defines the characteristic speed of the exponential fall of $\dot{V}O_2$ towards its new, lower target value when exercise intensity decreases or during recovery periods. Off-kinetics can be similar to, or often slightly slower than, on-kinetics, particularly following high-intensity or prolonged exercise, due to factors like elevated body temperature, hormone levels, and the metabolic cost of recovery processes [@Oezyener2001].
+    *   **Intensity-Dependent τ<sub>off</sub> (Checkbox):**
+        *   If checked, τ<sub>off</sub> is also dynamically calculated. Its value depends on the maximum $\dot{V}O_2$ (as % of current $\dot{V}O_{2,max}$) achieved within a recent lookback window (typically defined as twice the duration of the *previous* step's τ<sub>off</sub> value). The base formula used is $\tau_{off\_base} = 0.45 \cdot \text{Intensity%} + 10$ seconds. Similar to the dynamic τ<sub>on</sub>, the slider value for τ<sub>off</sub> sets the τ<sub>off</sub> for a reference 50% intensity, thereby shifting this relationship. This models the physiological reality that recovery of $\dot{V}O_2$ might be faster after lower intensity efforts and slower after higher intensity efforts which cause greater metabolic disturbance and a larger oxygen debt.
+*   **$\dot{V}O_2$ Response Delay (s):**
+    *   This represents a pure time delay (in seconds) before the exponential $\dot{V}O_2$ response (either "on" or "off" kinetics) actually begins following a change in power output. This delay accounts for physiological lags such as the circulatory transit time of blood from the lungs to the exercising muscles (for O₂ delivery) and from muscles to lungs (for CO₂ feedback influencing ventilation), as well as any initial inertia in muscular metabolic pathway activation [@Lamarra1987]. The default is 2 seconds, with a typical physiological range considered to be 0-10 seconds. This delay directly affects the timing of the actual $\dot{V}O_2$ change, the calculation of O₂ deficit/surplus, and subsequently the modeled rate of lactate oxidation ($vLa_{ox}$).
+*   **Lactate exercise termination value (mmol·l⁻¹):**
+    *   If the "Terminate simulation when lactate exceeds max value" checkbox (see below) is active, the simulation will automatically stop if the modeled blood lactate concentration reaches this specified threshold. Values around 20 mmol/l represent very high, often exhaustive, levels of lactate accumulation.
+*   **Terminate simulation when lactate exceeds max value (Checkbox):** Enables or disables the lactate-based abortion criterion for the simulation.
+*   **Resting Lactate-value (mmol·l⁻¹):**
+    *   The initial blood lactate concentration assumed at the start (time = 0s) of the simulation. Typical resting values in healthy individuals are around 0.5 to 1.5 mmol/l.
+*   **vLa<sub>SS,on</sub> Time Constant (τ<sub>vLaSS,on</sub>) (s):**
+    *   The time constant governing the exponential rise of the actual lactate production rate ($vLa_{SS}$) towards its new, higher target value when exercise intensity increases. This parameter reflects how quickly the glycolytic flux adapts upwards in response to increased energy demand.
+*   **vLa<sub>SS,off</sub> Time Constant (τ<sub>vLaSS,off</sub>) (s):**
+    *   The time constant governing the exponential fall of $vLa_{SS}$ towards its new, lower target value when exercise intensity decreases or during recovery periods. This reflects the downregulation of glycolysis.
+*   **vLa<sub>SS</sub> Response Delay (s):**
+    *   A pure time delay (in seconds) before the lactate production rate ($vLa_{SS}$) begins its exponential kinetic response (either upwards or downwards) to a change in exercise intensity. This simulates inherent biochemical delays in the activation or deactivation of the complex glycolytic pathway.
+*   **Cap vLass by $\dot{V}O_2$ Deficit (Checkbox):**
+    *   An optional, advanced physiological constraint. If this box is checked, the actual lactate production rate ($vLa_{SS}$) at any given time point during the simulation is capped. The cap is determined such that the *net* anaerobic energy supply (which is derived from the energy equivalent of lactate production *minus* the energy equivalent of concurrent lactate oxidation) does not exceed the current calculated oxygen deficit (which, in turn, is $\dot{V}O_2 \text{ Demand} - \dot{V}O_2 \text{ Actual}$). The purpose of this option is to enhance physiological plausibility by preventing an unrealistic "overshoot" of anaerobic energy production, especially during transitions where aerobic energy supply is still ramping up or is limited. When unchecked (default), $vLa_{SS}$ is determined purely by its own kinetic parameters without this specific energy balance cap.
+*   **Muscle pH (pH<sub>m</sub>) Simulation (Informational text & underlying mechanism):**
+    *   This feature simulates changes in intramuscular pH (pH<sub>m</sub>), a critical factor in muscle function and fatigue. The calculation of pH<sub>m</sub> is based on established physiological principles, drawing from the work of @Mader2003 and further elaborated in texts such as @Heck2022. The model considers several key intracellular factors that influence pH<sub>m</sub>:
+        1.  **Estimated inorganic phosphate concentration ([Pi]):** [Pi] increases as phosphocreatine ([PCr]) is broken down, and high [Pi] can contribute to acidosis. The model estimates [Pi] inversely based on the current [PCr].
+        2.  **Intramuscular lactate concentration ([La]<sub>m</sub>):** The accumulation of lactate is stoichiometrically linked with the production of H⁺ ions, thus directly impacting pH<sub>m</sub>. The model uses its dynamically calculated intramuscular lactate.
+        3.  **Estimated arterial partial pressure of CO₂ (pCO₂):** pCO₂ influences the carbonic acid-bicarbonate buffer system within the muscle. The model estimates pCO₂ as increasing with relative exercise intensity (i.e., %$\dot{V}O_{2,max}$), reflecting increased metabolic CO₂ production and ventilatory responses.
+    *   The critical aspect of this feature is the feedback loop: the pH<sub>m</sub> calculated from the *previous* time step is then used to modulate the *effective* maximal lactate production rate ($vLa_{max,eff}$) for the *current* time step. This modulation simulates the well-known inhibitory effect of falling (more acidic) pH on key glycolytic enzymes, particularly phosphofructokinase (PFK), which is a major rate-limiting step in glycolysis [@Danforth1965]. The relationship is typically sigmoidal, represented in the app as:$$vLa_{max,eff} = vLa_{max,base} \cdot \text{PFK Activity Factor}(pH_m)$$ Where `PFK_Activity_Factor(pHm)` is a term that decreases (from a maximum of ~1.0 down to near 0) as pH<sub>m</sub> drops significantly below physiological resting levels (e.g., below pH ~7.0 down towards pH 6.0).
+    *   This pH-modulated $vLa_{max,eff}$ then becomes the new input for determining the target $vLa_{SS}$ for the current time step. This creates a physiologically relevant negative feedback loop: high rates of lactate production can lead to a drop in pH<sub>m</sub>, which in turn can reduce further lactate production by inhibiting PFK, thus helping to limit excessive acidosis.
+
+#### **Glycogen Storage Parameters**
+
+This section of the control panel models the dynamics of muscle glycogen stores, a critical fuel source for prolonged and high-intensity exercise. The model simulates depletion due to carbohydrate oxidation and potential repletion from exogenous carbohydrate intake.
+
+*   **Auto-calculate glycogen values based on muscle mass (Checkbox):**
+    *   If this box is checked, the "Initial Glycogen Storage" and "Maximum Glycogen Storage" slider values are automatically populated. This calculation is based on the "Active Muscle Mass" value (derived from the PCr model settings) or, if that's not explicitly set, an estimation from total body mass. The calculation assumes typical physiological glycogen concentrations in muscle tissue, for instance, around 15 grams of glycogen per kilogram of active muscle for normal, fed states, and perhaps up to 20-25 g/kg for carbohydrate-loaded ("supercompensated") states.
+*   **Initial Glycogen Storage (g) (Slider):**
+    *   Sets the amount of glycogen (in grams) assumed to be available in the active muscle mass at the very beginning of the simulation. Typical values for well-nourished and trained athletes range from 350-500g, but can be higher with specific carbohydrate loading strategies [@Astrand2003; @Bergstrom1967a; @Murray2018].
+*   **Maximum Glycogen Storage (g) (Slider):**
+    *   Defines the physiological upper limit for glycogen storage within the active muscle mass. Even with carbohydrate intake during exercise, the glycogen stores will not replete beyond this set maximum.
+*   **Carbohydrate Intake Rate (g·h⁻¹):**
+    *   Sets the rate (in grams per hour) at which exogenous carbohydrates (e.g., from sports drinks or gels) are ingested and become available for either direct oxidation by the muscles or for glycogen synthesis (if stores are depleted and conditions allow). Typical maximal exogenous CHO oxidation rates are often cited in the range of 60-90 g/h for single-source carbohydrates like glucose or maltodextrin [@Jeukendrup2005; @Jeukendrup2019]. Combinations of multiple transportable carbohydrates (e.g., glucose and fructose) can increase this to 120g/h or even slightly more [@Jeukendrup2010].
+
+The model calculates glycogen depletion based on the instantaneous rate of carbohydrate oxidation. The CHO oxidation rate itself is derived dynamically at each time step from the balance of $vLa_{SS}$ and $vLa_{ox}$ (as in Tab 1), but applied kinetically over time. If the modeled glycogen stores reach zero, this can trigger a simulation abortion if that termination criterion is implicitly or explicitly active (e.g., inability to maintain power due to substrate depletion).
+
+#### **W' Balance Parameters**
+
+This section implements a model for W' (pronounced "W prime"), a concept central to understanding exercise tolerance above a certain metabolic threshold known as Critical Power (CP). W' represents a finite amount of work that can be performed when exercising at intensities greater than CP [@Monod1965; @Skiba2012; @Poole2016]. Depletion of W' is closely associated with the onset of severe fatigue and task failure.
+
+*   **Critical Power (CP) (W) (Slider):**
+    *   Defines the Critical Power, which is, in theory, the highest power output that can be sustained for a very long time without a progressive loss of homeostasis or depletion of W'. It represents a critical metabolic threshold demarcating sustainable from unsustainable exercise intensities.
+*   **W' (kJ) (Slider):**
+    *   Represents the total amount of work (expressed in kilojoules) that can be performed *above* CP before W' is considered fully depleted. It reflects a combination of anaerobic energy capacity and tolerance for the accumulation of fatigue-related metabolites. Typical W' values range from 10 to 30 kJ, depending on the individual's training status and physiological profile.
+*   **P<sub>max</sub> (W) (Slider):**
+    *   Represents the maximum instantaneous power an athlete can produce, typically observed during very short, all-out sprints (e.g., lasting a few seconds). This parameter is integral to the 3-parameter critical power model (which includes Pmax, CP, and W') and is specifically used in this app for calculating MPA (Maximum Power Available) and the Strain Score (SS). These metrics draw on concepts from researchers like @Hauser2014 and potentially more recent work like Kontro et al. (2025, though not in the provided citation list, the formulas in the HTML align with this type of model). P<sub>max</sub> is considered to represent the power capacity of the alactic (phosphagen/immediate) energy system.
+*   **Use MLSS from Tab 1 as CP (Checkbox):**
+    *   If checked (this is the default state), the CP value for the Tab 2 simulation is automatically set to be equal to the Maximal Lactate Steady State (MLSS) power output calculated in Tab 1. The CP slider below then becomes disabled, but will display this MLSS value. This option provides a physiologically grounded and individually determined estimate for CP, as MLSS and CP are often found to be closely related, though not always identical [@Poole2016].
+*   **W' Balance Minimum (kJ) (Slider):**
+    *   Allows the user to define a lower threshold for W' balance. This can be set to zero (meaning exhaustion occurs when W' is fully depleted) or even to a negative value, which some models propose might represent a "digging deeper" capacity, though this is less common. The default in the app is -10 kJ.
+*   **Abort simulation when W' Balance falls below slider minimum (Checkbox):**
+    *   If checked (default state), the simulation will automatically terminate if the calculated W'<sub>BAL</sub> (W' balance) drops below the value specified by the "W' Balance Minimum" slider.
+
+**W' Balance Model Dynamics:**
+The app models W' balance dynamics based on established principles ([@Skiba2012; @Morton2008] for general energy system concepts):
+
+*   **During exercise at power outputs (P) greater than CP (P > CP), W' depletes linearly with the work done above CP:**
+    $$ W'_{BAL}(t) = W'_{BAL}(previous\_t) - (P - CP) \cdot \Delta t $$
+    where $W'_{BAL}(t)$ is W' balance at current time $t$, $W'_{BAL}(previous\_t)$ is W' balance at the previous time step, and $\Delta t$ is the time interval (1 second in this app).
+*   **During exercise at power outputs (P) less than CP (P < CP), W' recovers exponentially:**
+    The rate and extent of W' recovery depend on the magnitude of the difference between CP and the recovery power ($D_{CP} = CP - P_{recovery}$) and the total W' capacity. A common formulation for W' recovery is:
+    $$ W'_{BAL}(t) = W'_0 - (W'_0 - W'_{BAL}(previous\_t)) \cdot e^{-(D_{CP}/W'_0) \cdot \Delta t} $$
+    where $W'_0$ is the initial (full) W' capacity.
+
+The **MPA & Strain Score (SS) model**, which is also displayed in the plot and summary, uses P<sub>max</sub> and the current W' balance to provide novel metrics of fatigue and available power. The formulas used in the app's HTML for MPA and SS are consistent with recent research by @Kontro2025.
+
+*   **MPA (Maximum Power Available):** The highest power output theoretically achievable at any given moment, considering the current W' depletion.
+    $$ MPA = P_{max} - (P_{max} - CP) \cdot (W'_{EXP}/W')^2 $$
+    where $W'_{EXP}$ is the amount of W' expended ($W'_0 - W'_{BAL}$). 
+*   **k<sub>strain</sub> (Strain Coefficient):** A factor that modulates the perceived or physiological strain based on the current power output relative to MPA and CP.
+    $$ k_{strain} = (P_{max} - MPA + CP)/(P_{max} - P + CP) $$
+*   **SR (Strain Rate):** The instantaneous rate at which strain is accumulating.
+    $$ SR = k_{strain} \cdot P $$
+*   **SS (Strain Score):** The cumulative strain experienced over the exercise bout.
+    $$ SS = \sum(SR \cdot \Delta t) \cdot (\text{NormalizationFactor}) $$
+    The Normalization Factor, which appears to be $(P_{max}/CP^2) \cdot (100/3600)$ in the app, scales the score. For instance, a common scaling aims for 1 hour of exercise at CP to yield an SS of 100.
+
+#### **PCr and O₂ Deficit Model**
+
+This section of the control panel enables the simulation of phosphocreatine (PCr) dynamics within the active muscle and the associated oxygen deficit that is incurred at the onset of exercise or during transitions to higher exercise intensities. PCr is a crucial high-energy phosphate compound that provides ATP rapidly at the start of muscle contraction before oxidative phosphorylation can fully activate.
+
+*   **Resting PCr (mmol·kg⁻¹ wet muscle weight) (Slider):**
+    *   Sets the initial concentration of PCr in the active muscle tissue at the beginning of the simulation. Typical physiological values in healthy, rested human skeletal muscle range from about 15 to 38 mmol·kg⁻¹ wet weight [@Harris1976; @Karlsson1971]. Training status and muscle fiber type can influence this.
+*   **P/O₂ (mol ATP · mol O₂⁻¹) (Slider):**
+    *   Represents the P/O₂ ratio, which is the stoichiometry of oxidative phosphorylation: the number of moles of ATP synthesized per mole of diatomic oxygen (O₂) reduced in the mitochondria. This value is not absolutely constant but depends on the substrate being oxidized (e.g., carbohydrates vs. fats) and the coupling efficiency of the electron transport chain. It is generally accepted to be around 2.3-2.5 (or 4.6-5.0 if O refers to O₂, not O atom) when considering NADH and FADH₂ contributions. The app's range (4.61 for pure fat to 5.0 for pure CHO) reflects O₂ (diatomic oxygen).
+*   **Active Muscle Mass (kg) (Slider):**
+    *   Sets the estimated mass (in kilograms) of the skeletal muscle actively involved in performing the cycling exercise. This is a critical parameter because PCr concentrations are typically expressed per kg of muscle mass, and the total PCr pool available is thus dependent on this value. The tooltip in the app provides research-based estimates for active muscle mass in cyclists (e.g., for male cyclists, ~27% of total body weight for seated cycling, potentially increasing to ~31.5% for standing cycling, drawing from MRI data like @Janssen2000 and general exercise physiology considerations).
+*   **O₂-Lactate Equiv. (β) (Informational Display Only):**
+    *   This is displayed as a constant value of approximately 3.0 ml O₂·kg⁻¹ body mass·mM⁻¹ blood lactate. This represents the "oxygen equivalent of lactate accumulation," signifying the amount of O₂ (in ml per kg of body mass) that would have been required aerobically to produce the energy equivalent to accumulating 1 mM of lactate in the blood. This concept, extensively detailed by @DiPrampero1981, is used in the model to help partition the overall O₂ deficit into components covered by PCr breakdown and by net lactate production.
+*   **Show $\dot{V}O_2$ Demand Curve (Checkbox):**
+    *   If checked, the simulation plot will include an additional trace representing the theoretical, instantaneous $\dot{V}O_2$ demand required to meet the energy cost of the current power output if metabolism could respond infinitely fast. The area between this demand curve and the actual (kinetically-limited) $\dot{V}O_2$ curve visually represents the accumulated oxygen deficit (when demand > uptake) or oxygen surplus (during recovery when uptake > demand).
+
+**PCr Model Dynamics:**
+The simulation models changes in the PCr store based on the dynamic balance between O₂ demand and actual O₂ uptake:
+
+*   **PCr Depletion:** When $\dot{V}O_2$ demand (calculated from the current power output using the steady-state P-$\dot{V}O_2$ relationship) exceeds the actual $\dot{V}O_2$ uptake (which is kinetically limited), an oxygen deficit occurs. A portion of the energy required to cover this deficit is supplied by the net breakdown of PCr to rapidly resynthesize ATP (PCr + ADP + H⁺ ↔ ATP + Cr). The amount of PCr consumed is proportional to this O₂ deficit portion that is not covered by immediate glycolysis, scaled by the P/O₂ ratio (which converts O₂ deficit to ATP equivalents).$$ \Delta PCr_{consumed} \propto (\text{O2\_deficit\_allocated\_to\_PCr}) \cdot (P/O_2 \text{ ratio}) $$
+*   **PCr Resynthesis:** When actual $\dot{V}O_2$ uptake exceeds the current $\dot{V}O_2$ demand (creating an O₂ surplus, e.g., during recovery periods or when exercise intensity decreases significantly), PCr is resynthesized from creatine and ATP produced by oxidative phosphorylation. This process itself consumes ATP (and thus oxygen) and is modeled as being proportional to the O₂ surplus available for PCr resynthesis, again scaled by the P/O₂ ratio. The app's code includes a `pcrResynthesisFactor` (set to 0.5), implying that only a portion of the O₂ surplus is directed towards PCr resynthesis, with the rest potentially contributing to other recovery processes.
+    $$ \Delta PCr_{resynthesized} \propto (\text{O2\_surplus} \cdot \text{pcrResynthesisFactor}) \cdot (P/O_2 \text{ ratio}) $$
+The **accumulated O₂ deficit** represents the total integrated difference between oxygen demand and oxygen uptake from the start of exercise. It reflects the cumulative reliance on anaerobic energy sources (PCr hydrolysis and anaerobic glycolysis leading to lactate production) to meet the energy demands not immediately covered by aerobic metabolism. The kinetics of PCr are often faster than those of $\dot{V}O_2$ [@McCann1995].
+
+#### **Model Parameters (for Tab 2 Simulation)**
+
+This section provides the user with flexibility in defining the core physiological parameters for the dynamic simulation. The user can either link these parameters directly to those defined in Tab 1 (P-V̇O₂-La Dynamics) or set them independently for the simulation.
+
+*   **Use model parameters from Tab 1 (Checkbox):**
+    *   **Checked (Default State):** When this box is checked, the fundamental physiological parameters for the Tab 2 simulation—including $CE$ (or $CE_{Start}$/$CE_{Target}$ if curvilinear), $\dot{V}O_{2,max}$, $\dot{V}O_{2,Base}$, $vLa_{max}$, Body Mass, and all HR-related parameters (HR<sub>max</sub>, HR<sub>Base</sub>, CE<sub>HR</sub>), as well as the curvilinear CE setting—are directly mirrored from their current values in Tab 1. The individual parameter sliders located below this checkbox in the "Individual Parameters" section will then become disabled (greyed out) but will visually reflect the values being imported from Tab 1. This is the recommended approach if the user wants to simulate the dynamic responses of an individual whose steady-state profile has already been established or explored in Tab 1. Any subsequent changes made to these parameters in Tab 1 will automatically propagate to these linked parameters in Tab 2, ensuring consistency.
+    *   **Unchecked:** If this box is unchecked, the linkage to Tab 1 is broken. The individual parameter sliders in the "Individual Parameters" section (detailed below) become active, allowing the user to define a completely independent set of physiological parameters specifically for the Tab 2 simulation. This is useful if one wants to explore hypothetical scenarios or simulate an individual with a different profile without altering the settings in Tab 1.
+*   **Individual Parameter Sliders (within the "Individual Parameters" collapsible section):** These sliders are active only if "Use model parameters from Tab 1" is unchecked. They allow for independent setting of:
+    *   **Curvilinear CE relationship (Checkbox):** Toggles between linear and curvilinear P-$\dot{V}O_2$ models for the simulation.
+    *   **CE (ml·min⁻¹·W⁻¹) (Slider):** For the linear CE model.
+    *   **CE<sub>Start</sub> / CE<sub>Target</sub> (ml·min⁻¹·W⁻¹) (Sliders):** For the curvilinear CE model.
+    *   **$\dot{V}O_{2,max}$ (ml·min⁻¹) (Slider)**
+    *   **$\dot{V}O_{2,Base}$ (ml·min⁻¹) (Slider)**
+    *   **vLa<sub>max</sub> (mmol·l⁻¹·s⁻¹) (Slider)**
+    *   **Body Mass (kg) (Slider)**
+    *   **HR<sub>max</sub> (bpm) (Slider)**
+    *   **HR<sub>Base</sub> (bpm) (Slider)**
+    *   **CE<sub>HR</sub> (bpm·W⁻¹) (Slider)**
+    These function identically to their counterparts in Tab 1 but only affect the Tab 2 simulation when the link to Tab 1 is disabled.
+
+### Exercise Simulation Plot (Tab 2)
+
+This is a dynamic, multi-trace plot that visualizes various simulated physiological and performance parameters over the time course of the defined exercise protocol. It allows for a comprehensive view of how different systems respond and interact.
+
+*   **X-Axis:** Time (in seconds). The range of this axis can be manually adjusted using the "Display Window Settings" in the sidebar to focus on specific periods of the simulation.
+*   **Primary Y-Axis (Left side of plot - typically denoted as `y`):** This axis displays parameters primarily related to power output, mechanical aspects of movement, and some physiological stores.
+    *   **Power (W) (Dark Grey Line):** The instantaneous power output of the simulated exercise protocol at each second.
+    *   **Cadence (rpm) (Light Grey Dashed Line):** Displayed if cadence data is available (either from a loaded file when "Use cadence from file" is active, or the fixed cadence value if cadence dependency is enabled without file data).
+    *   **MPA (W) (Dark Grey-Blue Dashed Line):** Maximum Power Available, a dynamic value calculated from the W' balance model and P<sub>max</sub>, representing the highest power output theoretically achievable at that moment.
+    *   **Strain Score (Unitless) (Pink Line):** The cumulative Strain Score, reflecting the integrated physiological strain based on the MPA model.
+    *   **Glycogen Stores (g) (Dark Pink Dotted Line):** The modeled content of glycogen in the active muscle mass, showing depletion during exercise and potential repletion if carbohydrate intake is simulated.
+*   **Secondary Y-Axis (Right side of plot - typically `y2`):** This axis is designed to display a variety of scaled parameters, often with different units, requiring careful interpretation of their respective scales. It commonly includes:
+    *   **W' Balance (kJ) (Green Line):** The current remaining W' balance.
+    *   **Lactate (Muscle) (mM) (Dark Red Line):** Modeled intramuscular lactate concentration.
+    *   **Lactate (Blood) (mM) (Dark Red Dotted Line):** Modeled blood lactate concentration, typically from a two-compartment model (muscle and blood/other tissues).
+    *   **vLa<sub>SS</sub> (mM/min) (Red Dashed Line):** The instantaneous rate of lactate production (converted from mmol·l⁻¹·s⁻¹).
+    *   **vLa<sub>ox</sub> (mM/min) (Light Blue Dashed Line):** The instantaneous rate of lactate oxidation/elimination.
+    *   **PD (Pyruvate Deficit) (mM/min) (Purple Line):** The dynamic difference $vLa_{ox} - vLa_{SS}$.
+    *   **PCr Store (mM/kg) (Yellow Dotted Line):** Modeled phosphocreatine concentration in the active muscle.
+    *   **pH<sub>m</sub> (Unitless) (Orange Dotted Line):** Modeled intramuscular pH.
+    *   **RQ<sub>predicted</sub> ⋅ 10 (Unitless) (Yellow-Orange Dashed Line):** The kinetically-smoothed predicted Respiratory Quotient, scaled by a factor of 10 for better visibility on this shared axis (actual RQ values typically range from 0.7 to 1.0, potentially slightly higher during very intense exercise).
+    *   **Heart Rate ⋅ 10⁻¹ (bpm) (Dark Red Dotted Line):** The simulated heart rate, scaled by a factor of 0.1 for plotting convenience (e.g., a heart rate of 150 bpm would be plotted at a Y-value of 15).
+    *   **Zero Line (Thin Grey Dotted Line):** A horizontal reference line at y=0 for this axis, useful for interpreting parameters like PD or W' balance relative to baseline.
+*   **Tertiary Y-Axis (Right side, typically positioned further out - `y3`):** This axis is dedicated to displaying oxygen uptake parameters.
+    *   **$\dot{V}O_2$ (ml/min) (Blue Line):** The actual, kinetically-determined oxygen uptake at each second of the simulation.
+    *   **$\dot{V}O_2$ Demand (ml/min) (Blue Dotted Line):** (Visible if "Show $\dot{V}O_2$ Demand Curve" is checked in the PCr model settings) The theoretical instantaneous $\dot{V}O_2$ that would be required to meet the energy cost of the current power output if metabolic processes could respond infinitely fast.
+    *   **O₂ Deficit Area (Light Blue Filled Area):** (Visible if the $\dot{V}O_2$ Demand curve is shown) The shaded area between the $\dot{V}O_2$ Demand curve and the actual $\dot{V}O_2$ curve. This visually represents the accumulated oxygen deficit (when demand > uptake) or oxygen surplus (during recovery phases when uptake > demand).
+    *   **Acc. O₂ Deficit (ml) (Cyan Dotted Line):** The cumulative net oxygen deficit (Total O2 Demand - Total O2 Uptake) over time.
+
+Users can interact with the plot legend by clicking on trace names. This action toggles the visibility of the corresponding trace on the plot, allowing users to focus on specific parameters of interest or to declutter the view. If the simulation is terminated prematurely due to one of the set abort conditions (e.g., lactate exceeding threshold, W' balance dropping below minimum, glycogen depletion, or complete PCr depletion), an annotation will typically appear on the plot marking the point and reason for termination.
+
+### Exercise Summary Statistics (Tab 2)
+
+Located below the simulation plot, this section provides a detailed quantitative summary of the entire simulated exercise session, offering insights into overall workload, energy expenditure, fuel utilization, and various performance metrics.
+
+*   **Average mechanical Power (W):** The time-weighted average of the power output over the duration of the simulation.
+*   **Normalized mechanical Power (W):** A power averaging method designed to provide a more physiologically relevant measure of training stress than simple average power, especially for workouts with variable intensity. It typically involves calculating a 30-second rolling average of power, raising these values to the 4th power, averaging these transformed values, and then taking the 4th root of that average. This gives more weight to higher intensity portions.
+*   **Total Aerobic Energy Expenditure (kcal):** The gross (total) energy expended via aerobic pathways throughout the entire simulation. This is calculated from the integral of the $\dot{V}O_2$ curve over time, converted to energy units using an average caloric equivalent for oxygen (derived from the average predicted RQ over the session).
+*   **Total mechanical Work (kJ):** The sum of (Power × time_interval) for all 1-second intervals of the simulation, converted to kilojoules. This represents the total external work performed.
+*   **Total metabolic Work (kJ):** The sum of the net energy contributions from the three major energy systems: net aerobic metabolism, anaerobic-lactic metabolism, and anaerobic-alactic metabolism. This represents the total energy turnover *above resting levels* required to perform the exercise.
+    *   **Aerobic contribution (kJ | %):** The energy derived from net aerobic metabolism. This is calculated by integrating the actual $\dot{V}O_2$ curve, subtracting the integrated energy cost equivalent to maintaining $\dot{V}O_{2,Base}$ for the duration, and converting the net O₂ consumed to kJ. The percentage is relative to the Total Metabolic Work.
+    *   **Anaerobic-lactic contribution (kJ | %):** The energy derived from net lactate production. This is estimated from the O₂ equivalent of *gross* lactate production (calculated from the integrated $vLa_{SS}$ kinetics), using factors like the β-coefficient (O₂-Lactate Equiv.) to convert lactate changes into energy equivalents.
+    *   **Anaerobic-alactic contribution (kJ | %):** The energy derived from the net breakdown of phosphocreatine (PCr). This is estimated from the O₂ equivalent of the total PCr utilized during the exercise bout, based on the P/O₂ ratio.
+*   **η<sub>gross</sub> (%):** Overall gross efficiency for the entire session, calculated as:
+    $$ \eta_{gross} = (\text{Total Mechanical Work [kJ]}) / (\text{Total Gross Aerobic Energy Expenditure [kJ]}) \times 100\% $$
+*   **η<sub>net</sub> (%):** Overall net efficiency for the entire session, calculated as:
+    $$ \eta_{net} = (\text{Total Mechanical Work [kJ]}) / (\text{Net Aerobic Energy Expenditure [kJ]}) \times 100\% $$
+    Where net aerobic energy expenditure excludes the energy cost associated with maintaining $\dot{V}O_{2,Base}$.
+*   **η<sub>total</sub> (%):** Overall total efficiency, considering all energy pathways in the denominator:
+    $$ \eta_{total} = (\text{Total Mechanical Work [kJ]}) / (\text{Total Metabolic Work [kJ]}) \times 100\% $$
+*   **Work > CP (mechanical) (kJ):** The total amount of mechanical work (in kJ) performed during periods where the instantaneous power output was above the set Critical Power (CP).
+*   **W' Balance Drop (kJ):** The difference between the initial W' value (at the start of the simulation) and the minimum W' balance reached at any point during the exercise.
+*   **Total Carbohydrate Utilization (g):** The total mass of carbohydrates (in grams) estimated to have been oxidized during the simulation, based on the integrated CHO oxidation rate.
+*   **Total Fat Utilization (g):** The total mass of fats (in grams) estimated to have been oxidized during the simulation.
+*   **Training Stress Score (TSS):** An estimation of the overall training load or stress imposed by the simulated workout. It is typically calculated using Normalized Power, the duration of the exercise, and the individual's Functional Threshold Power (FTP), for which the app uses the set Critical Power (CP) as a proxy. A common formula is:
+    $$ TSS = (\text{Duration in seconds} \cdot \text{Normalized Power} \cdot \text{Intensity Factor}) / (\text{FTP} \cdot 3600) \cdot 100 $$
+    Where Intensity Factor (IF) = Normalized Power / FTP.
+*   **Strain Score (SS):** The total cumulative Strain Score accumulated during the simulation, based on the model by @Hauser2014 and Kontro et al. (as per HTML formulas), which considers P<sub>max</sub>, CP, and W' dynamics.
+    *   **SS<sub>CP</sub>:** The component of the total Strain Score attributed to work performed at or below CP.
+    *   **SS<sub>W'</sub>:** The component of the total Strain Score attributed to the utilization of W' (work above CP).
+    *   **SS<sub>Pmax</sub>:** The component of the total Strain Score attributed to very high power outputs that draw upon the P<sub>max</sub> capacity.
+
+This comprehensive suite of tools, visualizations, and summary statistics offers a powerful platform for students, coaches, athletes, and researchers to explore, understand, and quantify the complex interplay of metabolic processes during various forms of exercise.

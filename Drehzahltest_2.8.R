@@ -1,0 +1,2156 @@
+# Required packages
+library(readxl)
+library(dplyr)
+library(plotly)
+library(zoo)  # For rolling averages
+
+# Function to detect and clean outliers with adjustable parameters
+clean_outliers <- function(data, column, window_size = 5, threshold = 2) {
+  # Create a copy of the data
+  cleaned_data <- data
+  
+  # Calculate rolling mean
+  rolling_mean <- rollmean(data[[column]], window_size, fill = NA, align = "center")
+  
+  # Manually calculate rolling standard deviation
+  n <- length(data[[column]])
+  rolling_sd <- rep(NA, n)
+  half_window <- floor(window_size/2)
+  
+  for (i in 1:n) {
+    start <- max(1, i - half_window)
+    end <- min(n, i + half_window)
+    if (end - start + 1 >= 3) {  # At least 3 points for meaningful SD
+      rolling_sd[i] <- sd(data[[column]][start:end], na.rm = TRUE)
+    }
+  }
+  
+  # Replace NA values with original values
+  rolling_mean[is.na(rolling_mean)] <- data[[column]][is.na(rolling_mean)]
+  
+  # Replace missing SD values with overall SD
+  rolling_sd[is.na(rolling_sd)] <- sd(data[[column]], na.rm = TRUE)
+  
+  # Calculate Z-scores
+  z_scores <- abs((data[[column]] - rolling_mean) / (rolling_sd + 0.0001))  # Small constant to avoid division by 0
+  
+  # Identify outliers
+  # Special treatment for RPM: don't consider values of 0 as outliers
+  if (column == "RPM") {
+    outliers <- which(z_scores > threshold & !is.na(z_scores) & data[[column]] != 0)
+  } else {
+    outliers <- which(z_scores > threshold & !is.na(z_scores))
+  }
+  
+  # Replace outliers with rolling mean
+  if (length(outliers) > 0) {
+    cleaned_data[[column]][outliers] <- rolling_mean[outliers]
+    cat(paste("Outliers found in", column, ":", length(outliers), "\n"))
+  } else {
+    cat(paste("No outliers found in", column, ".\n"))
+  }
+  
+  return(cleaned_data)
+}
+
+# Function to smooth curves with adjustable window
+smooth_curve <- function(data, columns, window_sizes) {
+  # Create a copy of the data
+  smoothed_data <- data
+  
+  # Smooth each specified column
+  for (i in 1:length(columns)) {
+    column <- columns[i]
+    window_size <- window_sizes[i]
+    
+    # Special treatment for RPM column
+    if (column == "RPM") {
+      # Temporary copy for calculation
+      temp_data <- data[[column]]
+      zero_indices <- which(temp_data == 0)
+      
+      # Calculate rolling mean (without affecting 0 values)
+      non_zero_indices <- which(temp_data != 0)
+      if (length(non_zero_indices) > 0) {
+        # Smooth only non-zero values
+        smoothed_values <- rep(NA, length(temp_data))
+        smoothed_values[non_zero_indices] <- rollmean(temp_data[non_zero_indices], 
+                                                      window_size, fill = NA, align = "center")
+        
+        # Fill NA values at non-zero positions with original values
+        na_non_zero <- non_zero_indices[is.na(smoothed_values[non_zero_indices])]
+        if (length(na_non_zero) > 0) {
+          smoothed_values[na_non_zero] <- temp_data[na_non_zero]
+        }
+        
+        # Retain 0 values
+        smoothed_values[zero_indices] <- 0
+        
+        # Insert smoothed values into dataset
+        smoothed_data[[column]] <- smoothed_values
+      }
+    } else {
+      # Standard smoothing for other columns
+      smoothed_values <- rollmean(data[[column]], window_size, fill = NA, align = "center")
+      
+      # Fill NA values at the beginning and end with original values
+      na_indices <- which(is.na(smoothed_values))
+      if (length(na_indices) > 0) {
+        smoothed_values[na_indices] <- data[[column]][na_indices]
+      }
+      
+      # Insert smoothed values into dataset
+      smoothed_data[[column]] <- smoothed_values
+    }
+    
+    cat(paste("Curve", column, "smoothed with window size", window_size, "\n"))
+  }
+  
+  return(smoothed_data)
+}
+
+# Alternative/additional method specifically for respiratory gas values
+detect_gas_outliers <- function(data) {
+  # Differentiate VO2 to detect rapid changes
+  vo2_diff <- c(0, diff(data$VO2_t))
+  vco2_diff <- c(0, diff(data$VCO2_t))
+  
+  # Standard deviation of changes
+  vo2_diff_sd <- sd(vo2_diff, na.rm = TRUE)
+  vco2_diff_sd <- sd(vco2_diff, na.rm = TRUE)
+  
+  # Very strict thresholds for outliers
+  vo2_outliers <- which(abs(vo2_diff) > 1.2 * vo2_diff_sd)
+  vco2_outliers <- which(abs(vco2_diff) > 1.2 * vco2_diff_sd)
+  
+  cat(paste("Additional outliers found in VO2:", length(vo2_outliers), "\n"))
+  cat(paste("Additional outliers found in VCO2:", length(vco2_outliers), "\n"))
+  
+  # For VO2
+  if (length(vo2_outliers) > 0) {
+    # Replace outliers with smoothed values
+    window_size <- 5
+    for (i in vo2_outliers) {
+      start_idx <- max(1, i - floor(window_size/2))
+      end_idx <- min(nrow(data), i + floor(window_size/2))
+      if (end_idx > start_idx) {
+        data$VO2_t[i] <- mean(data$VO2_t[start_idx:end_idx], na.rm = TRUE)
+      }
+    }
+  }
+  
+  # For VCO2
+  if (length(vco2_outliers) > 0) {
+    # Replace outliers with smoothed values
+    window_size <- 5
+    for (i in vco2_outliers) {
+      start_idx <- max(1, i - floor(window_size/2))
+      end_idx <- min(nrow(data), i + floor(window_size/2))
+      if (end_idx > start_idx) {
+        data$VCO2_t[i] <- mean(data$VCO2_t[start_idx:end_idx], na.rm = TRUE)
+      }
+    }
+  }
+  
+  return(data)
+}
+
+# Completely revised function to calculate steady state (SS) VO2 values and RPM avg
+calculate_VO2_SS <- function(data, start_time, end_time, rpm_target) {
+  # Filter data for the specific stage
+  stage_data <- data %>% 
+    filter(t_s >= start_time & t_s <= end_time)
+  
+  # Make sure we have data
+  if(nrow(stage_data) == 0) {
+    cat(sprintf("No data found for stage %d-%d (rpm target %d)\n", start_time, end_time, rpm_target))
+    return(list(VO2_SS = NA, avg_rpm = NA))
+  }
+  
+  # Get the last 120 seconds of the stage
+  end_time_actual <- max(stage_data$t_s)
+  start_time_last120 <- max(start_time, end_time_actual - 120)
+  
+  last_120s <- stage_data %>%
+    filter(t_s >= start_time_last120)
+  
+  # Check if we have enough data
+  if(nrow(last_120s) < 10) {  # Need at least some data points
+    cat(sprintf("Not enough data points in last 120s for stage %d-%d (rpm target %d)\n", 
+                start_time, end_time, rpm_target))
+    return(list(VO2_SS = NA, avg_rpm = NA))
+  }
+  
+  # Find the highest 90s average for VO2
+  if(nrow(last_120s) >= 90) {
+    # Calculate rolling 90s averages for VO2
+    rolling_vo2 <- rollmean(last_120s$VO2_t, k = 90, align = "left", fill = NA)
+    max_vo2 <- max(rolling_vo2, na.rm = TRUE)
+    
+    # Find the window with the highest average VO2
+    best_window_start <- which.max(rolling_vo2)
+    best_window_indices <- best_window_start:(best_window_start + 89)
+    
+    # For the exact same time period, calculate average RPM
+    # First, get the time points of this best window
+    best_window_times <- last_120s$t_s[best_window_indices]
+    
+    # Get RPM for these exact time points (may need to join data)
+    # Create a temporary dataframe with just the time points we need
+    best_times_df <- data.frame(t_s = best_window_times)
+    
+    # Now find the closest t_s_rpm value for each t_s in our best window
+    best_rpm_data <- data.frame()
+    for(t in best_window_times) {
+      # Find closest t_s_rpm to this t_s
+      closest_row <- df %>% 
+        filter(!is.na(RPM)) %>%
+        mutate(time_diff = abs(t_s_rpm - t)) %>%
+        arrange(time_diff) %>%
+        slice(1)
+      
+      if(nrow(closest_row) > 0) {
+        best_rpm_data <- rbind(best_rpm_data, closest_row)
+      }
+    }
+    
+    # Calculate average RPM from this matched data
+    if(nrow(best_rpm_data) > 0) {
+      avg_rpm <- mean(best_rpm_data$RPM, na.rm = TRUE)
+    } else {
+      # Use target RPM as fallback
+      avg_rpm <- rpm_target
+      cat(sprintf("Warning: No RPM data found for best VO2 window in stage with target %d rpm. Using target value.\n", 
+                  rpm_target))
+    }
+  } else {
+    # If we don't have 90 data points, use all available data
+    max_vo2 <- mean(last_120s$VO2_t, na.rm = TRUE)
+    
+    # For RPM, we need to do the same time-matching as above but for all points
+    all_times <- last_120s$t_s
+    
+    rpm_data <- data.frame()
+    for(t in all_times) {
+      closest_row <- df %>% 
+        filter(!is.na(RPM)) %>%
+        mutate(time_diff = abs(t_s_rpm - t)) %>%
+        arrange(time_diff) %>%
+        slice(1)
+      
+      if(nrow(closest_row) > 0) {
+        rpm_data <- rbind(rpm_data, closest_row)
+      }
+    }
+    
+    if(nrow(rpm_data) > 0) {
+      avg_rpm <- mean(rpm_data$RPM, na.rm = TRUE)
+    } else {
+      avg_rpm <- rpm_target
+    }
+  }
+  
+  return(list(VO2_SS = max_vo2, avg_rpm = avg_rpm))
+}
+
+# New function to calculate lowest VO2 for stage 0 (resting phase)
+calculate_min_VO2_SS <- function(data, start_time, end_time) {
+  # Filter data for the specific stage
+  stage_data <- data %>% 
+    filter(t_s >= start_time & t_s <= end_time)
+  
+  # Make sure we have data
+  if(nrow(stage_data) == 0) {
+    cat(sprintf("No data found for stage 0 resting phase %d-%d\n", start_time, end_time))
+    return(list(VO2_SS = NA, avg_rpm = 0))
+  }
+  
+  # Debug: Print how many data points we have
+  cat(sprintf("Stage 0 data points: %d (from %d to %d)\n", nrow(stage_data), start_time, end_time))
+  
+  # Check if we have enough data for 90-second windows
+  if(nrow(stage_data) < 90) {
+    cat(sprintf("WARNING: Not enough data points for 90s window in resting phase %d-%d, using average of all points\n", start_time, end_time))
+    # If not enough points, just use the mean of all available data
+    mean_vo2 <- mean(stage_data$VO2_t, na.rm = TRUE)
+    cat(sprintf("Stage 0 rpm: Mean VO2 = %.1f (insufficient data for window calculation)\n", mean_vo2))
+    return(list(VO2_SS = mean_vo2, avg_rpm = 0))
+  }
+  
+  # Calculate rolling 90s averages for VO2 for the entire stage
+  rolling_vo2 <- rollmean(stage_data$VO2_t, k = 90, align = "left", fill = NA)
+  
+  # Debug: Check if we have valid averages
+  cat(sprintf("Valid rolling averages: %d, NA values: %d\n", 
+              sum(!is.na(rolling_vo2)), sum(is.na(rolling_vo2))))
+  
+  # Make sure we have at least one valid average
+  if(all(is.na(rolling_vo2))) {
+    cat("WARNING: No valid 90s windows found, using average of all data points\n")
+    mean_vo2 <- mean(stage_data$VO2_t, na.rm = TRUE)
+    return(list(VO2_SS = mean_vo2, avg_rpm = 0))
+  }
+  
+  # Find the lowest average VO2 (this is different from the standard function)
+  min_vo2 <- min(rolling_vo2, na.rm = TRUE)
+  
+  cat(sprintf("Stage 0 rpm: Lowest SS VO2 = %.1f\n", min_vo2))
+  
+  return(list(VO2_SS = min_vo2, avg_rpm = 0))
+}
+
+# Read Excel file (sheet "Spiro")
+#file_path <- "C:/Users/johan/OneDrive/Desktop/SpoWi/WS 22,23/Masterarbeit - Wirkungsgrad/Formel, Berechnungen/Drehzahltest_2.0/Spiro_Will_01_04_2025.xlsx"
+file_path <- "Spiro_Will_01_04_2025.xlsx"
+df <- read_excel(file_path, sheet = "Spiro")
+
+# Liste der Laktatwerte
+laktatwerte <- c(0.82, 0.84, 0.77, 0.71, 0.74, 0.76, 1.07, 2.24, 4.61, 4.95, 5.19, 
+                 5.01, 4.74, 3.86, 3.00, 2.05, 1.39, 1.03, 0.83, 0.82, 0.93, 1.75, 
+                 4.22, 10.97, 10.72, 11.69, 11.64, 11.29, 10.14, 8.54, 7.34, 4.98)
+
+# Initializiere die neue Spalte mit NA
+df$BLC <- NA
+
+# Finde alle Zeilen, die L, laktat oder L mit Zahlen enthalten
+laktat_muster <- "^L$|laktat|^L[0-9]{1,2}$"
+laktat_zeilen <- grep(laktat_muster, df$Marker, ignore.case = TRUE)
+
+# Wenn die Anzahl der passenden Zeilen gleich der Anzahl der Laktatwerte ist,
+# ordne die Werte zu
+if(length(laktat_zeilen) == length(laktatwerte)) {
+  df$BLC[laktat_zeilen] <- laktatwerte
+  
+  # Prüfe, ob jeder Marker eine Zahl zugeordnet bekommen hat
+  zaehler_erfolgreich <- sum(!is.na(df$BLC[laktat_zeilen]))
+  cat("Insgesamt wurden", zaehler_erfolgreich, "von", length(laktat_zeilen), "Markern mit Laktatwerten zugeordnet.\n\n")
+  
+  # Gib die Pärchen in Textform aus
+  cat("Zuordnung der Marker und Laktatwerte:\n")
+  for(i in 1:length(laktat_zeilen)) {
+    marker_index <- laktat_zeilen[i]
+    marker_wert <- df$Marker[marker_index]
+    laktat_wert <- df$BLC[marker_index]
+    cat(sprintf("Marker '%s' --> Laktatwert: %.2f\n", marker_wert, laktat_wert))
+  }
+} else {
+  warning("Die Anzahl der Laktatwerte entspricht nicht der Anzahl der Zeilen mit Laktatmarkierungen.")
+  cat("Anzahl der Laktatwerte:", length(laktatwerte), "\n")
+  cat("Anzahl der gefundenen Marker:", length(laktat_zeilen), "\n")
+}
+
+# Keep only the required columns
+df <- df %>% 
+  select(t_s, Marker, HF, VT, AF, VE, VO2_t, VCO2_t, t_s_rpm, power, RPM, BLC) %>%
+  mutate(RPM = na_if(RPM, 0)) 
+
+# Outlier cleaning for cadence - very low sensitivity
+df <- clean_outliers(df, "RPM", window_size = 15, threshold = 1.5)
+
+# Outlier cleaning for HR - medium sensitivity
+df <- clean_outliers(df, "HF", window_size = 15, threshold = 2.0)
+
+# Outlier cleaning for VO2_t and VCO2_t - very sensitive
+df <- clean_outliers(df, "VO2_t", window_size = 15, threshold = 1.5)
+df <- clean_outliers(df, "VCO2_t", window_size = 15, threshold = 1.5)
+
+# Apply additional outlier detection for respiratory gases
+df <- detect_gas_outliers(df)
+
+### Calculate the lowest average VO2 over 120s ###
+
+# Calculate the lowest average VO2 over a specified time window (e.g., 120s)
+calculate_vo2_rest <- function(df, window_duration = 120, start_time = 0, end_time = NULL) {
+  # Prepare data
+  df_for_rest_vo2 <- df %>% 
+    select(t_s, VO2_t) %>% 
+    filter(!is.na(VO2_t) & !is.na(t_s)) %>%
+    arrange(t_s)  # Ensure data is sorted by time
+  
+  # If end_time is not specified, use the maximum time in the dataset
+  if (is.null(end_time)) {
+    end_time <- max(df_for_rest_vo2$t_s, na.rm = TRUE)
+  }
+  
+  # Filter data within the time range
+  df_in_range <- df_for_rest_vo2 %>%
+    filter(t_s >= start_time & t_s <= end_time)
+  
+  if (nrow(df_in_range) == 0) {
+    cat("No data found in the specified time range.\n")
+    return(NULL)
+  }
+  
+  # Get all unique time points as potential window starts
+  unique_times <- unique(df_in_range$t_s)
+  window_means <- numeric(length(unique_times))
+  window_data_counts <- numeric(length(unique_times))
+  
+  # For each potential starting time point, calculate the mean VO2 over the window_duration
+  for (i in 1:length(unique_times)) {
+    window_start <- unique_times[i]
+    window_end <- window_start + window_duration
+    
+    # Get data points within this window
+    window_data <- df_for_rest_vo2 %>% 
+      filter(t_s >= window_start & t_s < window_end)
+    
+    if (nrow(window_data) > 0) {
+      window_means[i] <- mean(window_data$VO2_t, na.rm = TRUE)
+      window_data_counts[i] <- nrow(window_data)
+    } else {
+      window_means[i] <- NA
+      window_data_counts[i] <- 0
+    }
+  }
+  
+  # Remove windows with too few data points (optional)
+  min_data_points <- 3  # Minimum required data points for a valid window
+  valid_indices <- which(!is.na(window_means) & window_data_counts >= min_data_points)
+  
+  if (length(valid_indices) == 0) {
+    cat(sprintf("No valid %ds average values found with sufficient data points in the time range %.0fs to %.0fs.\n",
+                window_duration, start_time, end_time))
+    return(NULL)
+  }
+  
+  # Find the window with the lowest average VO2
+  min_idx <- which.min(window_means[valid_indices])
+  min_window_index <- valid_indices[min_idx]
+  min_window_start <- unique_times[min_window_index]
+  min_window_end <- min_window_start + window_duration
+  min_vo2_value <- window_means[min_window_index]
+  data_points_count <- window_data_counts[min_window_index]
+  
+  # Convert to L/min
+  min_vo2_l_min <- min_vo2_value / 1000
+  
+  # Create and display text message
+  message_vo2_rest <- sprintf("VO2_rest (lowest %ds average between %.0fs and %.0fs) is %.3f l/min", 
+                              window_duration, start_time, end_time, min_vo2_l_min)
+  cat(message_vo2_rest, "\n")
+  cat(sprintf("This window spans from %.1fs to %.1fs and includes %d data points.\n",
+              min_window_start, min_window_end, data_points_count))
+  
+  # Return result
+  return(list(
+    vo2_rest = min_vo2_l_min,
+    window_start = min_window_start,
+    window_end = min_window_end,
+    data_points = data_points_count
+  ))
+}
+
+calculate_vo2_rest(df, start_time = 0, end_time = 2000)
+
+################
+
+# Smooth curves with individual window sizes for each curve
+columns_to_smooth <- c("VO2_t", "VCO2_t", "HF", "RPM")
+window_sizes <- c(12, 12, 12, 9)  # Individual window sizes for each curve
+
+# Apply smoothing
+df <- smooth_curve(df, columns_to_smooth, window_sizes)
+
+# For displaying RPM values: exclude 0 values (will be filtered later)
+df_rpm_base <- df %>%
+  filter(RPM > 0) %>%
+  select(t_s_rpm, RPM)
+
+# ---- ANGEPASST: Define stage times for test 1 (0 Watt) with stages shifted right ----
+start_time1 <- 1487-360
+end_time1 <- 3300
+rpm_values1 <- c(0, 20, 40, 60, 80, 100, 120, 140, 160)
+
+# Shift time_points1 to align with stages correctly (180s offset from original)
+time_points1 <- seq(start_time1 + 180, 2940 + 180, 180)  # Starting points shifted right
+first_vertical_line1 <- time_points1[2]  # Save the position of the first vertical line (now skipping first one)
+
+# Remove first AND last vertical line for Plot 1
+vertical_lines1 <- time_points1[2:(length(time_points1)-1)]  # Skip both first and last vertical lines
+
+# Calculate SS values for each stage of test 1
+df_DT1_SS <- data.frame(
+  rpm_target = rpm_values1,
+  VO2_SS = numeric(length(rpm_values1)),
+  avg_rpm = numeric(length(rpm_values1))
+)
+
+# Calculate SS for Stage 0 rpm in Plot 1 (special case - use lowest VO2 in the range)
+# Debug: Check the time range for plot 1 stage 0
+cat(sprintf("\nPlot 1 - Stage 0 time range: %.1f to %.1f\n", start_time1, first_vertical_line1))
+
+# Fallback value for Plot 1 Stage 0 rpm in case calculation fails
+fallback_stage0_vo2_plot1 <- mean(df$VO2_t[df$t_s >= start_time1 & df$t_s <= first_vertical_line1], na.rm = TRUE)
+cat(sprintf("Fallback VO2 value for Plot 1 Stage 0: %.1f\n", fallback_stage0_vo2_plot1))
+
+# Try to calculate min SS VO2 for Plot 1 Stage 0
+ss_result0_plot1 <- calculate_min_VO2_SS(df, start_time1, first_vertical_line1)
+
+# If calculation failed, use fallback value
+if(is.na(ss_result0_plot1$VO2_SS)) {
+  cat("Using fallback value for Plot 1 Stage 0\n")
+  df_DT1_SS$VO2_SS[1] <- fallback_stage0_vo2_plot1
+} else {
+  df_DT1_SS$VO2_SS[1] <- ss_result0_plot1$VO2_SS
+}
+df_DT1_SS$avg_rpm[1] <- 0
+
+# Calculate SS for other stages in Plot 1
+for(i in 2:length(rpm_values1)) {
+  if(i < length(time_points1)) {
+    # Define start and end time for this stage
+    stage_start <- time_points1[i]
+    stage_end <- time_points1[i+1]
+    
+    # Calculate SS value for this stage, passing the target RPM
+    ss_result <- calculate_VO2_SS(df, stage_start, stage_end, rpm_values1[i])
+    df_DT1_SS$VO2_SS[i] <- ss_result$VO2_SS
+    df_DT1_SS$avg_rpm[i] <- ss_result$avg_rpm
+    
+    cat(sprintf("Test 1 - Stage %d rpm: SS VO2 = %.1f, Avg RPM = %.1f\n", 
+                rpm_values1[i], ss_result$VO2_SS, ss_result$avg_rpm))
+  }
+}
+
+# ---- ANGEPASST: Define stage times for test 2 (200 Watt) with stages shifted right ----
+start_time2 <- 4207-360
+end_time2 <- 6000
+rpm_values2 <- c(0, 20, 40, 60, 80, 100, 120, 140, 160)
+
+# Shift time_points2 to align with stages correctly (180s offset from original)
+time_points2 <- seq(start_time2 + 180, 5700 + 180, 180)  # Starting points shifted right
+first_vertical_line2 <- time_points2[2]  # Save the position of the first vertical line
+
+# Remove the first and last vertical line for Plot 2
+vertical_lines2 <- time_points2[2:(length(time_points2)-1)]  # Skip first and last vertical lines
+
+# Calculate SS values for each stage of test 2
+df_DT2_SS <- data.frame(
+  rpm_target = rpm_values2,
+  VO2_SS = numeric(length(rpm_values2)),
+  avg_rpm = numeric(length(rpm_values2))
+)
+
+# Calculate SS for Stage 0 rpm in Plot 2 (special case - use lowest VO2 in the range)
+# Debug: Check the time range for plot 2 stage 0
+cat(sprintf("\nPlot 2 - Stage 0 time range: %.1f to %.1f\n", start_time2, first_vertical_line2))
+
+# Fallback value for Plot 2 Stage 0 rpm in case calculation fails
+fallback_stage0_vo2_plot2 <- mean(df$VO2_t[df$t_s >= start_time2 & df$t_s <= first_vertical_line2], na.rm = TRUE)
+cat(sprintf("Fallback VO2 value for Plot 2 Stage 0: %.1f\n", fallback_stage0_vo2_plot2))
+
+# Try to calculate min SS VO2 for Plot 2 Stage 0
+ss_result0_plot2 <- calculate_min_VO2_SS(df, start_time2, first_vertical_line2)
+
+# If calculation failed, use fallback value
+if(is.na(ss_result0_plot2$VO2_SS)) {
+  cat("Using fallback value for Plot 2 Stage 0\n")
+  df_DT2_SS$VO2_SS[1] <- fallback_stage0_vo2_plot2
+} else {
+  df_DT2_SS$VO2_SS[1] <- ss_result0_plot2$VO2_SS
+}
+df_DT2_SS$avg_rpm[1] <- 0
+
+# Calculate SS for other stages in Plot 2, including stages 20-140 rpm
+for(i in 2:(length(rpm_values2)-1)) {
+  if(i < length(time_points2)) {
+    # Define start and end time for this stage
+    stage_start <- time_points2[i]
+    stage_end <- time_points2[i+1]
+    
+    # Calculate SS value for this stage, passing the target RPM
+    ss_result <- calculate_VO2_SS(df, stage_start, stage_end, rpm_values2[i])
+    df_DT2_SS$VO2_SS[i] <- ss_result$VO2_SS
+    df_DT2_SS$avg_rpm[i] <- ss_result$avg_rpm
+    
+    cat(sprintf("Test 2 - Stage %d rpm: SS VO2 = %.1f, Avg RPM = %.1f\n", 
+                rpm_values2[i], ss_result$VO2_SS, ss_result$avg_rpm))
+  }
+}
+
+# Spezielle Berechnung für Stage 160 rpm in Plot 2
+# Definiere den Zeitbereich für Stage 160 rpm in Plot 2
+last_stage_index2 <- length(rpm_values2)
+last_stage_start <- time_points2[last_stage_index2-1]  # Startzeit der letzten Stage
+last_stage_end <- end_time2                            # Ende der Daten verwenden
+last_stage_rpm <- rpm_values2[last_stage_index2]
+
+# Debug Ausgabe
+cat(sprintf("\nPlot 2 - Stage 160 rpm time range: %.1f to %.1f\n", 
+            last_stage_start, last_stage_end))
+
+# Filter für den spezifischen Zeitraum der Stage 160 rpm
+stage_160_data <- df %>% 
+  filter(t_s >= last_stage_start & t_s <= last_stage_end)
+
+# Überprüfen, ob wir ausreichend Daten haben
+if(nrow(stage_160_data) < 90) {
+  cat("WARNING: Not enough data points for Stage 160 rpm in Plot 2\n")
+  # Fallback: Nutze den Durchschnitt, wenn nicht genug Daten vorhanden sind
+  VO2_SS_value <- mean(stage_160_data$VO2_t, na.rm = TRUE)
+  avg_rpm_value <- mean(df_rpm_base$RPM[df_rpm_base$t_s_rpm >= last_stage_start & 
+                                          df_rpm_base$t_s_rpm <= last_stage_end], na.rm = TRUE)
+} else {
+  # Berechne rollenden 90s-Durchschnitt für VO2
+  rolling_vo2 <- rollmean(stage_160_data$VO2_t, k = 90, align = "left", fill = NA)
+  
+  # Finde den höchsten Durchschnittswert
+  max_vo2 <- max(rolling_vo2, na.rm = TRUE)
+  
+  # Finde den Index des Fensters mit dem höchsten VO2-Durchschnitt
+  best_window_start <- which.max(rolling_vo2)
+  best_window_indices <- best_window_start:(best_window_start + 89)
+  
+  # Zeitpunkte dieses besten Fensters ermitteln
+  best_window_times <- stage_160_data$t_s[best_window_indices]
+  
+  # Debug Ausgabe
+  cat(sprintf("Best 90s window for Stage 160 rpm in Plot 2: From t=%.1f to t=%.1f\n", 
+              min(best_window_times), max(best_window_times)))
+  
+  # VO2 SS-Wert ist der höchste 90s-Durchschnitt
+  VO2_SS_value <- max_vo2
+  
+  # Für RPM: Finde die zugehörigen RPM-Werte für denselben Zeitraum
+  rpm_data_for_best_window <- data.frame()
+  for(t in best_window_times) {
+    # Finde den nächstgelegenen Zeitpunkt in den RPM-Daten
+    closest_row <- df_rpm_base %>% 
+      mutate(time_diff = abs(t_s_rpm - t)) %>%
+      arrange(time_diff) %>%
+      slice(1)
+    
+    if(nrow(closest_row) > 0) {
+      rpm_data_for_best_window <- rbind(rpm_data_for_best_window, closest_row)
+    }
+  }
+  
+  # Berechne den RPM-Durchschnitt für diesen Zeitraum
+  if(nrow(rpm_data_for_best_window) > 0) {
+    avg_rpm_value <- mean(rpm_data_for_best_window$RPM, na.rm = TRUE)
+    cat(sprintf("Avg RPM for best VO2 window in Stage 160 rpm: %.1f (from %d data points)\n", 
+                avg_rpm_value, nrow(rpm_data_for_best_window)))
+  } else {
+    # Fallback: Nutze den Target RPM, wenn keine Daten gefunden wurden
+    avg_rpm_value <- last_stage_rpm
+    cat("WARNING: No RPM data found for best VO2 window. Using target RPM.\n")
+  }
+}
+
+# Speichere die berechneten Werte
+df_DT2_SS$VO2_SS[last_stage_index2] <- VO2_SS_value
+df_DT2_SS$avg_rpm[last_stage_index2] <- avg_rpm_value
+
+cat(sprintf("Test 2 - Stage %d rpm: SS VO2 = %.1f, Avg RPM = %.1f\n", 
+            last_stage_rpm, VO2_SS_value, avg_rpm_value))
+
+# Ensure RPM values are correct for stage 0
+df_DT1_SS$avg_rpm[df_DT1_SS$rpm_target == 0] <- 0
+df_DT2_SS$avg_rpm[df_DT2_SS$rpm_target == 0] <- 0
+
+# Print the complete results
+cat("\nSteady State values for Test 1 (0 Watt):\n")
+print(df_DT1_SS)
+cat("\nSteady State values for Test 2 (200 Watt):\n")
+print(df_DT2_SS)
+
+# Filter dataset for the first diagram 
+df_plot1 <- df %>%
+  filter(t_s >= start_time1 & t_s <= end_time1)
+
+# RPM for Plot 1 only show up to t_s = 2923
+df_rpm_plot1 <- df_rpm_base %>%
+  filter(t_s_rpm >= start_time1 & t_s_rpm <= 2923)
+
+# Create Plot 1 
+plot_CT1_0_Watt <- plot_ly() %>%
+  # Data with t_s as x-axis
+  add_trace(data = df_plot1, x = ~t_s, y = ~VO2_t, type = 'scatter', mode = 'lines', 
+            name = "V̇O<sub>2</sub>", 
+            line = list(color = '#1CADE4')) %>%
+  add_trace(data = df_plot1, x = ~t_s, y = ~VCO2_t, type = 'scatter', mode = 'lines', 
+            name = "V̇CO<sub>2</sub>", 
+            line = list(color = '#EF5350')) %>%
+  # Cadence with t_s_rpm as x-axis, only for values > 0
+  add_trace(data = df_rpm_plot1, x = ~t_s_rpm, y = ~RPM, type = 'scatter', mode = 'lines', 
+            name = "Cadence", yaxis = "y2", 
+            line = list(color = 'darkgrey'),
+            connectgaps = FALSE) %>%  # No connection across gaps
+  layout(
+    margin = list(t = 40, b = 50, l = 60, r = 60), 
+    title = paste("Cadence Test - 0 Watt"),
+    xaxis = list(title = "Time [s]", tickvals = seq(0, end_time1, 500)),
+    yaxis = list(title = "V̇O<sub>2</sub> & V̇CO<sub>2</sub> [ml · min<sup>-1</sup>]", 
+                 range = c(0, 7000), tickvals = seq(0, 7000, 500),
+                 tickformat = '.0f'),
+    yaxis2 = list(title = "Cadence [rpm]", 
+                  overlaying = "y", side = "right", 
+                  range = c(0, 280), tickvals = seq(0, 280, 20)),
+    showlegend = TRUE,
+    legend = list(
+      x = 0.90,
+      y = 1.00,
+      xanchor = "left",
+      yancho = "top",
+      bgcolor = "rgba(255, 255, 255, 0.3)"
+    ))
+
+# Add vertical lines for Plot 1 - now WITHOUT the first AND last one
+for(t in vertical_lines1) {
+  plot_CT1_0_Watt <- plot_CT1_0_Watt %>% add_segments(x = t, xend = t, y = 0, yend = 7000, 
+                                  line = list(color = 'darkgrey', dash = 'dash', width = 1),
+                                  showlegend = FALSE)
+}
+
+# Add cadence stage annotations and SS values for Plot 1
+# Special handling for "Stage: 0 rpm" - place in middle between start and first vertical line
+mid_point0_plot1 <- (start_time1 + first_vertical_line1) / 2
+
+# Add Stage 0 rpm annotation in the middle between start and first vertical line
+plot_CT1_0_Watt <- plot_CT1_0_Watt %>% add_annotations(
+  x = mid_point0_plot1,
+  y = 6750,
+  text = "Stage: 0 rpm",
+  showarrow = FALSE,
+  font = list(size = 10)
+)
+
+# Add SS VO2 value for Stage 0 in Plot 1
+vo2_text_plot1_stage0 <- sprintf("V̇O<sub>2,SS</sub>: %.0f ml · min<sup>-1</sup>", df_DT1_SS$VO2_SS[1])
+
+plot_CT1_0_Watt <- plot_CT1_0_Watt %>% add_annotations(
+  x = mid_point0_plot1,
+  y = 6500,
+  text = vo2_text_plot1_stage0,
+  showarrow = FALSE,
+  font = list(size = 9)
+)
+
+# Add Cadence avg value
+rpm_text_plot1_stage0 <- sprintf("Cadence<sub>avg</sub>: %.0f rpm", df_DT1_SS$avg_rpm[1])
+
+plot_CT1_0_Watt <- plot_CT1_0_Watt %>% add_annotations(
+  x = mid_point0_plot1,
+  y = 6350,
+  text = rpm_text_plot1_stage0,
+  showarrow = FALSE,
+  font = list(size = 9)
+)
+
+# Add annotations for other stages as before
+for(i in 2:(length(rpm_values1)-1)) {  # Exclude the last stage as it's incomplete
+  if(i < length(time_points1) - 1) {  
+    mid_point1 <- (time_points1[i] + time_points1[i+1]) / 2
+    
+    # Add stage annotation
+    plot_CT1_0_Watt <- plot_CT1_0_Watt %>% add_annotations(
+      x = mid_point1,
+      y = 6750,
+      text = paste("Stage:", rpm_values1[i], "rpm"),
+      showarrow = FALSE,
+      font = list(size = 10)
+    )
+    
+    # Add SS VO2 value as first line
+    if(!is.na(df_DT1_SS$VO2_SS[i])) {
+      vo2_text <- sprintf("V̇O<sub>2,SS</sub>: %.0f ml · min<sup>-1</sup>", df_DT1_SS$VO2_SS[i])
+      
+      plot_CT1_0_Watt <- plot_CT1_0_Watt %>% add_annotations(
+        x = mid_point1,
+        y = 6500,
+        text = vo2_text,
+        showarrow = FALSE,
+        font = list(size = 9)
+      )
+      
+      # Add Cadence avg value as second line
+      rpm_text <- sprintf("Cadence<sub>avg</sub>: %.0f rpm", df_DT1_SS$avg_rpm[i])
+      
+      plot_CT1_0_Watt <- plot_CT1_0_Watt %>% add_annotations(
+        x = mid_point1,
+        y = 6350,
+        text = rpm_text,
+        showarrow = FALSE,
+        font = list(size = 9)
+      )
+    }
+  }
+}
+
+# Add annotation for the last stage in Plot 1 - CORRECTED POSITION
+last_stage_index1 <- length(rpm_values1)
+# Calculate mid-point with adjustment to move 180s left from previous position
+last_mid_point1 <- time_points1[last_stage_index1] + 90  # Position at middle of stage
+
+plot_CT1_0_Watt <- plot_CT1_0_Watt %>% add_annotations(
+  x = last_mid_point1,
+  y = 6750,
+  text = paste("Stage:", rpm_values1[last_stage_index1], "rpm"),
+  showarrow = FALSE,
+  font = list(size = 10)
+)
+
+if(!is.na(df_DT1_SS$VO2_SS[last_stage_index1])) {
+  vo2_text <- sprintf("V̇O<sub>2,SS</sub>: %.0f ml · min<sup>-1</sup>", df_DT1_SS$VO2_SS[last_stage_index1])
+  
+  plot_CT1_0_Watt <- plot_CT1_0_Watt %>% add_annotations(
+    x = last_mid_point1,
+    y = 6500,
+    text = vo2_text,
+    showarrow = FALSE,
+    font = list(size = 9)
+  )
+  
+  rpm_text <- sprintf("Cadence<sub>avg</sub>: %.0f rpm", df_DT1_SS$avg_rpm[last_stage_index1])
+  
+  plot_CT1_0_Watt <- plot_CT1_0_Watt %>% add_annotations(
+    x = last_mid_point1,
+    y = 6350,
+    text = rpm_text,
+    showarrow = FALSE,
+    font = list(size = 9)
+  )
+}
+
+# Filter dataset for the second diagram 
+df_plot2 <- df %>%
+  filter(t_s >= start_time2 & t_s <= end_time2)
+
+# RPM for Plot 2 only show from t = 4207 onward
+df_rpm_plot2 <- df_rpm_base %>%
+  filter(t_s_rpm >= 4207 & t_s_rpm <= end_time2)
+
+# Create Plot 2
+plot_CT1_200_Watt <- plot_ly() %>%
+  # Data with t_s as x-axis
+  add_trace(data = df_plot2, x = ~t_s, y = ~VO2_t, type = 'scatter', mode = 'lines', 
+            name = "V̇O<sub>2</sub>", 
+            line = list(color = '#1CADE4')) %>%
+  add_trace(data = df_plot2, x = ~t_s, y = ~VCO2_t, type = 'scatter', mode = 'lines', 
+            name = "V̇CO<sub>2</sub>", 
+            line = list(color = '#EF5350')) %>%
+  # Cadence with t_s_rpm as x-axis, only for values > 0
+  add_trace(data = df_rpm_plot2, x = ~t_s_rpm, y = ~RPM, type = 'scatter', mode = 'lines', 
+            name = "Cadence", yaxis = "y2", 
+            line = list(color = 'darkgrey'),
+            connectgaps = FALSE) %>%  # No connection across gaps
+  layout(
+    margin = list(t = 40, b = 50, l = 60, r = 60), 
+    title = paste("Cadence Test - 200 Watt"),
+    xaxis = list(title = "Time [s]", tickvals = seq(0, end_time2, 500)),
+    yaxis = list(title = "V̇O<sub>2</sub> & V̇CO<sub>2</sub> [ml · min<sup>-1</sup>]", 
+                 range = c(0, 7000), tickvals = seq(0, 7000, 500),
+                 tickformat = '.0f'),
+    yaxis2 = list(title = "Cadence [rpm]", 
+                  overlaying = "y", side = "right", 
+                  range = c(0, 280), tickvals = seq(0, 280, 20)),
+    showlegend = TRUE,
+    legend = list(
+      x = 0.90,
+      y = 1.00,
+      xanchor = "left",
+      yanchor = "top",
+      bgcolor = "rgba(255, 255, 255, 0.3)"
+    ))
+
+# Add vertical lines for Plot 2 - WITHOUT first and last vertical lines
+for(t in vertical_lines2) {
+  plot_CT1_200_Watt <- plot_CT1_200_Watt %>% add_segments(x = t, xend = t, y = 0, yend = 7000, 
+                                  line = list(color = 'darkgrey', dash = 'dash', width = 1),
+                                  showlegend = FALSE)
+}
+
+# Add cadence stage annotations and SS values for Plot 2
+# Special handling for "Stage: 0 rpm" - place in middle between start and first vertical line
+mid_point0_plot2 <- (start_time2 + first_vertical_line2) / 2
+
+# Add Stage 0 rpm annotation in the middle between start and first vertical line
+plot_CT1_200_Watt <- plot_CT1_200_Watt %>% add_annotations(
+  x = mid_point0_plot2,
+  y = 6750,
+  text = "Stage: 0 rpm",
+  showarrow = FALSE,
+  font = list(size = 10)
+)
+
+# Add SS VO2 value for Stage 0 in Plot 2
+vo2_text_plot2_stage0 <- sprintf("V̇O<sub>2,SS</sub>: %.0f ml · min<sup>-1</sup>", df_DT2_SS$VO2_SS[1])
+
+plot_CT1_200_Watt <- plot_CT1_200_Watt %>% add_annotations(
+  x = mid_point0_plot2,
+  y = 6500,
+  text = vo2_text_plot2_stage0,
+  showarrow = FALSE,
+  font = list(size = 9)
+)
+
+# Add Cadence avg value
+rpm_text_plot2_stage0 <- sprintf("Cadence<sub>avg</sub>: %.0f rpm", df_DT2_SS$avg_rpm[1])
+
+plot_CT1_200_Watt <- plot_CT1_200_Watt %>% add_annotations(
+  x = mid_point0_plot2,
+  y = 6350,
+  text = rpm_text_plot2_stage0,
+  showarrow = FALSE,
+  font = list(size = 9)
+)
+
+# Add annotations for other stages (excluding the last one in loop, handling separately)
+for(i in 2:(length(rpm_values2)-1)) {
+  if(i < length(time_points2) - 1) {
+    mid_point2 <- (time_points2[i] + time_points2[i+1]) / 2
+    
+    # Add stage annotation
+    plot_CT1_200_Watt <- plot_CT1_200_Watt %>% add_annotations(
+      x = mid_point2,
+      y = 6750,
+      text = paste("Stage:", rpm_values2[i], "rpm"),
+      showarrow = FALSE,
+      font = list(size = 10)
+    )
+    
+    # Add SS VO2 value as first line
+    if(!is.na(df_DT2_SS$VO2_SS[i])) {
+      vo2_text <- sprintf("V̇O<sub>2,SS</sub>: %.0f ml · min<sup>-1</sup>", df_DT2_SS$VO2_SS[i])
+      
+      plot_CT1_200_Watt <- plot_CT1_200_Watt %>% add_annotations(
+        x = mid_point2,
+        y = 6500,
+        text = vo2_text,
+        showarrow = FALSE,
+        font = list(size = 9)
+      )
+      
+      # Add Cadence avg value as second line
+      rpm_text <- sprintf("Cadence<sub>avg</sub>: %.0f rpm", df_DT2_SS$avg_rpm[i])
+      
+      plot_CT1_200_Watt <- plot_CT1_200_Watt %>% add_annotations(
+        x = mid_point2,
+        y = 6350,
+        text = rpm_text,
+        showarrow = FALSE,
+        font = list(size = 9)
+      )
+    }
+  }
+}
+
+# Add annotation for the last stage in Plot 2 (Stage 160 rpm) - CORRECTED POSITION
+last_stage_index2 <- length(rpm_values2)
+# Calculate mid-point with adjustment to move 180s left from previous position
+last_mid_point2 <- time_points2[last_stage_index2] + 90  # Position at middle of stage
+
+plot_CT1_200_Watt <- plot_CT1_200_Watt %>% add_annotations(
+  x = last_mid_point2,
+  y = 6750,
+  text = paste("Stage:", rpm_values2[last_stage_index2], "rpm"),
+  showarrow = FALSE,
+  font = list(size = 10)
+)
+
+if(!is.na(df_DT2_SS$VO2_SS[last_stage_index2])) {
+  vo2_text <- sprintf("V̇O<sub>2,SS</sub>: %.0f ml · min<sup>-1</sup>", df_DT2_SS$VO2_SS[last_stage_index2])
+  
+  plot_CT1_200_Watt <- plot_CT1_200_Watt %>% add_annotations(
+    x = last_mid_point2,
+    y = 6500,
+    text = vo2_text,
+    showarrow = FALSE,
+    font = list(size = 9)
+  )
+  
+  rpm_text <- sprintf("Cadence<sub>avg</sub>: %.0f rpm", df_DT2_SS$avg_rpm[last_stage_index2])
+  
+  plot_CT1_200_Watt <- plot_CT1_200_Watt %>% add_annotations(
+    x = last_mid_point2,
+    y = 6350,
+    text = rpm_text,
+    showarrow = FALSE,
+    font = list(size = 9)
+  )
+}
+
+# Display both plots
+plot_CT1_0_Watt 
+plot_CT1_200_Watt 
+##############################
+# Get first data point value for 0 Watt points
+first_point_0watt <- df_DT1_SS[1, ]
+first_vo2_0watt <- first_point_0watt$VO2_SS
+
+# Helper function to calculate R² for models with fixed intercept
+calculate_r_squared <- function(observed, predicted) {
+  ss_total <- sum((observed - mean(observed))^2)
+  ss_residual <- sum((observed - predicted)^2)
+  r_squared <- 1 - (ss_residual / ss_total)
+  return(r_squared)
+}
+
+# 1. Model: Cubic model with fixed y-intercept at first point
+# We fit to the actual data and then calculate how well our model predicts
+cubic_model <- function(rpm) {
+  return(coef_0watt_cubic * rpm^3 + first_vo2_0watt)
+}
+model_0watt_cubic <- lm(I(VO2_SS - first_vo2_0watt) ~ I(avg_rpm^3) - 1, data = df_DT1_SS)
+coef_0watt_cubic <- coef(model_0watt_cubic)[1]
+predicted_cubic <- cubic_model(df_DT1_SS$avg_rpm)
+r2_0watt_cubic <- round(calculate_r_squared(df_DT1_SS$VO2_SS, predicted_cubic), 4)
+
+# Complete equation: y = ax³ + y0
+eq_0watt_cubic <- sprintf("V̇O<sub>2,SS-0 Watt</sub> (Cadence) = %.6f·Cadence<sup>3</sup> + %.2f", 
+                          coef_0watt_cubic, first_vo2_0watt)
+
+# 2. Model: Cubic + Linear with fixed y-intercept at first point
+cubic_linear_model <- function(rpm) {
+  return(coef_0watt_cubic_linear[1] * rpm + coef_0watt_cubic_linear[2] * rpm^3 + first_vo2_0watt)
+}
+model_0watt_cubic_linear <- lm(I(VO2_SS - first_vo2_0watt) ~ I(avg_rpm) + I(avg_rpm^3) - 1, data = df_DT1_SS)
+coef_0watt_cubic_linear <- coef(model_0watt_cubic_linear)
+predicted_cubic_linear <- cubic_linear_model(df_DT1_SS$avg_rpm)
+r2_0watt_cubic_linear <- round(calculate_r_squared(df_DT1_SS$VO2_SS, predicted_cubic_linear), 4)
+
+# Complete equation: y = ax + bx³ + y0
+eq_0watt_cubic_linear <- sprintf("V̇O<sub>2,SS-0 Watt</sub> (Cadence) = %.2f·Cadence + %.6f·Cadence<sup>3</sup> + %.2f", 
+                                 coef_0watt_cubic_linear[1], coef_0watt_cubic_linear[2], first_vo2_0watt)
+
+# 3. Model: Parabolic function (y = ax² + bx + c) without constraints
+model_0watt_parabolic <- lm(VO2_SS ~ I(avg_rpm^2) + avg_rpm, data = df_DT1_SS)
+coef_0watt_parabolic <- coef(model_0watt_parabolic)
+r2_0watt_parabolic <- round(summary(model_0watt_parabolic)$r.squared, 4)
+
+# Complete equation: y = ax² + bx + c
+eq_0watt_parabolic <- sprintf("V̇O<sub>2,SS-0 Watt</sub> (Cadence) = %.6f·Cadence<sup>2</sup> + %.2f·Cadence + %.2f", 
+                              coef_0watt_parabolic[2], coef_0watt_parabolic[3], coef_0watt_parabolic[1])
+
+# Parabola model for 200 Watt points (y = ax² + bx + c)
+model_200watt <- lm(VO2_SS ~ I(avg_rpm^2) + avg_rpm, 
+                    data = df_DT2_SS[-c(1, 2, nrow(df_DT2_SS)), ])
+r2_200watt <- round(summary(model_200watt)$r.squared, 4)
+coef_200watt <- coef(model_200watt)
+eq_200watt <- sprintf("V̇O<sub>2,SS-200 Watt</sub> (Cadence) = %.2f·Cadence<sup>2</sup> + %.2f·Cadence + %.2f", 
+                      coef_200watt[2], coef_200watt[3], coef_200watt[1])
+
+# Create interpolation data with 0.1 step size (extended to 200 rpm)
+rpm_seq_fine <- seq(0, 200, by = 0.1)
+
+# Predictions for the three 0-Watt models
+# 1. Cubic model: y = ax³ + y0
+pred_0watt_cubic_fine <- coef_0watt_cubic * rpm_seq_fine^3 + first_vo2_0watt
+
+# 2. Cubic + Linear model: y = ax + bx³ + y0
+pred_0watt_cubic_linear_fine <- coef_0watt_cubic_linear[1] * rpm_seq_fine + 
+  coef_0watt_cubic_linear[2] * rpm_seq_fine^3 + 
+  first_vo2_0watt
+
+# 3. Parabolic model: y = ax² + bx + c
+pred_0watt_parabolic_fine <- coef_0watt_parabolic[2] * rpm_seq_fine^2 + 
+  coef_0watt_parabolic[3] * rpm_seq_fine + 
+  coef_0watt_parabolic[1]
+
+# Prediction for 200 Watt parabola model: y = ax² + bx + c
+pred_200watt_fine <- coef_200watt[2] * rpm_seq_fine^2 + coef_200watt[3] * rpm_seq_fine + coef_200watt[1]
+
+# Calculate three different CE values
+ce_values_cubic <- (pred_200watt_fine - pred_0watt_cubic_fine) / 200
+ce_values_cubic_linear <- (pred_200watt_fine - pred_0watt_cubic_linear_fine) / 200
+ce_values_parabolic <- (pred_200watt_fine - pred_0watt_parabolic_fine) / 200
+
+# Create Plotly figure with all requested modifications
+# Now using the fine-grained sequences for all model curves
+plot_CT1_VO2SS_CE_all <- plot_ly() %>%
+  # Data points for df_DT1_SS
+  add_trace(
+    data = df_DT1_SS, 
+    x = ~avg_rpm, 
+    y = ~VO2_SS, 
+    type = 'scatter', 
+    mode = 'markers',
+    name = "0 Watt", 
+    marker = list(color = '#1CADE4', size = 10),
+    yaxis = "y"
+  ) %>%
+  
+  # Model curve for 0 Watt (cubic) - with fine-grained points
+  add_trace(
+    x = rpm_seq_fine,
+    y = pred_0watt_cubic_fine,
+    type = 'scatter',
+    mode = 'lines',
+    name = "0 Watt (Cubic)",
+    line = list(color = '#1CADE4', dash = 'dash'),
+    yaxis = "y"
+  ) %>%
+  
+  # Model curve for 0 Watt (Cubic + Linear) - with fine-grained points
+  add_trace(
+    x = rpm_seq_fine,
+    y = pred_0watt_cubic_linear_fine,
+    type = 'scatter',
+    mode = 'lines',
+    name = "0 Watt (Cubic + Linear)",
+    line = list(color = '#0066A8', dash = 'dash'),
+    yaxis = "y"
+  ) %>%
+  
+  # Model curve for 0 Watt (parabolic) - with fine-grained points
+  add_trace(
+    x = rpm_seq_fine,
+    y = pred_0watt_parabolic_fine,
+    type = 'scatter',
+    mode = 'lines',
+    name = "0 Watt (Parabolic)",
+    line = list(color = '#003366', dash = 'dash'),
+    yaxis = "y"
+  ) %>%
+  
+  # Data points for df_DT2_SS (without 1st, 2nd and last rows)
+  add_trace(
+    data = df_DT2_SS[-c(1, 2, nrow(df_DT2_SS)), ], 
+    x = ~avg_rpm, 
+    y = ~VO2_SS, 
+    type = 'scatter', 
+    mode = 'markers',
+    name = "200 Watt", 
+    marker = list(color = '#EF5350', size = 10),
+    yaxis = "y"
+  ) %>%
+  
+  # Model curve for 200 Watt (parabola) - with fine-grained points
+  add_trace(
+    x = rpm_seq_fine,
+    y = pred_200watt_fine,
+    type = 'scatter',
+    mode = 'lines',
+    line = list(color = '#EF5350', dash = 'dash'),
+    showlegend = FALSE,
+    yaxis = "y"
+  ) %>%
+  
+  # CE curve 1 (cubic)
+  add_trace(
+    x = rpm_seq_fine,
+    y = ce_values_cubic,
+    type = 'scatter',
+    mode = 'lines',
+    name = "CE (Cubic)",
+    line = list(color = '#42BA97', dash = 'dash'),
+    hoverinfo = "text",
+    text = ~paste("Cadence:", rpm_seq_fine, "rpm<br>CE:", round(ce_values_cubic, 2), "ml·min<sup>-1</sup>·W<sup>-1</sup>"),
+    yaxis = "y2"
+  ) %>%
+  
+  # CE curve 2 (Cubic + Linear)
+  add_trace(
+    x = rpm_seq_fine,
+    y = ce_values_cubic_linear,
+    type = 'scatter',
+    mode = 'lines',
+    name = "CE (Cubic + Linear)",
+    line = list(color = '#2F8C6F', dash = 'dash'),
+    hoverinfo = "text",
+    text = ~paste("Cadence:", rpm_seq_fine, "rpm<br>CE:", round(ce_values_cubic_linear, 2), "ml·min<sup>-1</sup>·W<sup>-1</sup>"),
+    yaxis = "y2"
+  ) %>%
+  
+  # CE curve 3 (parabolic)
+  add_trace(
+    x = rpm_seq_fine,
+    y = ce_values_parabolic,
+    type = 'scatter',
+    mode = 'lines',
+    name = "CE (Parabolic)",
+    line = list(color = '#1A5F47', dash = 'dash'),
+    hoverinfo = "text",
+    text = ~paste("Cadence:", rpm_seq_fine, "rpm<br>CE:", round(ce_values_parabolic, 2), "ml·min<sup>-1</sup>·W<sup>-1</sup>"),
+    yaxis = "y2"
+  ) %>%
+  
+  # Data points for 1st, 2nd and last row of df_DT2_SS with opacity
+  add_trace(
+    data = df_DT2_SS[c(1, 2, nrow(df_DT2_SS)), ], 
+    x = ~avg_rpm, 
+    y = ~VO2_SS, 
+    type = 'scatter', 
+    mode = 'markers',
+    showlegend = FALSE, 
+    name = "200 Watt", 
+    marker = list(color = '#EF5350', size = 10, opacity = 0.5),
+    yaxis = "y"
+  ) %>%
+  
+  # Layout with equations and R² as annotations left-aligned below the legend
+  layout(
+    margin = list(t = 40, b = 60, l = 60, r = 60), 
+    title = "Cadence-Tests: V̇O<sub>2,SS</sub> x Cadence + Cycling Efficiency",
+    xaxis = list(
+      title = "Cadence [rpm]", 
+      range = c(0, 200), 
+      tickvals = seq(0, 200, 20)
+    ),
+    yaxis = list(
+      title = "V̇O<sub>2</sub> [ml · min<sup>-1</sup>]", 
+      range = c(0, 7000), 
+      tickvals = seq(0, 7000, 1000),
+      tickformat = '.0f',
+      side = "left"
+    ),
+    yaxis2 = list(
+      title = "CE [ml · min<sup>-1</sup> · W<sup>-1</sup>]",
+      range = c(0, 21),
+      tickvals = seq(0, 21, 3),
+      tickformat = '.0f',
+      overlaying = "y",
+      side = "right"
+    ),
+    showlegend = TRUE,
+    legend = list(
+      x = 0.09,
+      y = 1.00,
+      xanchor = "left",
+      yanchor = "top",
+      bgcolor = "rgba(255, 255, 255, 0.0)"
+    ),
+    annotations = list(
+      # 0 Watt Model 1 (Cubic)
+      list(
+        x = 0.25,
+        y = 6000 + 800,
+        text = eq_0watt_cubic,
+        showarrow = FALSE,
+        font = list(color = '#1CADE4'),
+        xref = "paper",
+        xanchor = "left",
+        align = "left",
+        yref = "y"
+      ),
+      list(
+        x = 0.25,
+        y = 5700 + 800,
+        text = paste("R<sup>2</sup> =", r2_0watt_cubic),
+        showarrow = FALSE,
+        font = list(color = '#1CADE4'),
+        xref = "paper",
+        xanchor = "left",
+        align = "left",
+        yref = "y"
+      ),
+      
+      # 0 Watt Model 2 (Cubic + Linear)
+      list(
+        x = 0.25,
+        y = 5400 + 800,
+        text = eq_0watt_cubic_linear,
+        showarrow = FALSE,
+        font = list(color = '#0066A8'),
+        xref = "paper",
+        xanchor = "left",
+        align = "left",
+        yref = "y"
+      ),
+      list(
+        x = 0.25,
+        y = 5100 + 800,
+        text = paste("R<sup>2</sup> =", r2_0watt_cubic_linear),
+        showarrow = FALSE,
+        font = list(color = '#0066A8'),
+        xref = "paper",
+        xanchor = "left",
+        align = "left",
+        yref = "y"
+      ),
+      
+      # 0 Watt Model 3 (Parabolic)
+      list(
+        x = 0.25,
+        y = 4800 + 800,
+        text = eq_0watt_parabolic,
+        showarrow = FALSE,
+        font = list(color = '#003366'),
+        xref = "paper",
+        xanchor = "left",
+        align = "left",
+        yref = "y"
+      ),
+      list(
+        x = 0.25,
+        y = 4500 + 800,
+        text = paste("R<sup>2</sup> =", r2_0watt_parabolic),
+        showarrow = FALSE,
+        font = list(color = '#003366'),
+        xref = "paper",
+        xanchor = "left",
+        align = "left",
+        yref = "y"
+      ),
+      
+      # 200 Watt Model annotations
+      list(
+        x = 0.25,
+        y = 4200 + 800,
+        text = eq_200watt,
+        showarrow = FALSE,
+        font = list(color = '#EF5350'),
+        xref = "paper",
+        xanchor = "left",
+        align = "left",
+        yref = "y"
+      ),
+      list(
+        x = 0.25,
+        y = 3900 + 800,
+        text = paste("R<sup>2</sup> =", r2_200watt),
+        showarrow = FALSE,
+        font = list(color = '#EF5350'),
+        xref = "paper",
+        xanchor = "left",
+        align = "left",
+        yref = "y"
+      ),
+      
+      # CE curve annotation
+      list(
+        x = 0.25,
+        y = 3600 + 800,
+        text = "CE = V̇O<sub>2,Diff</sub> / 200W",
+        showarrow = FALSE,
+        font = list(color = '#42BA97'),
+        xref = "paper",
+        xanchor = "left",
+        align = "left",
+        yref = "y"
+      )
+    )
+  )
+
+# Display plot
+plot_CT1_VO2SS_CE_all
+
+#####################################
+# Get first data point value for 0 Watt points
+first_point_0watt <- df_DT1_SS[1, ]
+first_vo2_0watt <- first_point_0watt$VO2_SS
+
+# Helper function to calculate R² for models with fixed intercept
+calculate_r_squared <- function(observed, predicted) {
+  ss_total <- sum((observed - mean(observed))^2)
+  ss_residual <- sum((observed - predicted)^2)
+  r_squared <- 1 - (ss_residual / ss_total)
+  return(r_squared)
+}
+
+# Only keeping the Cubic + Linear model with fixed y-intercept at first point
+cubic_linear_model <- function(rpm) {
+  return(coef_0watt_cubic_linear[1] * rpm + coef_0watt_cubic_linear[2] * rpm^3 + first_vo2_0watt)
+}
+model_0watt_cubic_linear <- lm(I(VO2_SS - first_vo2_0watt) ~ I(avg_rpm) + I(avg_rpm^3) - 1, data = df_DT1_SS)
+coef_0watt_cubic_linear <- coef(model_0watt_cubic_linear)
+predicted_cubic_linear <- cubic_linear_model(df_DT1_SS$avg_rpm)
+r2_0watt_cubic_linear <- round(calculate_r_squared(df_DT1_SS$VO2_SS, predicted_cubic_linear), 4)
+
+# Complete equation: y = ax + bx³ + y0
+eq_0watt_cubic_linear <- sprintf("V̇O<sub>2,SS-0 Watt</sub> (Cadence) = %.2f·Cadence + %.6f·Cadence<sup>3</sup> + %.2f", 
+                                 coef_0watt_cubic_linear[1], coef_0watt_cubic_linear[2], first_vo2_0watt)
+
+# Parabola model for 200 Watt points (y = ax² + bx + c)
+model_200watt <- lm(VO2_SS ~ I(avg_rpm^2) + avg_rpm, 
+                    data = df_DT2_SS[-c(1, 2, nrow(df_DT2_SS)), ])
+r2_200watt <- round(summary(model_200watt)$r.squared, 4)
+coef_200watt <- coef(model_200watt)
+eq_200watt <- sprintf("V̇O<sub>2,SS-200 Watt</sub> (Cadence) = %.2f·Cadence<sup>2</sup> + %.2f·Cadence + %.2f", 
+                      coef_200watt[2], coef_200watt[3], coef_200watt[1])
+
+# Create interpolation data with 0.1 step size (extended to 200 rpm)
+rpm_seq_fine <- seq(0, 200, by = 0.1)
+
+# 2. Cubic + Linear model: y = ax + bx³ + y0
+pred_0watt_cubic_linear_fine <- coef_0watt_cubic_linear[1] * rpm_seq_fine + 
+  coef_0watt_cubic_linear[2] * rpm_seq_fine^3 + 
+  first_vo2_0watt
+
+# Prediction for 200 Watt parabola model: y = ax² + bx + c
+pred_200watt_fine <- coef_200watt[2] * rpm_seq_fine^2 + coef_200watt[3] * rpm_seq_fine + coef_200watt[1]
+
+# Calculate only the CE value for Cubic + Linear model
+ce_values_cubic_linear <- (pred_200watt_fine - pred_0watt_cubic_linear_fine) / 200
+
+# Create Plotly figure with just the Cubic + Linear model for 0 Watt
+plot_CT1_VO2SS_CE_cubic_linear <- plot_ly() %>%
+  # Data points for df_DT1_SS
+  add_trace(
+    data = df_DT1_SS, 
+    x = ~avg_rpm, 
+    y = ~VO2_SS, 
+    type = 'scatter', 
+    mode = 'markers',
+    name = "0 Watt", 
+    marker = list(color = '#1CADE4', size = 10),
+    yaxis = "y"
+  ) %>%
+  
+  # Model curve for 0 Watt (Cubic + Linear) - with fine-grained points
+  add_trace(
+    x = rpm_seq_fine,
+    y = pred_0watt_cubic_linear_fine,
+    type = 'scatter',
+    mode = 'lines',
+    name = "0 Watt (Cubic + Linear)",
+    line = list(color = '#0066A8', dash = 'dash'),
+    yaxis = "y"
+  ) %>%
+  
+  # Data points for df_DT2_SS (without 1st, 2nd and last rows)
+  add_trace(
+    data = df_DT2_SS[-c(1, 2, nrow(df_DT2_SS)), ], 
+    x = ~avg_rpm, 
+    y = ~VO2_SS, 
+    type = 'scatter', 
+    mode = 'markers',
+    name = "200 Watt", 
+    marker = list(color = '#EF5350', size = 10),
+    yaxis = "y"
+  ) %>%
+  
+  # Model curve for 200 Watt (parabola) - with fine-grained points
+  add_trace(
+    x = rpm_seq_fine,
+    y = pred_200watt_fine,
+    type = 'scatter',
+    mode = 'lines',
+    name = "200 Watt (Cubic + Linear)",
+    line = list(color = '#EF5350', dash = 'dash'),
+    showlegend = TRUE,
+    yaxis = "y"
+  ) %>%
+  
+  # CE curve for Cubic + Linear only
+  add_trace(
+    x = rpm_seq_fine,
+    y = ce_values_cubic_linear,
+    type = 'scatter',
+    mode = 'lines',
+    name = "CE",
+    line = list(color = '#2F8C6F', dash = 'dash'),
+    hoverinfo = "text",
+    text = ~paste("Cadence:", rpm_seq_fine, "rpm<br>CE:", round(ce_values_cubic_linear, 2), "ml·min<sup>-1</sup>·W<sup>-1</sup>"),
+    yaxis = "y2"
+  ) %>%
+  
+  # Data points for 1st, 2nd and last row of df_DT2_SS with opacity
+  add_trace(
+    data = df_DT2_SS[c(1, 2, nrow(df_DT2_SS)), ], 
+    x = ~avg_rpm, 
+    y = ~VO2_SS, 
+    type = 'scatter', 
+    mode = 'markers',
+    showlegend = FALSE, 
+    name = "200 Watt", 
+    marker = list(color = '#EF5350', size = 10, opacity = 0.5),
+    yaxis = "y"
+  ) %>%
+  
+  # Layout with equations and R² as annotations left-aligned below the legend
+  layout(
+    margin = list(t = 40, b = 60, l = 60, r = 60), 
+    title = "Cadence-Tests: V̇O<sub>2,SS</sub> x Cadence + Cycling Efficiency",
+    xaxis = list(
+      title = "Cadence [rpm]", 
+      range = c(0, 200), 
+      tickvals = seq(0, 200, 20)
+    ),
+    yaxis = list(
+      title = "V̇O<sub>2</sub> [ml · min<sup>-1</sup>]", 
+      range = c(0, 7000), 
+      tickvals = seq(0, 7000, 1000),
+      tickformat = '.0f',
+      side = "left"
+    ),
+    yaxis2 = list(
+      title = "CE [ml · min<sup>-1</sup> · W<sup>-1</sup>]",
+      range = c(0, 21),
+      tickvals = seq(0, 21, 3),
+      tickformat = '.0f',
+      overlaying = "y",
+      side = "right"
+    ),
+    showlegend = TRUE,
+    legend = list(
+      x = 0.03,
+      y = 1.00,
+      xanchor = "left",
+      yanchor = "top",
+      bgcolor = "rgba(255, 255, 255, 0.0)"
+    ),
+    annotations = list(
+      # 0 Watt Model 2 (Cubic + Linear)
+      list(
+        x = 0.20,
+        y = 6000 + 800,
+        text = eq_0watt_cubic_linear,
+        showarrow = FALSE,
+        font = list(color = '#0066A8'),
+        xref = "paper",
+        xanchor = "left",
+        align = "left",
+        yref = "y"
+      ),
+      list(
+        x = 0.20,
+        y = 5700 + 800,
+        text = paste("R<sup>2</sup> =", r2_0watt_cubic_linear),
+        showarrow = FALSE,
+        font = list(color = '#0066A8'),
+        xref = "paper",
+        xanchor = "left",
+        align = "left",
+        yref = "y"
+      ),
+      
+      # 200 Watt Model annotations
+      list(
+        x = 0.20,
+        y = 5300 + 800,
+        text = eq_200watt,
+        showarrow = FALSE,
+        font = list(color = '#EF5350'),
+        xref = "paper",
+        xanchor = "left",
+        align = "left",
+        yref = "y"
+      ),
+      list(
+        x = 0.20,
+        y = 5000 + 800,
+        text = paste("R<sup>2</sup> =", r2_200watt),
+        showarrow = FALSE,
+        font = list(color = '#EF5350'),
+        xref = "paper",
+        xanchor = "left",
+        align = "left",
+        yref = "y"
+      ),
+      
+      # CE curve annotation
+      list(
+        x = 0.20,
+        y = 4600 + 800,
+        text = "CE = V̇O<sub>2,Diff</sub> / 200W",
+        showarrow = FALSE,
+        font = list(color = '#2F8C6F'),
+        xref = "paper",
+        xanchor = "left",
+        align = "left",
+        yref = "y"
+      )
+    )
+  )
+
+# Display plot
+plot_CT1_VO2SS_CE_cubic_linear
+
+#####################################
+# Get first data point value for 0 Watt points
+first_point_0watt <- df_DT1_SS[1, ]
+first_vo2_0watt <- first_point_0watt$VO2_SS
+
+# Helper function to calculate R² for models with fixed intercept
+calculate_r_squared <- function(observed, predicted) {
+  ss_total <- sum((observed - mean(observed))^2)
+  ss_residual <- sum((observed - predicted)^2)
+  r_squared <- 1 - (ss_residual / ss_total)
+  return(r_squared)
+}
+
+# Only keeping the Cubic + Linear model with fixed y-intercept at first point
+cubic_linear_model <- function(rpm) {
+  return(coef_0watt_cubic_linear[1] * rpm + coef_0watt_cubic_linear[2] * rpm^3 + first_vo2_0watt)
+}
+model_0watt_cubic_linear <- lm(I(VO2_SS - first_vo2_0watt) ~ I(avg_rpm) + I(avg_rpm^3) - 1, data = df_DT1_SS)
+coef_0watt_cubic_linear <- coef(model_0watt_cubic_linear)
+predicted_cubic_linear <- cubic_linear_model(df_DT1_SS$avg_rpm)
+r2_0watt_cubic_linear <- round(calculate_r_squared(df_DT1_SS$VO2_SS, predicted_cubic_linear), 4)
+
+# Complete equation: y = ax + bx³ + y0
+eq_0watt_cubic_linear <- sprintf("V̇O<sub>2,SS-0 Watt</sub> (Cadence) = %.2f·Cadence + %.6f·Cadence<sup>3</sup> + %.2f", 
+                                 coef_0watt_cubic_linear[1], coef_0watt_cubic_linear[2], first_vo2_0watt)
+
+# NEUE MODELLFUNKTION: Kubisches Modell (y = ax³ + bx + c) für 200 Watt
+model_200watt_cubic <- lm(VO2_SS ~ I(avg_rpm^3) + avg_rpm, 
+                          data = df_DT2_SS[-c(1, 2, nrow(df_DT2_SS)), ])
+r2_200watt_cubic <- round(summary(model_200watt_cubic)$r.squared, 4)
+coef_200watt_cubic <- coef(model_200watt_cubic)
+eq_200watt_cubic <- sprintf("V̇O<sub>2,SS-200 Watt</sub> (Cadence) = %.6f·Cadence<sup>3</sup> + %.2f·Cadence + %.2f", 
+                            coef_200watt_cubic[2], coef_200watt_cubic[3], coef_200watt_cubic[1])
+
+# Create interpolation data with 0.1 step size (extended to 200 rpm)
+rpm_seq_fine <- seq(0, 200, by = 0.1)
+
+# 2. Cubic + Linear model: y = ax + bx³ + y0
+pred_0watt_cubic_linear_fine <- coef_0watt_cubic_linear[1] * rpm_seq_fine + 
+  coef_0watt_cubic_linear[2] * rpm_seq_fine^3 + 
+  first_vo2_0watt
+
+# Prediction für das neue 200 Watt kubische Modell: y = ax³ + bx + c
+pred_200watt_cubic_fine <- coef_200watt_cubic[2] * rpm_seq_fine^3 + 
+  coef_200watt_cubic[3] * rpm_seq_fine + 
+  coef_200watt_cubic[1]
+
+# Calculate CE value for the new cubic model
+ce_values_new_cubic <- (pred_200watt_cubic_fine - pred_0watt_cubic_linear_fine) / 200
+
+# Create Plotly figure with just the Cubic + Linear model for 0 Watt
+plot_CT1_VO2SS_CE_cubic_cubic <- plot_ly() %>%
+  # Data points for df_DT1_SS
+  add_trace(
+    data = df_DT1_SS, 
+    x = ~avg_rpm, 
+    y = ~VO2_SS, 
+    type = 'scatter', 
+    mode = 'markers',
+    name = "0 Watt", 
+    marker = list(color = '#1CADE4', size = 10),
+    yaxis = "y"
+  ) %>%
+  
+  # Model curve for 0 Watt (Cubic + Linear) - with fine-grained points
+  add_trace(
+    x = rpm_seq_fine,
+    y = pred_0watt_cubic_linear_fine,
+    type = 'scatter',
+    mode = 'lines',
+    name = "0 Watt (Cubic + Linear)",
+    line = list(color = '#0066A8', dash = 'dash'),
+    yaxis = "y"
+  ) %>%
+  
+  # Data points for df_DT2_SS (without 1st, 2nd and last rows)
+  add_trace(
+    data = df_DT2_SS[-c(1, 2, nrow(df_DT2_SS)), ], 
+    x = ~avg_rpm, 
+    y = ~VO2_SS, 
+    type = 'scatter', 
+    mode = 'markers',
+    name = "200 Watt", 
+    marker = list(color = '#EF5350', size = 10),
+    yaxis = "y"
+  ) %>%
+  
+  # NEU: Model curve for 200 Watt (Cubic) - mit gestrichelter Linie in einem anderen Rotton
+  add_trace(
+    x = rpm_seq_fine,
+    y = pred_200watt_cubic_fine,
+    type = 'scatter',
+    mode = 'lines',
+    name = "200 Watt (Cubic)",
+    line = list(color = '#9C0F5F', dash = 'dash'),
+    showlegend = TRUE,
+    yaxis = "y"
+  ) %>%
+  
+  # NEU: CE curve für das neue kubische Modell in einem anderen Grünton
+  add_trace(
+    x = rpm_seq_fine,
+    y = ce_values_new_cubic,
+    type = 'scatter',
+    mode = 'lines',
+    name = "CE (Cubic)",
+    line = list(color = '#00563F', dash = 'dash'),
+    hoverinfo = "text",
+    text = ~paste("Cadence:", rpm_seq_fine, "rpm<br>CE:", round(ce_values_new_cubic, 2), "ml·min<sup>-1</sup>·W<sup>-1</sup>"),
+    yaxis = "y2"
+  ) %>%
+  
+  # Data points for 1st, 2nd and last row of df_DT2_SS with opacity
+  add_trace(
+    data = df_DT2_SS[c(1, 2, nrow(df_DT2_SS)), ], 
+    x = ~avg_rpm, 
+    y = ~VO2_SS, 
+    type = 'scatter', 
+    mode = 'markers',
+    showlegend = FALSE, 
+    name = "200 Watt", 
+    marker = list(color = '#EF5350', size = 10, opacity = 0.5),
+    yaxis = "y"
+  ) %>%
+  
+  # Layout with equations and R² as annotations left-aligned below the legend
+  layout(
+    margin = list(t = 40, b = 60, l = 60, r = 60), 
+    title = "Cadence-Tests: V̇O<sub>2,SS</sub> x Cadence + Cycling Efficiency",
+    xaxis = list(
+      title = "Cadence [rpm]", 
+      range = c(0, 200), 
+      tickvals = seq(0, 200, 20)
+    ),
+    yaxis = list(
+      title = "V̇O<sub>2</sub> [ml · min<sup>-1</sup>]", 
+      range = c(0, 7000), 
+      tickvals = seq(0, 7000, 1000),
+      tickformat = '.0f',
+      side = "left"
+    ),
+    yaxis2 = list(
+      title = "CE [ml · min<sup>-1</sup> · W<sup>-1</sup>]",
+      range = c(0, 21),
+      tickvals = seq(0, 21, 3),
+      tickformat = '.0f',
+      overlaying = "y",
+      side = "right"
+    ),
+    showlegend = TRUE,
+    legend = list(
+      x = 0.03,
+      y = 1.00,
+      xanchor = "left",
+      yanchor = "top",
+      bgcolor = "rgba(255, 255, 255, 0.0)"
+    ),
+    annotations = list(
+      # 0 Watt Model 2 (Cubic + Linear)
+      list(
+        x = 0.20,
+        y = 6000 + 800,
+        text = eq_0watt_cubic_linear,
+        showarrow = FALSE,
+        font = list(color = '#0066A8'),
+        xref = "paper",
+        xanchor = "left",
+        align = "left",
+        yref = "y"
+      ),
+      list(
+        x = 0.20,
+        y = 5700 + 800,
+        text = paste("R<sup>2</sup> =", r2_0watt_cubic_linear),
+        showarrow = FALSE,
+        font = list(color = '#0066A8'),
+        xref = "paper",
+        xanchor = "left",
+        align = "left",
+        yref = "y"
+      ),
+      
+      # NEU: 200 Watt Cubic Model Annotations
+      list(
+        x = 0.20,
+        y = 5300 + 800,
+        text = eq_200watt_cubic,
+        showarrow = FALSE,
+        font = list(color = '#9C0F5F'),
+        xref = "paper",
+        xanchor = "left",
+        align = "left",
+        yref = "y"
+      ),
+      list(
+        x = 0.20,
+        y = 5000 + 800,
+        text = paste("R<sup>2</sup> =", r2_200watt_cubic),
+        showarrow = FALSE,
+        font = list(color = '#9C0F5F'),
+        xref = "paper",
+        xanchor = "left",
+        align = "left",
+        yref = "y"
+      ),
+      
+      # CE curve annotation
+      list(
+        x = 0.20,
+        y = 4600 + 800,
+        text = "CE = V̇O<sub>2,Diff</sub> / 200W",
+        showarrow = FALSE,
+        font = list(color = '#00563F'),
+        xref = "paper",
+        xanchor = "left",
+        align = "left",
+        yref = "y"
+      )
+    )
+  )
+
+# Display plot
+plot_CT1_VO2SS_CE_cubic_cubic
+
+#######################################
+df_CT_SS_2 <- readRDS(file = "C:/Users/johan/OneDrive/Desktop/SpoWi/MetabolicAnalytics-Apps.github.io/rds/df_CT_SS_2.rds")
+
+# Get first data point value for 0 Watt points
+first_point_0watt <- df_DT1_SS[1, ]
+first_vo2_0watt <- first_point_0watt$VO2_SS
+
+# Helper function to calculate R² for models with fixed intercept
+calculate_r_squared <- function(observed, predicted) {
+  ss_total <- sum((observed - mean(observed))^2)
+  ss_residual <- sum((observed - predicted)^2)
+  r_squared <- 1 - (ss_residual / ss_total)
+  return(r_squared)
+}
+
+# Rename df_CT_SS_2 columns to match df_DT1_SS and df_DT2_SS
+df_CT_SS_2_renamed <- df_CT_SS_2 %>%
+  rename(
+    avg_rpm = avg_cadence,
+    VO2_SS = min_vo2
+  )
+
+# Manuell avg_rpm bei rpm = 140 auf 140 setzen
+df_CT_SS_2_renamed$avg_rpm[df_CT_SS_2_renamed$rpm == 140] <- 140
+df_CT_SS_2_renamed$avg_rpm[df_CT_SS_2_renamed$rpm == 40] <- 40
+
+# Nach avg_rpm sortieren
+df_CT_SS_2_renamed <- df_CT_SS_2_renamed %>%
+  arrange(avg_rpm)
+
+# Only keeping the Cubic + Linear model with fixed y-intercept at first point
+cubic_linear_model <- function(rpm) {
+  return(coef_0watt_cubic_linear[1] * rpm + coef_0watt_cubic_linear[2] * rpm^3 + first_vo2_0watt)
+}
+model_0watt_cubic_linear <- lm(I(VO2_SS - first_vo2_0watt) ~ I(avg_rpm) + I(avg_rpm^3) - 1, data = df_DT1_SS)
+coef_0watt_cubic_linear <- coef(model_0watt_cubic_linear)
+predicted_cubic_linear <- cubic_linear_model(df_DT1_SS$avg_rpm)
+r2_0watt_cubic_linear <- round(calculate_r_squared(df_DT1_SS$VO2_SS, predicted_cubic_linear), 4)
+
+# Complete equation: y = ax + bx³ + y0
+eq_0watt_cubic_linear <- sprintf("V̇O<sub>2,SS-0 Watt</sub> (Cadence) = %.2f·Cadence + %.6f·Cadence<sup>3</sup> + %.2f", 
+                                 coef_0watt_cubic_linear[1], coef_0watt_cubic_linear[2], first_vo2_0watt)
+
+# NEUE MODELLFUNKTION: Kubisches Modell (y = ax³ + bx + c) für 200 Watt
+model_200watt_cubic <- lm(VO2_SS ~ I(avg_rpm^3) + avg_rpm, 
+                          data = df_DT2_SS[-c(1, 2, nrow(df_DT2_SS)), ])
+r2_200watt_cubic <- round(summary(model_200watt_cubic)$r.squared, 4)
+coef_200watt_cubic <- coef(model_200watt_cubic)
+eq_200watt_cubic <- sprintf("V̇O<sub>2,SS-200 Watt</sub> (Cadence) = %.6f·Cadence<sup>3</sup> + %.2f·Cadence + %.2f", 
+                            coef_200watt_cubic[2], coef_200watt_cubic[3], coef_200watt_cubic[1])
+
+# NEU: Kubisches + Lineares Modell (y = ax³ + bx + c) für 100 Watt (df_CT_SS_2)
+model_100watt_cubic <- lm(VO2_SS ~ I(avg_rpm^3) + avg_rpm, 
+                          data = df_CT_SS_2_renamed)
+r2_100watt_cubic <- round(summary(model_100watt_cubic)$r.squared, 4)
+coef_100watt_cubic <- coef(model_100watt_cubic)
+eq_100watt_cubic <- sprintf("V̇O<sub>2,SS-100 Watt</sub> (Cadence) = %.6f·Cadence<sup>3</sup> + %.2f·Cadence + %.2f", 
+                            coef_100watt_cubic[2], coef_100watt_cubic[3], coef_100watt_cubic[1])
+
+# Create interpolation data with 0.1 step size (extended to 200 rpm)
+rpm_seq_fine <- seq(0, 200, by = 0.1)
+
+# 2. Cubic + Linear model: y = ax + bx³ + y0
+pred_0watt_cubic_linear_fine <- coef_0watt_cubic_linear[1] * rpm_seq_fine + 
+  coef_0watt_cubic_linear[2] * rpm_seq_fine^3 + 
+  first_vo2_0watt
+
+# Prediction für das neue 200 Watt kubische Modell: y = ax³ + bx + c
+pred_200watt_cubic_fine <- coef_200watt_cubic[2] * rpm_seq_fine^3 + 
+  coef_200watt_cubic[3] * rpm_seq_fine + 
+  coef_200watt_cubic[1]
+
+# NEU: Prediction für das 100 Watt kubische Modell: y = ax³ + bx + c
+pred_100watt_cubic_fine <- coef_100watt_cubic[2] * rpm_seq_fine^3 + 
+  coef_100watt_cubic[3] * rpm_seq_fine + 
+  coef_100watt_cubic[1]
+
+# Calculate CE values für 100W und 200W
+ce_values_200watt <- (pred_200watt_cubic_fine - pred_0watt_cubic_linear_fine) / 200
+ce_values_100watt <- (pred_100watt_cubic_fine - pred_0watt_cubic_linear_fine) / 100
+
+# NEU: Gemeinsame CE-Funktion als Mittelwert der beiden CE-Werte
+ce_values_combined <- (ce_values_200watt + ce_values_100watt) / 2
+
+# Create Plotly figure with just the Cubic + Linear model for 0 Watt
+plot_CT2_VO2SS_CE_cubic_cubic <- plot_ly() %>%
+  # Data points for df_DT1_SS
+  add_trace(
+    data = df_DT1_SS, 
+    x = ~avg_rpm, 
+    y = ~VO2_SS, 
+    type = 'scatter', 
+    mode = 'markers',
+    name = "0 Watt", 
+    marker = list(color = '#1CADE4', size = 10),
+    yaxis = "y"
+  ) %>%
+  
+  # Model curve for 0 Watt (Cubic + Linear) - with fine-grained points
+  add_trace(
+    x = rpm_seq_fine,
+    y = pred_0watt_cubic_linear_fine,
+    type = 'scatter',
+    mode = 'lines',
+    name = "0 Watt (Cubic + Linear)",
+    line = list(color = '#0066A8', dash = 'dash'),
+    yaxis = "y"
+  ) %>%
+  
+  # NEU: Data points for df_CT_SS_2_renamed (100 Watt)
+  add_trace(
+    data = df_CT_SS_2_renamed, 
+    x = ~avg_rpm, 
+    y = ~VO2_SS, 
+    type = 'scatter', 
+    mode = 'markers',
+    name = "100 Watt", 
+    marker = list(color = '#9C27B0', size = 10),
+    yaxis = "y"
+  ) %>%
+  
+  # NEU: Model curve for 100 Watt (Cubic) - mit einer Linie in Lila
+  add_trace(
+    x = rpm_seq_fine,
+    y = pred_100watt_cubic_fine,
+    type = 'scatter',
+    mode = 'lines',
+    name = "100 Watt (Cubic)",
+    line = list(color = '#9C27B0', dash = 'dash'),
+    showlegend = TRUE,
+    yaxis = "y"
+  ) %>%
+  
+  # Data points for df_DT2_SS (without 1st, 2nd and last rows)
+  add_trace(
+    data = df_DT2_SS[-c(1, 2, nrow(df_DT2_SS)), ], 
+    x = ~avg_rpm, 
+    y = ~VO2_SS, 
+    type = 'scatter', 
+    mode = 'markers',
+    name = "200 Watt", 
+    marker = list(color = '#EF5350', size = 10),
+    yaxis = "y"
+  ) %>%
+  
+  # Model curve for 200 Watt (Cubic) - mit gestrichelter Linie in einem anderen Rotton
+  add_trace(
+    x = rpm_seq_fine,
+    y = pred_200watt_cubic_fine,
+    type = 'scatter',
+    mode = 'lines',
+    name = "200 Watt (Cubic)",
+    line = list(color = '#9C0F5F', dash = 'dash'),
+    showlegend = TRUE,
+    yaxis = "y"
+  ) %>%
+  
+  # GEÄNDERT: Gemeinsame CE-Kurve als Mittelwert
+  add_trace(
+    x = rpm_seq_fine,
+    y = ce_values_combined,
+    type = 'scatter',
+    mode = 'lines',
+    name = "CE (Combined)",
+    line = list(color = '#00563F', dash = 'dash'),
+    hoverinfo = "text",
+    text = ~paste("Cadence:", rpm_seq_fine, "rpm<br>CE:", round(ce_values_combined, 2), "ml·min<sup>-1</sup>·W<sup>-1</sup>"),
+    yaxis = "y2"
+  ) %>%
+  
+  # Data points for 1st, 2nd and last row of df_DT2_SS with opacity
+  add_trace(
+    data = df_DT2_SS[c(1, 2, nrow(df_DT2_SS)), ], 
+    x = ~avg_rpm, 
+    y = ~VO2_SS, 
+    type = 'scatter', 
+    mode = 'markers',
+    showlegend = FALSE, 
+    name = "200 Watt", 
+    marker = list(color = '#EF5350', size = 10, opacity = 0.5),
+    yaxis = "y"
+  ) %>%
+  
+  # Layout with equations and R² as annotations left-aligned below the legend
+  layout(
+    margin = list(t = 40, b = 60, l = 60, r = 60), 
+    title = "Cadence-Tests: V̇O<sub>2,SS</sub> x Cadence + Cycling Efficiency",
+    xaxis = list(
+      title = "Cadence [rpm]", 
+      range = c(0, 200), 
+      tickvals = seq(0, 200, 20)
+    ),
+    yaxis = list(
+      title = "V̇O<sub>2</sub> [ml · min<sup>-1</sup>]", 
+      range = c(0, 7000), 
+      tickvals = seq(0, 7000, 1000),
+      tickformat = '.0f',
+      side = "left"
+    ),
+    yaxis2 = list(
+      title = "CE [ml · min<sup>-1</sup> · W<sup>-1</sup>]",
+      range = c(0, 21),
+      tickvals = seq(0, 21, 3),
+      tickformat = '.0f',
+      overlaying = "y",
+      side = "right"
+    ),
+    showlegend = TRUE,
+    legend = list(
+      x = 0.03,
+      y = 1.00,
+      xanchor = "left",
+      yanchor = "top",
+      bgcolor = "rgba(255, 255, 255, 0.0)"
+    ),
+    annotations = list(
+      # 0 Watt Model 2 (Cubic + Linear)
+      list(
+        x = 0.20,
+        y = 6000 + 800,
+        text = eq_0watt_cubic_linear,
+        showarrow = FALSE,
+        font = list(color = '#0066A8'),
+        xref = "paper",
+        xanchor = "left",
+        align = "left",
+        yref = "y"
+      ),
+      list(
+        x = 0.20,
+        y = 5700 + 800,
+        text = paste("R<sup>2</sup> =", r2_0watt_cubic_linear),
+        showarrow = FALSE,
+        font = list(color = '#0066A8'),
+        xref = "paper",
+        xanchor = "left",
+        align = "left",
+        yref = "y"
+      ),
+      
+      # NEU: 100 Watt Cubic Model Annotations
+      list(
+        x = 0.20,
+        y = 5400 + 800,
+        text = eq_100watt_cubic,
+        showarrow = FALSE,
+        font = list(color = '#9C27B0'),
+        xref = "paper",
+        xanchor = "left",
+        align = "left",
+        yref = "y"
+      ),
+      list(
+        x = 0.20,
+        y = 5100 + 800,
+        text = paste("R<sup>2</sup> =", r2_100watt_cubic),
+        showarrow = FALSE,
+        font = list(color = '#9C27B0'),
+        xref = "paper",
+        xanchor = "left",
+        align = "left",
+        yref = "y"
+      ),
+      
+      # 200 Watt Cubic Model Annotations
+      list(
+        x = 0.20,
+        y = 4800 + 800,
+        text = eq_200watt_cubic,
+        showarrow = FALSE,
+        font = list(color = '#9C0F5F'),
+        xref = "paper",
+        xanchor = "left",
+        align = "left",
+        yref = "y"
+      ),
+      list(
+        x = 0.20,
+        y = 4500 + 800,
+        text = paste("R<sup>2</sup> =", r2_200watt_cubic),
+        showarrow = FALSE,
+        font = list(color = '#9C0F5F'),
+        xref = "paper",
+        xanchor = "left",
+        align = "left",
+        yref = "y"
+      ),
+      
+      # GEÄNDERT: CE curve annotation für gemittelte CE-Kurve
+      list(
+        x = 0.20,
+        y = 4200 + 800,
+        text = "CE = Mittelwert(CE<sub>100W</sub>, CE<sub>200W</sub>)",
+        showarrow = FALSE,
+        font = list(color = '#00563F'),
+        xref = "paper",
+        xanchor = "left",
+        align = "left",
+        yref = "y"
+      )
+    )
+  )
+
+# Display plot
+plot_CT2_VO2SS_CE_cubic_cubic
+
+
+
+
+
+#####################################
+# Apply smoothing
+window_sizes <- c(40, 40, 40, 30)  # Individual window sizes for each curve
+df_all <- smooth_curve(df, columns_to_smooth, window_sizes)
+
+# For displaying RPM values: create two separate datasets
+df_rpm_plot_before <- df_all %>%
+  filter(RPM > 0) %>%
+  filter(t_s_rpm < 2920) %>%
+  select(t_s_rpm, RPM)
+
+df_rpm_plot_after <- df_all %>%
+  filter(RPM > 0) %>%
+  filter(t_s_rpm > 4211) %>%
+  select(t_s_rpm, RPM)
+
+# Filter BLC values (only non-NA values) and convert to mmol/dl
+df_blc_plot <- df_all %>%
+  filter(!is.na(BLC)) %>%
+  mutate(BLC_dl = BLC * 10) %>%  # Conversion from mmol/l to mmol/dl
+  select(t_s, BLC_dl)
+
+# Create plot
+plot_CT <- plot_ly() %>%
+  # Data with t_s as x-axis
+  add_trace(data = df_all, x = ~t_s, y = ~VO2_t, type = 'scatter', mode = 'lines', 
+            name = "V̇O<sub>2</sub>", 
+            line = list(color = '#1CADE4')) %>%
+  add_trace(data = df_all, x = ~t_s, y = ~VCO2_t, type = 'scatter', mode = 'lines', 
+            name = "V̇CO<sub>2</sub>", 
+            line = list(color = '#EF5350')) %>%
+  add_trace(data = df_all, x = ~t_s, y = ~HF, type = 'scatter', mode = 'lines', 
+            name = "HR", yaxis = "y2", 
+            line = list(color = '#42BA97')) %>%
+  # First cadence curve - with legend entry
+  add_trace(data = df_rpm_plot_before, x = ~t_s_rpm, y = ~RPM, type = 'scatter', mode = 'lines', 
+            name = "Cadence", yaxis = "y2", 
+            line = list(color = 'darkgrey'),
+            connectgaps = FALSE) %>%
+  # Second cadence curve - without legend entry, same formatting
+  add_trace(data = df_rpm_plot_after, x = ~t_s_rpm, y = ~RPM, type = 'scatter', mode = 'lines', 
+            name = "Cadence", yaxis = "y2", 
+            line = list(color = 'darkgrey'),
+            showlegend = FALSE,
+            connectgaps = FALSE) %>%
+  # Add BLC values as dark red points
+  add_trace(data = df_blc_plot, x = ~t_s, y = ~BLC_dl, type = 'scatter', mode = 'markers', 
+            name = "BLC", yaxis = "y2",  # on the same axis as HR and cadence
+            marker = list(color = '#A50F15', size = 7)) %>%
+  layout(
+    margin = list(t = 40, b = 60, l = 60, r = 60), 
+    title = "Cadence Tests: 0 Watt & 200 Watt",
+    xaxis = list(title = "Time [s]"),
+    yaxis = list(title = "V̇O<sub>2</sub> & V̇CO<sub>2</sub> [ml · min<sup>-1</sup>]", 
+                 range = c(0, 6500), tickvals = seq(0, 6500, 500),
+                 tickformat = '.0f'),
+    yaxis2 = list(title = "HR & Cadence [min<sup>-1</sup>] & BLC [mmol·dl<sup>-1</sup>]", 
+                  overlaying = "y", side = "right", 
+                  range = c(0, 260), tickvals = seq(0, 260, 20)),
+    showlegend = TRUE,
+    legend = list(
+      x = 0.04,
+      y = 1.00,
+      xanchor = "left",
+      yanchor = "top",
+      bgcolor = "rgba(255, 255, 255, 0.3)"
+    ))
+
+# Display plot
+plot_CT
+
+

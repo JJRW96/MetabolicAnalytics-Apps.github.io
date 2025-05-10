@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cycling Kinematics & P_Int Calculator</title>
+    <!-- Plotly.js via CDN for the Power Plot -->
+    <script src='https://cdn.plot.ly/plotly-latest.min.js'></script>
+    <!-- Konva.js via CDN for the Kinematics Simulation -->
+    <script src="https://unpkg.com/konva@8.3.0/konva.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Root variables based on the provided example */
+        :root {
+            --primary-color: #2683C6; /* General UI blue */
+            --secondary-color: #9C85C0; /* Lighter accent */
+            --accent-color: #EF5350;    /* Reddish accent */
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --border-color: #dee2e6;
+            --gradient-start: #f1f8ff;
+            --gradient-end: #ffffff;
+            --segment-thigh-color: #4CAF50; /* Green */
+            --segment-shank-color: #2196F3; /* Blue */
+            --segment-crank-color: #607D8B; /* Grey */
+            --joint-color: #FF9800; /* Orange */
+            --com-color: #9C27B0; /* Purple */
+             --hip-color: #E91E63; /* Pink/Red */
+
+        }
+
+        /* Base styles */
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #f5f5f5; color: var(--dark-color); line-height: 1.6; overflow: hidden; /* Prevent body scroll */ }
+        .container { display: flex; height: 100vh; max-width: 100%; }
+
+        /* Sidebar */
+        .sidebar {
+            width: 400px; /* Slightly wider for more parameters */
+            flex-shrink: 0;
+            background: linear-gradient(to bottom, var(--gradient-start), var(--gradient-end));
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            overflow-y: auto; /* Enable scrolling only for sidebar */
+            border-right: 1px solid var(--border-color);
+            max-height: 100vh; /* Ensure sidebar doesn't exceed viewport height */
+            position: relative;
+            z-index: 10;
+        }
+        .sidebar h1 { font-size: 1.5rem; color: var(--primary-color); margin-bottom: 20px; text-align: center; font-weight: 500; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
+
+        /* Main Content */
+        .main-content {
+             flex: 1;
+             padding: 25px;
+             display: flex;
+             flex-direction: column;
+             background-color: #fff;
+             overflow-y: auto; /* Enable scrolling for main content */
+             max-height: 100vh; /* Ensure main content doesn't exceed viewport height */
+        }
+        .main-content h2 { font-size: 1.4rem; color: var(--dark-color); margin-bottom: 15px; margin-top: 10px; text-align: center; font-weight: 500;}
+        .main-content h3 { font-size: 1.1rem; color: var(--primary-color); margin-bottom: 15px; text-align: center; font-weight: 500;}
+
+        /* Controls in Sidebar */
+        .control-group { margin-bottom: 18px; padding-bottom: 15px; border-bottom: 1px solid var(--border-color); background-color: white; border-radius: 6px; padding: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .control-group:last-child { border-bottom: none; margin-bottom: 0; }
+        .slider-container { margin-bottom: 12px; }
+        .slider-label { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 5px; font-size: 0.85rem; font-weight: 500; } /* Smaller font */
+        .slider-label label { flex-grow: 1; margin-right: 10px; }
+        .slider-value { min-width: 80px; text-align: right; font-weight: bold; color: var(--primary-color); font-size: 0.85rem; } /* Smaller font */
+        .range-slider { -webkit-appearance: none; width: 100%; height: 8px; border-radius: 5px; background: #ddd; outline: none; margin-top: 5px; cursor: pointer; }
+        .range-slider::-webkit-slider-runnable-track { height: 8px; background: linear-gradient(to right, var(--secondary-color), var(--primary-color)); border-radius: 5px; }
+        .range-slider::-moz-range-track { height: 8px; background: linear-gradient(to right, var(--secondary-color), var(--primary-color)); border-radius: 5px; }
+        .range-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--primary-color); cursor: pointer; margin-top: -4px; box-shadow: 0 1px 3px rgba(0,0,0,0.3); } /* Adjusted thumb size */
+        .range-slider::-moz-range-thumb { width: 16px; height: 16px; border-radius: 50%; background: var(--primary-color); cursor: pointer; border: none; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+
+        /* Output Area */
+        .output-area { background-color: var(--light-color); padding: 15px; border-radius: 8px; margin-top: 10px; margin-bottom: 20px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1); border: 1px solid var(--border-color); }
+        .output-area h3 { margin-top: 0; margin-bottom: 10px; font-size: 1.1rem; color: var(--primary-color); text-align: center; }
+        .output-area p { margin: 8px 0; font-size: 1em; display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; }
+        .output-area .label { color: #333; margin-right: 10px; font-weight: 500;}
+        .output-area .value { color: var(--dark-color); font-weight: 700; font-size: 1.1em; min-width: 100px; text-align: right; }
+        .output-area .unit { font-size: 0.9em; color: #555; margin-left: 5px;}
+
+        /* Plot Containers */
+        #simulationPlotContainer { min-height: 500px; height: 60vh; width: 100%; background-color: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); padding: 15px; margin-bottom: 25px; display: flex; justify-content: center; align-items: center;}
+        #powerCyclePlotContainer { min-height: 300px; height: 30vh; width: 100%; background-color: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); padding: 15px; margin-bottom: 25px;}
+         #simulationCanvas { border-radius: 8px; /* Optional: match parent border-radius */ }
+
+
+        /* Tooltip for sliders */
+        .tooltip {
+          position: relative;
+          display: inline-block;
+        }
+        .tooltip .tooltiptext {
+          visibility: hidden;
+          width: 180px;
+          background-color: #555;
+          color: #fff;
+          text-align: center;
+          border-radius: 6px;
+          padding: 5px 8px;
+          position: absolute;
+          z-index: 1;
+          bottom: 125%; /* Position above the element */
+          left: 50%;
+          margin-left: -90px; /* Use half of the width to center */
+          opacity: 0;
+          transition: opacity 0.3s;
+          font-size: 0.8rem;
+          font-weight: normal;
+        }
+         .tooltip:hover .tooltiptext {
+           visibility: visible;
+           opacity: 1;
+         }
+        .tooltip-icon {
+            display: inline-block;
+            margin-left: 5px;
+            color: var(--primary-color);
+            cursor: help; /* Use help cursor for tooltips */
+            font-weight: bold;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h1>Cycling Kinematics & P<sub>Int</sub> Calculator</h1>
+
+            <div class="control-group">
+                 <div class="slider-container">
+                    <div class="slider-label">
+                        <label for="masse">Body Mass (Masse)
+                            <span class="tooltip">
+                                <span class="tooltip-icon">?</span>
+                                <span class="tooltiptext">Total body mass of the cyclist in kg.</span>
+                            </span>
+                        </label>
+                        <span id="masseValue" class="slider-value">75 kg</span>
+                    </div>
+                    <input type="range" id="masse" class="range-slider" min="40" max="120" value="75" step="1">
+                </div>
+            </div>
+
+             <div class="control-group">
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <label for="lOS">Thigh Length (lOS)
+                             <span class="tooltip">
+                                <span class="tooltip-icon">?</span>
+                                <span class="tooltiptext">Length of the thigh segment (Greater trochanter to lateral femoral condyle) in meters.</span>
+                            </span>
+                        </label>
+                        <span id="lOSValue" class="slider-value">0.430 m</span>
+                    </div>
+                    <input type="range" id="lOS" class="range-slider" min="0.30" max="0.60" value="0.43" step="0.005">
+                </div>
+
+                 <div class="slider-container">
+                    <div class="slider-label">
+                        <label for="lUS">Shank Length (lUS)
+                            <span class="tooltip">
+                                <span class="tooltip-icon">?</span>
+                                <span class="tooltiptext">Length of the shank segment (Lateral femoral condyle to lateral malleolus) in meters.</span>
+                            </span>
+                        </label>
+                        <span id="lUSValue" class="slider-value">0.440 m</span>
+                    </div>
+                    <input type="range" id="lUS" class="range-slider" min="0.30" max="0.60" value="0.44" step="0.005">
+                </div>
+
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <label for="lBein">Leg Length (lBein)
+                             <span class="tooltip">
+                                <span class="tooltip-icon">?</span>
+                                <span class="tooltiptext">Total leg length (often inseam measurement) in meters. Used to estimate hip position relative to the crank axis (LeMond method).</span>
+                            </span>
+                        </label>
+                        <span id="lBeinValue" class="slider-value">0.850 m</span>
+                    </div>
+                    <input type="range" id="lBein" class="range-slider" min="0.60" max="1.10" value="0.85" step="0.010">
+                </div>
+             </div>
+
+             <div class="control-group">
+                 <div class="slider-container">
+                    <div class="slider-label">
+                        <label for="uOS">Thigh Circumference (uOS)
+                            <span class="tooltip">
+                                <span class="tooltip-icon">?</span>
+                                <span class="tooltiptext">Maximum circumference of the thigh in meters. Used to approximate segment inertia.</span>
+                            </span>
+                        </label>
+                        <span id="uOSValue" class="slider-value">0.550 m</span>
+                    </div>
+                    <input type="range" id="uOS" class="range-slider" min="0.30" max="0.80" value="0.55" step="0.010">
+                </div>
+                 <div class="slider-container">
+                    <div class="slider-label">
+                        <label for="uUS">Shank Circumference (uUS)
+                            <span class="tooltip">
+                                <span class="tooltip-icon">?</span>
+                                <span class="tooltiptext">Maximum circumference of the shank (calf) in meters. Used to approximate segment inertia.</span>
+                            </span>
+                        </label>
+                        <span id="uUSValue" class="slider-value">0.380 m</span>
+                    </div>
+                    <input type="range" id="uUS" class="range-slider" min="0.25" max="0.60" value="0.38" step="0.010">
+                </div>
+             </div>
+
+             <div class="control-group">
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <label for="lKurbel">Crank Length (lKurbel)
+                            <span class="tooltip">
+                                <span class="tooltip-icon">?</span>
+                                <span class="tooltiptext">Length of the crank (Center of bottom bracket to center of pedal axle) in meters. Common lengths: 0.165, 0.170, 0.1725, 0.175.</span>
+                            </span>
+                        </label>
+                        <span id="lKurbelValue" class="slider-value">0.170 m</span>
+                    </div>
+                    <input type="range" id="lKurbel" class="range-slider" min="0.150" max="0.190" value="0.170" step="0.0025">
+                </div>
+                 <div class="slider-container">
+                    <div class="slider-label">
+                        <label for="nD">Cadence (nD)
+                             <span class="tooltip">
+                                <span class="tooltip-icon">?</span>
+                                <span class="tooltiptext">Revolutions Per Minute (RPM). Influences the segment speeds and thus the internal power and animation speed.</span>
+                            </span>
+                        </label>
+                        <span id="nDValue" class="slider-value">90 RPM</span>
+                    </div>
+                    <input type="range" id="nD" class="range-slider" min="40" max="140" value="90" step="1">
+                </div>
+            </div>
+
+            <div class="output-area">
+                <h3>Calculated Internal Power</h3>
+                <p>
+                    <span class="label">P<sub>Int</sub> (Model):</span>
+                    <span id="pIntValue" class="value">--</span>
+                    <span class="unit">Watt</span>
+                </p>
+                 <p style="font-size: 0.8em; color: #666; margin-top: 10px; text-align: center; display: block;">
+                    Calculated as the sum of average positive power changes for both legs over one cycle.
+                </p>
+                 <p style="font-size: 0.8em; color: #666; text-align: center; display: block;">
+                    Adjusted Hip Factor: <span id="faktorValue">--</span>
+                </p>
+            </div>
+
+             <!-- No calculate button needed anymore, calculation is dynamic -->
+
+        </div>
+
+        <div class="main-content">
+            <h2>Cycling Kinematic Simulation</h2>
+            <div id="simulationPlotContainer">
+                 <canvas id="simulationCanvas"></canvas> <!-- Konva simulation canvas will be here -->
+            </div>
+
+            <h2>Internal Power over Crank Cycle</h2>
+             <div id="powerCyclePlotContainer">
+                <div id="powerCyclePlot"></div> <!-- Plotly power cycle plot will be here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Get DOM Elements ---
+            const sliders = {
+                masse: document.getElementById('masse'),
+                lOS: document.getElementById('lOS'),
+                lUS: document.getElementById('lUS'),
+                lBein: document.getElementById('lBein'),
+                uOS: document.getElementById('uOS'),
+                uUS: document.getElementById('uUS'),
+                lKurbel: document.getElementById('lKurbel'),
+                nD: document.getElementById('nD')
+            };
+
+            const values = {
+                masse: document.getElementById('masseValue'),
+                lOS: document.getElementById('lOSValue'),
+                lUS: document.getElementById('lUSValue'),
+                lBein: document.getElementById('lBeinValue'),
+                uOS: document.getElementById('uUSValue'), // Corrected ID
+                uUS: document.getElementById('uUSValue'), // Corrected ID
+                lKurbel: document.getElementById('lKurbelValue'),
+                nD: document.getElementById('nDValue')
+            };
+
+            const pIntValueDisplay = document.getElementById('pIntValue');
+            const faktorValueDisplay = document.getElementById('faktorValue');
+            const simulationPlotContainer = document.getElementById('simulationPlotContainer');
+            const simulationCanvas = document.getElementById('simulationCanvas');
+            const powerCyclePlotDiv = document.getElementById('powerCyclePlot');
+
+            // --- Global Konva Variables ---
+            let stage, layer;
+            let crankLine, thighLine, shankLine;
+            let bbPoint, pedalPoint, kneePoint, hipPoint, spOSPoint, spUSPoint;
+            let kinematicsAnimation; // To store the Konva animation object
+
+            // --- Constants and Initial Setup ---
+            const N_STEPS = 360; // Number of steps per revolution (matches R script's 'n')
+            const P3X_OFFSET = -0.150; // Assumed horizontal hip offset [m] (P3x in R script)
+             const VIS_SCALE = 500; // Pixels per meter for visualization
+             const VIS_X_OFFSET = simulationPlotContainer.clientWidth / 2; // Center the plot horizontally
+             const VIS_Y_OFFSET = simulationPlotContainer.clientHeight * 0.7; // Position Y axis origin lower
+
+
+            // --- Coordinate Conversion Functions ---
+            // Convert physical meters (with origin at BB) to screen pixels (with custom origin and scale)
+            function toCanvasX(metersX) {
+                 return VIS_X_OFFSET + metersX * VIS_SCALE;
+             }
+             function toCanvasY(metersY) {
+                 // Y axis is typically inverted in screen coordinates (0 at top)
+                 return VIS_Y_OFFSET - metersY * VIS_SCALE;
+             }
+
+            // --- Initialize Konva Stage and Shapes ---
+            function setupKonva() {
+                stage = new Konva.Stage({
+                    container: 'simulationPlotContainer', // Container ID
+                    width: simulationPlotContainer.clientWidth,
+                    height: simulationPlotContainer.clientHeight,
+                });
+                layer = new Konva.Layer();
+                stage.add(layer);
+
+                // Create Shapes
+                // Lines represent the segments
+                crankLine = new Konva.Line({ points: [0, 0, 0, 0], stroke: varToString('--segment-crank-color'), strokeWidth: 6, lineCap: 'round' });
+                thighLine = new Konva.Line({ points: [0, 0, 0, 0], stroke: varToString('--segment-thigh-color'), strokeWidth: 10, lineCap: 'round' });
+                shankLine = new Konva.Line({ points: [0, 0, 0, 0], stroke: varToString('--segment-shank-color'), strokeWidth: 10, lineCap: 'round' });
+
+                // Points represent the joints/locations and CoMs
+                 bbPoint = new Konva.Circle({ x: 0, y: 0, radius: 6, fill: varToString('--joint-color') }); // Bottom bracket (Origin)
+                 pedalPoint = new Konva.Circle({ x: 0, y: 0, radius: 8, fill: varToString('--joint-color') }); // Pedal (P1)
+                 kneePoint = new Konva.Circle({ x: 0, y: 0, radius: 8, fill: varToString('--joint-color') }); // Knee (P2)
+                 hipPoint = new Konva.Circle({ x: 0, y: 0, radius: 10, fill: varToString('--hip-color') }); // Hip (P3)
+                 spOSPoint = new Konva.Circle({ x: 0, y: 0, radius: 5, fill: varToString('--com-color') }); // Thigh CoM (SpOS)
+                 spUSPoint = new Konva.Circle({ x: 0, y: 0, radius: 5, fill: varToString('--com-color') }); // Shank CoM (SpUS)
+
+                // Add shapes to layer in drawing order (lines behind points)
+                layer.add(crankLine);
+                layer.add(thighLine);
+                layer.add(shankLine);
+                 layer.add(bbPoint); // BB is always at origin
+                layer.add(pedalPoint);
+                layer.add(kneePoint);
+                layer.add(hipPoint);
+                layer.add(spOSPoint);
+                layer.add(spUSPoint);
+
+                 // Position BB point (always at the origin of the simulation space)
+                 bbPoint.position({ x: toCanvasX(0), y: toCanvasY(0) });
+
+
+                // Optional: Add X/Y axes for reference
+                const xAxis = new Konva.Line({ points: [toCanvasX(-100), toCanvasY(0), toCanvasX(100), toCanvasY(0)], stroke: '#ccc', strokeWidth: 1, dash: [4, 4] });
+                const yAxis = new Konva.Line({ points: [toCanvasX(0), toCanvasY(-100), toCanvasX(0), toCanvasY(100)], stroke: '#ccc', strokeWidth: 1, dash: [4, 4] });
+                layer.add(xAxis);
+                layer.add(yAxis);
+                 xAxis.zIndex(-1); // Send axes to back
+                 yAxis.zIndex(-1);
+
+                layer.draw();
+            }
+
+            // Helper to get CSS variable color string
+            function varToString(variable) {
+                return getComputedStyle(document.documentElement).getPropertyValue(variable).trim();
+            }
+
+            // --- Initial Value Display ---
+            function updateValueDisplay(id) {
+                const slider = sliders[id];
+                const display = values[id];
+                let unit = '';
+                let decimals = 0;
+                let value = parseFloat(slider.value);
+                switch (id) {
+                    case 'masse': unit = ' kg'; decimals = 0; break;
+                    case 'lOS':
+                    case 'lUS':
+                    case 'lBein':
+                    case 'uOS':
+                    case 'uUS':
+                    case 'lKurbel': unit = ' m'; decimals = 3; break; // 3 decimal places for lengths
+                    case 'nD': unit = ' RPM'; decimals = 0; break;
+                }
+                 if (id === 'lKurbel') { // Add common crank lengths info
+                     const commonLengths = [0.165, 0.170, 0.1725, 0.175];
+                     if (commonLengths.includes(value)) {
+                          display.textContent = `${value.toFixed(decimals)}${unit}`;
+                     } else {
+                          display.textContent = `${value.toFixed(decimals)}${unit} (Custom)`;
+                     }
+                 } else {
+                     display.textContent = `${value.toFixed(decimals)}${unit}`;
+                 }
+
+            }
+
+            Object.keys(sliders).forEach(id => {
+                updateValueDisplay(id); // Initial display
+                sliders[id].addEventListener('input', () => {
+                     updateValueDisplay(id);
+                     // Recalculate and update simulation/plots when *any* slider changes
+                     calculateKinematicsAndPower();
+                });
+            });
+
+            // --- Calculation Logic (Ported from R) ---
+            let calculatedData = null; // Store calculated kinematics data
+
+            function calculateKinematicsAndPower() {
+                // --- Get Input Parameters ---
+                const Masse = parseFloat(sliders.masse.value);
+                const lOS = parseFloat(sliders.lOS.value);
+                const lUS = parseFloat(sliders.lUS.value);
+                const lBein = parseFloat(sliders.lBein.value);
+                const uOS = parseFloat(sliders.uOS.value);
+                const uUS = parseFloat(sliders.uUS.value);
+                const lKurbel = parseFloat(sliders.lKurbel.value);
+                const nD = parseFloat(sliders.nD.value);
+
+                 // Show placeholder or "calculating" state
+                 pIntValueDisplay.textContent = '...';
+                 faktorValueDisplay.textContent = '...';
+
+
+                // Use setTimeout to allow UI update before heavy calculation
+                setTimeout(() => {
+                    try {
+
+                        // --- Constants and derived values ---
+                        const rRelOS = 0.1416; // Relative segment mass Thigh
+                        const rRelUS = 0.0433; // Relative segment mass Shank
+                        const lambdaOS = 0.4095; // CoM distance from proximal Thigh
+                        const lambdaUS = 0.4459; // CoM distance from proximal Shank
+                        const thetaKurbel = 0.002; // Crank inertia [kg m^2] approx.
+
+                        const delta_phi1_rad = (2 * Math.PI) / N_STEPS; // Angle step in radians
+                        const phi1_rad = Array.from({ length: N_STEPS }, (_, i) => i * delta_phi1_rad); // Crank angle [rad] (starts at 0 = 12 o'clock)
+                        const grad = phi1_rad.map(rad => rad * 180 / Math.PI); // Crank angle [deg]
+                        const nD_Hz = nD / 60; // Cadence in Hz
+                        const T_cycle = 1 / nD_Hz; // Period duration [s]
+                        const delta_t = T_cycle / N_STEPS; // Time step [s]
+                        const time = Array.from({ length: N_STEPS }, (_, i) => i * delta_t); // Time array [s]
+                        // const omega = 2 * Math.PI * nD_Hz; // Average angular velocity [rad/s] (not directly used in loop)
+
+
+                        // Segment masses [kg]
+                        const mOS = Masse * rRelOS;
+                        const mUS = Masse * rRelUS;
+
+                        // Segment Moments of Inertia [kg m^2] (Approximation as cylinders)
+                        // Radius approx from circumference: r = u / (2*pi)
+                         const rOS_cyl = uOS / (2 * Math.PI);
+                         const rUS_cyl = uUS / (2 * Math.PI);
+                         const thetaOS = (1 / 4) * mOS * rOS_cyl**2 + (1 / 12) * mOS * lOS**2;
+                         const thetaUS = (1 / 4) * mUS * rUS_cyl**2 + (1 / 12) * mUS * lUS**2;
+
+
+                        // --- Iterative Faktor Adjustment for Hip Position (P3) ---
+                        let Faktor = 1.00;
+                        let S, P3y, P3 = [P3X_OFFSET, 0], delta, c = []; // Initialize P3 with known X, Y will be calculated
+                        let attempts = 0;
+                        const maxAttempts = 100; // Prevent infinite loop
+                         const tolerance = 1e-6; // Tolerance for the inequality check
+
+                        // phi1_rad starts at 0 (Top Dead Center) and increases. R uses sin for x and cos for y.
+                        // This typically means phi=0 is at 3 o'clock (right).
+                        // Re-checking the R code: `lKurbel * sin(phi1), lKurbel * cos(phi1)`. With `phi1` from 0 to 2pi,
+                        // and `delta = acos(P3[2]/S)` applied *additively* to `phi1` in the `c` calculation `cos(phi1 + delta)`,
+                        // this confirms the R script measures `phi1` from the +Y axis (vertical up) and increases counter-clockwise.
+                        // phi1=0 is Up, pi/2 is Left, pi is Down, 3pi/2 is Right, 2pi is Up.
+                        // Let's align JS. Crank angle from +Y axis, counter-clockwise.
+                         const phi1_rad_corrected = phi1_rad.map(p => (Math.PI/2 - p + 2*Math.PI) % (2*Math.PI)); // Correct angle if R's phi1 started differently. Let's re-verify R's `phi1 = seq(0, 2*pi, by=delta_phi1)`. If P1x = lKurbel*sin(phi1), P1y = lKurbel*cos(phi1), then phi1=0 gives (0, lKurbel), which is +Y (Up). phi1=pi/2 gives (lKurbel, 0) which is +X (Right). This matches standard angle conventions from +Y, increasing clockwise. Okay, my initial R code interpretation was probably correct: phi1=0 is Top Dead Center, increasing CLOCKWISE. Hip offset P3x=-0.15 is left of BB. Simulation shows RIGHT leg. Let's keep the R definitions directly.
+
+                        while (attempts < maxAttempts) {
+                             S = lBein * 0.883 * Faktor; // Hip-to-crank axis distance (LeMond * Faktor)
+                             // Ensure S >= |P3x|
+                            if (S < Math.abs(P3X_OFFSET)) {
+                                // This suggests lBein * Faktor is too small relative to the fixed hip offset.
+                                // We need to increase Faktor or report an error.
+                                Faktor += 0.001; // Try a small increment back? Or just throw error.
+                                console.warn(`Attempt ${attempts + 1}: Faktor ${Faktor.toFixed(3)} leads to S < |P3x|. Trying to adjust...`);
+                                if (Faktor > 1.1 || S < Math.abs(P3X_OFFSET)) { // If Faktor exceeds reasonable limit or still invalid
+                                     throw new Error(`Cannot calculate valid hip position P3y. Check lBein or adjust P3x. lBein * Faktor = ${S.toFixed(3)}, |P3x| = ${Math.abs(P3X_OFFSET)}.`);
+                                }
+                                attempts++; // Count attempt even if incrementing
+                                continue; // Retry loop
+                            }
+                             P3y = Math.sqrt(S*S - P3X_OFFSET**2); // Vertical hip position [m]
+                             P3 = [P3X_OFFSET, P3y]; // Hip coordinates [m]
+                             // acos(P3y / S) gives the angle between S (vector from BB to P3) and the +Y axis.
+                             // This seems to be R's definition of delta.
+                             delta = Math.acos(Math.max(-1, Math.min(1, P3y / S)));
+
+
+                             // Calculate connecting length 'c' (distance between crank axle P1 and hip P3) for all crank angles
+                             // R used cos(phi1 + delta). If phi1 is from +Y clockwise, delta is from +Y counter-clockwise (if P3x < 0).
+                             // So the angle between S and the crank is (phi1_clockwise - delta_counter-clockwise). Let's use abs(phi1 - delta).
+                             // Wait, R's cos(phi1+delta) implies vector subtraction angle. Let's use vector math for c.
+                             // P1 = (lKurbel*sin(phi1), lKurbel*cos(phi1)), P3 = (P3x, P3y). c = distance(P1, P3).
+                             // c^2 = (P1x - P3x)^2 + (P1y - P3y)^2
+                             // c^2 = (lKurbel*sin(phi1) - P3x)^2 + (lKurbel*cos(phi1) - P3y)^2
+                             // c^2 = lKurbel^2*sin(phi1)^2 - 2*lKurbel*sin(phi1)*P3x + P3x^2 + lKurbel^2*cos(phi1)^2 - 2*lKurbel*cos(phi1)*P3y + P3y^2
+                             // c^2 = lKurbel^2(sin(phi1)^2 + cos(phi1)^2) + P3x^2 + P3y^2 - 2*lKurbel*(sin(phi1)*P3x + cos(phi1)*P3y)
+                             // c^2 = lKurbel^2 + S^2 - 2*lKurbel*(sin(phi1)*P3x + cos(phi1)*P3y)
+                             // This matches the R formula structure sqrt(lKurbel^2 + S^2 - 2 * S * lKurbel * cos(phi1 + delta))
+                             // IF the angle `phi1 + delta` inside the cosine *is* the angle between the vectors from BB to P1 and BB to P3.
+                             // Vector BB->P1 angle (from +Y clockwise) is phi1. Vector BB->P3 angle (from +Y clockwise) is `angle_S_bb_P3`.
+                             // cos of angle between vectors is (v1 . v2) / (|v1| |v2|)
+                             // v1 = (lKurbel*sin(phi1), lKurbel*cos(phi1)), v2 = (P3x, P3y)
+                             // (v1 . v2) = lKurbel*sin(phi1)*P3x + lKurbel*cos(phi1)*P3y
+                             // |v1| = lKurbel, |v2| = S.
+                             // cos(angle_between) = (sin(phi1)*P3x + cos(phi1)*P3y) / S
+                             // Does `cos(phi1 + delta)` in R equal this? It depends heavily on the coordinate system and angle definition for `delta`.
+                             // If R's `delta` is `acos(P3y/S)`, this is the angle between S and +Y axis.
+                             // Let's assume the R formula `sqrt(lKurbel^2 + S^2 - 2 * S * lKurbel * cos(phi1 + delta))` works as written based on their chosen angle definitions.
+                             c = phi1_rad.map(phi => Math.sqrt(lKurbel**2 + S**2 - 2 * S * lKurbel * Math.cos(phi + delta)));
+
+
+                            // Check if any c is too long (physically impossible for segments lOS + lUS to connect P1 and P3)
+                            // lOS + lUS < ci -> impossible, need smaller ci. Smaller ci means smaller S. Smaller S means smaller Faktor.
+                            // So if the sum of segments is less than c, the leg is too short, and we need to decrease Faktor. This matches the R logic.
+                            control = c.some(ci => (lOS + lUS) < ci - tolerance); // Use tolerance for float comparison
+
+                            if (!control) {
+                                break; // Found a valid Faktor
+                            }
+
+                            Faktor -= 0.005; // Reduce Faktor by smaller step
+                            attempts++;
+                        }
+
+                         if (attempts >= maxAttempts) {
+                             throw new Error(`Could not find a suitable Hip Faktor after ${maxAttempts} attempts. Please check input values (especially lBein vs lOS+lUS and P3x offset).`);
+                         }
+                         // Check if any c is too *short* (also impossible) - although less likely with this adjustment
+                         const control_min = c.some(ci => Math.abs(lOS - lUS) > ci + tolerance);
+                          if (control_min) {
+                               throw new Error(`Calculated distance between hip and pedal is too short for the leg segments at some crank angles. Check segment lengths (lOS, lUS) relative to lKurbel and lBein.`);
+                          }
+
+
+                        // --- Kinematic Calculations for each step ---
+
+                         // P1 (Pedal) coordinates. R used sin for x, cos for y starting phi1=0 (+Y), CW. Let's stick to this.
+                         const P1x_arr = phi1_rad.map(phi => lKurbel * Math.sin(phi));
+                         const P1y_arr = phi1_rad.map(phi => lKurbel * Math.cos(phi));
+
+
+                        // Angle calculations for the leg segments
+                         // alpha: Angle between segment c (P1-P3) and segment lOS (P2-P3). In R: asin(lKurbel * sin(phi1 + delta) / c) - Note: This uses sine rule on triangle P1-P2-P3. This angle is at P3 vertex. Let's call it angle_P3.
+                         // beta: Angle between segment c (P1-P3) and segment lUS (P1-P2). In R: acos((lOS^2 + c^2 - lUS^2) / (2 * lOS * c)) - Note: This uses cosine rule on triangle P1-P2-P3. This angle is at P2 vertex. Let's call it angle_P2.
+                         // The angle at P1 vertex (Pedal) is PI - angle_P3 - angle_P2.
+                         // R's P2 calculation uses `alpha + beta + delta`. This implies phi1, delta, alpha, beta might be defined relative to various axes.
+
+                         // Let's calculate joint angles based on coordinates, which is more standard and less prone to angle definition mix-ups.
+                         // angleKnee (angle between thigh and shank, vertex at P2): Use vectors P2->P3 and P2->P1.
+                         // angleHip (angle between thigh and torso line P3->(BB x, Hip y)): Use vectors P3->P2 and P3->HipY+
+                         // angleAnkle (angle between shank and foot... we don't have foot)
+
+                         // Calculate angles of segments relative to horizontal/vertical
+                         // Vector P3->P2 (Thigh): (P2x-P3x, P2y-P3y)
+                         // Vector P2->P1 (Shank): (P1x-P2x, P1y-P2y)
+
+                         // Let's stick to the R kinematics derivation to match results, assuming their angles work out geometrically.
+                         const alpha = phi1_rad.map((phi, i) => {
+                             const sinArg = lKurbel * Math.sin(phi + delta) / c[i];
+                             return Math.asin(Math.max(-1, Math.min(1, sinArg))); // Angle at P3 vertex
+                         });
+                         const beta = phi1_rad.map((phi, i) => {
+                             const cosArg = (lOS**2 + c[i]**2 - lUS**2) / (2 * lOS * c[i]);
+                             return Math.acos(Math.max(-1, Math.min(1, cosArg))); // Angle at P2 vertex
+                         });
+
+
+                         // P2 (Knee) coordinates based on R's formula
+                         // P2 is P3 moved along a line at angle `pi/2 - (alpha + beta + delta)` relative to the vertical.
+                         // This suggests `alpha + beta + delta` might relate to the angle of segment `c` relative to horizontal or some reference.
+                         // R: P2x = P3[1] + lOS * cos(pi/2 - (alpha + beta + delta)) <-- P3[1] is Y! Should be P3[0] (X). There seems to be a mixup here in the provided R script comments vs code. P3[1] is P3y. P3[0] is P3x.
+                         // Let's use the R code's *math* directly: P2x = P3[0] + lOS * cos(pi/2 - (alpha + beta + delta)), P2y = P3[1] - lOS * sin(pi/2 - (alpha + beta + delta)).
+                         // Assuming pi/2 - (...) is the angle from vertical positive axis, counter-clockwise. Cos gives X component, Sin gives Y component. P3[0] is hip x, P3[1] is hip y. This looks like rotating a vector of length lOS from P3 by the angle `pi/2 - (alpha + beta + delta)`.
+
+                         const P2x_arr = alpha.map((a, i) => P3[0] + lOS * Math.cos(Math.PI / 2 - (a + beta[i] + delta)));
+                         const P2y_arr = alpha.map((a, i) => P3[1] - lOS * Math.sin(Math.PI / 2 - (a + beta[i] + delta)));
+
+
+                        // Segment angle calculations used in R for omega (relative segment angles?)
+                        // These appear to be the angles used to calculate omega_SpOS/US in the R script. Let's reproduce precisely.
+                         const phi2_arr = P2x_arr.map((p2x_val, i) => {
+                            const cosArg = (p2x_val - P1x_arr[i]) / lUS;
+                            // Using acos here gives angle relative to X axis for Shank. Range 0-PI.
+                            return Math.acos(Math.max(-1, Math.min(1, cosArg)));
+                         });
+                         const phi3_arr = P2y_arr.map((p2y_val, i) => {
+                             const cosArg = (P3[1] - p2y_val) / lOS;
+                             // Using acos here gives angle relative to Y axis for Thigh. Range 0-PI.
+                            return Math.acos(Math.max(-1, Math.min(1, cosArg)));
+                         });
+
+
+                        // Centers of Mass (SpOS, SpUS) - linear interpolation along segment
+                        const SpOSx_arr = P2x_arr.map((p2x_val, i) => P3[0] - lambdaOS * (P3[0] - p2x_val));
+                        const SpOSy_arr = P2y_arr.map((p2y_val, i) => P3[1] - lambdaOS * (P3[1] - p2y_val));
+                        const SpUSx_arr = P1x_arr.map((p1x_val, i) => P2x_arr[i] - lambdaUS * (P2x_arr[i] - p1x_val));
+                        const SpUSy_arr = P1y_arr.map((p1y_val, i) => P2y_arr[i] - lambdaUS * (P2y_arr[i] - p1y_val));
+
+
+                        // --- Velocity Calculation ---
+                        // Cyclic Differentiation: R's diff(x) gives x[i+1]-x[i], with last being x[0]-x[n-1]
+                        function cyclicDiff(arr) {
+                            const diffArr = [];
+                            for (let i = 0; i < arr.length -1 ; i++) { diffArr.push(arr[i+1] - arr[i]); }
+                            diffArr.push(arr[0] - arr[arr.length - 1]); // Wrap around
+                            return diffArr;
+                        }
+
+                        const diffSpOSx = cyclicDiff(SpOSx_arr);
+                        const diffSpOSy = cyclicDiff(SpOSy_arr);
+                        const diffSpUSx = cyclicDiff(SpUSx_arr);
+                        const diffSpUSy = cyclicDiff(SpUSy_arr);
+
+                        // Magnitude of velocity vectors
+                        const vOS_arr = diffSpOSx.map((dx, i) => Math.sqrt(dx**2 + diffSpOSy[i]**2) / delta_t);
+                        const vUS_arr = diffSpUSx.map((dx, i) => Math.sqrt(dx**2 + diffSpUSy[i]**2) / delta_t);
+
+
+                        // --- Kinetic Energy Calculations ---
+                        // Translational KE
+                        const Ekin_trans_arr = vOS_arr.map((vos_val, i) => 0.5 * (mOS * vos_val**2 + mUS * vUS_arr[i]**2));
+
+                        // Rotational KE
+                         // Angular velocities as per R script (using cyclicDiff on phi2 and phi3 arrays)
+                        const delta_phi2 = cyclicDiff(phi2_arr); // Simple diff as in R, potentially ignoring PI wrap issues
+                        const delta_phi3 = cyclicDiff(phi3_arr); // Simple diff as in R
+
+                        const omega_SpOS_arr = delta_phi2.map(dphi => dphi / delta_t); // As per R script logic
+                        const omega_SpUS_arr = delta_phi3.map(dphi => dphi / delta_t); // As per R script logic
+                         const omega_Kurbel = (delta_phi1_rad / delta_t); // Constant angular velocity of crank
+
+                        const Ekin_rot_arr = omega_SpOS_arr.map((wos, i) => 0.5 * (thetaOS * wos**2 + thetaUS * omega_SpUS_arr[i]**2 + thetaKurbel * omega_Kurbel**2));
+
+
+                        // --- Power Calculation (Internal Work) ---
+                        // Change in Total KE
+                        const delta_Ekin_trans = cyclicDiff(Ekin_trans_arr);
+                        const delta_Ekin_rot = cyclicDiff(Ekin_rot_arr);
+                        const delta_Ekin_ges = delta_Ekin_trans.map((det, i) => det + delta_Ekin_rot[i]);
+
+                        // Instantaneous Power (Right Leg) P = dE/dt
+                        const PInt_Zyklus_Rechts = delta_Ekin_ges.map(dE => dE / delta_t);
+
+                        // Positive Power only (work done by muscles)
+                        const PInt_Zyklus_Rechts_Positiv = PInt_Zyklus_Rechts.map(P => Math.max(0, P));
+
+                        // Left Leg Power (Phase shifted by 180 degrees = N_STEPS/2 steps)
+                        const verschieben = N_STEPS / 2;
+                        const PInt_Zyklus_Links = [
+                            ...PInt_Zyklus_Rechts.slice(verschieben),
+                            ...PInt_Zyklus_Rechts.slice(0, verschieben)
+                        ];
+                        const PInt_Zyklus_Links_Positiv = PInt_Zyklus_Links.map(P => Math.max(0, P));
+
+                        // Average Internal Power (Model) - Average of positive components
+                        const mean = arr => arr.reduce((a, b) => a + b, 0) / arr.length;
+                        const PInt_Modell_Value = mean(PInt_Zyklus_Rechts_Positiv) + mean(PInt_Zyklus_Links_Positiv);
+
+                        // --- Store Calculated Data for Animation/Plotting ---
+                        calculatedData = {
+                            grad: grad,
+                            P1x: P1x_arr, P1y: P1y_arr,
+                            P2x: P2x_arr, P2y: P2y_arr,
+                            P3x: P3[0], P3y: P3[1], // P3 is fixed
+                            SpOSx: SpOSx_arr, SpOSy: SpOSy_arr,
+                            SpUSx: SpUSx_arr, SpUSy: SpUSy_arr,
+                            PInt_Rechts_Positiv: PInt_Zyklus_Rechts_Positiv,
+                            PInt_Links_Positiv: PInt_Zyklus_Links_Positiv,
+                            PInt_Modell_Mean: PInt_Modell_Value,
+                            T_cycle: T_cycle, // Cycle duration for animation timing
+                            delta_t: delta_t // Time step for velocity calculations (not direct animation step)
+                        };
+
+                        // --- Update Output Display ---
+                        pIntValueDisplay.textContent = PInt_Modell_Value.toFixed(1);
+                        faktorValueDisplay.textContent = Faktor.toFixed(3); // Display used Faktor with more precision
+
+
+                        // --- Update Plots and Animation ---
+                         updatePlots();
+                         startKinematicsAnimation();
+
+
+                    } catch (error) {
+                        console.error("Calculation Error:", error);
+                        alert("Calculation Error: " + error.message + "\nPlease check your input values.");
+                         pIntValueDisplay.textContent = 'Error';
+                         faktorValueDisplay.textContent = 'Error';
+                         calculatedData = null; // Clear invalid data
+                         stopKinematicsAnimation(); // Stop animation on error
+                         // Optionally clear plots or show error message in plots
+                    } finally {
+                       // Button is gone, no need to re-enable
+                    }
+                }, 10); // Small delay to allow UI update
+            }
+
+
+            // --- Konva Animation ---
+            function startKinematicsAnimation() {
+                 if (!calculatedData) return; // Don't start if calculation failed
+
+                stopKinematicsAnimation(); // Stop any existing animation first
+
+                 const { grad, P1x, P1y, P2x, P2y, P3x, P3y, SpOSx, SpOSy, SpUSx, SpUSy, T_cycle } = calculatedData;
+                 const numFrames = grad.length;
+                 let frameIndex = 0;
+                 const frameDuration_ms = (T_cycle / numFrames) * 1000; // Duration of one frame in milliseconds
+
+
+                 kinematicsAnimation = new Konva.Animation(function(frame) {
+                     if (!calculatedData) return; // Stop if data becomes invalid during animation
+
+                     // Determine current frame index based on elapsed time within the cycle duration
+                     // Use modulo to loop
+                     const elapsedInCycle = frame.time % (T_cycle * 1000); // elapsed time within one cycle
+                     frameIndex = Math.floor((elapsedInCycle / (T_cycle * 1000)) * numFrames);
+                     // Ensure index is within bounds (should be handled by modulo, but double check)
+                     frameIndex = Math.min(frameIndex, numFrames - 1);
+
+
+                    // Update positions of shapes
+                    const current_P1x = P1x[frameIndex], current_P1y = P1y[frameIndex];
+                    const current_P2x = P2x[frameIndex], current_P2y = P2y[frameIndex];
+                    const current_SpOSx = SpOSx[frameIndex], current_SpOSy = SpOSy[frameIndex];
+                    const current_SpUSx = SpUSx[frameIndex], current_SpUSy = SpUSy[frameIndex];
+
+                    // Convert meters to canvas pixels
+                    const c_P1x = toCanvasX(current_P1x), c_P1y = toCanvasY(current_P1y);
+                    const c_P2x = toCanvasX(current_P2x), c_P2y = toCanvasY(current_P2y);
+                    const c_P3x = toCanvasX(P3x), c_P3y = toCanvasY(P3y); // P3 is fixed in space
+                    const c_SpOSx = toCanvasX(current_SpOSx), c_SpOSy = toCanvasY(current_SpOSy);
+                    const c_SpUSx = toCanvasX(current_SpUSx), c_SpUSy = toCanvasY(current_SpUSy);
+
+
+                    // Update segment lines (points are [x1, y1, x2, y2, ...])
+                    crankLine.points([toCanvasX(0), toCanvasY(0), c_P1x, c_P1y]);
+                    shankLine.points([c_P1x, c_P1y, c_P2x, c_P2y]);
+                    thighLine.points([c_P2x, c_P2y, c_P3x, c_P3y]);
+
+                    // Update joint/point positions
+                    pedalPoint.position({ x: c_P1x, y: c_P1y });
+                    kneePoint.position({ x: c_P2x, y: c_P2y });
+                    hipPoint.position({ x: c_P3x, y: c_P3y }); // Fixed, but update just in case
+                    spOSPoint.position({ x: c_SpOSx, y: c_SpOSy });
+                    spUSPoint.position({ x: c_SpUSx, y: c_SpUSy });
+
+
+                 }, layer); // Attach animation to the layer
+
+                 // Start the animation
+                 kinematicsAnimation.start();
+                 // Konva's Animation loop manages timing automatically based on elapsed frame.time.
+                 // The speed is implicitly controlled by how quickly frameIndex advances,
+                 // which is linked to T_cycle (and thus nD) in the index calculation:
+                 // frameIndex = floor((frame.time / (T_cycle * 1000)) * numFrames)
+                 // If T_cycle is smaller (higher nD), frame.time has a larger proportion of T_cycle faster,
+                 // so frameIndex increases quicker, making the animation run faster. This is dynamic!
+            }
+
+            function stopKinematicsAnimation() {
+                if (kinematicsAnimation) {
+                    kinematicsAnimation.stop();
+                }
+            }
+
+             // Resize Konva stage when container size changes (e.g. window resize)
+             function resizeKonvaStage() {
+                const containerWidth = simulationPlotContainer.clientWidth;
+                const containerHeight = simulationPlotContainer.clientHeight;
+                 if (stage) {
+                     stage.width(containerWidth);
+                     stage.height(containerHeight);
+                     // Recalculate offsets if they depend on container size
+                     VIS_X_OFFSET = containerWidth / 2;
+                     VIS_Y_OFFSET = containerHeight * 0.7;
+
+                     // Update fixed points and axes positions based on new offset
+                     bbPoint.position({ x: toCanvasX(0), y: toCanvasY(0) });
+                     if (hipPoint && calculatedData) { // Hip position depends on P3 which is fixed meters
+                         hipPoint.position({ x: toCanvasX(calculatedData.P3x), y: toCanvasY(calculatedData.P3y) });
+                     }
+
+                      // Update axes if they exist
+                      const xAxis = layer.findOne('.Konva_x_axis'); // Find axes by a conceptual name or check objects directly
+                      const yAxis = layer.findOne('.Konva_y_axis');
+                      if (xAxis) xAxis.points([toCanvasX(-100), toCanvasY(0), toCanvasX(100), toCanvasY(0)]);
+                      if (yAxis) yAxis.points([toCanvasX(0), toCanvasY(-100), toCanvasX(0), toCanvasY(100)]);
+
+
+                     layer.batchDraw(); // Redraw the layer
+                 } else {
+                     // If stage not initialized, maybe just set canvas size
+                      simulationCanvas.width = containerWidth;
+                      simulationCanvas.height = containerHeight;
+                 }
+             }
+             // Add event listener for window resize
+             window.addEventListener('resize', resizeKonvaStage);
+             // Initial resize/setup
+             resizeKonvaStage();
+
+
+            // --- Plotly Power Plot ---
+            function updatePlots() {
+                 if (!calculatedData) return; // Don't plot if no valid data
+
+                const { grad, PInt_Rechts_Positiv, PInt_Links_Positiv, PInt_Modell_Mean } = calculatedData;
+
+                const powerCycleLayout = {
+                    title: 'Instantaneous Positive Internal Power per Leg',
+                    xaxis: { title: 'Crank Angle (°)', range: [0, 360], tickmode: 'linear', dtick: 60 },
+                    yaxis: { title: 'Power (Watt)', rangemode: 'tozero' },
+                    showlegend: true,
+                    legend: { x: 0.5, y: -0.2, xanchor: 'center', orientation: 'h' },
+                     margin: { l: 60, r: 30, b: 80, t: 50 }, /* Increased bottom margin for horizontal legend */
+                     hovermode: 'x unified' /* Show tooltip for all traces at the same x value */
+                };
+
+                const powerCycleTraces = [
+                    { x: grad, y: PInt_Rechts_Positiv, type: 'scatter', mode: 'lines', name: 'Right Leg (Positive)', line: { color: varToString('--accent-color'), width: 2 } },
+                    { x: grad, y: PInt_Links_Positiv, type: 'scatter', mode: 'lines', name: 'Left Leg (Positive)', line: { color: varToString('--primary-color'), width: 2 } },
+                    { x: grad, y: Array(grad.length).fill(PInt_Modell_Mean), type: 'scatter', mode: 'lines', name: 'Average P_Int (Model)', line: { color: 'grey', width: 1.5, dash: 'dash' } },
+                ];
+
+                 // Plotly.react is efficient; it updates the existing plot if it exists, otherwise creates a new one.
+                Plotly.react(powerCyclePlotDiv, powerCycleTraces, powerCycleLayout);
+            }
+
+
+            // --- Initial Setup and Calculation on Load ---
+             setupKonva(); // Initialize Konva stage and layer
+             calculateKinematicsAndPower(); // Perform initial calculation and start animation
+
+
+        }); // End DOMContentLoaded
+    </script>
+</body>
+</html>

@@ -1,0 +1,1965 @@
+Das sit doch völlige rmist was du mir hier ausgibts, entweder gibts du mir unvollständige codes oder du beschneidest die bestehenden Codes. Gehe jetzt nochmal zu dieser Verison "<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced 3D Metabolic Simulator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #2683C6; /* Blau */
+            --secondary-color: #9C85C0; /* Lila */
+            --accent-color: #EF5350; /* Rot */
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --border-color: #dee2e6;
+            --cho-color: #FFC107; /* Gelb/Orange für CHO */
+            --pcr-color: #4CAF50; /* Grün für PCr */
+            --lactate-color: #F44336; /* Rot für Laktat */
+            --wprime-color: #2196F3; /* Hellblau für W' */
+            --atp-color: #FF9800; /* Orange für ATP-Level-Indikation */
+            --ph-color: #64b5f6; /* Hellblau für pH (war 90caf9) - slightly darker for better contrast */
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--light-color);
+            color: var(--dark-color);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            flex-grow: 1;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 380px; /* Etwas breiter für mehr Parameter */
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            overflow-y: auto;
+            border-right: 1px solid var(--border-color);
+        }
+
+        .main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        #simulation-canvas-container {
+            flex-grow: 1;
+            position: relative;
+            background-color: #2c3e50; /* Dunklerer Hintergrund für 3D */
+        }
+
+        #simulationCanvas { /* ID korrigiert */
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .controls-header {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border-color);
+            font-size: 1.4em;
+        }
+
+        .control-group {
+            margin-bottom: 18px;
+            padding: 12px;
+            background-color: #fdfdfd;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+        .control-group h3 {
+            margin-top: 0;
+            margin-bottom: 12px;
+            font-size: 1.1em;
+            color: var(--secondary-color);
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+        }
+
+        .slider-container {
+            margin-bottom: 12px;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9em;
+            margin-bottom: 4px;
+        }
+        .slider-label span:first-child { color: #555; }
+
+        .slider-value {
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        input[type="range"] {
+            width: 100%;
+            cursor: pointer;
+            accent-color: var(--primary-color);
+        }
+        input[type="number"] {
+            width: 70px;
+            padding: 5px;
+            border: 1px solid var(--border-color);
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.3s;
+            width: 100%;
+            margin-top: 10px;
+            font-size: 1em;
+        }
+        button:hover {
+            background-color: #1a6eae;
+        }
+        button.reset-btn {
+            background-color: var(--accent-color);
+        }
+        button.reset-btn:hover {
+            background-color: #d32f2f;
+        }
+
+        .file-upload {
+            border: 2px dashed var(--border-color);
+            border-radius: 5px;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            margin-bottom: 10px;
+            background-color: #f9f9f9;
+        }
+        .file-upload:hover {
+            border-color: var(--primary-color);
+            background-color: #f1f8ff;
+        }
+        .file-upload input { display: none; }
+        #fileNameDisplay { font-size: 0.8em; color: #666; margin-top: 5px; text-align: center;}
+
+        #hud {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background-color: rgba(40,40,50,0.75);
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.85em;
+            z-index: 10;
+            min-width: 220px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        #hud p { margin: 4px 0; }
+        #hud strong { color: #aaa; font-weight: normal;}
+        #hud span { font-weight: bold; color: #fff;}
+
+        .hud-bar-container {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+        }
+        .hud-bar-label {
+            width: 70px;
+            font-size: 0.9em;
+            color: #ccc;
+        }
+        .hud-bar {
+            height: 12px;
+            background-color: #555;
+            border-radius: 4px;
+            overflow: hidden;
+            flex-grow: 1;
+            min-width: 120px;
+            border: 1px solid #444;
+        }
+        .hud-bar-fill {
+            height: 100%;
+            width: 100%;
+            background-color: var(--primary-color);
+            transition: width 0.15s linear, background-color 0.15s linear;
+            border-radius: 3px;
+        }
+        #simulationTimeDisplayTop { /* ID korrigiert */
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0,0,0,0.7);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 1.3em;
+            z-index: 10;
+            font-weight: bold;
+            box-shadow: 0 1px 5px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <h2 class="controls-header">Metabolic Simulator</h2>
+
+            <!-- Athlete Physiology Group -->
+             <div class="control-group">
+                <h3>Athlete Physiology</h3>
+                <div class="slider-container">
+                    <div class="slider-label"><span>VO2max (ml/min/kg):</span><span id="vo2maxValDisp" class="slider-value">60</span></div>
+                    <input type="range" id="vo2maxInp" min="30" max="90" value="60" step="1">
+                </div>
+                <div class="slider-container">
+                    <div class="slider-label"><span>VLamax (mmol/s/kg wm):</span><span id="vlamaxValDisp" class="slider-value">0.50</span></div>
+                    <input type="range" id="vlamaxInp" min="0.1" max="1.2" value="0.5" step="0.01">
+                </div>
+                <div class="slider-container">
+                    <div class="slider-label"><span>Body Mass (kg):</span><span id="bodyMassValDisp" class="slider-value">70</span></div>
+                    <input type="range" id="bodyMassInp" min="40" max="120" value="70" step="1">
+                </div>
+                <div class="slider-container">
+                    <div class="slider-label"><span>CP (W):</span><span id="cpValDisp" class="slider-value">250</span></div>
+                    <input type="range" id="cpInp" min="100" max="500" value="250" step="5">
+                </div>
+                <div class="slider-container">
+                    <div class="slider-label"><span>W' (kJ):</span><span id="wPrimeValDisp" class="slider-value">20</span></div>
+                    <input type="range" id="wPrimeInp" min="5" max="50" value="20" step="1">
+                </div>
+            </div>
+
+            <!-- Initial Stores & Buffering Group -->
+            <div class="control-group">
+                <h3>Initial Stores & Buffering</h3>
+                 <div class="slider-container">
+                    <div class="slider-label"><span>Glycogen (g):</span><span id="glycogenRestValDisp" class="slider-value">400</span></div>
+                    <input type="range" id="glycogenRestInp" min="100" max="800" value="400" step="10">
+                </div>
+                <div class="slider-container">
+                    <div class="slider-label"><span>Total Adenylates (S[A] mmol/kg):</span><span id="sumAdenylatesValDisp" class="slider-value">7.5</span></div>
+                    <input type="range" id="sumAdenylatesInp" min="5" max="10" value="7.5" step="0.1">
+                </div>
+                <div class="slider-container">
+                    <div class="slider-label"><span>Total Cr+PCr+Pi (S[C] mmol/kg):</span><span id="sumCrPiValDisp" class="slider-value">45</span></div> <!-- Label changed: S[C] is PCr+Pi pool -->
+                    <input type="range" id="sumCrPiInp" min="30" max="60" value="45" step="1">
+                </div>
+                 <div class="slider-container">
+                    <div class="slider-label"><span>Resting PCr (mmol/kg):</span><span id="pcrRestValDisp" class="slider-value">25</span></div>
+                    <input type="range" id="pcrRestInp" min="10" max="40" value="25" step="1">
+                </div>
+                 <div class="slider-container">
+                    <div class="slider-label"><span>Muscle Buffer (dbuff mval/L/pH):</span><span id="dbuffValDisp" class="slider-value">54</span></div>
+                    <input type="range" id="dbuffInp" min="30" max="70" value="54" step="1">
+                </div>
+            </div>
+
+            <!-- Simulation Input Group -->
+            <div class="control-group">
+                <h3>Simulation Input</h3>
+                <label for="powerInputTypeSelect" style="font-size:0.9em; margin-bottom:5px; display:block;">Input Type:</label>
+                <select id="powerInputTypeSelect" style="width:100%; padding:8px; font-size:0.9em; margin-bottom:10px;">
+                    <option value="constant">Constant Power</option>
+                    <option value="file">Race Data File (CSV)</option>
+                </select>
+
+                <div id="constantPowerControlsDiv">
+                    <div class="slider-container">
+                        <div class="slider-label"><span>Constant Power (W):</span><span id="constPowerValDisp" class="slider-value">200</span></div>
+                        <input type="range" id="constPowerInp" min="50" max="700" value="200" step="5">
+                    </div>
+                    <div class="slider-container">
+                         <div class="slider-label"><span>Duration (min):</span><span id="constDurationValDisp" class="slider-value">10</span></div>
+                        <input type="range" id="constDurationInp" min="1" max="120" value="10" step="1">
+                    </div>
+                </div>
+
+                <div id="fileUploadControlsDiv" style="display:none;">
+                    <label for="raceDataFileInp" class="file-upload">
+                        Upload CSV (time_s, power)
+                        <input type="file" id="raceDataFileInp" accept=".csv">
+                    </label>
+                    <div id="fileNameDisplay">No file chosen</div>
+                </div>
+            </div>
+
+            <!-- Simulation Speed Group -->
+             <div class="control-group">
+                <h3>Simulation Speed</h3>
+                <div class="slider-container">
+                    <div class="slider-label"><span>Speed Multiplier:</span><span id="simSpeedValDisp" class="slider-value">1x</span></div>
+                    <input type="range" id="simSpeedInp" min="1" max="100" value="1" step="1">
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <button id="startSimButton">Start Simulation</button>
+            <button id="resetSimButton" class="reset-btn" style="margin-top:8px;">Reset</button>
+        </aside>
+
+        <main class="main-content">
+            <div id="simulation-canvas-container">
+                <canvas id="simulationCanvas"></canvas> <!-- ID korrigiert -->
+            </div>
+             <div id="hud">
+                <p><strong>Time:</strong> <span id="hudTime">00:00:00</span></p>
+                <p><strong>Power:</strong> <span id="hudPowerDisp">0</span> W</p>
+                <hr style="border-color: #555; margin: 6px 0;">
+                <p><strong>VO2:</strong> <span id="hudVO2Disp">0.0</span> ml/min/kg</p>
+                <p><strong>Lactate (m):</strong> <span id="hudLactateDisp">1.0</span> mmol/L</p>
+                <p><strong>pH (m):</strong> <span id="hudPHDisp">7.10</span></p>
+                <hr style="border-color: #555; margin: 6px 0;">
+                <div class="hud-bar-container">
+                    <span class="hud-bar-label">Glycogen:</span>
+                    <div class="hud-bar"><div id="hudGlycogenBarFill" class="hud-bar-fill"></div></div>
+                </div>
+                <div class="hud-bar-container">
+                    <span class="hud-bar-label">PCr:</span>
+                    <div class="hud-bar"><div id="hudPCrBarFill" class="hud-bar-fill"></div></div>
+                </div>
+                 <div class="hud-bar-container">
+                    <span class="hud-bar-label">ATP:</span>
+                    <div class="hud-bar"><div id="hudATPBarFill" class="hud-bar-fill"></div></div>
+                </div>
+                <div class="hud-bar-container">
+                    <span class="hud-bar-label">W':</span>
+                    <div class="hud-bar"><div id="hudWPrimeBarFill" class="hud-bar-fill"></div></div>
+                </div>
+            </div>
+            <div id="simulationTimeDisplayTop">Time: 00:00:00</div> <!-- ID korrigiert -->
+        </main>
+    </div>
+
+    <script>
+        // --- Three.js Setup ---
+        let scene, camera, renderer;
+        let athleteMesh, vo2Aura, powerCylinder;
+        let pcrSparklesMaterial, pcrSparklesGeometry, pcrSparklesMesh;
+        let lactateMaterial;
+
+        // --- Simulation State & Parameters ---
+        let simConfig = {};
+        let simState = {};
+        let simDataBuffer = [];
+        let uploadedRaceData = null;
+        let simulationIsRunning = false;
+        let animationFrameHandle;
+        let currentSimDataIndex = 0;
+        let simSpeedFactor = 1;
+
+        // --- Cached CSS Variable Values ---
+        const cssColors = {}; // Object to store cached colors
+
+        // --- Mader-inspired Constants (and others) ---
+        const VO2_REST_PER_KG = 3.5;
+        const ATP_REST_TURNOVER_PER_KG_MUSCLE_WM = 0.005;
+        const LACTATE_REST_MUSCLE = 1.0;
+        const PH_REST_MUSCLE = 7.1;
+        const TAU_VO2_RISE = 20;
+        const TAU_VO2_FALL = 30;
+        const M2_CK_EQUILIBRIUM_L_MOL = 1.66e9;
+        const M3_AK_EQUILIBRIUM = 1.05;
+        const DG0_ATP_HYDROLYSIS_KJ_MOL = -30.6;
+        const GAS_CONSTANT_R_KJ_MOL_K = 8.314e-3;
+        const TEMPERATURE_KELVIN = 273.15 + 37;
+        const KM_PFK_ADPxAMP = 3e-5;
+        const PFK_HILL_N_ADPxAMP = 1.5;
+        const KS3_PFK_H_CUBED_INV = 1 / Math.pow(10, -6.75 * 3);
+        const KM_ADP_OXPHOS_MMOL_KG = 0.025;
+        const NOX_HILL_OXPHOS = 1.8;
+        const DG_OX_CONST_KJ_MOL = -72.5;
+        const KS1_DG_OXPHOS_FACTOR_PER_KJ = 0.0005;
+        const KEL_OX_LACTATE_SQ_MMOL_L_SQ = Math.pow(1.45, 2);
+        const LACTATE_OX_PER_ML_O2 = 0.021 * 0.75;
+        const MUSCLE_WATER_FRACTION_KG_PER_KGWM = 0.75;
+        const ACTIVE_MUSCLE_MASS_RATIO_OF_BODY = 0.3;
+        const ATP_PER_LACTATE_FROM_GLYCOLYSIS = 1.4;
+        const P_O_RATIO_EFFECTIVE_ATP_PER_O2 = 5.0;
+        const MOL_O2_PER_ML_O2_STPD = 1 / 22400;
+        const JOULES_PER_MOL_ATP_HYDROLYSIS = 50000;
+        const EFFICIENCY_ATP_TO_WORK = 0.25;
+
+        // --- DOM Elements Cache ---
+        const dom = {};
+
+        // --- Initial Setup Functions ---
+        function mapAndCacheDOMElements() {
+            const ids = [
+                'vo2maxInp', 'vlamaxInp', 'bodyMassInp', 'cpInp', 'wPrimeInp',
+                'glycogenRestInp', 'sumAdenylatesInp', 'sumCrPiInp', 'pcrRestInp', 'dbuffInp',
+                'constPowerInp', 'constDurationInp', 'powerInputTypeSelect', 'raceDataFileInp',
+                'startSimButton', 'resetSimButton', 'simSpeedInp',
+                'vo2maxValDisp', 'vlamaxValDisp', 'bodyMassValDisp', 'cpValDisp', 'wPrimeValDisp',
+                'glycogenRestValDisp', 'sumAdenylatesValDisp', 'sumCrPiValDisp', 'pcrRestValDisp', 'dbuffValDisp',
+                'constPowerValDisp', 'constDurationValDisp', 'simSpeedValDisp',
+                'fileNameDisplay', 'hudTime', 'hudPowerDisp', 'hudVO2Disp', 'hudLactateDisp', 'hudPHDisp',
+                'hudGlycogenBarFill', 'hudPCrBarFill', 'hudATPBarFill', 'hudWPrimeBarFill',
+                'simulationTimeDisplayTop', 'constantPowerControlsDiv', 'fileUploadControlsDiv',
+                'simulationCanvas'
+            ];
+            ids.forEach(id => {
+                dom[id] = document.getElementById(id);
+                if (!dom[id]) console.warn(`DOM element with ID "${id}" not found!`);
+            });
+        }
+
+        function cacheCSSColors() {
+            try {
+                const rootStyle = getComputedStyle(document.documentElement);
+                cssColors.primaryColor = rootStyle.getPropertyValue('--primary-color').trim() || '#2683C6';
+                cssColors.secondaryColor = rootStyle.getPropertyValue('--secondary-color').trim() || '#9C85C0';
+                cssColors.accentColor = rootStyle.getPropertyValue('--accent-color').trim() || '#EF5350';
+                cssColors.choColor = rootStyle.getPropertyValue('--cho-color').trim() || '#FFC107';
+                cssColors.pcrColor = rootStyle.getPropertyValue('--pcr-color').trim() || '#4CAF50';
+                cssColors.lactateColor = rootStyle.getPropertyValue('--lactate-color').trim() || '#F44336';
+                cssColors.wprimeColor = rootStyle.getPropertyValue('--wprime-color').trim() || '#2196F3';
+                cssColors.atpColor = rootStyle.getPropertyValue('--atp-color').trim() || '#FF9800';
+                cssColors.phColor = rootStyle.getPropertyValue('--ph-color').trim() || '#64b5f6';
+                console.log("CSS colors cached:", cssColors);
+
+                // Set initial bar colors using cached values after caching
+                if (dom.hudGlycogenBarFill) dom.hudGlycogenBarFill.style.backgroundColor = cssColors.choColor;
+                if (dom.hudPCrBarFill) dom.hudPCrBarFill.style.backgroundColor = cssColors.pcrColor;
+                if (dom.hudATPBarFill) dom.hudATPBarFill.style.backgroundColor = cssColors.atpColor;
+                if (dom.hudWPrimeBarFill) dom.hudWPrimeBarFill.style.backgroundColor = cssColors.wprimeColor;
+
+            } catch (error) {
+                console.error("Error caching CSS colors:", error);
+                // Provide fallback colors if caching fails
+                cssColors.primaryColor = '#2683C6';
+                cssColors.secondaryColor = '#9C85C0';
+                cssColors.accentColor = '#EF5350';
+                cssColors.choColor = '#FFC107';
+                cssColors.pcrColor = '#4CAF50';
+                cssColors.lactateColor = '#F44336';
+                cssColors.wprimeColor = '#2196F3';
+                cssColors.atpColor = '#FF9800';
+                cssColors.phColor = '#64b5f6';
+            }
+        }
+
+
+        function initThreeJS() {
+            const container = document.getElementById('simulation-canvas-container');
+             if (!container || !dom.simulationCanvas) {
+                console.error("Canvas container or canvas element not found! Three.js cannot initialize.");
+                return;
+            }
+
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x2c3e50);
+
+            camera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 1000);
+            camera.position.set(0, 2.5, 7);
+            camera.lookAt(0, 1, 0);
+
+            renderer = new THREE.WebGLRenderer({ canvas: dom.simulationCanvas, antialias: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.shadowMap.enabled = true;
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+            scene.add(ambientLight);
+            const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
+            dirLight.position.set(8, 15, 10);
+            dirLight.castShadow = true;
+            dirLight.shadow.mapSize.width = 1024; dirLight.shadow.mapSize.height = 1024;
+            scene.add(dirLight);
+
+            const groundGeo = new THREE.PlaneGeometry(30, 30);
+            const groundMat = new THREE.MeshStandardMaterial({ color: 0x34495e, roughness: 0.8 });
+            const ground = new THREE.Mesh(groundGeo, groundMat);
+            ground.rotation.x = -Math.PI / 2;
+            ground.receiveShadow = true;
+            scene.add(ground);
+
+            // --- START: CylinderGeometry Replacement ---
+            const cylinderHeight = 1.3 + 0.4 * 2; // Original capsule cylinder height + 2 * radius
+            const athleteRadius = 0.4;
+            const athleteGeo = new THREE.CylinderGeometry(athleteRadius, athleteRadius, cylinderHeight, 20); // Replacement
+            // --- END: CylinderGeometry Replacement ---
+
+            const initialAthleteColor = cssColors.primaryColor || '#2683C6'; // Use cached color with fallback
+            lactateMaterial = new THREE.MeshStandardMaterial({ color: initialAthleteColor, roughness: 0.5, metalness: 0.2, emissive: 0x000000 });
+            athleteMesh = new THREE.Mesh(athleteGeo, lactateMaterial);
+            athleteMesh.position.y = cylinderHeight / 2; // Position base at y=0
+
+            athleteMesh.castShadow = true;
+            scene.add(athleteMesh);
+
+            const auraGeo = new THREE.SphereGeometry(athleteRadius + 0.7, 32, 16); // Aura radius relative to athlete
+            const auraMat = new THREE.MeshBasicMaterial({ color: 0x87CEFA, transparent: true, opacity: 0.05, depthWrite: false });
+            vo2Aura = new THREE.Mesh(auraGeo, auraMat);
+            vo2Aura.position.y = athleteMesh.position.y; // Center aura on athlete
+            scene.add(vo2Aura);
+
+            const cylinderGeoPower = new THREE.CylinderGeometry(0.15, 0.15, 0.1, 16); // Specific name for power cylinder geo
+            const cylinderMat = new THREE.MeshStandardMaterial({color: 0xffaa00, emissive: 0xffaa00, emissiveIntensity: 0, transparent: true, opacity: 0.7});
+            powerCylinder = new THREE.Mesh(cylinderGeoPower, cylinderMat);
+             // Position power cylinder below the main athlete cylinder
+            powerCylinder.position.set(athleteMesh.position.x, athleteMesh.position.y - cylinderHeight / 2 - 0.1, athleteMesh.position.z);
+            powerCylinder.scale.y = 1;
+            scene.add(powerCylinder);
+
+             const particleCount = 100;
+             pcrSparklesGeometry = new THREE.BufferGeometry();
+             const positions = new Float32Array(particleCount * 3);
+             for (let i = 0; i < particleCount; i++) {
+                 // Distribute particles around and along the cylinder
+                 const angle = Math.random() * Math.PI * 2;
+                 const radius = athleteRadius + Math.random() * 0.5; // Spread around the cylinder
+                 positions[i * 3 + 0] = Math.cos(angle) * radius; // X
+                 positions[i * 3 + 1] = (Math.random() - 0.5) * cylinderHeight + athleteMesh.position.y; // Y along the height, centered
+                 positions[i * 3 + 2] = Math.sin(angle) * radius; // Z
+             }
+             pcrSparklesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+             const initialPcrSparkleColor = cssColors.pcrColor || '#4CAF50'; // Use cached color with fallback
+             pcrSparklesMaterial = new THREE.PointsMaterial({
+                 color: initialPcrSparkleColor,
+                 size: 0.08,
+                 transparent: true,
+                 opacity: 0,
+                 sizeAttenuation: true,
+                 blending: THREE.AdditiveBlending,
+                 depthWrite: false
+             });
+             pcrSparklesMesh = new THREE.Points(pcrSparklesGeometry, pcrSparklesMaterial);
+             // No need to set pcrSparklesMesh.position.y if particles are positioned relative to athleteMesh.position.y
+             scene.add(pcrSparklesMesh);
+
+            window.addEventListener('resize', onThreeJSWindowResize, false);
+            renderThreeJSAnimationLoop(); // Start the render loop
+        }
+
+        function onThreeJSWindowResize() {
+            const container = document.getElementById('simulation-canvas-container');
+             if (!container || !renderer || !camera) return;
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        }
+
+        function renderThreeJSAnimationLoop() {
+            if(renderer && scene && camera) renderer.render(scene, camera);
+            requestAnimationFrame(renderThreeJSAnimationLoop);
+        }
+
+        function updateAllSliderValueDisplays() {
+             if (!dom || Object.keys(dom).length === 0) return;
+            Object.keys(dom).forEach(key => {
+                if (key.endsWith('Inp') && dom[key] && dom[key].type === 'range') {
+                    const valDispKey = key.replace('Inp', 'ValDisp');
+                    if (dom[valDispKey]) {
+                        let value = parseFloat(dom[key].value);
+                         if (isNaN(value)) { value = parseFloat(dom[key].defaultValue) || 0;}
+                        if (key === 'vlamaxInp' || key === 'sumAdenylatesInp') value = value.toFixed(2);
+                        else value = Math.round(value);
+                        dom[valDispKey].textContent = value + (key === 'simSpeedInp' ? 'x' : '');
+                    }
+                }
+            });
+        }
+
+        function setupAllEventListeners() {
+             if (!dom || Object.keys(dom).length === 0) return;
+            Object.keys(dom).forEach(key => {
+                if (key.endsWith('Inp') && dom[key] && dom[key].type === 'range') {
+                    dom[key].addEventListener('input', updateAllSliderValueDisplays);
+                }
+            });
+
+            if (dom.powerInputTypeSelect) {
+                dom.powerInputTypeSelect.addEventListener('change', (e) => {
+                    dom.constantPowerControlsDiv.style.display = (e.target.value === 'constant') ? 'block' : 'none';
+                    dom.fileUploadControlsDiv.style.display = (e.target.value === 'file') ? 'block' : 'none';
+                });
+            }
+
+            if (dom.raceDataFileInp) dom.raceDataFileInp.addEventListener('change', handleRaceFileUpload);
+            if (dom.startSimButton) dom.startSimButton.addEventListener('click', toggleSimulation);
+            if (dom.resetSimButton) dom.resetSimButton.addEventListener('click', fullResetSimulation);
+        }
+
+        function handleRaceFileUpload(event) {
+            const file = event.target.files[0];
+            if (!dom.fileNameDisplay) return;
+
+            if (file) {
+                dom.fileNameDisplay.textContent = `Loading ${file.name}...`;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const csv = e.target.result;
+                        const lines = csv.split(/[\r\n]+/).map(line => line.trim()).filter(line => line && !line.startsWith('#'));
+
+                        if (lines.length < 2) throw new Error("CSV file must have at least a header and one data row.");
+
+                        const headerLine = lines[0].toLowerCase();
+                        const possibleTimeHeaders = ["time_s", "time(s)", "time", "t_s", "t", "seconds", "zeit", "time[s]"];
+                        const possiblePowerHeaders = ["power", "watts", "p", "leistung", "power[w]"];
+
+                        let timeIdx = -1, powerIdx = -1;
+                        const headers = headerLine.split(/[,;\t]/).map(h => h.trim().replace(/"/g, ''));
+
+                        for (const th of possibleTimeHeaders) { const idx = headers.indexOf(th); if (idx !== -1) { timeIdx = idx; break;} }
+                        for (const ph of possiblePowerHeaders) { const idx = headers.indexOf(ph); if (idx !== -1) { powerIdx = idx; break; } }
+
+                        if (timeIdx === -1 || powerIdx === -1) { throw new Error(`CSV must contain time (e.g., "time_s") and power (e.g., "power") columns. Found headers: ${headers.join(', ')}. Indices T:${timeIdx}, P:${powerIdx}`); }
+
+                        let rawData = lines.slice(1).map(line => {
+                            const values = line.split(/[,;\t]/);
+                            if (values.length <= Math.max(timeIdx, powerIdx)) return null;
+                            return { time: parseFloat(values[timeIdx]), power: parseFloat(values[powerIdx]) };
+                        }).filter(row => row && !isNaN(row.time) && !isNaN(row.power) && row.power >= 0);
+
+                        if (rawData.length === 0) throw new Error("No valid numeric data rows found in CSV.");
+
+                        uploadedRaceData = [];
+                        if (rawData.length > 0) {
+                            rawData.sort((a,b) => a.time - b.time);
+                            const timeOffset = rawData[0].time;
+                            rawData.forEach(d => d.time -= timeOffset);
+                            const firstTime = 0; const lastTime = Math.ceil(rawData[rawData.length - 1].time);
+                            let rawDataIdx = 0;
+                            for (let t_sec = firstTime; t_sec <= lastTime; t_sec++) {
+                                while (rawDataIdx < rawData.length - 1 && rawData[rawDataIdx + 1].time <= t_sec) { rawDataIdx++; }
+                                let currentPower = rawData[rawDataIdx].power;
+                                if (rawDataIdx < rawData.length - 1 && rawData[rawDataIdx].time < t_sec) {
+                                    const t1 = rawData[rawDataIdx].time; const p1 = rawData[rawDataIdx].power;
+                                    const t2 = rawData[rawDataIdx+1].time; const p2 = rawData[rawDataIdx+1].power;
+                                    if (t2 > t1) { currentPower = p1 + (p2 - p1) * (t_sec - t1) / (t2 - t1); }
+                                }
+                                uploadedRaceData.push({ time: t_sec, power: currentPower });
+                            }
+                        }
+                        const durationMinutes = uploadedRaceData.length > 0 ? Math.round(uploadedRaceData[uploadedRaceData.length-1].time/60) : 0;
+                        dom.fileNameDisplay.textContent = `${file.name} (${uploadedRaceData.length}s loaded, ${durationMinutes} min)`;
+                        console.log("Processed race data:", uploadedRaceData.length, "points.");
+
+                    } catch (error) {
+                        console.error("Error processing CSV:", error); alert("Error processing CSV file: " + error.message);
+                        uploadedRaceData = null; dom.fileNameDisplay.textContent = "Error loading file.";
+                    }
+                };
+                reader.onerror = (e) => { alert("Error reading file."); console.error("File reader error:", e); uploadedRaceData = null; dom.fileNameDisplay.textContent = "Error reading file."; }
+                reader.readAsText(file);
+            } else { dom.fileNameDisplay.textContent = "No file chosen"; uploadedRaceData = null; }
+        }
+
+        function collectSimConfig() {
+             simConfig = {
+                vo2max_ml_min_kg: parseFloat(dom.vo2maxInp.value), vlamax_mmol_s_kg_wm: parseFloat(dom.vlamaxInp.value),
+                bodyMass_kg: parseFloat(dom.bodyMassInp.value), cp_W: parseFloat(dom.cpInp.value),
+                wPrime_J: parseFloat(dom.wPrimeInp.value) * 1000, initialGlycogen_g: parseFloat(dom.glycogenRestInp.value),
+                s_adenylates_mmol_kg_wm: parseFloat(dom.sumAdenylatesInp.value), s_cr_pi_pool_mmol_kg_wm: parseFloat(dom.sumCrPiInp.value),
+                initialPCr_mmol_kg_wm: parseFloat(dom.pcrRestInp.value), muscleBufferCapacity_mval_L_pH: parseFloat(dom.dbuffInp.value),
+                inputType: dom.powerInputTypeSelect.value, constPower_W: parseFloat(dom.constPowerInp.value),
+                constDuration_s: parseFloat(dom.constDurationInp.value) * 60,
+            };
+             if (simConfig.initialPCr_mmol_kg_wm >= simConfig.s_cr_pi_pool_mmol_kg_wm) {
+                 simConfig.initialPCr_mmol_kg_wm = simConfig.s_cr_pi_pool_mmol_kg_wm * 0.95;
+                 dom.pcrRestInp.value = simConfig.initialPCr_mmol_kg_wm.toFixed(1); updateAllSliderValueDisplays();
+                 console.warn("Resting PCr adjusted: cannot equal or exceed S[C] pool.");
+             }
+             if (isNaN(simConfig.vo2max_ml_min_kg)) { console.error("SimConfig contains NaN. Check slider parsing."); alert("Error reading slider values. Please reset."); return false; }
+            simConfig.vo2max_ml_min_abs = simConfig.vo2max_ml_min_kg * simConfig.bodyMass_kg;
+            simConfig.vo2max_ml_s_abs = simConfig.vo2max_ml_min_abs / 60;
+            simConfig.vo2_rest_ml_s_abs = (VO2_REST_PER_KG * simConfig.bodyMass_kg) / 60;
+            simConfig.activeMuscleMass_kg = simConfig.bodyMass_kg * ACTIVE_MUSCLE_MASS_RATIO_OF_BODY;
+            simSpeedFactor = parseInt(dom.simSpeedInp.value) || 1;
+            return true;
+        }
+
+        function initializeSimState() {
+            simState = {}; simState.time_s = 0; simState.power_W = 0; simState.vo2_ml_s_abs = simConfig.vo2_rest_ml_s_abs;
+            simState.vo2_target_ss_ml_s_abs = simConfig.vo2_rest_ml_s_abs; simState.pcr_mmol_kg_wm = simConfig.initialPCr_mmol_kg_wm;
+            simState.pi_mmol_kg_wm = Math.max(0.1, simConfig.s_cr_pi_pool_mmol_kg_wm - simState.pcr_mmol_kg_wm);
+            let initial_atp_guess = simConfig.s_adenylates_mmol_kg_wm * 0.85;
+            const initialChelates = calculateCHEPEquilibrium( simConfig.s_adenylates_mmol_kg_wm, simConfig.s_cr_pi_pool_mmol_kg_wm, simState.pcr_mmol_kg_wm, PH_REST_MUSCLE, initial_atp_guess, simState.pi_mmol_kg_wm );
+            simState.atp_mmol_kg_wm = initialChelates.atp; simState.adp_mmol_kg_wm = initialChelates.adp; simState.amp_mmol_kg_wm = initialChelates.amp; simState.pi_mmol_kg_wm = initialChelates.pi;
+            simState.lactate_m_mmol_L_water = LACTATE_REST_MUSCLE; simState.pH_m = PH_REST_MUSCLE; simState.glycogen_g = simConfig.initialGlycogen_g;
+            simState.wPrime_J = simConfig.wPrime_J; simState.dg_atp_cyt_kj_mol = calculateDGATPcyt(simState.atp_mmol_kg_wm, simState.adp_mmol_kg_wm, simState.pi_mmol_kg_wm);
+            simState.pcr_prev_mmol_kg_wm = simState.pcr_mmol_kg_wm;
+        }
+
+        function precomputeSimulationData() {
+            if (!collectSimConfig()) return false;
+            initializeSimState();
+            simDataBuffer = [ { ...simState } ];
+            let powerProfile = [];
+            if (simConfig.inputType === 'constant') { for (let t = 1; t <= simConfig.constDuration_s; t++) { powerProfile.push({ time: t, power: simConfig.constPower_W }); } }
+            else { if (!uploadedRaceData || uploadedRaceData.length === 0) { alert("Please upload valid race data or select constant power."); return false; } powerProfile = uploadedRaceData; }
+            if (powerProfile.length === 0) { console.warn("Power profile empty."); return false; }
+            console.log(`Precomputing for ${powerProfile.length} seconds...`);
+            for (let i = 0; i < powerProfile.length; i++) {
+                const prevSimStateFromBuffer = simDataBuffer[simDataBuffer.length - 1]; let currentIterState = { ...prevSimStateFromBuffer };
+                const targetTime = powerProfile[i].time; const targetPower = powerProfile[i].power;
+                const dt_s = (i > 0 && powerProfile[i-1]) ? (targetTime - powerProfile[i-1].time) : targetTime;
+                if (dt_s <= 0 && i > 0) { console.warn(`Skipping step ${i} in precompute: dt=${dt_s}s.`); simDataBuffer.push({...currentIterState, time_s: targetTime, power_W: targetPower}); continue; }
+                currentIterState.time_s = targetTime; currentIterState.power_W = targetPower;
+                try { runSingleSimulationStep(currentIterState, simConfig, dt_s); }
+                catch (e) { console.error(`Error in runSingleSimulationStep at t=${currentIterState.time_s}s:`, e.stack); alert(`Simulation error at t=${currentIterState.time_s}s. Check console.`); return false; }
+                simDataBuffer.push(currentIterState);
+            }
+            console.log("Precomputation finished. Buffer size:", simDataBuffer.length); return true;
+        }
+
+        function runSingleSimulationStep(currentState, config, dt) {
+             const active_muscle_kg = config.activeMuscleMass_kg; if (active_muscle_kg <= 0 || dt <= 0) { return; }
+             let vo2_rel_for_pco2 = Math.min(1, Math.max(0, (currentState.vo2_ml_s_abs / (config.vo2max_ml_s_abs + 1e-9) ))); let pco2_mmhg = 40.0 + 55.0 * vo2_rel_for_pco2; pco2_mmhg = Math.max(35, Math.min(85, pco2_mmhg));
+             let pi_for_ph_mmol_L_water = currentState.pi_mmol_kg_wm / MUSCLE_WATER_FRACTION_KG_PER_KGWM; let log_pco2_term = (pco2_mmhg > 0) ? Math.log10(pco2_mmhg) : Math.log10(0.1);
+             currentState.pH_m = 7.85 + (config.muscleBufferCapacity_mval_L_pH / 1000) * (0.8 * pi_for_ph_mmol_L_water - currentState.lactate_m_mmol_L_water) - 0.55 * log_pco2_term; currentState.pH_m = Math.max(6.0, Math.min(7.4, currentState.pH_m));
+            const chepValues = calculateCHEPEquilibrium( config.s_adenylates_mmol_kg_wm, config.s_cr_pi_pool_mmol_kg_wm, currentState.pcr_mmol_kg_wm, currentState.pH_m, currentState.atp_mmol_kg_wm, currentState.pi_mmol_kg_wm );
+             currentState.adp_mmol_kg_wm = chepValues.adp; currentState.amp_mmol_kg_wm = chepValues.amp; currentState.dg_atp_cyt_kj_mol = calculateDGATPcyt(chepValues.atp, currentState.adp_mmol_kg_wm, currentState.pi_mmol_kg_wm);
+             let fdg_adp_equivalent_mmol_kg = KS1_DG_OXPHOS_FACTOR_PER_KJ * Math.max(0, (DG_OX_CONST_KJ_MOL - currentState.dg_atp_cyt_kj_mol)); let effective_adp_for_oxphos_mmol_kg = currentState.adp_mmol_kg_wm + fdg_adp_equivalent_mmol_kg;
+             let vo2_ss_target_kg_s = (config.vo2max_ml_min_kg / 60) / (1 + Math.pow(KM_ADP_OXPHOS_MMOL_KG / Math.max(1e-6, effective_adp_for_oxphos_mmol_kg), NOX_HILL_OXPHOS)); currentState.vo2_target_ss_ml_s_abs = vo2_ss_target_kg_s * config.bodyMass_kg; currentState.vo2_target_ss_ml_s_abs = Math.max(config.vo2_rest_ml_s_abs, currentState.vo2_target_ss_ml_s_abs);
+             let tau_vo2_eff_s = (currentState.vo2_target_ss_ml_s_abs >= currentState.vo2_ml_s_abs) ? TAU_VO2_RISE : TAU_VO2_FALL; currentState.vo2_ml_s_abs += (currentState.vo2_target_ss_ml_s_abs - currentState.vo2_ml_s_abs) * (1 - Math.exp(-dt / Math.max(1, tau_vo2_eff_s))); currentState.vo2_ml_s_abs = Math.max(config.vo2_rest_ml_s_abs * 0.9, Math.min(currentState.vo2_ml_s_abs, config.vo2max_ml_s_abs * 1.02));
+             let h_plus_mol_L = Math.pow(10, -currentState.pH_m); let vla_max_ph_mmol_s_kg_wm = config.vlamax_mmol_s_kg_wm / (1 + Math.pow(h_plus_mol_L, 3) * KS3_PFK_H_CUBED_INV); vla_max_ph_mmol_s_kg_wm = Math.max(0, vla_max_ph_mmol_s_kg_wm); let adp_amp_product = currentState.adp_mmol_kg_wm * currentState.amp_mmol_kg_wm;
+             let vla_prod_mmol_s_kg_wm = vla_max_ph_mmol_s_kg_wm / (1 + Math.pow(KM_PFK_ADPxAMP / Math.max(1e-9, adp_amp_product), PFK_HILL_N_ADPxAMP) ); if (currentState.glycogen_g <= 0.1) vla_prod_mmol_s_kg_wm *= (currentState.glycogen_g / 0.1); vla_prod_mmol_s_kg_wm = Math.max(0, vla_prod_mmol_s_kg_wm);
+             let vo2_a_ml_s_kg_active_muscle = (currentState.vo2_ml_s_abs / (active_muscle_kg + 1e-9)); let la_m_for_ox_mmol_L = Math.max(0.1, currentState.lactate_m_mmol_L_water);
+             let vla_ox_mmol_s_kg_wm = (LACTATE_OX_PER_ML_O2 * vo2_a_ml_s_kg_active_muscle) / (1 + KEL_OX_LACTATE_SQ_MMOL_L_SQ / (la_m_for_ox_mmol_L * la_m_for_ox_mmol_L)); vla_ox_mmol_s_kg_wm = Math.max(0, vla_ox_mmol_s_kg_wm);
+             let net_lactate_rate_mmol_s_kg_wm = vla_prod_mmol_s_kg_wm - vla_ox_mmol_s_kg_wm; currentState.lactate_m_mmol_L_water += (net_lactate_rate_mmol_s_kg_wm / MUSCLE_WATER_FRACTION_KG_PER_KGWM) * dt; currentState.lactate_m_mmol_L_water = Math.max(LACTATE_REST_MUSCLE * 0.5, currentState.lactate_m_mmol_L_water);
+             let atp_demand_work_mmol_s_kg_wm = 0; if (currentState.power_W > 0 && EFFICIENCY_ATP_TO_WORK > 0 && JOULES_PER_MOL_ATP_HYDROLYSIS > 0 && active_muscle_kg > 0) { atp_demand_work_mmol_s_kg_wm = (currentState.power_W / active_muscle_kg) / (JOULES_PER_MOL_ATP_HYDROLYSIS * EFFICIENCY_ATP_TO_WORK); }
+             let atp_demand_total_mmol_s_kg_wm = atp_demand_work_mmol_s_kg_wm + ATP_REST_TURNOVER_PER_KG_MUSCLE_WM; let atp_from_oxphos_mmol_s_kg_wm = vo2_a_ml_s_kg_active_muscle * MOL_O2_PER_ML_O2_STPD * P_O_RATIO_EFFECTIVE_ATP_PER_O2 * 1000; let atp_from_glycolysis_mmol_s_kg_wm = vla_prod_mmol_s_kg_wm * ATP_PER_LACTATE_FROM_GLYCOLYSIS;
+             let net_atp_production_mmol_s_kg_wm = atp_from_oxphos_mmol_s_kg_wm + atp_from_glycolysis_mmol_s_kg_wm - atp_demand_total_mmol_s_kg_wm; currentState.pcr_prev_mmol_kg_wm = currentState.pcr_mmol_kg_wm; let pcr_change_mmol_kg_wm = net_atp_production_mmol_s_kg_wm * dt; currentState.pcr_mmol_kg_wm += pcr_change_mmol_kg_wm;
+             currentState.pcr_mmol_kg_wm = Math.max(0.1, Math.min(currentState.pcr_mmol_kg_wm, config.s_cr_pi_pool_mmol_kg_wm - 0.1)); currentState.pi_mmol_kg_wm = config.s_cr_pi_pool_mmol_kg_wm - currentState.pcr_mmol_kg_wm;
+             const finalChep = calculateCHEPEquilibrium( config.s_adenylates_mmol_kg_wm, config.s_cr_pi_pool_mmol_kg_wm, currentState.pcr_mmol_kg_wm, currentState.pH_m, currentState.atp_mmol_kg_wm, currentState.pi_mmol_kg_wm );
+             currentState.atp_mmol_kg_wm = finalChep.atp; currentState.adp_mmol_kg_wm = finalChep.adp; currentState.amp_mmol_kg_wm = finalChep.amp;
+             let gluc_units_from_glycolysis_mmol_s_kg_wm = vla_prod_mmol_s_kg_wm / 2; let cho_fraction_for_oxphos = 0.3 + 0.7 * vo2_rel_for_pco2; if (currentState.glycogen_g < 50) cho_fraction_for_oxphos = Math.min(cho_fraction_for_oxphos, 0.1 + 0.2 * (currentState.glycogen_g / 50));
+             let atp_needed_by_oxphos_mmol_s_kg_wm = Math.max(0, atp_demand_total_mmol_s_kg_wm - atp_from_glycolysis_mmol_s_kg_wm); let atp_from_cho_oxphos_mmol_s_kg_wm = atp_needed_by_oxphos_mmol_s_kg_wm * cho_fraction_for_oxphos;
+             let gluc_units_from_oxphos_mmol_s_kg_wm = atp_from_cho_oxphos_mmol_s_kg_wm / (30 * ATP_PER_LACTATE_FROM_GLYCOLYSIS / 1.4); let total_gluc_units_consumed_mmol_s_kg_wm = gluc_units_from_glycolysis_mmol_s_kg_wm + gluc_units_from_oxphos_mmol_s_kg_wm;
+             let glycogen_consumed_g_s_kg_wm = total_gluc_units_consumed_mmol_s_kg_wm * 162.14 / 1000; if (active_muscle_kg > 0) { currentState.glycogen_g -= glycogen_consumed_g_s_kg_wm * active_muscle_kg * dt; } currentState.glycogen_g = Math.max(0, currentState.glycogen_g);
+            if (currentState.power_W > config.cp_W) { currentState.wPrime_J -= (currentState.power_W - config.cp_W) * dt; }
+            else { const wPrimeDeficit_J = config.wPrime_J - currentState.wPrime_J; const dcp_W = config.cp_W - currentState.power_W; let tau_w_prime_rec_s = 300 + 300 * (1 - Math.max(0, dcp_W / (config.cp_W * 0.5 + 1e-9))); currentState.wPrime_J += wPrimeDeficit_J * (1 - Math.exp(-dt / Math.max(10, tau_w_prime_rec_s))); }
+            currentState.wPrime_J = Math.max(0, Math.min(currentState.wPrime_J, config.wPrime_J));
+        }
+
+        function calculateCHEPEquilibrium(S_A_mmol_kg, S_C_mmol_kg, pcr_curr_mmol_kg, pH_curr, atp_guess_mmol_kg, pi_guess_mmol_kg) {
+            S_A_mmol_kg = Number(S_A_mmol_kg); S_C_mmol_kg = Number(S_C_mmol_kg); pcr_curr_mmol_kg = Number(pcr_curr_mmol_kg); pH_curr = Number(pH_curr); atp_guess_mmol_kg = Number(atp_guess_mmol_kg); pi_guess_mmol_kg = Number(pi_guess_mmol_kg);
+            let pi_mmol_kg = Math.max(0.1, S_C_mmol_kg - pcr_curr_mmol_kg); pcr_curr_mmol_kg = Math.max(0.1, pcr_curr_mmol_kg); let H_plus_mol_L = Math.pow(10, -pH_curr);
+            let term_ATP_div_ADP = (M2_CK_EQUILIBRIUM_L_MOL * H_plus_mol_L * pcr_curr_mmol_kg) / Math.max(1e-6, pi_mmol_kg);
+            if (isNaN(term_ATP_div_ADP) || !isFinite(term_ATP_div_ADP) || term_ATP_div_ADP <= 0) { term_ATP_div_ADP = (S_A_mmol_kg * 0.8) / (S_A_mmol_kg * 0.1 + 1e-9); } let term_ADP_div_ATP = 1.0 / term_ATP_div_ADP;
+            let denominator = term_ATP_div_ADP + 1 + M3_AK_EQUILIBRIUM * term_ADP_div_ATP; if (denominator <= 1e-6) denominator = 1e-6;
+            let adp_mmol_kg = S_A_mmol_kg / denominator; let atp_mmol_kg = term_ATP_div_ADP * adp_mmol_kg; let amp_mmol_kg = M3_AK_EQUILIBRIUM * adp_mmol_kg * adp_mmol_kg / Math.max(1e-6, atp_mmol_kg);
+            atp_mmol_kg = Math.max(0, atp_mmol_kg); adp_mmol_kg = Math.max(0, adp_mmol_kg); amp_mmol_kg = Math.max(0, amp_mmol_kg); let sumCheck = atp_mmol_kg + adp_mmol_kg + amp_mmol_kg;
+            if (sumCheck > 1e-6) { const factor = S_A_mmol_kg / sumCheck; atp_mmol_kg *= factor; adp_mmol_kg *= factor; amp_mmol_kg *= factor; }
+            else { atp_mmol_kg = S_A_mmol_kg; adp_mmol_kg = 0; amp_mmol_kg = 0; }
+            return { adp: adp_mmol_kg, amp: amp_mmol_kg, atp: atp_mmol_kg, pi: pi_mmol_kg };
+        }
+
+        function calculateDGATPcyt(atp_mmol_kg, adp_mmol_kg, pi_mmol_kg) {
+            const atp_M = (atp_mmol_kg / MUSCLE_WATER_FRACTION_KG_PER_KGWM) / 1000; const adp_M = (adp_mmol_kg / MUSCLE_WATER_FRACTION_KG_PER_KGWM) / 1000; const pi_M = (pi_mmol_kg / MUSCLE_WATER_FRACTION_KG_PER_KGWM) / 1000;
+            if (adp_M < 1e-9 || pi_M < 1e-9 || atp_M < 1e-9) { return DG0_ATP_HYDROLYSIS_KJ_MOL - 20; }
+            const ratio = atp_M / (adp_M * pi_M); return DG0_ATP_HYDROLYSIS_KJ_MOL + GAS_CONSTANT_R_KJ_MOL_K * TEMPERATURE_KELVIN * Math.log(Math.max(1e-9, ratio));
+        }
+
+        function toggleSimulation() {
+            if (!simulationIsRunning) {
+                if (currentSimDataIndex === 0 || simDataBuffer.length <= 1) {
+                    console.log("Attempting to start new simulation precomputation..."); const success = precomputeSimulationData();
+                    if (!success || simDataBuffer.length <= 1) { alert("Failed to prepare simulation data. Check parameters or file, and console for errors."); return; }
+                    console.log("Precomputation successful. Starting animation."); currentSimDataIndex = 0;
+                } else { console.log("Resuming simulation from index", currentSimDataIndex); }
+                if (currentSimDataIndex < simDataBuffer.length -1) {
+                    simulationIsRunning = true; dom.startSimButton.textContent = "Pause Simulation"; dom.startSimButton.style.backgroundColor = cssColors.secondaryColor || '#9C85C0';
+                    runLiveSimulationAnimation();
+                } else { dom.startSimButton.textContent = "Finished"; }
+            } else {
+                simulationIsRunning = false; dom.startSimButton.textContent = "Resume Simulation"; dom.startSimButton.style.backgroundColor = cssColors.primaryColor || '#2683C6';
+                if (animationFrameHandle) cancelAnimationFrame(animationFrameHandle); console.log("Simulation paused at index", currentSimDataIndex);
+            }
+        }
+
+        function fullResetSimulation() {
+            simulationIsRunning = false; if (animationFrameHandle) cancelAnimationFrame(animationFrameHandle);
+            simDataBuffer = []; currentSimDataIndex = 0;
+            dom.startSimButton.textContent = "Start Simulation"; dom.startSimButton.style.backgroundColor = cssColors.primaryColor || '#2683C6';
+            if(dom.raceDataFileInp) dom.raceDataFileInp.value = ""; if(dom.fileNameDisplay) dom.fileNameDisplay.textContent = "No file chosen"; uploadedRaceData = null;
+            if (!collectSimConfig()) { alert("Error in configuration. Please check sliders."); return; } initializeSimState(); updateAllHUDs(simState); updateAll3DVisuals(simState, true);
+            if(dom.simulationTimeDisplayTop) dom.simulationTimeDisplayTop.textContent = "Time: 00:00:00"; if(dom.hudTime) dom.hudTime.textContent = "00:00:00";
+            console.log("Simulator fully reset.");
+        }
+
+        function runLiveSimulationAnimation() {
+            if (!simulationIsRunning || currentSimDataIndex >= simDataBuffer.length) {
+                simulationIsRunning = false; dom.startSimButton.textContent = (currentSimDataIndex >= simDataBuffer.length && simDataBuffer.length > 0) ? "Finished" : "Resume Simulation"; dom.startSimButton.style.backgroundColor = cssColors.primaryColor || '#2683C6';
+                if (animationFrameHandle) cancelAnimationFrame(animationFrameHandle); if(currentSimDataIndex >= simDataBuffer.length && simDataBuffer.length > 0) console.log("Animation reached end of buffer."); return;
+            }
+            const dataPoint = simDataBuffer[currentSimDataIndex]; if (!dataPoint) { console.error("Invalid data point at index", currentSimDataIndex, ". Halting animation."); simulationIsRunning = false; return; }
+            updateAllHUDs(dataPoint); updateAll3DVisuals(dataPoint);
+            const displayTime = dataPoint.time_s; const hours = Math.floor(displayTime / 3600); const minutes = Math.floor((displayTime % 3600) / 60); const seconds = Math.floor(displayTime % 60);
+            const timeString = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            if(dom.simulationTimeDisplayTop) dom.simulationTimeDisplayTop.textContent = `Time: ${timeString}`; if(dom.hudTime) dom.hudTime.textContent = timeString;
+            currentSimDataIndex += simSpeedFactor; currentSimDataIndex = Math.min(currentSimDataIndex, simDataBuffer.length - 1);
+            animationFrameHandle = requestAnimationFrame(runLiveSimulationAnimation);
+        }
+
+        function updateAllHUDs(state) {
+            if (!dom.hudPowerDisp || !simConfig || isNaN(simConfig.bodyMass_kg) || simConfig.bodyMass_kg <= 0) return; // Added NaN/zero check for bodyMass
+            dom.hudPowerDisp.textContent = state.power_W.toFixed(0);
+            dom.hudVO2Disp.textContent = (state.vo2_ml_s_abs / simConfig.bodyMass_kg * 60).toFixed(1);
+            dom.hudLactateDisp.textContent = state.lactate_m_mmol_L_water.toFixed(1);
+            dom.hudPHDisp.textContent = state.pH_m.toFixed(2);
+            const glycogenPercent = (state.glycogen_g / (simConfig.initialGlycogen_g + 1e-9)) * 100;
+            dom.hudGlycogenBarFill.style.width = `${Math.max(0, glycogenPercent)}%`; dom.hudGlycogenBarFill.style.backgroundColor = getColorForResource(glycogenPercent, cssColors.choColor || '#FFC107');
+            const pcrPercent = (state.pcr_mmol_kg_wm / (simConfig.initialPCr_mmol_kg_wm + 1e-9)) * 100;
+            dom.hudPCrBarFill.style.width = `${Math.max(0, pcrPercent)}%`; // Color is static green from CSS
+            const atpPercentOfTotalAdenylates = (state.atp_mmol_kg_wm / (simConfig.s_adenylates_mmol_kg_wm + 1e-9)) * 100;
+            dom.hudATPBarFill.style.width = `${Math.max(0, Math.min(100, atpPercentOfTotalAdenylates))}%`; dom.hudATPBarFill.style.backgroundColor = getColorForResource(atpPercentOfTotalAdenylates, cssColors.atpColor || '#FF9800', true);
+            const wPrimePercent = (state.wPrime_J / (simConfig.wPrime_J + 1e-9)) * 100;
+            dom.hudWPrimeBarFill.style.width = `${Math.max(0, wPrimePercent)}%`; // Color is static blue from CSS
+        }
+
+        function getColorForResource(percentage, baseColorHex, isAtp = false) {
+            const baseColor = new THREE.Color(baseColorHex || '#ffffff'); // Fallback white
+            const criticalColor = new THREE.Color(cssColors.accentColor || '#EF5350'); // Use cached accent color
+            percentage = Math.max(0, Math.min(100, percentage)); let factor = 1;
+            if (isAtp) { if (percentage < 85) factor = Math.max(0, (percentage - 70)) / 15; }
+            else if (baseColorHex === (cssColors.choColor || '#FFC107')) { if (percentage < 30) factor = Math.max(0, percentage) / 30; }
+            const finalColor = new THREE.Color().lerpColors(criticalColor, baseColor, factor);
+            return `rgb(${Math.round(finalColor.r*255)}, ${Math.round(finalColor.g*255)}, ${Math.round(finalColor.b*255)})`;
+        }
+
+        function updateAll3DVisuals(state, immediate = false) {
+            if (!lactateMaterial || !vo2Aura || !powerCylinder || !pcrSparklesMaterial || !simConfig) return;
+            const animDuration = immediate ? 0 : Math.max(50, 150 / simSpeedFactor);
+            const phNormalized = Math.min(1, Math.max(0, (state.pH_m - 6.0) / (PH_REST_MUSCLE - 6.0)));
+            const athleteColorTarget = new THREE.Color().lerpColors(new THREE.Color(cssColors.lactateColor || '#F44336'), new THREE.Color(cssColors.phColor || '#64b5f6'), phNormalized);
+            anime({ targets: lactateMaterial.color, r: athleteColorTarget.r, g: athleteColorTarget.g, b: athleteColorTarget.b, duration: animDuration, easing: 'linear' });
+            lactateMaterial.emissive.set(athleteColorTarget).multiplyScalar( (1 - phNormalized) * 0.7 );
+            const vo2RelFraction = Math.max(0, (state.vo2_ml_s_abs - simConfig.vo2_rest_ml_s_abs) / (simConfig.vo2max_ml_s_abs - simConfig.vo2_rest_ml_s_abs + 1e-6));
+            const auraTargetOpacity = 0.05 + vo2RelFraction * 0.4; const auraScale = 1.0 + vo2RelFraction * 0.7;
+            anime.remove(vo2Aura.material); anime.remove(vo2Aura.scale);
+            anime({ targets: vo2Aura.material, opacity: auraTargetOpacity, duration: animDuration*1.5, easing: 'linear' });
+            anime({ targets: vo2Aura.scale, x: auraScale, y: auraScale, z: auraScale, duration: animDuration*2, easing: 'easeOutQuad' });
+            const powerNorm = Math.min(1.5, Math.max(0, state.power_W / (simConfig.cp_W +1e-6)));
+            const cylinderTargetHeightFactor = 0.1 + powerNorm * 1.5; const cylinderTargetIntensity = powerNorm * 1.2;
+            anime({ targets: powerCylinder.scale, y: cylinderTargetHeightFactor, duration: animDuration*0.8, easing: 'linear' });
+            anime({ targets: powerCylinder.material, emissiveIntensity: cylinderTargetIntensity, duration: animDuration*0.8, easing: 'linear' });
+            const pcrDelta = state.pcr_mmol_kg_wm - state.pcr_prev_mmol_kg_wm; const pcrUsageRateAbs = Math.abs(pcrDelta); const pcrThreshold = 0.05 / (simSpeedFactor || 1);
+            if (pcrUsageRateAbs > pcrThreshold && pcrDelta < 0) { // Only sparkle on PCr USAGE
+                const sparkleIntensity = Math.min(1, pcrUsageRateAbs / (pcrThreshold * 10)); pcrSparklesMaterial.opacity = sparkleIntensity; pcrSparklesMaterial.size = 0.05 + sparkleIntensity * 0.05;
+                anime.remove(pcrSparklesMaterial);
+                anime({ targets: pcrSparklesMaterial, opacity: 0, size: 0.05, duration: Math.max(200, 400 / simSpeedFactor), easing: 'linear' });
+            } else { if (pcrSparklesMaterial.opacity > 0 && !anime.get(pcrSparklesMaterial, 'opacity', 'count')) { pcrSparklesMaterial.opacity = Math.max(0, pcrSparklesMaterial.opacity - 0.05 / (simSpeedFactor || 1) ); } }
+        }
+
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log("DOM Content Loaded. Initializing Simulator...");
+            mapAndCacheDOMElements();
+            cacheCSSColors();       // Cache CSS colors AFTER DOM elements are mapped
+            initThreeJS();          // Initialize Three.js AFTER colors are cached
+            updateAllSliderValueDisplays(); // Update displays AFTER DOM elements are mapped
+            setupAllEventListeners();   // Setup listeners AFTER displays are initialized
+            fullResetSimulation();      // Perform initial reset
+            console.log("Simulator Initialized and Reset.");
+        });
+
+    </script>
+</body>
+</html>" zurück und verwedne diese als basis und dann ergänze oder verbesser die Ap, dass sei eeher wie diese hier aussihet was die verschidenen verlaufskurven angehet, aber in erin 3D umgegbung, aber behalte alle wichitgen parameter und kurven sowie berehcnungen und gebe mir die komplette angepasst appcode aus ohne irgendwleche lücken oder ähnlcihes "<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sprint Metabolism Model v4.2 (Plotly Edition)</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Target layout colors - Using same color scheme as the reference app */
+            --primary-color: #2683C6;
+            --secondary-color: #42BA97;
+            --accent-color: #EF5350; /* Red for termination */
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --border-color: #dee2e6;
+            --gradient-start: #f1f8ff;
+            --gradient-end: #ffffff;
+            --white: #fff;
+            --box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            --label-color: #555;
+            --grid-color: rgba(200, 200, 200, 0.3);
+            --tooltip-bg: rgba(50, 50, 50, 0.9);
+            
+            /* Colors for the plot matching reference app */
+            --plot-pcr: #2683C6;      /* Blue - Primary */
+            --plot-atp: #42BA97;      /* Green - Secondary */
+            --plot-adp: #EF5350;      /* Red - Accent */
+            --plot-amp: #FFA000;      /* Orange/Amber */
+            --plot-la-rate: #6A1B9A;  /* Purple */
+            --plot-la-m: #EC407A;     /* Pink */
+        }
+
+        /* Basic Styles - Matching reference app */
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #f5f5f5; color: var(--dark-color); line-height: 1.6; overflow: hidden; }
+        .container { display: flex; height: 100vh; max-width: 100%; }
+
+        /* Sidebar Styles - With scrollbar styling from reference app */
+        .sidebar { 
+            width: 360px; 
+            flex-shrink: 0; 
+            background: linear-gradient(to bottom, var(--gradient-start), var(--gradient-end)); 
+            padding: 20px; 
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1); 
+            overflow-y: auto; 
+            border-right: 1px solid var(--border-color); 
+            max-height: 100vh; 
+            position: relative; 
+            z-index: 10; 
+        }
+        .sidebar::-webkit-scrollbar { width: 8px; }
+        .sidebar::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        .sidebar::-webkit-scrollbar-thumb { background: #bbb; border-radius: 10px; }
+        .sidebar::-webkit-scrollbar-thumb:hover { background: #999; }
+
+        /* Main Content Styles */
+        .main-content { flex: 1; padding: 20px; display: flex; flex-direction: column; background-color: var(--white); overflow-y: auto; }
+
+        /* Headings */
+        h1 { color: var(--primary-color); margin-bottom: 20px; font-size: 1.7rem; text-align: center; padding-bottom: 10px; border-bottom: 2px solid var(--border-color); }
+        h2 { color: var(--dark-color); margin-bottom: 20px; font-size: 1.4rem; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); }
+
+        /* Control Groups (Cards) */
+        .control-group { 
+            margin-bottom: 15px; 
+            border-bottom: 1px solid var(--border-color); 
+            background-color: var(--white); 
+            border-radius: 6px; 
+            padding: 15px; 
+            box-shadow: var(--box-shadow); 
+            position: relative; 
+        }
+        .control-group:last-child { border-bottom: none; margin-bottom: 0; }
+
+        /* Header Section with Title and Info Icon */
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .control-label {
+            font-weight: 600;
+            color: var(--dark-color);
+            font-size: 1rem;
+        }
+        .info-icon {
+            color: var(--primary-color);
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background-color: rgba(38, 131, 198, 0.1);
+        }
+
+        /* Tooltips (Info Boxes) - Repositioned to always stay in sidebar */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 240px;
+            background-color: var(--tooltip-bg);
+            color: var(--white);
+            text-align: left;
+            border-radius: 6px;
+            padding: 10px 14px;
+            position: absolute;
+            z-index: 101;
+            left: -280px; /* Position to the left of the info icon */
+            top: 0;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        /* Parameter tooltips - These will be right-aligned in the sidebar */
+        .parameter-tooltip {
+            float: right;
+            margin-left: 5px;
+        }
+        .parameter-tooltip .tooltiptext {
+            left: auto;
+            right: 30px;
+            top: -5px;
+        }
+
+        /* Slider Label and Value */
+        .slider-label { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            width: 100%; 
+            margin-bottom: 5px; 
+            font-weight: 500; 
+            color: var(--label-color); 
+            font-size: 0.95em; 
+        }
+        .slider-label label { margin-right: 10px; flex-shrink: 0; }
+        .slider-value { 
+            min-width: 75px; 
+            text-align: right; 
+            font-weight: bold; 
+            color: var(--primary-color); 
+            font-size: 0.95em; 
+            white-space: nowrap; 
+        }
+
+        /* Custom Slider Styling - To match reference app */
+        input[type="range"] {
+            appearance: none; 
+            -webkit-appearance: none; 
+            width: 100%; 
+            height: 8px; 
+            border-radius: 5px;
+            background: linear-gradient(to right, var(--primary-color) 0%, var(--primary-color) var(--value-percent, 50%), #ddd var(--value-percent, 50%), #ddd 100%);
+            outline: none; 
+            margin: 8px 0; 
+            cursor: pointer; 
+            transition: background 0.1s ease-in-out; 
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; 
+            appearance: none; 
+            width: 18px; 
+            height: 18px; 
+            border-radius: 50%;
+            background: var(--primary-color); 
+            cursor: pointer; 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 18px; 
+            height: 18px; 
+            border-radius: 50%; 
+            background: var(--primary-color);
+            cursor: pointer; 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3); 
+            border: none;
+        }
+        input[type="range"]::-moz-range-track { 
+            width: 100%; 
+            height: 8px; 
+            cursor: pointer; 
+            background: #ddd; 
+            border-radius: 5px; 
+        }
+        input[type="range"]::-moz-range-progress { 
+            background-color: var(--primary-color); 
+            height: 8px; 
+            border-radius: 5px; 
+        }
+
+        /* Radio Buttons */
+        .radio-label { 
+            display: block; 
+            margin-bottom: 5px; 
+            font-weight: 500; 
+            color: var(--label-color); 
+            font-size: 0.95em;
+        }
+        .radio-group, .unit-select-group { 
+            display: flex; 
+            flex-wrap: wrap; 
+            margin-top: 8px; 
+            padding: 10px; 
+            background-color: rgba(38, 131, 198, 0.05); 
+            border-radius: 4px; 
+        }
+        .radio-group label, .unit-select-group label { 
+            font-weight: normal; 
+            margin-right: 15px; 
+            cursor: pointer; 
+            display: inline-flex; 
+            align-items: center; 
+            margin-bottom: 5px; 
+            font-size: 0.95em; 
+        }
+        .radio-group input[type="radio"], .unit-select-group input[type="radio"] { 
+            margin-right: 8px; 
+            cursor: pointer; 
+            accent-color: var(--primary-color); 
+        }
+
+        /* Specific Groups & Hidden Class */
+        #atp-consumption-direct-group, #atp-consumption-watt-group { 
+            padding-left: 10px; 
+            border-left: 3px solid var(--primary-color); 
+            margin-top: 10px; 
+            background-color: rgba(255, 255, 255, 0.5); 
+        }
+        .hidden { display: none !important; }
+
+        /* Chart Container for Plotly */
+        .plotly-chart-container {
+            flex: 1; 
+            min-height: 450px; 
+            height: 600px; 
+            background-color: var(--white);
+            border-radius: 8px; 
+            box-shadow: var(--box-shadow); 
+            margin-bottom: 20px;
+            padding: 15px; 
+            position: relative;
+        }
+
+        /* Info Texts */
+        .small-text { 
+            display: block; 
+            font-size: 0.85rem; 
+            color: #666; 
+            margin-top: 8px; 
+            line-height: 1.4; 
+        }
+        .info-display { 
+            font-size: 0.9em; 
+            color: var(--secondary-color); 
+            margin-top: 8px; 
+            display: block; 
+        }
+
+        /* Buttons */
+        button {
+            background-color: var(--primary-color); 
+            color: white; 
+            border: none; 
+            padding: 8px 15px;
+            border-radius: 4px; 
+            cursor: pointer; 
+            font-weight: 600; 
+            transition: all 0.3s;
+            margin-top: 10px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+            font-size: 0.9em;
+        }
+        button:hover { 
+            background-color: #1a6eae; 
+            transform: translateY(-1px); 
+            box-shadow: 0 3px 5px rgba(0,0,0,0.15); 
+        }
+        button:active { transform: translateY(0); }
+
+        /* Termination Threshold Slider Style */
+        #termination-threshold-group input[type="range"] { 
+            background: linear-gradient(to right, var(--accent-color) 0%, var(--accent-color) var(--value-percent, 65%), #ddd var(--value-percent, 65%), #ddd 100%); 
+        }
+        #termination-threshold-group input[type="range"]::-webkit-slider-thumb { 
+            background: var(--accent-color); 
+        }
+        #termination-threshold-group input[type="range"]::-moz-range-thumb { 
+            background: var(--accent-color); 
+        }
+        #termination-threshold-group .slider-value { 
+            color: var(--accent-color); 
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="sidebar">
+            <h1>Sprint Metabolism Model v4.2</h1>
+
+            <div class="control-group">
+                <div class="header-section">
+                    <div class="control-label">Body Parameters</div>
+                    <div class="tooltip info-icon">ⓘ
+                        <span class="tooltiptext">Parameters related to the athlete's body mass and active muscle distribution.</span>
+                    </div>
+                </div>
+                
+                <!-- Total Body Mass Slider -->
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <label for="total_body_mass">Total Body Mass:</label>
+                        <span class="slider-value"><span id="total_body_mass-value">70</span> kg</span>
+                    </div>
+                    <input type="range" id="total_body_mass" min="40" max="120" step="1" value="70">
+                    <div class="parameter-tooltip tooltip info-icon">ⓘ
+                        <span class="tooltiptext">Total body mass of the athlete (kg). Influences the calculation of absolute active muscle mass and the power (Watt) to ATP turnover conversion. [Ref: Heck PDF, p.51, 53, 486]</span>
+                    </div>
+                </div>
+
+                <!-- Active Muscle Mass Slider -->
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <label for="active_mass_perc">Active Muscle Mass (%):</label>
+                        <span class="slider-value"><span id="active_mass_perc-value">30</span> %</span>
+                    </div>
+                    <input type="range" id="active_mass_perc" min="10" max="50" step="1" value="30">
+                    <div class="parameter-tooltip tooltip info-icon">ⓘ
+                        <span class="tooltiptext">Estimated percentage of total body mass actively contracting during the sprint. Typically 20-40%. Affects Watt → ATP conversion and total PCr pool calculation. [Ref: Heck PDF, p.51, 53, 66, 231, 486, 503]</span>
+                    </div>
+                    <span class="info-display">Equals <span id="active_mass_kg_display">21.0</span> kg (at <span id="display_total_mass_ref">70</span> kg total)</span>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <div class="header-section">
+                    <div class="control-label">Initial Concentrations</div>
+                    <div class="tooltip info-icon">ⓘ
+                        <span class="tooltiptext">Initial concentrations of key metabolites in muscle tissue at the start of the sprint.</span>
+                    </div>
+                </div>
+                
+                <!-- PCr Initial Concentration Slider -->
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <label for="pcr0">PCr₀:</label>
+                        <span class="slider-value"><span id="pcr0-value">23</span> mmol·kg⁻¹</span>
+                    </div>
+                    <input type="range" id="pcr0" min="10" max="30" step="0.5" value="23">
+                    <div class="parameter-tooltip tooltip info-icon">ⓘ
+                        <span class="tooltiptext">Initial muscle phosphocreatine concentration [mmol·kg⁻¹ wet muscle mass]. PCr rapidly buffers ATP via the Creatine Kinase reaction. Resting value typically ~23 mmol·kg⁻¹. [Ref: Heck PDF, p.54-55]</span>
+                    </div>
+                    <button id="set_pcr_default_btn" title="Estimate PCr₀ based on body weight and muscle mass">Estimate PCr₀</button>
+                    <span class="info-display">Total PCr Pool (active): <span id="total_pcr_pool_display">483.0</span> mmol</span>
+                </div>
+
+                <!-- Pi Initial Concentration Slider -->
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <label for="pi0">Pᵢ₀:</label>
+                        <span class="slider-value"><span id="pi0-value">3</span> mmol·kg⁻¹</span>
+                    </div>
+                    <input type="range" id="pi0" min="1" max="10" step="0.5" value="3">
+                    <div class="parameter-tooltip tooltip info-icon">ⓘ
+                        <span class="tooltiptext">Initial muscle inorganic phosphate concentration [mmol·kg⁻¹]. Typically 2-4 mmol·kg⁻¹ at rest. Increases as PCr is hydrolyzed. Part of Creatine Kinase equilibrium. [Ref: Heck PDF, p.54, 56]</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <div class="header-section">
+                    <div class="control-label">Equilibrium Constants</div>
+                    <div class="tooltip info-icon">ⓘ
+                        <span class="tooltiptext">Constants that determine the equilibrium reactions between key energy metabolites.</span>
+                    </div>
+                </div>
+                
+                <!-- Total Adenine Nucleotides Slider -->
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <label for="sa">S[A] (Total Adenine):</label>
+                        <span class="slider-value"><span id="sa-value">7</span> mmol·kg⁻¹</span>
+                    </div>
+                    <input type="range" id="sa" min="5" max="10" step="0.1" value="7">
+                    <div class="parameter-tooltip tooltip info-icon">ⓘ
+                        <span class="tooltiptext">Total sum of Adenine Nucleotides (ATP+ADP+AMP) [mmol·kg⁻¹]. Assumed constant (~7 mmol·kg⁻¹) during short sprints as degradation via purine nucleotide cycle is negligible. [Ref: Heck PDF, p.54]</span>
+                    </div>
+                </div>
+
+                <!-- Creatine Kinase Equilibrium Constant Slider -->
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <label for="m1">M₁ (at pH=7.0):</label>
+                        <span class="slider-value"><span id="m1-value">166</span></span>
+                    </div>
+                    <input type="range" id="m1" min="50" max="400" step="1" value="166">
+                    <div class="parameter-tooltip tooltip info-icon">ⓘ
+                        <span class="tooltiptext">Creatine Kinase equilibrium constant ([ATP]/[ADP]) = M1 × ([PCr]/[Pi]). pH-dependent via M1 = [H+] × 1.66×10⁹ L/mol. M1 ≈ 166 at pH 7.0. [Ref: Heck PDF, p.54, Eq. 4.1b, 4.2]</span>
+                    </div>
+                </div>
+
+                <!-- Adenylate Kinase Equilibrium Constant Slider -->
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <label for="m3">M₃:</label>
+                        <span class="slider-value"><span id="m3-value">1.05</span></span>
+                    </div>
+                    <input type="range" id="m3" min="0.8" max="1.2" step="0.01" value="1.05">
+                    <div class="parameter-tooltip tooltip info-icon">ⓘ
+                        <span class="tooltiptext">Adenylate Kinase equilibrium constant ([ATP]×[AMP] = M3 × [ADP]²). Typically around 0.85-1.05. Links the concentrations of ATP, ADP, and AMP. [Ref: Heck PDF, p.54, Eq. 4.5]</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <div class="header-section">
+                    <div class="control-label">ATP Consumption</div>
+                    <div class="tooltip info-icon">ⓘ
+                        <span class="tooltiptext">Define how ATP is consumed during the sprint - either directly as a rate or calculated from mechanical power output.</span>
+                    </div>
+                </div>
+                
+                <!-- ATP Consumption Mode Radio Buttons -->
+                <span class="radio-label">ATP Consumption Mode:</span>
+                <div class="radio-group">
+                    <label><input type="radio" name="atp_mode" value="direct" checked> Direct (mmol·kg⁻¹·s⁻¹)</label>
+                    <label><input type="radio" name="atp_mode" value="watt"> Power (Watt)</label>
+                </div>
+                <div class="parameter-tooltip tooltip info-icon">ⓘ
+                    <span class="tooltiptext">Select how energy demand is defined: Directly as ATP turnover [mmol·kg⁻¹·s⁻¹] or as mechanical power [Watt]. Watt value is converted using active muscle mass and efficiency factor. [Ref: Heck PDF, p.55, 63]</span>
+                </div>
+            </div>
+
+            <!-- Direct ATP Consumption Group -->
+            <div id="atp-consumption-direct-group" class="control-group">
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <label for="atp_consumption_direct">ATP Consumption (direct):</label>
+                        <span class="slider-value"><span id="atp_consumption_direct-value">3</span> mmol·kg⁻¹·s⁻¹</span>
+                    </div>
+                    <input type="range" id="atp_consumption_direct" min="0.5" max="5" step="0.1" value="3">
+                    <div class="parameter-tooltip tooltip info-icon">ⓘ
+                        <span class="tooltiptext">Direct rate of ATP consumption by muscle contraction [mmol·kg⁻¹·s⁻¹]. Higher values indicate higher sprint intensity. Example in Fig 4.1 uses 3 mmol·kg⁻¹·s⁻¹. [Ref: Heck PDF, p.55]</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Power-based ATP Consumption Group -->
+            <div id="atp-consumption-watt-group" class="control-group hidden">
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <label for="atp_consumption_watt">Power:</label>
+                        <span class="slider-value"><span id="atp_consumption_watt-value">1500</span> W</span>
+                    </div>
+                    <input type="range" id="atp_consumption_watt" min="300" max="3000" step="50" value="1500">
+                    <div class="parameter-tooltip tooltip info-icon">ⓘ
+                        <span class="tooltiptext">Mechanical power output [Watt]. Converted to ATP consumption/kg active muscle mass using factor ~0.05 mmol ATP/s/kg per W/kg (adjusted from literature). [Ref: Adapted from Heck PDF]</span>
+                    </div>
+                    <span class="info-display">Calculated Consumption: <span id="watt_equiv_atp_display">3.57</span> mmol·kg⁻¹·s⁻¹</span>
+                    <small class="small-text">(Conversion factor: ~0.05 mmol·kg⁻¹·s⁻¹ per W/kg)</small>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <div class="header-section">
+                    <div class="control-label">Glycolytic Capacity</div>
+                    <div class="tooltip info-icon">ⓘ
+                        <span class="tooltiptext">The maximum rate at which lactate can be formed through glycolysis.</span>
+                    </div>
+                </div>
+                
+                <!-- Maximum Lactate Formation Rate Slider -->
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <label for="v_la_max">vLa_max:</label>
+                        <span class="slider-value"><span id="v_la_max-value">60</span> <span id="v_la_max-unit">mmol·kg⁻¹·min⁻¹</span></span>
+                    </div>
+                    <input type="range" id="v_la_max" min="10" max="150" step="5" value="60">
+                    <div class="parameter-tooltip tooltip info-icon">ⓘ
+                        <span class="tooltiptext">Maximum rate of lactate formation (vGlyk_max / vLa_max) [mmol·kg⁻¹·min⁻¹ or mmol·L⁻¹·s⁻¹]. Reflects max glycolytic capacity. High in sprinters, low in endurance athletes. [Ref: Heck PDF, p.58, 72]</span>
+                    </div>
+                </div>
+                
+                <!-- vLa_max Unit Selection -->
+                <span class="radio-label">Unit for vLa_max:</span>
+                <div class="unit-select-group">
+                    <label><input type="radio" name="la_unit" value="min" checked> mmol·kg⁻¹·min⁻¹</label>
+                    <label><input type="radio" name="la_unit" value="L_s"> mmol·L⁻¹·s⁻¹</label>
+                </div>
+            </div>
+
+            <!-- Termination Threshold Group -->
+            <div id="termination-threshold-group" class="control-group">
+                <div class="header-section">
+                    <div class="control-label">Simulation Termination</div>
+                    <div class="tooltip info-icon">ⓘ
+                        <span class="tooltiptext">Controls when the simulation ends based on ATP depletion.</span>
+                    </div>
+                </div>
+                
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <label for="termination_threshold_atp">Termination Threshold ATP:</label>
+                        <span class="slider-value"><span id="termination_threshold_atp-value">65</span> % of ATP₀</span>
+                    </div>
+                    <input type="range" id="termination_threshold_atp" min="50" max="95" step="1" value="65">
+                    <div class="parameter-tooltip tooltip info-icon">ⓘ
+                        <span class="tooltiptext">Simulation stops when ATP concentration falls below this percentage of the initial ATP value (ATP₀). Simulates muscle contractile insufficiency due to low Free Energy of ATP hydrolysis (ΔG_ATP). Force generation is impaired below ~65% ATP₀. [Ref: Heck PDF, p.55-56, Fig 4.2]</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        
+        <div class="main-content">
+            <h1>Sprint Metabolism Model (after Heck/Mader) v4.2</h1>
+
+            <!-- Plotly chart container instead of Canvas -->
+            <div id="sprintChart" class="plotly-chart-container"></div>
+        </div>
+    </div>
+
+    <script>
+        // Main function runs when DOM is fully loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            // Constants for the simulation
+            const VOLREL = 0.75; // L water per kg muscle mass [Ref: Heck PDF, p.53]
+            const KS2 = 0.15**3; // Glycolysis activation constant [Ref: Heck PDF, p.58, 120] (~0.003375 mmol/kgm)^3
+            const WATT_TO_ATP_FACTOR = 0.05; // Adjusted factor mmol ATP/s/kgm per W/kgm
+            const PC0_DEFAULT = 23; // Typical PCr0 resting value [mmol/kgm] [Ref: Heck PDF, p.55]
+            const maxTime = 15.0; // Default max simulation time (seconds) - set to 20s as requested
+            let terminationTime = null; // Global variable to track when simulation terminates
+
+            // Get all DOM elements
+            const sliders = {
+                total_body_mass: document.getElementById('total_body_mass'),
+                active_mass_perc: document.getElementById('active_mass_perc'),
+                pcr0: document.getElementById('pcr0'), 
+                pi0: document.getElementById('pi0'),
+                sa: document.getElementById('sa'), 
+                m1: document.getElementById('m1'),
+                m3: document.getElementById('m3'),
+                atp_consumption_direct: document.getElementById('atp_consumption_direct'),
+                atp_consumption_watt: document.getElementById('atp_consumption_watt'),
+                v_la_max: document.getElementById('v_la_max'),
+                termination_threshold_atp: document.getElementById('termination_threshold_atp')
+            };
+            
+            const values = {
+                total_body_mass: document.getElementById('total_body_mass-value'),
+                active_mass_perc: document.getElementById('active_mass_perc-value'),
+                pcr0: document.getElementById('pcr0-value'), 
+                pi0: document.getElementById('pi0-value'),
+                sa: document.getElementById('sa-value'), 
+                m1: document.getElementById('m1-value'),
+                m3: document.getElementById('m3-value'),
+                atp_consumption_direct: document.getElementById('atp_consumption_direct-value'),
+                atp_consumption_watt: document.getElementById('atp_consumption_watt-value'),
+                v_la_max: document.getElementById('v_la_max-value'),
+                termination_threshold_atp: document.getElementById('termination_threshold_atp-value')
+            };
+            
+            const displays = {
+                display_total_mass_ref: document.getElementById('display_total_mass_ref'),
+                active_mass_kg: document.getElementById('active_mass_kg_display'),
+                total_pcr_pool: document.getElementById('total_pcr_pool_display'),
+                v_la_max_unit: document.getElementById('v_la_max-unit'),
+                watt_equiv_atp: document.getElementById('watt_equiv_atp_display')
+            };
+            
+            const radioGroups = {
+                atp_mode: document.querySelectorAll('input[name="atp_mode"]'),
+                la_unit: document.querySelectorAll('input[name="la_unit"]')
+            };
+            
+            const controlGroups = {
+                directATP: document.getElementById('atp-consumption-direct-group'),
+                wattATP: document.getElementById('atp-consumption-watt-group')
+            };
+            
+            const buttons = {
+                set_pcr_default: document.getElementById('set_pcr_default_btn')
+            };
+
+            // Update slider background gradient based on value position
+            function updateSliderBackground(slider) {
+                if (!slider) return;
+                try {
+                    const min = parseFloat(slider.min);
+                    const max = parseFloat(slider.max);
+                    const val = parseFloat(slider.value);
+                    const percentage = ((val - min) / (max - min)) * 100;
+                    slider.style.setProperty('--value-percent', `${percentage}%`);
+                } catch (e) { 
+                    console.error("Error updating slider background:", e); 
+                }
+            }
+
+            // Estimate PCr concentration based on body composition
+            // This function calculates PCr based on body mass and active muscle percentage
+            // PCr tends to be higher in more muscular individuals and lower in less active ones
+            function estimatePCr(bodyMass, activeMassPerc) {
+                // Base value - typical healthy adult
+                const basePCr = 23; // mmol/kg
+                
+                // Factors that influence PCr concentration
+                const massAdjustment = (bodyMass - 70) * 0.02; // Small adjustment based on total mass
+                const muscleAdjustment = (activeMassPerc - 30) * 0.1; // Larger adjustment for muscle percentage
+                
+                // Calculate estimated PCr, ensuring it stays within physiological limits
+                let estimatedPCr = basePCr + massAdjustment + muscleAdjustment;
+                
+                // Constrain to physiological range (15-30 mmol/kg)
+                estimatedPCr = Math.max(15, Math.min(30, estimatedPCr));
+                
+                return estimatedPCr;
+            }
+
+            // Plot color definitions matching reference app
+            const plotColors = {
+                pcr: '#2683C6',    // Primary color (blue)
+                atp: '#42BA97',    // Secondary color (teal)
+                adp: '#EF5350',    // Accent color (red)
+                amp: '#FFA000',    // Orange/Amber
+                la_rate: '#6A1B9A', // Purple
+                la_m: '#EC407A'    // Pink
+            };
+
+            // Main calculation function - computes all metabolic values
+            const calculateMetabolism = (params) => {
+                // Extract parameters needed for calculation
+                const { 
+                    PCr0, Pi0, SA, M1, M3, ActiveMassKg, 
+                    ATPConsumptionMode, ATPConsumptionDirect, ATPConsumptionWatt, 
+                    vLa_max_input, LaRateUnit, terminationThresholdATP 
+                } = params;
+                
+                const SC = PCr0 + Pi0; // Total phosphate pool
+                terminationTime = null; // Reset global termination time
+
+                // Calculate ATP consumption rate based on selected mode
+                let ATP_consumption_calc;
+                if (ATPConsumptionMode === 'direct') {
+                    ATP_consumption_calc = ATPConsumptionDirect;
+                } else {
+                    // Convert from watts to ATP consumption rate
+                    const wattPerKgm = ActiveMassKg > 0 ? ATPConsumptionWatt / ActiveMassKg : 0;
+                    ATP_consumption_calc = wattPerKgm * WATT_TO_ATP_FACTOR;
+                }
+
+                // Convert vLa_max to consistent units (per second)
+                // This conversion ensures vLa_max is physiologically reasonable (0.3-1.5 range)
+                let vLa_max_per_kgm_s;
+                if (LaRateUnit === 'min') { 
+                    vLa_max_per_kgm_s = vLa_max_input / 60.0; // Convert from per minute to per second
+                } else { 
+                    // Convert from per L to per kgm with the physiological volume relation factor
+                    vLa_max_per_kgm_s = vLa_max_input * VOLREL; 
+                }
+
+                // Simulation parameters
+                const timeStep = 0.05; // seconds - small steps for accuracy
+                let time = 0, PCr = PCr0, Pi = Pi0, ATP = 0, ADP = 0, AMP = 0, La_m = 0.5;
+                let ATP0 = 0;
+                
+                // Arrays to store results over time
+                const results = { 
+                    time: [], pcr: [], atp: [], adp: [], amp: [], la_rate: [], la_m: [] 
+                };
+
+                // Calculate initial state based on equilibrium constants
+                let Q_t0 = (PCr > 1e-9 && Pi > 1e-9) ? M1 * PCr / Pi : 0;
+                if (Q_t0 > 1e-9) {
+                    ADP = (SA * Q_t0) / (M3 + Q_t0 + Q_t0**2);
+                    ATP = ADP * Q_t0;
+                    AMP = SA - ATP - ADP;
+                } else { 
+                    // Default values if equilibrium can't be calculated
+                    ATP = SA * 0.98; 
+                    ADP = SA * 0.019; 
+                    AMP = SA * 0.001; 
+                }
+                
+                // Ensure values are within valid ranges
+                ATP = Math.max(1e-9, Math.min(SA, ATP));
+                ADP = Math.max(0, Math.min(SA - ATP, ADP));
+                AMP = Math.max(0, SA - ATP - ADP);
+                ATP0 = ATP; // Store initial ATP value for termination threshold
+
+                // Record initial state
+                results.time.push(time);
+                results.pcr.push(PCr);
+                results.atp.push(ATP);
+                results.adp.push(ADP);
+                results.amp.push(AMP);
+                results.la_rate.push(0);
+                results.la_m.push(La_m);
+
+                // Main simulation loop
+                while (time < maxTime) {
+                    time += timeStep;
+                    
+                    // Calculate ATP consumed during this time step
+                    const atpNeeded = ATP_consumption_calc * timeStep;
+                    
+                    // PCr is used to resynthesize ATP
+                    let pcrUsed = (PCr > 0) ? Math.min(PCr, atpNeeded) : 0;
+                    PCr = Math.max(0, PCr - pcrUsed);
+                    Pi = Math.max(1e-9, SC - PCr);
+
+                    // Recalculate equilibrium state based on new PCr and Pi values
+                    let Q = (Pi > 1e-9 && PCr > 1e-9) ? M1 * PCr / Pi : (PCr <= 1e-9 ? 1e-9 : 0);
+                    
+                    if (Q >= 1e-9) {
+                        // Normal equilibrium calculation
+                        ADP = (SA * Q) / (M3 + Q + Q**2);
+                        ATP = ADP * Q;
+                        AMP = SA - ATP - ADP;
+                    } else if (PCr <= 1e-9) {
+                        // PCr depletion case
+                        ADP = SA / (1 + M3);
+                        ATP = 1e-9;
+                        AMP = SA - ADP;
+                    } else {
+                        // Fallback case (shouldn't normally occur)
+                        ATP = SA * 0.98;
+                        ADP = SA * 0.019;
+                        AMP = SA * 0.001;
+                    }
+                    
+                    // Ensure values remain within valid ranges
+                    ATP = Math.max(1e-9, Math.min(SA, ATP));
+                    ADP = Math.max(0, Math.min(SA - ATP, ADP));
+                    AMP = Math.max(0, SA - ATP - ADP);
+
+                    // Calculate lactate formation rate based on ADP concentration
+                    // This follows the ADP-dependent activation model from Mader
+                    let v_La_rate_kgm_s = (ADP > 1e-9) ? 
+                        vLa_max_per_kgm_s * (ADP**3) / (KS2 + ADP**3) : 0;
+                    v_La_rate_kgm_s = Math.max(0, v_La_rate_kgm_s);
+                    
+                    // Accumulate lactate over time
+                    La_m = Math.max(0, La_m + v_La_rate_kgm_s * timeStep);
+                    
+                    // Convert rate to selected output units
+                    let v_La_rate_output = (LaRateUnit === 'min') ? 
+                        v_La_rate_kgm_s * 60.0 : v_La_rate_kgm_s / VOLREL;
+
+                    // Record current state
+                    results.time.push(time);
+                    results.pcr.push(PCr);
+                    results.atp.push(ATP);
+                    results.adp.push(ADP);
+                    results.amp.push(AMP);
+                    results.la_rate.push(v_La_rate_output);
+                    results.la_m.push(La_m);
+
+                    // Check termination condition - using ATP percentage as in Heck PDF
+                    if (ATP < (terminationThresholdATP / 100) * ATP0) {
+                        terminationTime = time; // Set global termination time
+                        console.log(`Simulation terminated at t=${time.toFixed(2)}s, ATP = ${ATP.toFixed(3)} (Threshold: ${((terminationThresholdATP / 100) * ATP0).toFixed(3)})`);
+                        break; // Exit loop
+                    }
+                }
+                
+                return results;
+            };
+
+            // Update the Plotly chart with new data
+            const updateChart = () => {
+                // 1. Read current parameter values from sliders
+                const totalBodyMass = parseFloat(sliders.total_body_mass?.value || 70);
+                const activeMassPerc = parseFloat(sliders.active_mass_perc?.value || 30);
+                const activeMassKg = (activeMassPerc / 100) * totalBodyMass;
+                const currentPCr0 = parseFloat(sliders.pcr0?.value || PC0_DEFAULT);
+                const selectedATPMode = document.querySelector('input[name="atp_mode"]:checked')?.value || 'direct';
+                const selectedLaUnit = document.querySelector('input[name="la_unit"]:checked')?.value || 'min';
+                const terminationThresholdATP = parseFloat(sliders.termination_threshold_atp?.value || 65);
+
+                // 2. Update displayed values in UI
+                if (values.total_body_mass) values.total_body_mass.textContent = totalBodyMass;
+                if (values.active_mass_perc) values.active_mass_perc.textContent = activeMassPerc;
+                if (displays.active_mass_kg) displays.active_mass_kg.textContent = activeMassKg.toFixed(1);
+                if (displays.display_total_mass_ref) displays.display_total_mass_ref.textContent = totalBodyMass;
+                if (displays.total_pcr_pool) displays.total_pcr_pool.textContent = (currentPCr0 * activeMassKg).toFixed(1);
+                
+                // Update all slider displays and backgrounds
+                for (const key in sliders) {
+                    if (sliders[key] && values[key]) { 
+                        values[key].textContent = sliders[key].value; 
+                        updateSliderBackground(sliders[key]); 
+                    }
+                }
+                
+                // Update unit display for Lactate with correct notation
+                if (displays.v_la_max_unit) {
+                    displays.v_la_max_unit.textContent = (selectedLaUnit === 'min') ? 'mmol·kg⁻¹·min⁻¹' : 'mmol·L⁻¹·s⁻¹';
+                }
+
+                // 3. Toggle ATP mode UI elements based on selection
+                if (controlGroups.directATP && controlGroups.wattATP && displays.watt_equiv_atp) {
+                    if (selectedATPMode === 'direct') {
+                        controlGroups.directATP.classList.remove('hidden'); 
+                        controlGroups.wattATP.classList.add('hidden');
+                        displays.watt_equiv_atp.textContent = '---';
+                    } else {
+                        controlGroups.directATP.classList.add('hidden'); 
+                        controlGroups.wattATP.classList.remove('hidden');
+                        
+                        // Calculate and display ATP consumption from watts with updated factor
+                        const wattValue = parseFloat(sliders.atp_consumption_watt?.value || 1500);
+                        const wattPerKgm = activeMassKg > 0 ? wattValue / activeMassKg : 0;
+                        const equivATP = wattPerKgm * WATT_TO_ATP_FACTOR;
+                        displays.watt_equiv_atp.textContent = equivATP.toFixed(2);
+                    }
+                }
+
+                // 4. Prepare parameters for simulation
+                const currentParams = {
+                    PCr0: currentPCr0, 
+                    Pi0: parseFloat(sliders.pi0?.value || 3),
+                    SA: parseFloat(sliders.sa?.value || 7), 
+                    M1: parseFloat(sliders.m1?.value || 166),
+                    M3: parseFloat(sliders.m3?.value || 1.05), 
+                    ActiveMassKg: activeMassKg,
+                    ATPConsumptionMode: selectedATPMode,
+                    ATPConsumptionDirect: parseFloat(sliders.atp_consumption_direct?.value || 3),
+                    ATPConsumptionWatt: parseFloat(sliders.atp_consumption_watt?.value || 1500),
+                    vLa_max_input: parseFloat(sliders.v_la_max?.value || 60), 
+                    LaRateUnit: selectedLaUnit,
+                    terminationThresholdATP: terminationThresholdATP
+                };
+
+                // 5. Run the metabolism calculation
+                const results = calculateMetabolism(currentParams);
+
+                // 6. Prepare data for Plotly
+                // Create data traces for all metabolites
+                const plotData = [
+                    {
+                        x: results.time,
+                        y: results.pcr,
+                        name: 'PCr (mmol·kg⁻¹)',
+                        line: {
+                            color: plotColors.pcr,
+                            width: 3
+                        },
+                        yaxis: 'y'
+                    },
+                    {
+                        x: results.time,
+                        y: results.atp,
+                        name: 'ATP (mmol·kg⁻¹)',
+                        line: {
+                            color: plotColors.atp,
+                            width: 3
+                        },
+                        yaxis: 'y'
+                    },
+                    {
+                        x: results.time,
+                        y: results.adp,
+                        name: 'ADP (mmol·kg⁻¹)',
+                        line: {
+                            color: plotColors.adp,
+                            width: 3
+                        },
+                        yaxis: 'y'
+                    },
+                    {
+                        x: results.time,
+                        y: results.amp,
+                        name: 'AMP (mmol·kg⁻¹)',
+                        line: {
+                            color: plotColors.amp,
+                            width: 3
+                        },
+                        yaxis: 'y'
+                    },
+                    {
+                        x: results.time,
+                        y: results.la_rate,
+                        name: `Lactate Formation Rate (${selectedLaUnit === 'min' ? 'mmol·kg⁻¹·min⁻¹' : 'mmol·L⁻¹·s⁻¹'})`,
+                        line: {
+                            color: plotColors.la_rate,
+                            width: 2.5,
+                            dash: 'dash'
+                        },
+                        yaxis: 'y2'
+                    },
+                    {
+                        x: results.time,
+                        y: results.la_m,
+                        name: 'Muscle Lactate (mmol·kg⁻¹)',
+                        line: {
+                            color: plotColors.la_m,
+                            width: 3
+                        },
+                        yaxis: 'y'
+                    }
+                ];
+
+                // Calculate appropriate axis ranges
+                const maxPCr = Math.max(...results.pcr);
+                const maxConcData = Math.max(
+                    maxPCr,
+                    Math.max(...results.atp), 
+                    Math.max(...results.adp), 
+                    Math.max(...results.amp), 
+                    Math.max(...results.la_m)
+                );
+                
+                // Set max concentration to 30 or PCr*1.2 if higher, per requirements
+                const maxConc = Math.max(30, maxPCr * 1.2);
+                
+                const maxRate = Math.max(
+                    10,
+                    Math.max(...results.la_rate) * 1.1
+                );
+                
+                // Determine x-axis range: 20s or termination time + 10% if later
+                const xAxisMax = terminationTime ? 
+                    Math.max(15, terminationTime * 1.1) : 
+                    15;
+                
+                // Setup termination marker if applicable
+                let shapes = [];
+                if (terminationTime !== null) {
+                    shapes.push({
+                        type: 'line',
+                        x0: terminationTime,
+                        y0: 0,
+                        x1: terminationTime,
+                        y1: maxConc,
+                        line: {
+                            color: plotColors.adp,
+                            width: 2,
+                            dash: 'dash'
+                        }
+                    });
+                }
+
+                // Create layout for Plotly with legend between title and chart
+                const plotLayout = {
+                    title: {
+                        text: 'Muscle Sprint Metabolism Simulation',
+                        font: {
+                            size: 20,
+                            color: plotColors.pcr
+                        }
+                    },
+                    xaxis: {
+                        title: {
+                            text: 'Time (s)',
+                            font: {
+                                size: 14
+                            }
+                        },
+                        range: [0, xAxisMax]
+                    },
+                    yaxis: {
+                        title: {
+                            text: 'Concentration (mmol·kg⁻¹)',
+                            font: {
+                                size: 14
+                            }
+                        },
+                        range: [0, maxConc]
+                    },
+                    yaxis2: {
+                        title: {
+                            text: `Lactate Formation Rate (${selectedLaUnit === 'min' ? 'mmol·kg⁻¹·min⁻¹' : 'mmol·L⁻¹·s⁻¹'})`,
+                            font: {
+                                size: 14
+                            }
+                        },
+                        range: [0, maxRate],
+                        overlaying: 'y',
+                        side: 'right'
+                    },
+                    shapes: shapes,
+                    annotations: terminationTime ? [{
+                        x: terminationTime,
+                        y: maxConc * 0.95,
+                        text: `Termination: ${terminationTime.toFixed(2)}s`,
+                        showarrow: true,
+                        arrowhead: 2,
+                        arrowcolor: plotColors.adp,
+                        ax: -30,
+                        ay: -30
+                    }] : [],
+                    legend: {
+                        orientation: 'h',
+                        y: 1.05,
+                        x: 0.5,
+                        xanchor: 'center'
+                    },
+                    grid: {rows: 1, columns: 1, pattern: 'independent'},
+                    margin: {l: 60, r: 60, t: 80, b: 60},
+                    plot_bgcolor: '#fff',
+                    paper_bgcolor: '#fff',
+                    hovermode: 'closest'
+                };
+
+                // Create Plotly configuration
+                const plotConfig = {
+                    responsive: true,
+                    displayModeBar: true,
+                    modeBarButtonsToRemove: ['lasso2d', 'select2d']
+                };
+
+                // Render the plot using Plotly
+                Plotly.newPlot('sprintChart', plotData, plotLayout, plotConfig);
+            };
+
+            // Set up event listeners for all input elements
+            
+            // Add listeners to all sliders
+            Object.values(sliders).forEach(slider => {
+                if (slider) { 
+                    slider.addEventListener('input', updateChart); 
+                    updateSliderBackground(slider); 
+                }
+            });
+            
+            // Add listeners to radio buttons
+            radioGroups.atp_mode.forEach(radio => 
+                radio?.addEventListener('change', updateChart)
+            );
+            
+            radioGroups.la_unit.forEach(radio => 
+                radio?.addEventListener('change', updateChart)
+            );
+            
+            // Add listener to PCr default button - now uses body composition
+            buttons.set_pcr_default?.addEventListener('click', () => {
+                if (sliders.pcr0) { 
+                    const bodyMass = parseFloat(sliders.total_body_mass?.value || 70);
+                    const activeMassPerc = parseFloat(sliders.active_mass_perc?.value || 30);
+                    
+                    // Calculate PCr based on body composition
+                    const estimatedPCr = estimatePCr(bodyMass, activeMassPerc);
+                    
+                    // Update slider value
+                    sliders.pcr0.value = estimatedPCr.toFixed(1);
+                    updateChart();
+                }
+            });
+
+            // Initialize the chart on page load
+            updateChart();
+            
+            // Handle window resize to make the chart responsive
+            window.addEventListener('resize', () => {
+                Plotly.relayout('sprintChart', {
+                    width: document.getElementById('sprintChart').clientWidth,
+                    height: document.getElementById('sprintChart').clientHeight
+                });
+            });
+        });
+    </script>
+
+</body>
+</html>"
