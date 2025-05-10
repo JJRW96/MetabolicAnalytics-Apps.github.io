@@ -996,13 +996,13 @@ Hinzufügen:
                 <div class="slider-label" style="display: flex; justify-content: space-between; align-items: center;">
                     <div>
                         <label for="CE_HR">CE<sub>HR</sub> (bpm·W<sup>-1</sup>):</label>
-                        <span id="CE_HR-value" class="slider-value">0.32</span>
+                        <span id="CE_HR-value" class="slider-value">0.33</span>
                     </div>
                     <div class="tooltip info-icon">ⓘ
                         <span class="tooltiptext">Heart Rate Efficiency (CE<sub>HR</sub>) or HR-Power slope describes the increase in heart rate (bpm) for each Watt of power increase. Values can vary, typically ranging from 0.25 to 0.45 bpm/W in cyclists. Lower values may indicate better cardiovascular efficiency.</span>
                     </div>
                 </div>
-                <input type="range" id="CE_HR" class="range-slider" min="0.20" max="0.50" value="0.32" step="0.01">
+                <input type="range" id="CE_HR" class="range-slider" min="0.20" max="0.50" value="0.33" step="0.01">
             </div>
                   
                   <div class="checkbox-container">
@@ -1925,13 +1925,13 @@ Hinzufügen:
                         <div class="slider-label" style="display: flex; justify-content: space-between; align-items: center;">
                             <div>
                                 <label for="CE_HR_step">CE<sub>HR</sub> (bpm·W<sup>-1</sup>):</label>
-                                <span id="CE_HR_step-value" class="slider-value">0.32</span>
+                                <span id="CE_HR_step-value" class="slider-value">0.33</span>
                             </div>
                             <div class="tooltip info-icon">ⓘ
                                 <span class="tooltiptext">Heart Rate Efficiency (CE<sub>HR</sub>) or HR-Power slope describes the increase in heart rate (bpm) for each Watt of power increase. Values can vary, typically ranging from 0.25 to 0.45 bpm/W in cyclists. Lower values may indicate better cardiovascular efficiency.</span>
                             </div>
                         </div>
-                        <input type="range" id="CE_HR_step" class="range-slider" min="0.20" max="0.50" value="0.32" step="0.01">
+                        <input type="range" id="CE_HR_step" class="range-slider" min="0.20" max="0.50" value="0.33" step="0.01">
                     </div>
               </div>
               </div>
@@ -2014,7 +2014,7 @@ Hinzufügen:
         vLamax: 0.96,   
         HR_max: 186,
         HR_Base: 45, // Default value from your HTML
-        CE_HR: 0.32,  // Default value from your HTML        
+        CE_HR: 0.33,  // Default value from your HTML        
         body_mass: 92.0,        
         gender: 'Male',
         age: 29,                
@@ -2079,7 +2079,7 @@ Hinzufügen:
         vLamax_step: 0.96, 
         HR_max_step: 186,
         HR_Base_step: 45,
-        CE_HR_step: 0.32,     
+        CE_HR_step: 0.33,     
         body_mass_step:92.0,   
         critical_power: 365,
         w_prime: 25.0,
@@ -3540,8 +3540,8 @@ Hinzufügen:
             let HR_max = appState.use_tab1_params ? appState.HR_max : appState.HR_max_step;
             let HR_Base = appState.use_tab1_params ? appState.HR_Base : appState.HR_Base_step;
             let CE_HR = appState.use_tab1_params ? appState.CE_HR : appState.CE_HR_step;
-            const TAU_HR_ON = 35;  // Fixed time constant for HR increase (seconds)
-            const TAU_HR_OFF = 40; // Fixed time constant for HR decrease (seconds)
+            const TAU_HR_ON = 55;  // Fixed time constant for HR increase (seconds)
+            const TAU_HR_OFF = 50; // Fixed time constant for HR decrease (seconds)
 
             // Parameters & Volumes for 2-Compartment Model 
             const Kdiff_s = (0.065 / 60); // Diffusion constant (min⁻¹ -> s⁻¹) from Mader 2003 -> ~0.001083 s⁻¹
@@ -5345,7 +5345,7 @@ Hinzufügen:
         if (Object.keys(appState.traceVisibility).length === 0) {
             // Liste der Kurven, die standardmäßig ausgeblendet sein sollen
             // NEU: pHm zur Liste hinzugefügt
-            const hiddenTraces = ["PD", "Acc. O<sub>2</sub> Deficit", "Strain Score", "Glycogen Stores", "W' Balance", "MPA","RQ<sub>predicted</sub> ⋅ 10"]; // "vLa<sub>SS</sub>", "vLa<sub>ox</sub>", 
+            const hiddenTraces = ["PD", "Acc. O<sub>2</sub> Deficit", "Strain Score","RQ<sub>predicted</sub> ⋅ 10", "vLa<sub>SS</sub>", "vLa<sub>ox</sub>"]; // "Glycogen Stores", "W' Balance", "MPA"
         
             for (let i = 0; i < traces.length; i++) {
                 if (traces[i].name && hiddenTraces.includes(traces[i].name)) {
