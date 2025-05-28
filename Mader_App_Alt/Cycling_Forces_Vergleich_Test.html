@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamischer Leistungsvergleich | Rad-Performance-Analyse</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&family=Orbitron:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #1e1e2e; /* Dunkelblau/Lila */
+            --sidebar-bg: #282a3f; /* Etwas heller */
+            --chart-bg: #2c2e43;
+            --text-color: #e0e0e6;
+            --primary-accent: #82aaff; /* Helles Blau */
+            --secondary-accent: #c3e88d; /* Helles Grün */
+            --highlight-color: #ffcb6b; /* Gelb/Orange */
+            --border-color: #44475a;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden; /* Verhindert Scrollbalken auf Body-Ebene */
+        }
+
+        .sidebar {
+            width: 28%; /* Etwas mehr Platz für die Slider */
+            max-width: 400px; /* Maximale Breite der Sidebar */
+            min-width: 320px; /* Minimale Breite */
+            background-color: var(--sidebar-bg);
+            padding: 25px;
+            overflow-y: auto; /* Scrollbar für Sidebar, falls Inhalt zu lang */
+            box-shadow: 5px 0 15px rgba(0,0,0,0.3);
+            border-right: 1px solid var(--border-color);
+        }
+
+        .main-content {
+            flex-grow: 1;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center; /* Zentriert Chart vertikal, wenn weniger Platz benötigt */
+            overflow: hidden; /* Wichtig für Canvas-Größe */
+        }
+        
+        .app-title {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--highlight-color);
+            text-align: center;
+            font-size: 1.8em;
+            margin-bottom: 25px;
+            letter-spacing: 1px;
+            text-shadow: 0 0 10px var(--highlight-color);
+        }
+
+        h2 {
+            color: var(--primary-accent);
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 8px;
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+        .sidebar .controls-column:nth-of-type(2) h2 { /* Zweiter Fahrer Abschnitt */
+             color: var(--secondary-accent);
+        }
+
+
+        .slider-group {
+            margin-bottom: 18px;
+        }
+
+        .slider-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 0.95em;
+            color: var(--text-color);
+            font-weight: 300;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+        }
+
+        .slider-container input[type="range"] {
+            flex-grow: 1;
+            margin-right: 12px;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 8px;
+            background: var(--border-color);
+            border-radius: 5px;
+            outline: none;
+        }
+        .slider-container input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            background: var(--primary-accent);
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid var(--sidebar-bg);
+            box-shadow: 0 0 5px rgba(0,0,0,0.4);
+        }
+        .slider-container input[type="range"].kumpel::-webkit-slider-thumb {
+             background: var(--secondary-accent);
+        }
+        .slider-container input[type="range"]::-moz-range-thumb { /* Firefox */
+            width: 15px;
+            height: 15px;
+            background: var(--primary-accent);
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid var(--sidebar-bg);
+        }
+         .slider-container input[type="range"].kumpel::-moz-range-thumb {
+             background: var(--secondary-accent);
+        }
+
+
+        .slider-container span {
+            display: inline-block;
+            width: 50px;
+            text-align: right;
+            font-weight: bold;
+            font-size: 0.9em;
+            background-color: var(--bg-color);
+            padding: 4px 6px;
+            border-radius: 4px;
+        }
+
+        .chart-wrapper {
+            width: 100%;
+            height: 100%; /* Füllt den verfügbaren Platz im Main Content */
+            background-color: var(--chart-bg);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            display: flex; /* Für Canvas Zentrierung/Größe */
+            justify-content: center;
+            align-items: center;
+        }
+
+        canvas {
+            /* Chart.js kümmert sich meistens selbst um die Größe basierend auf dem Container */
+            max-width: 100%;
+            max-height: 100%;
+        }
+        
+        .info-text {
+            font-size: 0.85em;
+            color: #BDBDBD;
+            margin-top: 8px;
+            padding: 6px 10px;
+            background-color: rgba(0,0,0,0.2);
+            border-radius: 5px;
+            text-align: left;
+            border: 1px solid var(--border-color);
+        }
+         hr {
+            border: none;
+            border-top: 1px solid var(--border-color);
+            margin: 25px 0;
+         }
+
+        /* Scrollbar Styling für Webkit Browser */
+        .sidebar::-webkit-scrollbar {
+            width: 8px;
+        }
+        .sidebar::-webkit-scrollbar-track {
+            background: var(--bg-color);
+            border-radius: 10px;
+        }
+        .sidebar::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 10px;
+        }
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-accent);
+        }
+
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="app-title">RAD PERFORMANCE</div>
+        
+        <div class="controls-column">
+            <h2>Deine Parameter (Fahrer 1)</h2>
+            <div class="slider-group">
+                <label for="bw1">Körpergewicht (kg):</label>
+                <div class="slider-container">
+                    <input type="range" id="bw1" min="40" max="150" value="92" step="1">
+                    <span id="bw1Val">92</span>
+                </div>
+            </div>
+            <div class="slider-group">
+                <label for="rw1">Radgewicht (kg):</label>
+                 <div class="slider-container">
+                    <input type="range" id="rw1" min="5" max="15" value="8" step="0.5">
+                    <span id="rw1Val">8.0</span>
+                </div>
+            </div>
+            <div class="slider-group">
+                <label for="ftp1">FTP (W/kg):</label>
+                 <div class="slider-container">
+                    <input type="range" id="ftp1" min="1.0" max="7.0" value="4.0" step="0.1">
+                    <span id="ftp1Val">4.0</span>
+                </div>
+            </div>
+            <div class="slider-group">
+                <label for="cda1">C_d*A (m²):</label>
+                 <div class="slider-container">
+                    <input type="range" id="cda1" min="0.15" max="0.50" value="0.37" step="0.01">
+                    <span id="cda1Val">0.37</span>
+                </div>
+            </div>
+            <div class="info-text" id="sysWkg1">Systemleistung: ... W/kg_ges</div>
+        </div>
+
+        <hr>
+
+        <div class="controls-column">
+            <h2>Parameter Kumpel (Fahrer 2)</h2>
+            <div class="slider-group">
+                <label for="bw2">Körpergewicht (kg):</label>
+                <div class="slider-container">
+                    <input type="range" class="kumpel" id="bw2" min="40" max="150" value="72" step="1">
+                    <span id="bw2Val">72</span>
+                </div>
+            </div>
+            <div class="slider-group">
+                <label for="rw2">Radgewicht (kg):</label>
+                <div class="slider-container">
+                    <input type="range" class="kumpel" id="rw2" min="5" max="15" value="8" step="0.5">
+                    <span id="rw2Val">8.0</span>
+                </div>
+            </div>
+            <div class="slider-group">
+                <label for="ftp2">FTP (W/kg):</label>
+                <div class="slider-container">
+                    <input type="range" class="kumpel" id="ftp2" min="1.0" max="7.0" value="4.2" step="0.1">
+                    <span id="ftp2Val">4.2</span>
+                </div>
+            </div>
+            <div class="slider-group">
+                <label for="cda2">C_d*A (m²):</label>
+                <div class="slider-container">
+                    <input type="range" class="kumpel" id="cda2" min="0.15" max="0.50" value="0.37" step="0.01">
+                    <span id="cda2Val">0.37</span>
+                </div>
+            </div>
+            <div class="info-text" id="sysWkg2">Systemleistung: ... W/kg_ges</div>
+        </div>
+
+        <hr>
+        
+        <div class="common-controls">
+            <h2>Allgemeine Bedingungen</h2>
+            <div class="slider-group">
+                <label for="crr">Rollwiderstand (C_rr):</label>
+                 <div class="slider-container">
+                    <input type="range" id="crr" min="0.001" max="0.015" value="0.004" step="0.0005">
+                    <span id="crrVal">0.0040</span>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <div class="chart-wrapper">
+            <canvas id="powerChart"></canvas>
+        </div>
+    </main>
+
+    <script>
+        // JavaScript bleibt im Kern gleich wie im vorherigen Beispiel.
+        // Nur Chart-Optionen könnten leicht angepasst werden, wenn nötig.
+
+        // Globale Konstanten
+        const G = 9.81;
+        const RHO = 1.225;
+        const ETA_ANTRIEB = 0.97;
+
+        const sliderIds = ['bw1', 'rw1', 'ftp1', 'cda1', 'bw2', 'rw2', 'ftp2', 'cda2', 'crr'];
+        
+        function formatValue(id, value) {
+            if (['rw1', 'rw2', 'ftp1', 'ftp2'].includes(id)) return parseFloat(value).toFixed(1);
+            if (['cda1', 'cda2'].includes(id)) return parseFloat(value).toFixed(2);
+            if (id === 'crr') return parseFloat(value).toFixed(4);
+            return parseInt(value);
+        }
+        
+        sliderIds.forEach(id => {
+            const slider = document.getElementById(id);
+            const valDisplay = document.getElementById(id + 'Val');
+            slider.addEventListener('input', () => {
+                valDisplay.textContent = formatValue(id, slider.value);
+                updateChart();
+            });
+            valDisplay.textContent = formatValue(id, slider.value);
+        });
+        
+        function solveCubic(a, b, c, d) { // Identisch zum vorherigen Beispiel
+            if (Math.abs(a) < 1e-8) { 
+                if (Math.abs(b) < 1e-8) return (Math.abs(c) < 1e-8) ? [] : [-d / c];
+                const D = c * c - 4 * b * d;
+                if (D < 0) return [];
+                return [(-c + Math.sqrt(D)) / (2 * b), (-c - Math.sqrt(D)) / (2 * b)];
+            }
+            const p = b / a;
+            const q_coeff = c / a;
+            const r_coeff = d / a;
+            const Q = (3 * q_coeff - p * p) / 9;
+            const R = (9 * p * q_coeff - 27 * r_coeff - 2 * p * p * p) / 54;
+            const D_cubic = Q * Q * Q + R * R;
+            const roots = [];
+            if (D_cubic >= 0) {
+                const sqrt_D_cubic = Math.sqrt(D_cubic);
+                let S = (R + sqrt_D_cubic < 0) ? -Math.cbrt(-(R + sqrt_D_cubic)) : Math.cbrt(R + sqrt_D_cubic);
+                let T = (R - sqrt_D_cubic < 0) ? -Math.cbrt(-(R - sqrt_D_cubic)) : Math.cbrt(R - sqrt_D_cubic);
+                roots.push(S + T - p / 3);
+                if (Math.abs(D_cubic) < 1e-9 && Math.abs(Q) > 1e-9) {
+                     const root2 = -(S + T) / 2 - p / 3;
+                     roots.push(root2, root2);
+                }
+            } else {
+                const theta = Math.acos(R / Math.sqrt(-(Q * Q * Q)));
+                const two_sqrt_neg_Q = 2 * Math.sqrt(-Q);
+                roots.push(two_sqrt_neg_Q * Math.cos(theta / 3) - p / 3);
+                roots.push(two_sqrt_neg_Q * Math.cos((theta + 2 * Math.PI) / 3) - p / 3);
+                roots.push(two_sqrt_neg_Q * Math.cos((theta + 4 * Math.PI) / 3) - p / 3);
+            }
+            return roots.filter(r => !isNaN(r) && Math.abs(r) < 1000); // Zusätzlicher Filter für Stabilität
+        }
+
+        function calculateSpeeds(params, gradientsPercent) { // Identisch
+            const speedsKmh = [];
+            const totalMass = params.bodyWeight + params.bikeWeight;
+            const ftpAbs = params.ftpWKg * params.bodyWeight;
+            const pEffective = ftpAbs * ETA_ANTRIEB;
+            const k1 = 0.5 * RHO * params.cda;
+            gradientsPercent.forEach(gradPercent => {
+                const alpha = Math.atan(gradPercent / 100.0);
+                const sinAlpha = Math.sin(alpha);
+                const cosAlpha = Math.cos(alpha);
+                const k2 = totalMass * G * (sinAlpha + cosAlpha * params.crr);
+                const roots = solveCubic(k1, 0, k2, -pEffective);
+                let vMps = 0;
+                const positiveRealRoots = roots.filter(r => r > 0);
+                if (positiveRealRoots.length > 0) {
+                    vMps = Math.min(...positiveRealRoots);
+                }
+                speedsKmh.push(vMps * 3.6);
+            });
+            return speedsKmh;
+        }
+
+        const gradientsPlot = Array.from({length: 41}, (_, i) => i * 0.5); // 0% bis 20% in 0.5er Schritten
+        let powerChart = null;
+
+        function updateChart() { // Im Kern identisch, aber Chart-Optionen leicht angepasst
+            const params1 = {
+                bodyWeight: parseFloat(document.getElementById('bw1').value),
+                bikeWeight: parseFloat(document.getElementById('rw1').value),
+                ftpWKg: parseFloat(document.getElementById('ftp1').value),
+                cda: parseFloat(document.getElementById('cda1').value),
+                crr: parseFloat(document.getElementById('crr').value)
+            };
+            const params2 = {
+                bodyWeight: parseFloat(document.getElementById('bw2').value),
+                bikeWeight: parseFloat(document.getElementById('rw2').value),
+                ftpWKg: parseFloat(document.getElementById('ftp2').value),
+                cda: parseFloat(document.getElementById('cda2').value),
+                crr: parseFloat(document.getElementById('crr').value)
+            };
+
+            const speeds1 = calculateSpeeds(params1, gradientsPlot);
+            const speeds2 = calculateSpeeds(params2, gradientsPlot);
+            
+            document.getElementById('sysWkg1').textContent = `System: ${(params1.ftpWKg * params1.bodyWeight / (params1.bodyWeight + params1.bikeWeight)).toFixed(2)} W/kg_ges | FTP Abs: ${(params1.ftpWKg * params1.bodyWeight).toFixed(0)} W`;
+            document.getElementById('sysWkg2').textContent = `System: ${(params2.ftpWKg * params2.bodyWeight / (params2.bodyWeight + params2.bikeWeight)).toFixed(2)} W/kg_ges | FTP Abs: ${(params2.ftpWKg * params2.bodyWeight).toFixed(0)} W`;
+
+            if (powerChart) {
+                powerChart.data.datasets[0].data = speeds1;
+                powerChart.data.datasets[0].label = `Du: ${params1.bodyWeight}kg, ${params1.ftpWKg.toFixed(1)}W/kg`;
+                powerChart.data.datasets[1].data = speeds2;
+                powerChart.data.datasets[1].label = `Kumpel: ${params2.bodyWeight}kg, ${params2.ftpWKg.toFixed(1)}W/kg`;
+                
+                const maxSpeedObserved = Math.max(...speeds1, ...speeds2, 5); // Minimum y-Achse max
+                powerChart.options.scales.y.max = Math.ceil(maxSpeedObserved / 5) * 5 + (maxSpeedObserved < 10 ? 2 : 5) ;
+                powerChart.update('none'); // 'none' für sanfteres Update ohne Animation
+            } else {
+                const ctx = document.getElementById('powerChart').getContext('2d');
+                const maxSpeedObserved = Math.max(...speeds1, ...speeds2, 5);
+                powerChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: gradientsPlot,
+                        datasets: [{
+                            label: `Du: ${params1.bodyWeight}kg, ${params1.ftpWKg.toFixed(1)}W/kg`,
+                            data: speeds1,
+                            borderColor: 'var(--primary-accent)',
+                            backgroundColor: 'rgba(130, 170, 255, 0.2)', // Passend zu primary-accent
+                            tension: 0.3,
+                            fill: true,
+                            pointRadius: 3,
+                            pointHoverRadius: 6,
+                            pointBackgroundColor: 'var(--primary-accent)',
+                            borderWidth: 2.5
+                        }, {
+                            label: `Kumpel: ${params2.bodyWeight}kg, ${params2.ftpWKg.toFixed(1)}W/kg`,
+                            data: speeds2,
+                            borderColor: 'var(--secondary-accent)',
+                            backgroundColor: 'rgba(195, 232, 141, 0.2)', // Passend zu secondary-accent
+                            tension: 0.3,
+                            fill: true,
+                            borderDash: [4, 4],
+                            pointRadius: 3,
+                            pointHoverRadius: 6,
+                            pointBackgroundColor: 'var(--secondary-accent)',
+                            borderWidth: 2.5
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        animation: {
+                            duration: 400, // Schnellere Animation
+                            easing: 'easeInOutQuart'
+                        },
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Leistungsvergleich: Geschwindigkeit vs. Steigung',
+                                font: { size: 18, family: 'Orbitron', weight: 'bold'},
+                                color: 'var(--highlight-color)',
+                                padding: { top: 5, bottom: 25}
+                            },
+                            legend: {
+                                position: 'bottom',
+                                labels: { 
+                                    color: 'var(--text-color)',
+                                    font: {size: 12},
+                                    usePointStyle: true,
+                                    padding: 20,
+                                    boxWidth: 15
+                                }
+                            },
+                             tooltip: {
+                                mode: 'index',
+                                intersect: false,
+                                backgroundColor: 'rgba(20, 20, 30, 0.85)',
+                                titleFont: {size: 14, weight: 'bold'},
+                                bodyFont: {size: 12},
+                                padding: 10,
+                                cornerRadius: 5,
+                                displayColors: true,
+                                borderColor: 'var(--border-color)',
+                                borderWidth: 1
+                            }
+                        },
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Steigung (%)',
+                                    color: 'var(--text-color)',
+                                    font: { size: 14, weight: 'bold' }
+                                },
+                                ticks: { color: 'var(--text-color)', font: {size: 11} },
+                                grid: { color: 'rgba(189, 189, 189, 0.1)' }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'Geschwindigkeit (km/h)',
+                                    color: 'var(--text-color)',
+                                    font: { size: 14, weight: 'bold' }
+                                },
+                                ticks: { color: 'var(--text-color)', font: {size: 11} },
+                                grid: { color: 'rgba(189, 189, 189, 0.15)' },
+                                beginAtZero: true,
+                                suggestedMax: Math.ceil(maxSpeedObserved / 5) * 5 + (maxSpeedObserved < 10 ? 2 : 5)
+                            }
+                        }
+                    }
+                });
+            }
+        }
+        // Initial chart draw
+        updateChart();
+        // Resize Handler um das Chart neu zu zeichnen, wenn sich die Fenstergröße ändert,
+        // besonders wenn die Sidebar kollabieren würde (hier nicht implementiert)
+        window.addEventListener('resize', () => {
+            if (powerChart) {
+                // powerChart.resize(); // Chart.js handhabt das oft schon durch responsive:true
+            }
+        });
+    </script>
+</body>
+</html>

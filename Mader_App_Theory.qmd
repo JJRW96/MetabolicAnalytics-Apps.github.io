@@ -1,0 +1,263 @@
+# Energy Yields in Carbohydrate Metabolism: A Comparative Overview
+
+The precise quantification of energy released and conserved during carbohydrate metabolism is fundamental to understanding exercise physiology and cellular bioenergetics. Different textbooks and research articles may present slightly varying values due to differing assumptions about standard states, cellular conditions, and the specific pathways or efficiencies considered. This section aims to compare and elucidate the energy yields from glucose and glycogen breakdown as presented in key literature, including @Stegemann1991, @Brooks2012, @Astrand2003, and @Nelson2012, with significant contributions and context provided by the comprehensive review of @DiPrampero1981. This review by @DiPrampero1981 is particularly valuable as it synthesizes experimental data from that era and provides a framework for understanding the energetics of muscular exercise under various conditions.
+
+## Anaerobic Glycolysis: Glucose/Glycogen to Lactate
+
+Anaerobic glycolysis is the metabolic pathway that converts glucose (or glucosyl units from glycogen) into pyruvate, and subsequently into lactate under anaerobic conditions, with a net production of ATP. This pathway is crucial for rapid energy supply, especially when oxygen availability is limited, such as during high-intensity exercise. @DiPrampero1981 [S. 171, Sect. 6.1] dedicates an entire section to the "Lactic Mechanism," underscoring its importance. He notes that "When the intensity of the exercise exceeds VO₂max, a substantial accumulation of lactic acid (La) in blood takes place. Under these conditions the exercise comes to an end when the blood La has reached a concentration of the order of 16–17 mM in non-athletic subjects." This highlights the capacity limitation of this pathway.
+
+### Free Energy Change (ΔG) of Glucose to Lactate
+
+The overall conversion of glucose to lactate is an exergonic process, releasing a significant amount of free energy, which can then be partially conserved in ATP.
+
+*   According to @Stegemann1991 [S. 36, Gleichung 10], the direct conversion from glucose to lactate has a standard free energy change of:
+    $$
+    \text{C}_6\text{H}_{12}\text{O}_6 \text{ (Glucose)} \rightarrow 2 \text{ C}_3\text{H}_6\text{O}_3 \text{ (Lactate)} \quad (\Delta G'^\circ = -199 \text{ kJ/mol glucose})
+    $$ {#eq-glucose-to-lactate-stegemann-ext}
+    This value indicates the total exergonic drive of the anaerobic breakdown of glucose to lactate.
+
+*   @Nelson2012 [S. 546, Eq. 14-1 & 14-3; S. 563] detail this process in two main stages for calculation:
+    1.  Glycolysis to pyruvate (the exergonic part, excluding ATP formation for this specific ΔG component):
+        $$
+        \text{Glucose} + 2\text{NAD}^+ \rightarrow 2\text{ Pyruvate} + 2\text{NADH} + 2\text{H}^+ \quad (\Delta G_1'^\circ = -146 \text{ kJ/mol})
+        $$
+        (This is derived from @Nelson2012 [S. 546, Eq. 14-2]).
+    2.  Reduction of pyruvate to lactate (occurring twice per initial glucose molecule):
+        $$
+        \text{Pyruvate} + \text{NADH} + \text{H}^+ \leftrightarrow \text{L-Lactate} + \text{NAD}^+ \quad (\Delta G_2'^\circ = -25.1 \text{ kJ/mol})
+        $$
+        (From @Nelson2012 [S. 563]). This reaction is crucial for regenerating NAD⁺ from NADH, allowing glycolysis to continue under anaerobic conditions, a point also emphasized by @DiPrampero1981 [S. 172] when he states, "The excess pyruvate is reduced to La and the resulting oxidation of NADH to NAD allows glycolysis to continue."
+    The overall standard free-energy change for glucose to lactate according to @Nelson2012 is the sum:
+    $$
+    \Delta G'_{\text{glucose} \rightarrow \text{lactate}} = \Delta G_1'^\circ + 2 \times \Delta G_2'^\circ = -146 \text{ kJ/mol} + 2 \times (-25.1 \text{ kJ/mol}) = -196.2 \text{ kJ/mol glucose}
+    $$ {#eq-glucose-to-lactate-nelsoncox-ext}
+    This calculated value aligns very closely with the -199 kJ/mol reported by @Stegemann1991.
+
+### ATP Yield from Anaerobic Glycolysis
+
+**From Free Glucose:**
+
+The net production of ATP when starting from free glucose is a cornerstone of basic biochemistry.
+
+*   **Stegemann (S. 36):** Details the process involving an initial investment of 2 ATP and a subsequent generation of 4 ATP, resulting in a net yield of:
+    $$
+    4 \text{ ATP (produced)} - 2 \text{ ATP (consumed)} = \mathbf{2 \text{ ATP (net) per glucose}}
+    $$
+    Using Stegemann's value of 30.5 kJ/mol for ATP hydrolysis under physiological conditions (ΔG ≈ -30.5 kJ/mol, [@Stegemann1991, S. 34, Eq. 7]), the energy conserved is `61 kJ per mol glucose`. This represents an efficiency of approximately 30.7% (`(61 kJ / 199 kJ) * 100%`).
+
+*   **Nelson & Cox (p. 545, Fig. 14-2; p. 555):** Clearly illustrate and state a net yield of **2 ATP** per molecule of glucose. The overall balanced equation for anaerobic glycolysis to lactate is:
+    $$
+    \text{Glucose} + 2\text{ADP} + 2\text{P}_\text{i} \rightarrow 2\text{ Lactate} + 2\text{ATP} + 2\text{H}_2\text{O}
+    $$
+
+*   **Brooks (2012):** "1.0 ATP is produced per lactate anion accumulated when glucose is the precursor." This implies `2 \times 1.0 \text{ ATP} = \mathbf{2 \text{ ATP per glucose}}`.
+
+*   **@DiPrampero1981 [S. 151, Table 1]:** In this table, which summarizes ATP yield per unit of fuel or O₂ based on data from @McGilvery1975, "Glucose → Lactate" is listed as yielding **2 ~P/mol fuel**. The symbol "~P" denotes a high-energy phosphate bond, equivalent to one molecule of ATP.
+
+There is thus universal agreement across these sources for a net gain of **2 ATP molecules** from the anaerobic glycolysis of one molecule of free glucose to two molecules of lactate.
+
+**From Glycogen (Glucosyl Units):**
+
+Starting glycolysis from stored glycogen offers a slight energetic advantage.
+
+*   **Stegemann (S. 36):** "Wird Laktat aus Glykogen erzeugt, so wird bezogen auf 1mol Glukose – 1 mol ATP mehr, also **3 mol ATP**, gewonnen." (If lactate is produced from glycogen, 1 mol more ATP is gained compared to 1 mol of glucose, thus 3 mol ATP). This is because the first ATP-consuming step, the phosphorylation of glucose to glucose 6-phosphate by hexokinase, is bypassed. Glycogen phosphorylase uses inorganic phosphate (Pᵢ) for phosphorolytic cleavage of glucosyl units. The net yield is:
+    $$
+    4 \text{ ATP (produced)} - 1 \text{ ATP (consumed for fructose 6-P phosphorylation)} = \mathbf{3 \text{ ATP (net) per glucosyl unit}}
+    $$
+
+*   **Nelson & Cox (p. 558, Worked Example 14-1):** Clearly explain that starting from glycogen saves 1 ATP in the preparatory phase, leading to a net yield of **3 ATP per glucose monomer** from glycogen.
+
+*   **Brooks (2012):** "1.5 ATP is produced per lactate anion accumulated when glycogen is the precursor." Since one glucosyl unit from glycogen forms two lactate anions, the yield per glucosyl unit is `2 \times 1.5 \text{ ATP} = \mathbf{3 \text{ ATP}}`.
+
+*   **@DiPrampero1981 [S. 151, Table 1]:** Consistent with the other sources, lists "Glycogen → Lactate" as yielding **3 ~P/mol glucosyl unit**. This translates to **1.5 ATP per mole of lactate formed** from glycogen, a ratio that @DiPrampero1981 explicitly uses in subsequent calculations for the energy equivalent of lactate [@DiPrampero1981, S. 182].
+
+The consensus is firm: **3 net ATP molecules** are gained when one glucosyl unit from glycogen is anaerobically converted to two molecules of lactate.
+
+### Energy Content of ATP and "High-Energy" Phosphate Bonds
+
+The actual energy (ΔG) available from ATP hydrolysis under cellular conditions is crucial for accurate bioenergetic modeling.
+
+*   **Standard Free Energy Change (ΔG'°):** Typically cited as approximately **-30.5 kJ/mol** for ATP → ADP + Pᵢ [@Stegemann1991, S. 34, Eq. 7; @Nelson2012, S. 519, Table 13-6].
+
+*   **Actual Free Energy Change (ΔG) in vivo:** This value is significantly more negative and variable than ΔG'° due to the actual intracellular concentrations of ATP, ADP, Pᵢ, and Mg²⁺, as well as pH. @Nelson2012 [S. 519] suggest a typical range of **-50 to -65 kJ/mol**.
+    **@DiPrampero1981 [S. 156, Fig. 2a]** provides a graphical representation showing ΔG<sub>ATP</sub> as a function of PCr and ATP concentrations. At rest (e.g., PCr ≈ 18-22 mmol/kg muscle, ATP ≈ 5 mmol/kg), ΔG<sub>ATP</sub> is estimated to be around **-50 to -52 kJ/mol**. During intense exercise, as PCr is depleted (e.g., to ~3.5-4 mmol/kg), ΔG<sub>ATP</sub> can decrease to approximately **-44 kJ/mol**. This dynamic behavior is important but often simplified in models by using an average physiological value.
+
+*   **Your Model's Global Constant:** `DIRECT_ENERGY_YIELD_PER_MOL_ATP_KJ = 50.0;` This value is a well-chosen representative for the *actual* physiological free energy change (ΔG) of ATP hydrolysis, consistent with the range depicted by @DiPrampero1981 for contracting muscle.
+
+*   **@Astrand2003 [S. 33]:** Provides an important conceptual clarification: "Die Energie liegt nicht in der Bindung selbst, sondern in der freien Energie, die verfügbar wird, wenn über Abspaltung von anorganischem Phosphat das ATP in die energieärmere Verbindung Adenosindiphosphat (ADP) übergeht."
+
+### Energy Released per Mole of Lactate (from Glycogen) – Integrating @DiPrampero1981
+
+Understanding the total energy associated with lactate formation requires comparing the ATP-conserved energy with the overall free energy change of the pathway.
+
+*   **Åstrand's (2003) Value (citing @DiPrampero1981):** States that approximately **110 kJ/mol lactate** is released when glycogen is converted to lactate (derived from ~220 kJ per glucosyl unit, which forms 2 lactate). This likely represents the total exergonic drive (ΔG'°) of the pathway per mole of lactate.
+
+*   **@DiPrampero1981's Calculation of α (Energy Equivalent of Lactate Formation in vivo, S. 182):**
+    Di Prampero provides a detailed derivation for α, the energy equivalent of lactate formation, by linking it to aerobic metabolism. He assumes that the ATP yield per mole of lactate from glycogen is 1.5, and per mole of O₂ during glycogen oxidation is 6.2 (both from @McGilvery1975 data in his Table 1). The enthalpy change for O₂ consumption during glycogen oxidation (ΔH<sub>O₂</sub>) is taken as 469 kJ/mol O₂.
+    The formula used is:
+    $$
+    \alpha = \Delta H_{\text{O}_2, \text{glycogen}} \times \frac{\text{mol ATP per mol La (from glycogen)}}{\text{mol ATP per mol O}_2 \text{ (glycogen oxidation)}}
+    $$
+    Substituting the values:
+    $$
+    \alpha = 469 \text{ kJ/mol O}_2 \times \frac{1.5 \text{ mol ATP/mol La}}{6.2 \text{ mol ATP/mol O}_2} \approx \mathbf{113 \text{ kJ/mol La}}
+    $$ {#eq-alpha-diprampero-detailed-reaffirm-ext}
+    @DiPrampero1981 [S. 182] notes this is an enthalpy-based equivalent and that other estimations place the value around 100 kJ/mol La. He further clarifies the utility: "Regardless of the correct interpretation of α its value allows one to calculate that, in vivo, the resynthesis of ATP requires approximately the same amount of energy from glycolytic sources (100/1.5 = 67 kJ/mol) as from oxidative sources (469/6.2 = 76 kJ/mol)." This calculation of "energy per mole of ATP equivalent" via different pathways is insightful for comparing efficiencies.
+
+*   **Your Model (75 kJ/mol Lactate as ATP-equivalent):**
+    Based on `1.5 mol ATP/mol Lactate * 50.0 kJ/mol ATP = 75 kJ/mol Lactate`.
+    This 75 kJ/mol represents the *portion of the total energy change* that is directly conserved in the high-energy phosphate bonds of ATP and is readily available for cellular work. The difference between the ~113 kJ/mol (di Prampero's α) or ~110 kJ/mol (Åstrand) and your model's 75 kJ/mol is primarily due to the thermodynamic inefficiency of glycolysis; a substantial portion of the total free energy released is dissipated as heat. For your model's purpose of quantifying the *ATP-mediated* energy available to cover an O₂ deficit, the 75 kJ/mol is the appropriate, internally consistent value.
+
+## Aerobic Oxidation of Glucose
+
+Complete oxidation of glucose to CO₂ and H₂O via glycolysis, the pyruvate dehydrogenase complex, the citric acid cycle, and oxidative phosphorylation yields a much larger amount of ATP.
+
+*   **Overall Reaction and Free Energy Change:**
+    *   @Stegemann1991 [S. 43, Gleichung 21]:
+        $$
+        \text{C}_6\text{H}_{12}\text{O}_6 + 6\text{O}_2 \rightarrow 6\text{CO}_2 + 6\text{H}_2\text{O} \quad (\Delta G = -2869 \text{ kJ/mol glucose})
+        $$
+    *   @Nelson2012 [S. 543]:
+        States the standard free-energy change is **-2,840 kJ/mol glucose**.
+
+### ATP Yield and P/O₂ Ratios from Complete Aerobic Oxidation of Glucose
+
+The P/O₂ ratio (moles of ATP synthesized per mole of atomic oxygen (O), or per ½ O₂ molecule, consumed) is a key determinant of the overall ATP yield.
+
+*   **@DiPrampero1981 [S. 151, Table 1, values from @McGilvery1975]:**
+    This table reflects older, generally higher, P/O ratio conventions:
+    *   Glucose → CO₂ + H₂O: **6.0 mol ~P (ATP) / mol O₂**. Since 6 moles of O₂ are consumed per mole of glucose, this implies `6 mol O₂ * 6.0 mol ATP/mol O₂ = 36 ATP` per glucose.
+    *   Glycogen → CO₂ + H₂O: **6.2 mol ~P (ATP) / mol O₂**. This implies `6 mol O₂ * 6.2 mol ATP/mol O₂ = 37.2 ≈ 37 ATP` per glucosyl unit.
+    *   FFA → CO₂ + H₂O: **5.6 mol ~P (ATP) / mol O₂**.
+    @DiPrampero1981 [S. 169, Eq. 15] also provides an empirical formula for the P/O₂ ratio (denoted 'c') as a function of the respiratory quotient (RQ):
+    $$
+    c = \text{P/O}_2 = 4.13 + 2.07 \times \text{RQ}
+    $$ {#eq-PO-diprampero-RQ-ext}
+    For pure carbohydrate oxidation (RQ = 1.0), this yields `c = 4.13 + 2.07 * 1.0 = 6.20 mol ATP/mol O₂`, matching his Table 1 value for glycogen. For pure fat oxidation (RQ ≈ 0.71), it yields `c ≈ 5.60 mol ATP/mol O₂`, also matching his Table 1. This equation allows for a dynamic P/O₂ based on substrate mixture.
+
+*   **Modern Estimates (e.g., @Nelson2012 [S. 759, Table 19-5]):**
+    Current biochemical understanding leads to lower P/O ratios, approximately 2.5 ATP per NADH and 1.5 ATP per FADH₂ oxidized in the electron transport chain. This results in a total yield of **30 or 32 ATP** molecules per glucose molecule, depending on the efficiency of the shuttle system used to transport cytosolic NADH electrons into the mitochondria.
+
+*   **Your Model's P/O₂ Ratios (as defined in your app's Quarto documentation):**
+    *   `P/O2,KH = 5.0 [mol ATP / mol O₂]` (for carbohydrates). This corresponds to `30 ATP / 6 O₂` per glucose.
+    *   `P/O2,Fett = 4.61 [mol ATP / mol O₂]` (for fats, e.g., from 106 ATP / 23 O₂ for palmitate according to @Nelson2012 [S. 675]).
+    It is crucial to use these modern, lower P/O₂ ratios consistently throughout your model for calculations involving aerobic ATP resynthesis (e.g., PCr recovery, aerobic energy contribution in the summary) to maintain alignment with current biochemical consensus as represented by texts like @Nelson2012.
+
+## Energy from Kreatinphosphat (PCr)
+
+PCr acts as an immediate buffer for ATP during high-intensity muscle contraction.
+
+*   **Lohmann Reaction (@Stegemann1991 [S. 34]; @Nelson2012 [S. 526]):**
+    $$
+    \text{ADP} + \text{PCr} \stackrel{\text{Creatin-Kinase}}{\rightleftharpoons} \text{ATP} + \text{Cr}
+    $$
+    The standard free energy change (ΔG'°) for PCr hydrolysis (PCr + H₂O → Creatine + Pᵢ) is approximately **-43 kJ/mol** [@Nelson2012, S. 526]. This exergonic reaction drives the endergonic phosphorylation of ADP.
+    @DiPrampero1981 [S. 150] highlights the Lohmann reaction as the primary mechanism for ATP rephosphorylation when oxidative phosphorylation and anaerobic glycolysis are insufficient or too slow, such as at the very onset of exercise or during maximal short bursts. His Fig. 2a [@DiPrampero1981, S. 156] shows the ΔG<sub>ATP</sub> maintained around -50 kJ/mol by this buffering action until PCr stores are significantly depleted.
+
+*   **Your Model's Energetic Contribution of PCr:**
+    The calculation `kJ_per_mmol_PCr = DIRECT_ENERGY_YIELD_PER_MOL_ATP_KJ / 1000.0;` combined with `DIRECT_ENERGY_YIELD_PER_MOL_ATP_KJ = 50.0 kJ/mol ATP` correctly implies that each mole of PCr consumed effectively provides **50 kJ** of usable energy by regenerating one mole of ATP, which itself yields 50 kJ upon hydrolysis. This is a consistent and physiologically relevant approach for modeling the alactic energy contribution.
+
+This comprehensive comparison integrates data and concepts from @DiPrampero1981 with other key literature, providing a robust framework for the energetic parameters used in your metabolic simulation. The consistent application of your defined `DIRECT_ENERGY_YIELD_PER_MOL_ATP_KJ` and the modern P/O₂ ratios is paramount for internal model consistency.
+
+
+# According to @Mader2003, @Heck2021 and @Nelson2012
+
+## Modeling the Free Energy Change of ATP Hydrolysis ($\Delta G_{ATP,cyt}$)
+
+The energy currency of the cell, Adenosine Triphosphate (ATP), does not release a fixed amount of energy upon hydrolysis. Instead, the actual free energy change ($\Delta G_{ATP,cyt}$) depends critically on the intracellular conditions, primarily the concentrations of ATP, Adenosine Diphosphate (ADP), inorganic phosphate (Pi), and hydrogen ions (pH). This dynamic yield is crucial for understanding muscle bioenergetics and fatigue.
+
+### Theoretical Basis: Thermodynamics of ATP Hydrolysis
+
+The hydrolysis of ATP to ADP and Pi can be represented as:
+
+$$
+\text{ATP}^{4-} + \text{H}_2\text{O} \rightleftharpoons \text{ADP}^{3-} + \text{HPO}_4^{2-} + \text{H}^+
+$$ {#eq-atp-hydrolysis}
+
+The standard free energy change ($\Delta G'^\circ$) for this reaction under biochemical standard conditions (1M concentrations, pH 7, 25°C, 1 atm, 10 mM Mg²⁺) is approximately **-30.5 kJ/mol** [@Nelson2012, S. 536; @Heck2022, S. 31].
+
+However, intracellular conditions are far from standard. The actual free energy change ($\Delta G_{ATP,cyt}$) is given by the Gibbs free energy equation [@Nelson2012, S. 537]:
+
+$$
+\Delta G_{ATP,cyt} = \Delta G'^\circ + RT \ln \left( \frac{[\text{ADP}^{3-}] \cdot [\text{HPO}_4^{2-}]}{[\text{ATP}^{4-}]} \right)
+$$ {#eq-delta-g-actual}
+
+Where:
+
+  - $R$ is the gas constant (8.314 J·mol⁻¹·K⁻¹ or 0.008314 kJ·mol⁻¹·K⁻¹)
+  - $T$ is the absolute temperature in Kelvin (e.g., 310.15 K for 37°C)
+  - The terms in brackets represent the actual molar concentrations of the reactants and products.
+
+Under typical resting physiological conditions in muscle cells, [ATP] is high, while [ADP] and [Pi] are very low. This makes the natural logarithm term significantly negative, resulting in a much more negative $\Delta G_{ATP,cyt}$ than $\Delta G'^\circ$. Values often range from **-50 to -65 kJ/mol** [@Nelson2012, S. 536; @Heck2022, S. 31; @Mader2003]. The magnitude, $-\Delta G_{ATP,cyt}$, represents the energy that can be released to do work.
+
+### Linking $\Delta G_{ATP,cyt}$ to PCr and pH: The Mader/Heck Approach
+
+Directly measuring or calculating instantaneous [ADP] and [Pi] in a dynamic simulation is complex. Mader and Heck, building on work by Veech and others, utilize the near-equilibrium of the **creatine kinase (CK)** reaction to relate $\Delta G_{ATP,cyt}$ to more readily modeled parameters like phosphocreatine ([PCr]) and intracellular pH (pHm).
+
+The CK reaction:
+$$
+\text{PCr}^{2-} + \text{ADP}^{3-} + \text{H}^+ \rightleftharpoons \text{ATP}^{4-} + \text{Creatine}
+$$ {#eq-ck-reaction}
+
+The equilibrium constant for this, $K'_{CK}$, can be expressed, and rearranged to show the tight coupling between the ATP/ADP ratio and the PCr/Pi ratio (as free Creatine changes reciprocally with PCr, and Pi changes reciprocally with PCr if S[C] = [PCr]+[Pi] is assumed somewhat constant, or if Pi is related to PCr via total Creatine pool).
+
+@Mader2003 (Fig. 1, and similar in @Heck2022, Abb. 4.2 & 4.4) graphically shows the relationship between $-\Delta G_{ATP,cyt}$ and the "Sum: ADP + AMP + Pi" (which is inversely related to [PCr]) at different pH levels. These figures serve as the empirical basis for our model's ATP yield calculation.
+
+**Key observations from these figures:**
+
+1.  **PCr Depletion Effect:** As PCr decreases (and thus the sum ADP+AMP+Pi increases), the magnitude of released energy ($-\Delta G_{ATP,cyt}$) decreases. This means ATP provides less "oomph" when PCr stores are low.
+2.  **pH Effect:** At a lower (more acidic) pHm, the entire curve of $-\Delta G_{ATP,cyt}$ versus the ADP+AMP+Pi sum is shifted downwards. This means that for any given level of PCr (or ADP+AMP+Pi sum), less energy is released from ATP hydrolysis when the muscle is acidic.
+
+### Implementation in the Simulation App
+
+Given that the app already dynamically calculates `pcrStore[i]` and `pHm[i]` at each time step `i`, we can model the dynamic ATP yield ($-\Delta G_{ATP,cyt}$) using a two-stage interpolation approach based on the Mader/Heck figures:
+
+1.  **Define Anchor Points for ATP Yield:**
+    We establish the maximum (at high PCr/rest) and minimum (at low PCr/fatigue) ATP yields observed at two reference pH values, derived from the figures:
+    *   At optimal pH (e.g., pH 7.0, `PH_REF_HIGH`):
+        *   `ATP_YIELD_MAX_pH70 = 65.0 kJ/mol`
+        *   `ATP_YIELD_MIN_pH70 = 50.0 kJ/mol`
+    *   At acidic pH (e.g., pH 6.2, `PH_REF_LOW`):
+        *   `ATP_YIELD_MAX_pH62 = 57.0 kJ/mol`
+        *   `ATP_YIELD_MIN_pH62 = 48.0 kJ/mol`
+
+2.  **Step-wise Calculation of Dynamic ATP Yield:**
+    For each time step `i` in the simulation:
+    *   **a. pH-dependent Interpolation of Max/Min Yields:**
+        The current muscle pH (`pHm[i]`) is used to interpolate the effective maximum yield (`current_ATP_YIELD_MAX_effective_loop`) and effective minimum yield (`current_ATP_YIELD_MIN_effective_loop`) for that specific pH. This is done by linear interpolation between the anchor points defined above. For example, if `pHm[i]` is 6.6, the effective max yield will be halfway between 65.0 and 57.0 kJ/mol.
+        ```javascript
+        // Simplified conceptual logic for pH interpolation
+        let pH_fraction = (current_pHm[i] - PH_REF_LOW) / (PH_REF_HIGH - PH_REF_LOW);
+        pH_fraction = Math.max(0, Math.min(1, pH_fraction)); // Clamp between 0 and 1
+
+        current_ATP_YIELD_MAX_effective_loop = ATP_YIELD_MIN_pH62 + (ATP_YIELD_MAX_pH70 - ATP_YIELD_MAX_pH62) * pH_fraction; 
+        // Correction: MAX should use MAX values for interpolation
+        current_ATP_YIELD_MAX_effective_loop = ATP_YIELD_MAX_pH62 + (ATP_YIELD_MAX_pH70 - ATP_YIELD_MAX_pH62) * pH_fraction;
+        current_ATP_YIELD_MIN_effective_loop = ATP_YIELD_MIN_pH62 + (ATP_YIELD_MIN_pH70 - ATP_YIELD_MIN_pH62) * pH_fraction;
+        ```
+
+    *   **b. PCr-dependent Interpolation of Actual Yield:**
+        The current PCr concentration (`pcrStore[i]`) is used to determine the actual ATP yield for that time step. This is done by linear interpolation between the `current_ATP_YIELD_MIN_effective_loop` (corresponding to zero PCr) and `current_ATP_YIELD_MAX_effective_loop` (corresponding to initial/full PCr).
+        The `pcr_fraction_loop` is calculated as `pcrStore[i] / appState.pcr_init`.
+        ```javascript
+        // Simplified conceptual logic for PCr interpolation
+        current_dynamic_yield_kJ_mol_loop = current_ATP_YIELD_MIN_effective_loop + 
+                                           (current_ATP_YIELD_MAX_effective_loop - current_ATP_YIELD_MIN_effective_loop) * pcr_fraction_loop;
+        ```
+        This `current_dynamic_yield_kJ_mol_loop` is then stored in the `dynamic_ATP_yield_kJ_mol_values` array for plotting and used in subsequent energy calculations (for alactic and lactic contributions).
+
+### Rationale and Implications
+
+*   **Why this approach?**
+    *   It directly reflects the empirically derived relationships shown by @Mader2003 and @Heck2022, linking the energetic state (PCr, pH) to the energy releasable by ATP.
+    *   It avoids the high complexity and potential instability of solving the full system of equilibrium equations for [ATP], [ADP], and [Pi] at each time step, which would require precise knowledge of total adenine and creatine pools and their compartmentation, data not always readily available or constant.
+    *   It captures the two main modulatory effects:
+        1.  The general decline in ATP energy yield as PCr is depleted.
+        2.  The downward shift of this entire relationship under more acidic conditions.
+
+*   **Impact on Simulation:**
+    *   **Energy Calculations:** The energy (kJ) derived from anaerobic sources (PCr consumption, net lactate production) will now vary. During intense exercise leading to PCr depletion and acidosis, each mmol of ATP (or its equivalent from PCr/glycolysis) will yield less energy.
+    *   **Fatigue Modeling:** This provides a more nuanced mechanism contributing to fatigue. If cellular processes require a certain energy threshold from ATP hydrolysis, a lower dynamic yield means this threshold is harder to reach or requires a higher rate of ATP turnover, potentially accelerating the depletion of energy reserves.
+    *   **Efficiency Metrics:** Metrics like total metabolic efficiency ($\eta_{total}$) will be more realistically affected, as the denominator (total metabolic energy expenditure) will be based on this dynamic ATP yield.
+
+By implementing this dynamic ATP yield, the simulation becomes a more accurate representation of muscle bioenergetics, particularly under conditions that challenge cellular homeostasis like high-intensity exercise.

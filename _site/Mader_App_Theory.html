@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.5.45">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>mader_app_theory – ShinyApps</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-dark.css" rel="prefetch" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark.min.css" rel="prefetch" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="nav-sidebar docked fullcontent">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+    <div class="pt-lg-2 mt-2 text-center sidebar-header">
+      <a href="./index.html" class="sidebar-logo-link">
+      <img src="./images/Logo_1.png" alt="" class="sidebar-logo py-0 d-lg-inline d-none">
+      </a>
+      <div class="sidebar-tools-main">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./about.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">About</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./Mader_Modell.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Mader’s metabolic model</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./Cadence_Test.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Cadence Tests</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./Critical_Power.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Critical Power &amp; W'</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./Cycling_Forces.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Cycling Power Calculator</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+
+
+
+<section id="energy-yields-in-carbohydrate-metabolism-a-comparative-overview" class="level1" data-number="1">
+<h1 data-number="1"><span class="header-section-number">1</span> Energy Yields in Carbohydrate Metabolism: A Comparative Overview</h1>
+<p>The precise quantification of energy released and conserved during carbohydrate metabolism is fundamental to understanding exercise physiology and cellular bioenergetics. Different textbooks and research articles may present slightly varying values due to differing assumptions about standard states, cellular conditions, and the specific pathways or efficiencies considered. This section aims to compare and elucidate the energy yields from glucose and glycogen breakdown as presented in key literature, including <span class="citation" data-cites="Stegemann1991">Stegemann (<a href="#ref-Stegemann1991" role="doc-biblioref">1991</a>)</span>, <span class="citation" data-cites="Brooks2012">Brooks (<a href="#ref-Brooks2012" role="doc-biblioref">2012</a>)</span>, <span class="citation" data-cites="Astrand2003">Åstrand et al. (<a href="#ref-Astrand2003" role="doc-biblioref">2003</a>)</span>, and <span class="citation" data-cites="Nelson2012">Nelson &amp; Cox (<a href="#ref-Nelson2012" role="doc-biblioref">2012</a>)</span>, with significant contributions and context provided by the comprehensive review of <span class="citation" data-cites="DiPrampero1981">Di Prampero (<a href="#ref-DiPrampero1981" role="doc-biblioref">1981</a>)</span>. This review by <span class="citation" data-cites="DiPrampero1981">Di Prampero (<a href="#ref-DiPrampero1981" role="doc-biblioref">1981</a>)</span> is particularly valuable as it synthesizes experimental data from that era and provides a framework for understanding the energetics of muscular exercise under various conditions.</p>
+<section id="anaerobic-glycolysis-glucoseglycogen-to-lactate" class="level2" data-number="1.1">
+<h2 data-number="1.1" class="anchored" data-anchor-id="anaerobic-glycolysis-glucoseglycogen-to-lactate"><span class="header-section-number">1.1</span> Anaerobic Glycolysis: Glucose/Glycogen to Lactate</h2>
+<p>Anaerobic glycolysis is the metabolic pathway that converts glucose (or glucosyl units from glycogen) into pyruvate, and subsequently into lactate under anaerobic conditions, with a net production of ATP. This pathway is crucial for rapid energy supply, especially when oxygen availability is limited, such as during high-intensity exercise. <span class="citation" data-cites="DiPrampero1981">Di Prampero (<a href="#ref-DiPrampero1981" role="doc-biblioref">1981</a>, S. 171, Sect. 6.1)</span> dedicates an entire section to the “Lactic Mechanism,” underscoring its importance. He notes that “When the intensity of the exercise exceeds VO₂max, a substantial accumulation of lactic acid (La) in blood takes place. Under these conditions the exercise comes to an end when the blood La has reached a concentration of the order of 16–17 mM in non-athletic subjects.” This highlights the capacity limitation of this pathway.</p>
+<section id="free-energy-change-δg-of-glucose-to-lactate" class="level3" data-number="1.1.1">
+<h3 data-number="1.1.1" class="anchored" data-anchor-id="free-energy-change-δg-of-glucose-to-lactate"><span class="header-section-number">1.1.1</span> Free Energy Change (ΔG) of Glucose to Lactate</h3>
+<p>The overall conversion of glucose to lactate is an exergonic process, releasing a significant amount of free energy, which can then be partially conserved in ATP.</p>
+<ul>
+<li><p>According to <span class="citation" data-cites="Stegemann1991">Stegemann (<a href="#ref-Stegemann1991" role="doc-biblioref">1991</a>, S. 36, Gleichung 10)</span>, the direct conversion from glucose to lactate has a standard free energy change of: <span id="eq-glucose-to-lactate-stegemann-ext"><span class="math display">\[
+\text{C}_6\text{H}_{12}\text{O}_6 \text{ (Glucose)} \rightarrow 2 \text{ C}_3\text{H}_6\text{O}_3 \text{ (Lactate)} \quad (\Delta G'^\circ = -199 \text{ kJ/mol glucose})
+\tag{1}\]</span></span> This value indicates the total exergonic drive of the anaerobic breakdown of glucose to lactate.</p></li>
+<li><p><span class="citation" data-cites="Nelson2012">Nelson &amp; Cox (<a href="#ref-Nelson2012" role="doc-biblioref">2012</a>)</span> [S. 546, Eq. 14-1 &amp; 14-3; S. 563] detail this process in two main stages for calculation:</p>
+<ol type="1">
+<li>Glycolysis to pyruvate (the exergonic part, excluding ATP formation for this specific ΔG component): <span class="math display">\[
+\text{Glucose} + 2\text{NAD}^+ \rightarrow 2\text{ Pyruvate} + 2\text{NADH} + 2\text{H}^+ \quad (\Delta G_1'^\circ = -146 \text{ kJ/mol})
+\]</span> (This is derived from <span class="citation" data-cites="Nelson2012">Nelson &amp; Cox (<a href="#ref-Nelson2012" role="doc-biblioref">2012</a>, S. 546, Eq. 14-2)</span>).</li>
+<li>Reduction of pyruvate to lactate (occurring twice per initial glucose molecule): <span class="math display">\[
+\text{Pyruvate} + \text{NADH} + \text{H}^+ \leftrightarrow \text{L-Lactate} + \text{NAD}^+ \quad (\Delta G_2'^\circ = -25.1 \text{ kJ/mol})
+\]</span> (From <span class="citation" data-cites="Nelson2012">Nelson &amp; Cox (<a href="#ref-Nelson2012" role="doc-biblioref">2012</a>, S. 563)</span>). This reaction is crucial for regenerating NAD⁺ from NADH, allowing glycolysis to continue under anaerobic conditions, a point also emphasized by <span class="citation" data-cites="DiPrampero1981">Di Prampero (<a href="#ref-DiPrampero1981" role="doc-biblioref">1981</a>, S. 172)</span> when he states, “The excess pyruvate is reduced to La and the resulting oxidation of NADH to NAD allows glycolysis to continue.” The overall standard free-energy change for glucose to lactate according to <span class="citation" data-cites="Nelson2012">Nelson &amp; Cox (<a href="#ref-Nelson2012" role="doc-biblioref">2012</a>)</span> is the sum: <span id="eq-glucose-to-lactate-nelsoncox-ext"><span class="math display">\[
+\Delta G'_{\text{glucose} \rightarrow \text{lactate}} = \Delta G_1'^\circ + 2 \times \Delta G_2'^\circ = -146 \text{ kJ/mol} + 2 \times (-25.1 \text{ kJ/mol}) = -196.2 \text{ kJ/mol glucose}
+\tag{2}\]</span></span> This calculated value aligns very closely with the -199 kJ/mol reported by <span class="citation" data-cites="Stegemann1991">Stegemann (<a href="#ref-Stegemann1991" role="doc-biblioref">1991</a>)</span>.</li>
+</ol></li>
+</ul>
+</section>
+<section id="atp-yield-from-anaerobic-glycolysis" class="level3" data-number="1.1.2">
+<h3 data-number="1.1.2" class="anchored" data-anchor-id="atp-yield-from-anaerobic-glycolysis"><span class="header-section-number">1.1.2</span> ATP Yield from Anaerobic Glycolysis</h3>
+<p><strong>From Free Glucose:</strong></p>
+<p>The net production of ATP when starting from free glucose is a cornerstone of basic biochemistry.</p>
+<ul>
+<li><p><strong>Stegemann (S. 36):</strong> Details the process involving an initial investment of 2 ATP and a subsequent generation of 4 ATP, resulting in a net yield of: <span class="math display">\[
+4 \text{ ATP (produced)} - 2 \text{ ATP (consumed)} = \mathbf{2 \text{ ATP (net) per glucose}}
+\]</span> Using Stegemann’s value of 30.5 kJ/mol for ATP hydrolysis under physiological conditions (ΔG ≈ -30.5 kJ/mol, <span class="citation" data-cites="Stegemann1991">(<a href="#ref-Stegemann1991" role="doc-biblioref">Stegemann, 1991</a>, S. 34, Eq. 7)</span>), the energy conserved is <code>61 kJ per mol glucose</code>. This represents an efficiency of approximately 30.7% (<code>(61 kJ / 199 kJ) * 100%</code>).</p></li>
+<li><p><strong>Nelson &amp; Cox (p.&nbsp;545, Fig. 14-2; p.&nbsp;555):</strong> Clearly illustrate and state a net yield of <strong>2 ATP</strong> per molecule of glucose. The overall balanced equation for anaerobic glycolysis to lactate is: <span class="math display">\[
+\text{Glucose} + 2\text{ADP} + 2\text{P}_\text{i} \rightarrow 2\text{ Lactate} + 2\text{ATP} + 2\text{H}_2\text{O}
+\]</span></p></li>
+<li><p><strong>Brooks (2012):</strong> “1.0 ATP is produced per lactate anion accumulated when glucose is the precursor.” This implies <code>2 \times 1.0 \text{ ATP} = \mathbf{2 \text{ ATP per glucose}}</code>.</p></li>
+<li><p><strong><span class="citation" data-cites="DiPrampero1981">Di Prampero (<a href="#ref-DiPrampero1981" role="doc-biblioref">1981</a>, S. 151, Table 1)</span>:</strong> In this table, which summarizes ATP yield per unit of fuel or O₂ based on data from <span class="citation" data-cites="McGilvery1975">McGilvery (<a href="#ref-McGilvery1975" role="doc-biblioref">1975</a>)</span>, “Glucose → Lactate” is listed as yielding <strong>2 ~P/mol fuel</strong>. The symbol “~P” denotes a high-energy phosphate bond, equivalent to one molecule of ATP.</p></li>
+</ul>
+<p>There is thus universal agreement across these sources for a net gain of <strong>2 ATP molecules</strong> from the anaerobic glycolysis of one molecule of free glucose to two molecules of lactate.</p>
+<p><strong>From Glycogen (Glucosyl Units):</strong></p>
+<p>Starting glycolysis from stored glycogen offers a slight energetic advantage.</p>
+<ul>
+<li><p><strong>Stegemann (S. 36):</strong> “Wird Laktat aus Glykogen erzeugt, so wird bezogen auf 1mol Glukose – 1 mol ATP mehr, also <strong>3 mol ATP</strong>, gewonnen.” (If lactate is produced from glycogen, 1 mol more ATP is gained compared to 1 mol of glucose, thus 3 mol ATP). This is because the first ATP-consuming step, the phosphorylation of glucose to glucose 6-phosphate by hexokinase, is bypassed. Glycogen phosphorylase uses inorganic phosphate (Pᵢ) for phosphorolytic cleavage of glucosyl units. The net yield is: <span class="math display">\[
+4 \text{ ATP (produced)} - 1 \text{ ATP (consumed for fructose 6-P phosphorylation)} = \mathbf{3 \text{ ATP (net) per glucosyl unit}}
+\]</span></p></li>
+<li><p><strong>Nelson &amp; Cox (p.&nbsp;558, Worked Example 14-1):</strong> Clearly explain that starting from glycogen saves 1 ATP in the preparatory phase, leading to a net yield of <strong>3 ATP per glucose monomer</strong> from glycogen.</p></li>
+<li><p><strong>Brooks (2012):</strong> “1.5 ATP is produced per lactate anion accumulated when glycogen is the precursor.” Since one glucosyl unit from glycogen forms two lactate anions, the yield per glucosyl unit is <code>2 \times 1.5 \text{ ATP} = \mathbf{3 \text{ ATP}}</code>.</p></li>
+<li><p><strong><span class="citation" data-cites="DiPrampero1981">Di Prampero (<a href="#ref-DiPrampero1981" role="doc-biblioref">1981</a>, S. 151, Table 1)</span>:</strong> Consistent with the other sources, lists “Glycogen → Lactate” as yielding <strong>3 ~P/mol glucosyl unit</strong>. This translates to <strong>1.5 ATP per mole of lactate formed</strong> from glycogen, a ratio that <span class="citation" data-cites="DiPrampero1981">Di Prampero (<a href="#ref-DiPrampero1981" role="doc-biblioref">1981</a>)</span> explicitly uses in subsequent calculations for the energy equivalent of lactate <span class="citation" data-cites="DiPrampero1981">(<a href="#ref-DiPrampero1981" role="doc-biblioref">Di Prampero, 1981</a>, S. 182)</span>.</p></li>
+</ul>
+<p>The consensus is firm: <strong>3 net ATP molecules</strong> are gained when one glucosyl unit from glycogen is anaerobically converted to two molecules of lactate.</p>
+</section>
+<section id="energy-content-of-atp-and-high-energy-phosphate-bonds" class="level3" data-number="1.1.3">
+<h3 data-number="1.1.3" class="anchored" data-anchor-id="energy-content-of-atp-and-high-energy-phosphate-bonds"><span class="header-section-number">1.1.3</span> Energy Content of ATP and “High-Energy” Phosphate Bonds</h3>
+<p>The actual energy (ΔG) available from ATP hydrolysis under cellular conditions is crucial for accurate bioenergetic modeling.</p>
+<ul>
+<li><p><strong>Standard Free Energy Change (ΔG’°):</strong> Typically cited as approximately <strong>-30.5 kJ/mol</strong> for ATP → ADP + Pᵢ <span class="citation" data-cites="Stegemann1991 Nelson2012">(<a href="#ref-Stegemann1991" role="doc-biblioref">Stegemann, 1991</a>, S. 34, Eq. 7; <a href="#ref-Nelson2012" role="doc-biblioref">Nelson &amp; Cox, 2012</a>, S. 519, Table 13-6)</span>.</p></li>
+<li><p><strong>Actual Free Energy Change (ΔG) in vivo:</strong> This value is significantly more negative and variable than ΔG’° due to the actual intracellular concentrations of ATP, ADP, Pᵢ, and Mg²⁺, as well as pH. <span class="citation" data-cites="Nelson2012">Nelson &amp; Cox (<a href="#ref-Nelson2012" role="doc-biblioref">2012</a>, S. 519)</span> suggest a typical range of <strong>-50 to -65 kJ/mol</strong>. <strong><span class="citation" data-cites="DiPrampero1981">Di Prampero (<a href="#ref-DiPrampero1981" role="doc-biblioref">1981</a>, S. 156, Fig. 2a)</span></strong> provides a graphical representation showing ΔG<sub>ATP</sub> as a function of PCr and ATP concentrations. At rest (e.g., PCr ≈ 18-22 mmol/kg muscle, ATP ≈ 5 mmol/kg), ΔG<sub>ATP</sub> is estimated to be around <strong>-50 to -52 kJ/mol</strong>. During intense exercise, as PCr is depleted (e.g., to ~3.5-4 mmol/kg), ΔG<sub>ATP</sub> can decrease to approximately <strong>-44 kJ/mol</strong>. This dynamic behavior is important but often simplified in models by using an average physiological value.</p></li>
+<li><p><strong>Your Model’s Global Constant:</strong> <code>DIRECT_ENERGY_YIELD_PER_MOL_ATP_KJ = 50.0;</code> This value is a well-chosen representative for the <em>actual</em> physiological free energy change (ΔG) of ATP hydrolysis, consistent with the range depicted by <span class="citation" data-cites="DiPrampero1981">Di Prampero (<a href="#ref-DiPrampero1981" role="doc-biblioref">1981</a>)</span> for contracting muscle.</p></li>
+<li><p><strong><span class="citation" data-cites="Astrand2003">Åstrand et al. (<a href="#ref-Astrand2003" role="doc-biblioref">2003</a>, S. 33)</span>:</strong> Provides an important conceptual clarification: “Die Energie liegt nicht in der Bindung selbst, sondern in der freien Energie, die verfügbar wird, wenn über Abspaltung von anorganischem Phosphat das ATP in die energieärmere Verbindung Adenosindiphosphat (ADP) übergeht.”</p></li>
+</ul>
+</section>
+<section id="energy-released-per-mole-of-lactate-from-glycogen-integrating-diprampero1981" class="level3" data-number="1.1.4">
+<h3 data-number="1.1.4" class="anchored" data-anchor-id="energy-released-per-mole-of-lactate-from-glycogen-integrating-diprampero1981"><span class="header-section-number">1.1.4</span> Energy Released per Mole of Lactate (from Glycogen) – Integrating <span class="citation" data-cites="DiPrampero1981">Di Prampero (<a href="#ref-DiPrampero1981" role="doc-biblioref">1981</a>)</span></h3>
+<p>Understanding the total energy associated with lactate formation requires comparing the ATP-conserved energy with the overall free energy change of the pathway.</p>
+<ul>
+<li><p><strong>Åstrand’s (2003) Value (citing <span class="citation" data-cites="DiPrampero1981">Di Prampero (<a href="#ref-DiPrampero1981" role="doc-biblioref">1981</a>)</span>):</strong> States that approximately <strong>110 kJ/mol lactate</strong> is released when glycogen is converted to lactate (derived from ~220 kJ per glucosyl unit, which forms 2 lactate). This likely represents the total exergonic drive (ΔG’°) of the pathway per mole of lactate.</p></li>
+<li><p><strong><span class="citation" data-cites="DiPrampero1981">Di Prampero (<a href="#ref-DiPrampero1981" role="doc-biblioref">1981</a>)</span>’s Calculation of α (Energy Equivalent of Lactate Formation in vivo, S. 182):</strong> Di Prampero provides a detailed derivation for α, the energy equivalent of lactate formation, by linking it to aerobic metabolism. He assumes that the ATP yield per mole of lactate from glycogen is 1.5, and per mole of O₂ during glycogen oxidation is 6.2 (both from <span class="citation" data-cites="McGilvery1975">McGilvery (<a href="#ref-McGilvery1975" role="doc-biblioref">1975</a>)</span> data in his Table 1). The enthalpy change for O₂ consumption during glycogen oxidation (ΔH<sub>O₂</sub>) is taken as 469 kJ/mol O₂. The formula used is: <span class="math display">\[
+\alpha = \Delta H_{\text{O}_2, \text{glycogen}} \times \frac{\text{mol ATP per mol La (from glycogen)}}{\text{mol ATP per mol O}_2 \text{ (glycogen oxidation)}}
+\]</span> Substituting the values: <span id="eq-alpha-diprampero-detailed-reaffirm-ext"><span class="math display">\[
+\alpha = 469 \text{ kJ/mol O}_2 \times \frac{1.5 \text{ mol ATP/mol La}}{6.2 \text{ mol ATP/mol O}_2} \approx \mathbf{113 \text{ kJ/mol La}}
+\tag{3}\]</span></span> <span class="citation" data-cites="DiPrampero1981">Di Prampero (<a href="#ref-DiPrampero1981" role="doc-biblioref">1981</a>, S. 182)</span> notes this is an enthalpy-based equivalent and that other estimations place the value around 100 kJ/mol La. He further clarifies the utility: “Regardless of the correct interpretation of α its value allows one to calculate that, in vivo, the resynthesis of ATP requires approximately the same amount of energy from glycolytic sources (100/1.5 = 67 kJ/mol) as from oxidative sources (469/6.2 = 76 kJ/mol).” This calculation of “energy per mole of ATP equivalent” via different pathways is insightful for comparing efficiencies.</p></li>
+<li><p><strong>Your Model (75 kJ/mol Lactate as ATP-equivalent):</strong> Based on <code>1.5 mol ATP/mol Lactate * 50.0 kJ/mol ATP = 75 kJ/mol Lactate</code>. This 75 kJ/mol represents the <em>portion of the total energy change</em> that is directly conserved in the high-energy phosphate bonds of ATP and is readily available for cellular work. The difference between the ~113 kJ/mol (di Prampero’s α) or ~110 kJ/mol (Åstrand) and your model’s 75 kJ/mol is primarily due to the thermodynamic inefficiency of glycolysis; a substantial portion of the total free energy released is dissipated as heat. For your model’s purpose of quantifying the <em>ATP-mediated</em> energy available to cover an O₂ deficit, the 75 kJ/mol is the appropriate, internally consistent value.</p></li>
+</ul>
+</section>
+</section>
+<section id="aerobic-oxidation-of-glucose" class="level2" data-number="1.2">
+<h2 data-number="1.2" class="anchored" data-anchor-id="aerobic-oxidation-of-glucose"><span class="header-section-number">1.2</span> Aerobic Oxidation of Glucose</h2>
+<p>Complete oxidation of glucose to CO₂ and H₂O via glycolysis, the pyruvate dehydrogenase complex, the citric acid cycle, and oxidative phosphorylation yields a much larger amount of ATP.</p>
+<ul>
+<li><strong>Overall Reaction and Free Energy Change:</strong>
+<ul>
+<li><span class="citation" data-cites="Stegemann1991">Stegemann (<a href="#ref-Stegemann1991" role="doc-biblioref">1991</a>, S. 43, Gleichung 21)</span>: <span class="math display">\[
+\text{C}_6\text{H}_{12}\text{O}_6 + 6\text{O}_2 \rightarrow 6\text{CO}_2 + 6\text{H}_2\text{O} \quad (\Delta G = -2869 \text{ kJ/mol glucose})
+\]</span></li>
+<li><span class="citation" data-cites="Nelson2012">Nelson &amp; Cox (<a href="#ref-Nelson2012" role="doc-biblioref">2012</a>, S. 543)</span>: States the standard free-energy change is <strong>-2,840 kJ/mol glucose</strong>.</li>
+</ul></li>
+</ul>
+<section id="atp-yield-and-po₂-ratios-from-complete-aerobic-oxidation-of-glucose" class="level3" data-number="1.2.1">
+<h3 data-number="1.2.1" class="anchored" data-anchor-id="atp-yield-and-po₂-ratios-from-complete-aerobic-oxidation-of-glucose"><span class="header-section-number">1.2.1</span> ATP Yield and P/O₂ Ratios from Complete Aerobic Oxidation of Glucose</h3>
+<p>The P/O₂ ratio (moles of ATP synthesized per mole of atomic oxygen (O), or per ½ O₂ molecule, consumed) is a key determinant of the overall ATP yield.</p>
+<ul>
+<li><p><strong><span class="citation" data-cites="DiPrampero1981 McGilvery1975">Di Prampero (<a href="#ref-DiPrampero1981" role="doc-biblioref">1981</a>; S. 151, Table 1, values from <a href="#ref-McGilvery1975" role="doc-biblioref">McGilvery, 1975</a>)</span>:</strong> This table reflects older, generally higher, P/O ratio conventions:</p>
+<ul>
+<li>Glucose → CO₂ + H₂O: <strong>6.0 mol ~P (ATP) / mol O₂</strong>. Since 6 moles of O₂ are consumed per mole of glucose, this implies <code>6 mol O₂ * 6.0 mol ATP/mol O₂ = 36 ATP</code> per glucose.</li>
+<li>Glycogen → CO₂ + H₂O: <strong>6.2 mol ~P (ATP) / mol O₂</strong>. This implies <code>6 mol O₂ * 6.2 mol ATP/mol O₂ = 37.2 ≈ 37 ATP</code> per glucosyl unit.</li>
+<li>FFA → CO₂ + H₂O: <strong>5.6 mol ~P (ATP) / mol O₂</strong>. <span class="citation" data-cites="DiPrampero1981">Di Prampero (<a href="#ref-DiPrampero1981" role="doc-biblioref">1981</a>, S. 169, Eq. 15)</span> also provides an empirical formula for the P/O₂ ratio (denoted ‘c’) as a function of the respiratory quotient (RQ): <span id="eq-PO-diprampero-RQ-ext"><span class="math display">\[
+c = \text{P/O}_2 = 4.13 + 2.07 \times \text{RQ}
+\tag{4}\]</span></span> For pure carbohydrate oxidation (RQ = 1.0), this yields <code>c = 4.13 + 2.07 * 1.0 = 6.20 mol ATP/mol O₂</code>, matching his Table 1 value for glycogen. For pure fat oxidation (RQ ≈ 0.71), it yields <code>c ≈ 5.60 mol ATP/mol O₂</code>, also matching his Table 1. This equation allows for a dynamic P/O₂ based on substrate mixture.</li>
+</ul></li>
+<li><p><strong>Modern Estimates (e.g., <span class="citation" data-cites="Nelson2012">Nelson &amp; Cox (<a href="#ref-Nelson2012" role="doc-biblioref">2012</a>, S. 759, Table 19-5)</span>):</strong> Current biochemical understanding leads to lower P/O ratios, approximately 2.5 ATP per NADH and 1.5 ATP per FADH₂ oxidized in the electron transport chain. This results in a total yield of <strong>30 or 32 ATP</strong> molecules per glucose molecule, depending on the efficiency of the shuttle system used to transport cytosolic NADH electrons into the mitochondria.</p></li>
+<li><p><strong>Your Model’s P/O₂ Ratios (as defined in your app’s Quarto documentation):</strong></p>
+<ul>
+<li><code>P/O2,KH = 5.0 [mol ATP / mol O₂]</code> (for carbohydrates). This corresponds to <code>30 ATP / 6 O₂</code> per glucose.</li>
+<li><code>P/O2,Fett = 4.61 [mol ATP / mol O₂]</code> (for fats, e.g., from 106 ATP / 23 O₂ for palmitate according to <span class="citation" data-cites="Nelson2012">Nelson &amp; Cox (<a href="#ref-Nelson2012" role="doc-biblioref">2012</a>, S. 675)</span>). It is crucial to use these modern, lower P/O₂ ratios consistently throughout your model for calculations involving aerobic ATP resynthesis (e.g., PCr recovery, aerobic energy contribution in the summary) to maintain alignment with current biochemical consensus as represented by texts like <span class="citation" data-cites="Nelson2012">Nelson &amp; Cox (<a href="#ref-Nelson2012" role="doc-biblioref">2012</a>)</span>.</li>
+</ul></li>
+</ul>
+</section>
+</section>
+<section id="energy-from-kreatinphosphat-pcr" class="level2" data-number="1.3">
+<h2 data-number="1.3" class="anchored" data-anchor-id="energy-from-kreatinphosphat-pcr"><span class="header-section-number">1.3</span> Energy from Kreatinphosphat (PCr)</h2>
+<p>PCr acts as an immediate buffer for ATP during high-intensity muscle contraction.</p>
+<ul>
+<li><p><strong>Lohmann Reaction (<span class="citation" data-cites="Stegemann1991">Stegemann (<a href="#ref-Stegemann1991" role="doc-biblioref">1991</a>, S. 34)</span>; <span class="citation" data-cites="Nelson2012">Nelson &amp; Cox (<a href="#ref-Nelson2012" role="doc-biblioref">2012</a>, S. 526)</span>):</strong> <span class="math display">\[
+\text{ADP} + \text{PCr} \stackrel{\text{Creatin-Kinase}}{\rightleftharpoons} \text{ATP} + \text{Cr}
+\]</span> The standard free energy change (ΔG’°) for PCr hydrolysis (PCr + H₂O → Creatine + Pᵢ) is approximately <strong>-43 kJ/mol</strong> <span class="citation" data-cites="Nelson2012">(<a href="#ref-Nelson2012" role="doc-biblioref">Nelson &amp; Cox, 2012</a>, S. 526)</span>. This exergonic reaction drives the endergonic phosphorylation of ADP. <span class="citation" data-cites="DiPrampero1981">Di Prampero (<a href="#ref-DiPrampero1981" role="doc-biblioref">1981</a>, S. 150)</span> highlights the Lohmann reaction as the primary mechanism for ATP rephosphorylation when oxidative phosphorylation and anaerobic glycolysis are insufficient or too slow, such as at the very onset of exercise or during maximal short bursts. His Fig. 2a <span class="citation" data-cites="DiPrampero1981">(<a href="#ref-DiPrampero1981" role="doc-biblioref">Di Prampero, 1981</a>, S. 156)</span> shows the ΔG<sub>ATP</sub> maintained around -50 kJ/mol by this buffering action until PCr stores are significantly depleted.</p></li>
+<li><p><strong>Your Model’s Energetic Contribution of PCr:</strong> The calculation <code>kJ_per_mmol_PCr = DIRECT_ENERGY_YIELD_PER_MOL_ATP_KJ / 1000.0;</code> combined with <code>DIRECT_ENERGY_YIELD_PER_MOL_ATP_KJ = 50.0 kJ/mol ATP</code> correctly implies that each mole of PCr consumed effectively provides <strong>50 kJ</strong> of usable energy by regenerating one mole of ATP, which itself yields 50 kJ upon hydrolysis. This is a consistent and physiologically relevant approach for modeling the alactic energy contribution.</p></li>
+</ul>
+<p>This comprehensive comparison integrates data and concepts from <span class="citation" data-cites="DiPrampero1981">Di Prampero (<a href="#ref-DiPrampero1981" role="doc-biblioref">1981</a>)</span> with other key literature, providing a robust framework for the energetic parameters used in your metabolic simulation. The consistent application of your defined <code>DIRECT_ENERGY_YIELD_PER_MOL_ATP_KJ</code> and the modern P/O₂ ratios is paramount for internal model consistency.</p>
+</section>
+</section>
+<section id="according-to-mader2003-heck2021-and-nelson2012" class="level1" data-number="2">
+<h1 data-number="2"><span class="header-section-number">2</span> According to <span class="citation" data-cites="Mader2003">Mader (<a href="#ref-Mader2003" role="doc-biblioref">2003</a>)</span>, <span class="citation" data-cites="Heck2021">(<a href="#ref-Heck2021" role="doc-biblioref"><strong>Heck2021?</strong></a>)</span> and <span class="citation" data-cites="Nelson2012">Nelson &amp; Cox (<a href="#ref-Nelson2012" role="doc-biblioref">2012</a>)</span></h1>
+<section id="modeling-the-free-energy-change-of-atp-hydrolysis-delta-g_atpcyt" class="level2" data-number="2.1">
+<h2 data-number="2.1" class="anchored" data-anchor-id="modeling-the-free-energy-change-of-atp-hydrolysis-delta-g_atpcyt"><span class="header-section-number">2.1</span> Modeling the Free Energy Change of ATP Hydrolysis (<span class="math inline">\(\Delta G_{ATP,cyt}\)</span>)</h2>
+<p>The energy currency of the cell, Adenosine Triphosphate (ATP), does not release a fixed amount of energy upon hydrolysis. Instead, the actual free energy change (<span class="math inline">\(\Delta G_{ATP,cyt}\)</span>) depends critically on the intracellular conditions, primarily the concentrations of ATP, Adenosine Diphosphate (ADP), inorganic phosphate (Pi), and hydrogen ions (pH). This dynamic yield is crucial for understanding muscle bioenergetics and fatigue.</p>
+<section id="theoretical-basis-thermodynamics-of-atp-hydrolysis" class="level3" data-number="2.1.1">
+<h3 data-number="2.1.1" class="anchored" data-anchor-id="theoretical-basis-thermodynamics-of-atp-hydrolysis"><span class="header-section-number">2.1.1</span> Theoretical Basis: Thermodynamics of ATP Hydrolysis</h3>
+<p>The hydrolysis of ATP to ADP and Pi can be represented as:</p>
+<p><span id="eq-atp-hydrolysis"><span class="math display">\[
+\text{ATP}^{4-} + \text{H}_2\text{O} \rightleftharpoons \text{ADP}^{3-} + \text{HPO}_4^{2-} + \text{H}^+
+\tag{5}\]</span></span></p>
+<p>The standard free energy change (<span class="math inline">\(\Delta G'^\circ\)</span>) for this reaction under biochemical standard conditions (1M concentrations, pH 7, 25°C, 1 atm, 10 mM Mg²⁺) is approximately <strong>-30.5 kJ/mol</strong> <span class="citation" data-cites="Nelson2012 Heck2022">(<a href="#ref-Nelson2012" role="doc-biblioref">Nelson &amp; Cox, 2012</a>, S. 536; <a href="#ref-Heck2022" role="doc-biblioref">Heck et al., 2022</a>, S. 31)</span>.</p>
+<p>However, intracellular conditions are far from standard. The actual free energy change (<span class="math inline">\(\Delta G_{ATP,cyt}\)</span>) is given by the Gibbs free energy equation <span class="citation" data-cites="Nelson2012">(<a href="#ref-Nelson2012" role="doc-biblioref">Nelson &amp; Cox, 2012</a>, S. 537)</span>:</p>
+<p><span id="eq-delta-g-actual"><span class="math display">\[
+\Delta G_{ATP,cyt} = \Delta G'^\circ + RT \ln \left( \frac{[\text{ADP}^{3-}] \cdot [\text{HPO}_4^{2-}]}{[\text{ATP}^{4-}]} \right)
+\tag{6}\]</span></span></p>
+<p>Where: - <span class="math inline">\(R\)</span> is the gas constant (8.314 J·mol⁻¹·K⁻¹ or 0.008314 kJ·mol⁻¹·K⁻¹) - <span class="math inline">\(T\)</span> is the absolute temperature in Kelvin (e.g., 310.15 K for 37°C) - The terms in brackets represent the actual molar concentrations of the reactants and products.</p>
+<p>Under typical resting physiological conditions in muscle cells, [ATP] is high, while [ADP] and [Pi] are very low. This makes the natural logarithm term significantly negative, resulting in a much more negative <span class="math inline">\(\Delta G_{ATP,cyt}\)</span> than <span class="math inline">\(\Delta G'^\circ\)</span>. Values often range from <strong>-50 to -65 kJ/mol</strong> <span class="citation" data-cites="Nelson2012 Heck2022 Mader2003">(<a href="#ref-Nelson2012" role="doc-biblioref">Nelson &amp; Cox, 2012</a>, S. 536; <a href="#ref-Heck2022" role="doc-biblioref">Heck et al., 2022</a>, S. 31; <a href="#ref-Mader2003" role="doc-biblioref">Mader, 2003</a>)</span>. The magnitude, <span class="math inline">\(-\Delta G_{ATP,cyt}\)</span>, represents the energy that can be released to do work.</p>
+</section>
+<section id="linking-delta-g_atpcyt-to-pcr-and-ph-the-maderheck-approach" class="level3" data-number="2.1.2">
+<h3 data-number="2.1.2" class="anchored" data-anchor-id="linking-delta-g_atpcyt-to-pcr-and-ph-the-maderheck-approach"><span class="header-section-number">2.1.2</span> Linking <span class="math inline">\(\Delta G_{ATP,cyt}\)</span> to PCr and pH: The Mader/Heck Approach</h3>
+<p>Directly measuring or calculating instantaneous [ADP] and [Pi] in a dynamic simulation is complex. Mader and Heck, building on work by Veech and others, utilize the near-equilibrium of the <strong>creatine kinase (CK)</strong> reaction to relate <span class="math inline">\(\Delta G_{ATP,cyt}\)</span> to more readily modeled parameters like phosphocreatine ([PCr]) and intracellular pH (pHm).</p>
+<p>The CK reaction: <span id="eq-ck-reaction"><span class="math display">\[
+\text{PCr}^{2-} + \text{ADP}^{3-} + \text{H}^+ \rightleftharpoons \text{ATP}^{4-} + \text{Creatine}
+\tag{7}\]</span></span></p>
+<p>The equilibrium constant for this, <span class="math inline">\(K'_{CK}\)</span>, can be expressed, and rearranged to show the tight coupling between the ATP/ADP ratio and the PCr/Pi ratio (as free Creatine changes reciprocally with PCr, and Pi changes reciprocally with PCr if S[C] = [PCr]+[Pi] is assumed somewhat constant, or if Pi is related to PCr via total Creatine pool).</p>
+<p><span class="citation" data-cites="Mader2003">Mader (<a href="#ref-Mader2003" role="doc-biblioref">2003</a>)</span> (Fig. 1, and similar in <span class="citation" data-cites="Heck2022">Heck et al. (<a href="#ref-Heck2022" role="doc-biblioref">2022</a>)</span>, Abb. 4.2 &amp; 4.4) graphically shows the relationship between <span class="math inline">\(-\Delta G_{ATP,cyt}\)</span> and the “Sum: ADP + AMP + Pi” (which is inversely related to [PCr]) at different pH levels. These figures serve as the empirical basis for our model’s ATP yield calculation.</p>
+<p><strong>Key observations from these figures:</strong> 1. <strong>PCr Depletion Effect:</strong> As PCr decreases (and thus the sum ADP+AMP+Pi increases), the magnitude of released energy (<span class="math inline">\(-\Delta G_{ATP,cyt}\)</span>) decreases. This means ATP provides less “oomph” when PCr stores are low. 2. <strong>pH Effect:</strong> At a lower (more acidic) pHm, the entire curve of <span class="math inline">\(-\Delta G_{ATP,cyt}\)</span> versus the ADP+AMP+Pi sum is shifted downwards. This means that for any given level of PCr (or ADP+AMP+Pi sum), less energy is released from ATP hydrolysis when the muscle is acidic.</p>
+</section>
+<section id="implementation-in-the-simulation-app" class="level3" data-number="2.1.3">
+<h3 data-number="2.1.3" class="anchored" data-anchor-id="implementation-in-the-simulation-app"><span class="header-section-number">2.1.3</span> Implementation in the Simulation App</h3>
+<p>Given that the app already dynamically calculates <code>pcrStore[i]</code> and <code>pHm[i]</code> at each time step <code>i</code>, we can model the dynamic ATP yield (<span class="math inline">\(-\Delta G_{ATP,cyt}\)</span>) using a two-stage interpolation approach based on the Mader/Heck figures:</p>
+<ol type="1">
+<li><strong>Define Anchor Points for ATP Yield:</strong> We establish the maximum (at high PCr/rest) and minimum (at low PCr/fatigue) ATP yields observed at two reference pH values, derived from the figures:
+<ul>
+<li>At optimal pH (e.g., pH 7.0, <code>PH_REF_HIGH</code>):
+<ul>
+<li><code>ATP_YIELD_MAX_pH70 = 65.0 kJ/mol</code></li>
+<li><code>ATP_YIELD_MIN_pH70 = 50.0 kJ/mol</code></li>
+</ul></li>
+<li>At acidic pH (e.g., pH 6.2, <code>PH_REF_LOW</code>):
+<ul>
+<li><code>ATP_YIELD_MAX_pH62 = 57.0 kJ/mol</code></li>
+<li><code>ATP_YIELD_MIN_pH62 = 48.0 kJ/mol</code></li>
+</ul></li>
+</ul></li>
+<li><strong>Step-wise Calculation of Dynamic ATP Yield:</strong> For each time step <code>i</code> in the simulation:
+<ul>
+<li><p><strong>a. pH-dependent Interpolation of Max/Min Yields:</strong> The current muscle pH (<code>pHm[i]</code>) is used to interpolate the effective maximum yield (<code>current_ATP_YIELD_MAX_effective_loop</code>) and effective minimum yield (<code>current_ATP_YIELD_MIN_effective_loop</code>) for that specific pH. This is done by linear interpolation between the anchor points defined above. For example, if <code>pHm[i]</code> is 6.6, the effective max yield will be halfway between 65.0 and 57.0 kJ/mol.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Simplified conceptual logic for pH interpolation</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> pH_fraction <span class="op">=</span> (current_pHm[i] <span class="op">-</span> PH_REF_LOW) <span class="op">/</span> (PH_REF_HIGH <span class="op">-</span> PH_REF_LOW)<span class="op">;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>pH_fraction <span class="op">=</span> <span class="bu">Math</span><span class="op">.</span><span class="fu">max</span>(<span class="dv">0</span><span class="op">,</span> <span class="bu">Math</span><span class="op">.</span><span class="fu">min</span>(<span class="dv">1</span><span class="op">,</span> pH_fraction))<span class="op">;</span> <span class="co">// Clamp between 0 and 1</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>current_ATP_YIELD_MAX_effective_loop <span class="op">=</span> ATP_YIELD_MIN_pH62 <span class="op">+</span> (ATP_YIELD_MAX_pH70 <span class="op">-</span> ATP_YIELD_MAX_pH62) <span class="op">*</span> pH_fraction<span class="op">;</span> </span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co">// Correction: MAX should use MAX values for interpolation</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>current_ATP_YIELD_MAX_effective_loop <span class="op">=</span> ATP_YIELD_MAX_pH62 <span class="op">+</span> (ATP_YIELD_MAX_pH70 <span class="op">-</span> ATP_YIELD_MAX_pH62) <span class="op">*</span> pH_fraction<span class="op">;</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>current_ATP_YIELD_MIN_effective_loop <span class="op">=</span> ATP_YIELD_MIN_pH62 <span class="op">+</span> (ATP_YIELD_MIN_pH70 <span class="op">-</span> ATP_YIELD_MIN_pH62) <span class="op">*</span> pH_fraction<span class="op">;</span></span></code></pre></div></li>
+<li><p><strong>b. PCr-dependent Interpolation of Actual Yield:</strong> The current PCr concentration (<code>pcrStore[i]</code>) is used to determine the actual ATP yield for that time step. This is done by linear interpolation between the <code>current_ATP_YIELD_MIN_effective_loop</code> (corresponding to zero PCr) and <code>current_ATP_YIELD_MAX_effective_loop</code> (corresponding to initial/full PCr). The <code>pcr_fraction_loop</code> is calculated as <code>pcrStore[i] / appState.pcr_init</code>. <code>javascript     // Simplified conceptual logic for PCr interpolation     current_dynamic_yield_kJ_mol_loop = current_ATP_YIELD_MIN_effective_loop +                                         (current_ATP_YIELD_MAX_effective_loop - current_ATP_YIELD_MIN_effective_loop) * pcr_fraction_loop;</code> This <code>current_dynamic_yield_kJ_mol_loop</code> is then stored in the <code>dynamic_ATP_yield_kJ_mol_values</code> array for plotting and used in subsequent energy calculations (for alactic and lactic contributions).</p></li>
+</ul></li>
+</ol>
+</section>
+<section id="rationale-and-implications" class="level3" data-number="2.1.4">
+<h3 data-number="2.1.4" class="anchored" data-anchor-id="rationale-and-implications"><span class="header-section-number">2.1.4</span> Rationale and Implications</h3>
+<ul>
+<li><strong>Why this approach?</strong>
+<ul>
+<li>It directly reflects the empirically derived relationships shown by <span class="citation" data-cites="Mader2003">Mader (<a href="#ref-Mader2003" role="doc-biblioref">2003</a>)</span> and <span class="citation" data-cites="Heck2022">Heck et al. (<a href="#ref-Heck2022" role="doc-biblioref">2022</a>)</span>, linking the energetic state (PCr, pH) to the energy releasable by ATP.</li>
+<li>It avoids the high complexity and potential instability of solving the full system of equilibrium equations for [ATP], [ADP], and [Pi] at each time step, which would require precise knowledge of total adenine and creatine pools and their compartmentation, data not always readily available or constant.</li>
+<li>It captures the two main modulatory effects:
+<ol type="1">
+<li>The general decline in ATP energy yield as PCr is depleted.</li>
+<li>The downward shift of this entire relationship under more acidic conditions.</li>
+</ol></li>
+</ul></li>
+<li><strong>Impact on Simulation:</strong>
+<ul>
+<li><strong>Energy Calculations:</strong> The energy (kJ) derived from anaerobic sources (PCr consumption, net lactate production) will now vary. During intense exercise leading to PCr depletion and acidosis, each mmol of ATP (or its equivalent from PCr/glycolysis) will yield less energy.</li>
+<li><strong>Fatigue Modeling:</strong> This provides a more nuanced mechanism contributing to fatigue. If cellular processes require a certain energy threshold from ATP hydrolysis, a lower dynamic yield means this threshold is harder to reach or requires a higher rate of ATP turnover, potentially accelerating the depletion of energy reserves.</li>
+<li><strong>Efficiency Metrics:</strong> Metrics like total metabolic efficiency (<span class="math inline">\(\eta_{total}\)</span>) will be more realistically affected, as the denominator (total metabolic energy expenditure) will be based on this dynamic ATP yield.</li>
+</ul></li>
+</ul>
+<p>By implementing this dynamic ATP yield, the simulation becomes a more accurate representation of muscle bioenergetics, particularly under conditions that challenge cellular homeostasis like high-intensity exercise.</p>
+
+
+</section>
+</section>
+</section>
+<section id="bibliography" class="level1 unnumbered">
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" data-line-spacing="2" role="list">
+<div id="ref-Astrand2003" class="csl-entry" role="listitem">
+Åstrand, P.-. O., Rodahl, K., Stromme, S. B., &amp; Dahl, H. A. (2003). <em><span class="nocase">Textbook of work physiology. Physiological bases of excercise</span></em> (4. Edition, p. 649). Human Kinetics.
+</div>
+<div id="ref-Brooks2012" class="csl-entry" role="listitem">
+Brooks, G. A. (2012). <span class="nocase">Bioenergetics of exercising humans.</span> <em>Comprehensive Physiology</em>, <em>2</em>(1), 537–562. <a href="https://doi.org/10.1002/cphy.c110007">https://doi.org/10.1002/cphy.c110007</a>
+</div>
+<div id="ref-DiPrampero1981" class="csl-entry" role="listitem">
+Di Prampero, P. E. (1981). <span class="nocase">Energetics of Muscular Exercise</span>. <em>Review of Physiology, Biochemistry and Pharmacology</em>, <em>89</em>, 143–222.
+</div>
+<div id="ref-Heck2022" class="csl-entry" role="listitem">
+Heck, H., Bartmus, U., &amp; Grabow, V. (2022). <em><span>Laktat</span></em> (1st ed., p. 662). Springer Berlin Heidelberg.
+</div>
+<div id="ref-Mader2003" class="csl-entry" role="listitem">
+Mader, A. (2003). <span class="nocase">Glycolysis and oxidative phosphorylation as a function of cytosolic phosphorylation state and power output of the muscle cell</span>. <em>European Journal of Applied Physiology</em>, <em>88</em>(4-5), 317–338. <a href="https://doi.org/10.1007/s00421-002-0676-3">https://doi.org/10.1007/s00421-002-0676-3</a>
+</div>
+<div id="ref-McGilvery1975" class="csl-entry" role="listitem">
+McGilvery, R. W. (1975). <span class="nocase">The Use of Fuels for Muscular Work</span>. In <em>Metabolic adaptation to prolonged physical exercise</em> (pp. 12–30). Springer.
+</div>
+<div id="ref-Nelson2012" class="csl-entry" role="listitem">
+Nelson, D. L., &amp; Cox, M. M. (2012). <em><span class="nocase">Lehninger Principles of Biochemistry: 6th Edition</span></em>. Macmillan Learning. <a href="https://books.google.de/books?id=n9e1NAEACAAJ">https://books.google.de/books?id=n9e1NAEACAAJ</a>
+</div>
+<div id="ref-Stegemann1991" class="csl-entry" role="listitem">
+Stegemann, J. (1991). <em><span>Leistungsphysiologie</span></em> (4. Edition, p. 385). Georg Thieme Verlag.
+</div>
+</div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const disableStylesheet = (stylesheets) => {
+    for (let i=0; i < stylesheets.length; i++) {
+      const stylesheet = stylesheets[i];
+      stylesheet.rel = 'prefetch';
+    }
+  }
+  const enableStylesheet = (stylesheets) => {
+    for (let i=0; i < stylesheets.length; i++) {
+      const stylesheet = stylesheets[i];
+      stylesheet.rel = 'stylesheet';
+    }
+  }
+  const manageTransitions = (selector, allowTransitions) => {
+    const els = window.document.querySelectorAll(selector);
+    for (let i=0; i < els.length; i++) {
+      const el = els[i];
+      if (allowTransitions) {
+        el.classList.remove('notransition');
+      } else {
+        el.classList.add('notransition');
+      }
+    }
+  }
+  const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+    const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+    const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+    let newTheme = '';
+    if(darkModeDefault) {
+      newTheme = isAlternate ? baseTheme : alternateTheme;
+    } else {
+      newTheme = isAlternate ? alternateTheme : baseTheme;
+    }
+    const changeGiscusTheme = () => {
+      // From: https://github.com/giscus/giscus/issues/336
+      const sendMessage = (message) => {
+        const iframe = document.querySelector('iframe.giscus-frame');
+        if (!iframe) return;
+        iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+      }
+      sendMessage({
+        setConfig: {
+          theme: newTheme
+        }
+      });
+    }
+    const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+    if (isGiscussLoaded) {
+      changeGiscusTheme();
+    }
+  }
+  const toggleColorMode = (alternate) => {
+    // Switch the stylesheets
+    const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+    manageTransitions('#quarto-margin-sidebar .nav-link', false);
+    if (alternate) {
+      enableStylesheet(alternateStylesheets);
+      for (const sheetNode of alternateStylesheets) {
+        if (sheetNode.id === "quarto-bootstrap") {
+          toggleBodyColorMode(sheetNode);
+        }
+      }
+    } else {
+      disableStylesheet(alternateStylesheets);
+      toggleBodyColorPrimary();
+    }
+    manageTransitions('#quarto-margin-sidebar .nav-link', true);
+    // Switch the toggles
+    const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+    for (let i=0; i < toggles.length; i++) {
+      const toggle = toggles[i];
+      if (toggle) {
+        if (alternate) {
+          toggle.classList.add("alternate");     
+        } else {
+          toggle.classList.remove("alternate");
+        }
+      }
+    }
+    // Hack to workaround the fact that safari doesn't
+    // properly recolor the scrollbar when toggling (#1455)
+    if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+      manageTransitions("body", false);
+      window.scrollTo(0, 1);
+      setTimeout(() => {
+        window.scrollTo(0, 0);
+        manageTransitions("body", true);
+      }, 40);  
+    }
+  }
+  const isFileUrl = () => { 
+    return window.location.protocol === 'file:';
+  }
+  const hasAlternateSentinel = () => {  
+    let styleSentinel = getColorSchemeSentinel();
+    if (styleSentinel !== null) {
+      return styleSentinel === "alternate";
+    } else {
+      return false;
+    }
+  }
+  const setStyleSentinel = (alternate) => {
+    const value = alternate ? "alternate" : "default";
+    if (!isFileUrl()) {
+      window.localStorage.setItem("quarto-color-scheme", value);
+    } else {
+      localAlternateSentinel = value;
+    }
+  }
+  const getColorSchemeSentinel = () => {
+    if (!isFileUrl()) {
+      const storageValue = window.localStorage.getItem("quarto-color-scheme");
+      return storageValue != null ? storageValue : localAlternateSentinel;
+    } else {
+      return localAlternateSentinel;
+    }
+  }
+  const darkModeDefault = false;
+  let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+  // Dark / light mode switch
+  window.quartoToggleColorScheme = () => {
+    // Read the current dark / light value 
+    let toAlternate = !hasAlternateSentinel();
+    toggleColorMode(toAlternate);
+    setStyleSentinel(toAlternate);
+    toggleGiscusIfUsed(toAlternate, darkModeDefault);
+  };
+  // Ensure there is a toggle, if there isn't float one in the top right
+  if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+    const a = window.document.createElement('a');
+    a.classList.add('top-right');
+    a.classList.add('quarto-color-scheme-toggle');
+    a.href = "";
+    a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+    const i = window.document.createElement("i");
+    i.classList.add('bi');
+    a.appendChild(i);
+    window.document.body.appendChild(a);
+  }
+  // Switch to dark mode if need be
+  if (hasAlternateSentinel()) {
+    toggleColorMode(true);
+  } else {
+    toggleColorMode(false);
+  }
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>Johannes Will, 2025 | <a href="mailto:JohannesWill96@gmail.com">JohannesWill96@gmail.com</a></p>
+</div>   
+    <div class="nav-footer-center">
+      &nbsp;
+    </div>
+    <div class="nav-footer-right">
+<p><a href="https://quarto.org/">Quarto</a></p>
+</div>
+  </div>
+</footer>
+
+
+
+
+</body></html>

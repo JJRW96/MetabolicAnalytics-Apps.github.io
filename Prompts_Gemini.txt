@@ -1,0 +1,9 @@
+"Hallo, bitte hilf mir bei der Anpassung meiner Datei [].
+
+Aufgabe: Ich möchte folgende Änderungen vornehmen:
+
+
+Gewünschtes Ausgabeformat:
+Bitte gib mir für jede Änderung zuerst die exakte Codestelle an, die ich mit STRG+F in meiner Datei finden kann (z.B. eine eindeutige Zeile oder ein charakteristischer Teil eines Blocks).
+Gib mir dann den kompletten Codeblock, den ich an dieser Stelle ersetzen oder einfügen soll. Stelle sicher, dass die Codeblöcke vollständig sind und keine Lücken enthalten.
+Und bitte den gesamten Code sowie Erklärungen im Code auf Englisch.
