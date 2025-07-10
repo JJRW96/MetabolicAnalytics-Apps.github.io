@@ -329,7 +329,7 @@ calculate_min_VO2_SS <- function(data, start_time, end_time) {
 
 # Read Excel file (sheet "Spiro")
 #file_path <- "C:/Users/johan/OneDrive/Desktop/SpoWi/WS 22,23/Masterarbeit - Wirkungsgrad/Formel, Berechnungen/Drehzahltest_2.0/Spiro_Will_01_04_2025.xlsx"
-file_path <- "Spiro_Will_01_04_2025.xlsx"
+file_path <- "Excel_Files/Spiro_Will_01_04_2025.xlsx"
 df <- read_excel(file_path, sheet = "Spiro")
 
 # Liste der Laktatwerte
