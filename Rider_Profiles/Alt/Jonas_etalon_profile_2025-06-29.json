@@ -1,0 +1,108 @@
+{
+  "settings": {
+    "body_mass": 58,
+    "bike_mass": 7.2,
+    "Crr": 0.0035,
+    "CdA": 0.3,
+    "rho": 1.1,
+    "drivetrainLoss": 2.5
+  },
+  "performances": [
+    {
+      "label": "Alto de Arrate - 2023",
+      "lengthKm": 4.1,
+      "elevationM": 384,
+      "etalonWkg": 7.44,
+      "durationS": 681,
+      "absolute_power": 435,
+      "relative_power": 7.49,
+      "gradient": 9.37,
+      "speedKmh": 21.67,
+      "VAM": 2030
+    },
+    {
+      "label": "Puerto de Bejes - 2023",
+      "lengthKm": 4.9,
+      "elevationM": 426,
+      "etalonWkg": 7.4,
+      "durationS": 791,
+      "absolute_power": 433,
+      "relative_power": 7.46,
+      "gradient": 8.69,
+      "speedKmh": 22.3,
+      "VAM": 1939
+    },
+    {
+      "label": "Plateau de Beille - 2024",
+      "lengthKm": 15.74,
+      "elevationM": 1250,
+      "etalonWkg": 6.85,
+      "durationS": 2458,
+      "absolute_power": 400,
+      "relative_power": 6.9,
+      "gradient": 7.94,
+      "speedKmh": 23.05,
+      "VAM": 1831
+    },
+    {
+      "label": "Côte de Domancy to Combloux - 2023",
+      "lengthKm": 6.05,
+      "elevationM": 414,
+      "etalonWkg": 7.38,
+      "durationS": 811,
+      "absolute_power": 432,
+      "relative_power": 7.45,
+      "gradient": 6.84,
+      "speedKmh": 26.86,
+      "VAM": 1838
+    },
+    {
+      "label": "Alto de Angliru - 2023",
+      "lengthKm": 12.2,
+      "elevationM": 1280,
+      "etalonWkg": 6.43,
+      "durationS": 2484,
+      "absolute_power": 375,
+      "relative_power": 6.47,
+      "gradient": 10.49,
+      "speedKmh": 17.68,
+      "VAM": 1855
+    },
+    {
+      "label": "San Luca - 2024",
+      "lengthKm": 2.1,
+      "elevationM": 197,
+      "etalonWkg": 7.82,
+      "durationS": 327,
+      "absolute_power": 457,
+      "relative_power": 7.87,
+      "gradient": 9.38,
+      "speedKmh": 23.12,
+      "VAM": 2169
+    },
+    {
+      "label": "Puy Mary - 2024",
+      "lengthKm": 2.08,
+      "elevationM": 270,
+      "etalonWkg": 7.41,
+      "durationS": 448,
+      "absolute_power": 432,
+      "relative_power": 7.45,
+      "gradient": 12.98,
+      "speedKmh": 16.71,
+      "VAM": 2170
+    },
+    {
+      "label": "Col de Marie Blanque - 2023",
+      "lengthKm": 7.9,
+      "elevationM": 671,
+      "etalonWkg": 6.92,
+      "durationS": 1258,
+      "absolute_power": 404,
+      "relative_power": 6.97,
+      "gradient": 8.49,
+      "speedKmh": 22.61,
+      "VAM": 1920
+    }
+  ]
+}

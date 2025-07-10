@@ -1,0 +1,187 @@
+---
+title: "Cycling Forces"
+
+format:
+  html:
+    resources: 
+      - shinylive-sw.js
+    fig-responsive: true
+
+filters:
+  - shinylive
+
+execute:
+  message: false
+  engine: knitr
+  echo: false
+  warning: false
+  error: false
+  
+bibliography: references_all.bib
+number-sections: false
+editor: 
+  markdown: 
+    wrap: 72
+---
+
+**Please note: This website is currently under construction.** I'm gradually adding more detailed explanations of the applications and developing additional models. The content will continue to expand over time.
+
+
+<div style="position: relative; width: 100%; height: 800px;">
+  <iframe src="Cycling_Forces_1.4.html" style="position: absolute; width: 100%; height: 100%; border: none;"></iframe>
+</div>
+
+<br>
+
+[Link: Cycling Power Calculator](/Cycling_Forces_1.4.html)
+
+# Cycling Power & Forces Calculator: Technical Documentation
+
+## 1. Introduction
+
+The **Cycling Power & Forces Calculator** is an interactive, web-based educational and planning tool designed for cyclists, coaches, and sports scientists. It provides a real-time, physics-based simulation of the power required to cycle under a wide variety of conditions. The application's core is a detailed physics model based on the well-established research paper by Martin et al. (1998), "Validation of a mathematical model for road cycling power."
+
+The primary functions of the application are:
+
+*   **Interactive Exploration:** Users can manipulate variables such as speed, gradient, mass, and aerodynamic profile to instantly see the effect on required power and its constituent components (aerodynamic drag, rolling resistance, gravity).
+*   **Data Visualization:** The tool employs a suite of dynamic charts to visually represent how different resistive forces contribute to the total power requirement and how these relationships change with speed and gradient.
+*   **Course Simulation:** The application includes two calculators that allow users to model performance over specific courses: one for simple, constant-gradient courses, and a more advanced one that can process a detailed course profile from a CSV file to determine the constant power needed to achieve a target time.
+*   **In-depth Education:** The user interface is augmented with extensive explanatory text, detailing the physical meaning of key parameters like the Coefficient of Rolling Resistance ($C_{rr}$) and the Aerodynamic Drag Area ($C_d A$), complete with real-world data and examples.
+
+This document provides a comprehensive technical breakdown of the application's user interface, underlying physics model, and key computational algorithms.
+
+## 2. UI/Component Breakdown
+
+The application is built with a two-pane layout: a `sidebar` for all user inputs and controls, and a `main-content` area for data visualization and output.
+
+### 2.1. The Sidebar: The Control Center
+
+The sidebar contains all the interactive elements that define the simulation's parameters. These are logically grouped into sections.
+
+#### **Rider & Bike Parameters**
+This group defines the mass of the system.
+
+*   **Rider Mass:** A slider (`#riderMass`) to set the rider's body mass in kilograms.
+*   **Bike Mass:** A slider (`#bikeMass`) to set the bicycle's mass in kilograms.
+*   **Total Mass ($m_T$):** A read-only field (`#totalMass`) that automatically displays the sum of the rider and bike mass. This value is a critical input for calculating gravitational and rolling resistance forces.
+
+#### **Environmental & Situational Parameters**
+This group defines the external conditions the cyclist is facing.
+
+*   **Speed:** A slider (`#velocity`) that sets the cyclist's ground speed ($V_g$) in km/h. This is a primary independent variable in most calculations.
+*   **Gradient:** A slider (`#gradient`) to set the road gradient ($G_R$) as a percentage. It can be positive (uphill) or negative (downhill). This directly influences the power required to overcome (or be aided by) gravity.
+*   **Wind Speed:** A slider (`#windSpeed`) to set the speed of the wind ($V_w$) in km/h. Positive values represent a **tailwind** (assisting the rider), while negative values represent a **headwind** (opposing the rider). This is used to calculate the effective air velocity ($V_a$) relative to the rider.
+
+#### **Technical & Aerodynamic Parameters**
+This group defines the key coefficients that govern resistive forces. The application provides detailed in-app explanations for these complex parameters.
+
+*   **Drag Area ($C_d A$):** A slider (`#cdA`) to set the product of the coefficient of drag ($C_d$) and the frontal area ($A$). This single value represents the overall aerodynamic profile of the rider and bike system. The in-app documentation provides typical value ranges for different riding positions and equipment levels, from an upright commuter to a fully optimized time-trialist.
+*   **Rolling Resistance ($C_{rr}$):** A slider (`#crr`) to set the Coefficient of Rolling Resistance. This dimensionless value quantifies the friction between the tires and the road surface. The in-app documentation explains that this is a baseline value and provides typical ranges for different tire types (e.g., racing slicks vs. durable touring tires) and discusses influencing factors like temperature and road surface.
+*   **Air Density ($\rho$):** A slider (`#airDensity`) to set the density of the air in kg/m³. This value is affected by temperature, altitude, and humidity. A default value for sea level standard conditions (1.225 kg/m³) is provided.
+
+### 2.2. The Main Content Area: Analysis & Visualization
+
+This area displays the results of the calculations through numerical readouts and a series of charts.
+
+#### **Power Overview**
+A numerical summary box (`.output-area`) shows the calculated power values for the current sidebar settings:
+
+*   **Required Total Power ($P_{TOT}$):** The total power the rider must produce at the pedals.
+*   **Power per kg:** The total power relative to the rider's mass (W/kg).
+*   **Power Components:** A breakdown of the total power into its constituent parts: Aerodynamic Drag ($P_{AT}$), Rolling Resistance ($P_{RR}$), Potential Energy ($P_{PE}$), and Mechanical Losses ($P_{mech}$).
+
+#### **Power Component Bar Chart**
+A dynamic bar chart (`#powerBarChart`) that visually represents the breakdown of the power components from the Power Overview section. This provides an immediate understanding of which resistive force is dominant under the currently selected conditions.
+
+#### **Dynamic Power vs. Speed Plot**
+A dynamic line chart (`#plotCurrentGradient`) that updates in real-time as the user changes the `gradient` or `windSpeed` sliders. It plots the different power components and the total power as a function of speed (from 0 to 50 km/h), clearly illustrating how each component scales with speed for the selected gradient.
+
+#### **Fixed Gradient Plots**
+A set of three static line charts (`.fixed-plots-container`) that show the Power vs. Speed relationship for three fixed gradients: **-5% (downhill)**, **0% (flat)**, and **+5% (uphill)**. These serve as a stable reference for comparison, helping the user understand the profound impact of gradient on the power-speed relationship.
+
+#### **Course Calculators**
+Two distinct calculator modules allow for more advanced analysis:
+
+*   **Manual Course Calculator:** A simple form where the user inputs a course length, target time, and average gradient. The app calculates the average speed and then uses the core physics model to determine the single, constant average power required to meet that target. This is a non-iterative, direct calculation.
+*   **Uploaded Profile Calculator:** A more advanced tool that requires the user to upload a `.csv` file detailing a course profile (format: `segment_length_in_meters,gradient_in_percent`). The user also provides a target time. The application then uses a sophisticated iterative solver (detailed in Section 4) to find the **constant power** the rider would need to maintain throughout the entire variable-gradient course to finish in the specified time.
+
+## 3. Core Logic & Physics Model
+
+The application's calculations are based on the model presented by Martin et al. (1998). The central function, `calculatePowerComponents()`, computes the various resistive forces and the power required to overcome them.
+
+The total power required at the pedals ($P_{TOT}$) is the sum of the powers needed to overcome all resistive forces, divided by the efficiency of the drivetrain ($E_c$).
+$$ P_{TOT} = \frac{P_{NET}}{E_c} = \frac{P_{AT} + P_{RR} + P_{PE} + P_{WB}}{E_c} $$
+Where:
+
+*   $P_{NET}$ is the net power required at the wheel-road interface.
+*   $E_c$ is the drivetrain efficiency, modeled as a constant `0.97698`.
+*   The individual power components are: Aerodynamic ($P_{AT}$), Rolling Resistance ($P_{RR}$), Potential Energy / Gravity ($P_{PE}$), and Wheel Bearing friction ($P_{WB}$).
+
+### 3.1. Aerodynamic Power ($P_{AT}$)
+This is the power to overcome air resistance. It is highly dependent on the speed of the air relative to the cyclist ($V_a$).
+
+*   **Relative Air Velocity:** $V_a = V_g + V_w$ (where $V_g$ is ground speed and $V_w$ is wind speed; a headwind is negative).
+*   **Aerodynamic Drag Force ($F_D$):** $F_D = \frac{1}{2} \rho (C_d A + F_w) V_a^2 \cdot \text{sign}(V_a)$
+    *   $\rho$ is air density.
+    *   $C_d A$ is the drag area from the slider.
+    *   $F_w$ is an additional drag factor for the wheels, modeled as a constant `0.0044`.
+    
+*   **Aerodynamic Power:** $P_{AT} = F_D \cdot V_g$
+    *   Note that power is force multiplied by **ground speed**, not air speed. This correctly models the power needed to advance along the road against the drag force. In no-wind conditions ($V_a \approx V_g$), this leads to the classic cubic relationship $P_{AT} \propto V_g^3$.
+
+### 3.2. Rolling Resistance Power ($P_{RR}$)
+This is the power to overcome friction between the tires and the road.
+
+*   **Rolling Resistance Force ($F_{RR}$):** $F_{RR} = C_{rr} m_T g \cos(\alpha)$
+    *   $C_{rr}$ is the coefficient of rolling resistance from the slider.
+    *   $m_T$ is the total mass (rider + bike).
+    *   $g$ is the acceleration due to gravity (9.81 m/s²).
+    *   $\alpha = \arctan(G_R)$ is the road angle, where $G_R$ is the gradient. The cosine term accounts for the slight reduction in normal force on a slope.
+*   **Rolling Resistance Power:** $P_{RR} = F_{RR} \cdot V_g$. This is a linear relationship with speed.
+
+### 3.3. Potential Energy Power ($P_{PE}$)
+This is the power required to lift the system's mass against gravity (or the power gained from gravity on a descent).
+
+*   **Gravitational Force ($F_G$):** $F_G = m_T g \sin(\alpha)$
+*   **Potential Energy Power:** $P_{PE} = F_G \cdot V_g$. This power is positive on an incline and negative on a decline.
+
+### 3.4. Mechanical Losses Power ($P_{mech}$)
+This group includes losses in the drivetrain and wheel bearings.
+
+*   **Wheel Bearing Power ($P_{WB}$):** The model uses an empirical formula from the paper: $P_{WB} = V_g \cdot (91 + 8.7 \cdot V_g) \cdot 0.001$.
+*   **Chain Friction Power ($P_C$):** This is calculated as the difference between the power at the pedals and the net power at the wheel: $P_C = P_{TOT} - P_{NET}$.
+*   **Total Mechanical Loss Displayed:** $P_{mech} = P_{WB} + P_C$.
+
+## 4. Algorithmic Processes: The Profile Power Solver
+
+The most computationally complex feature of the application is the **Uploaded Profile Calculator**. Its goal is to find the single, constant power output ($P_{const}$) that allows a rider to complete a course with a variable-gradient profile in a specified `target_time`. This requires solving the physics equations "in reverse" and involves a nested-loop solver.
+
+### 4.1. The Outer Loop: Bisection Search for Power
+The top-level function `solvePowerForTime()` is responsible for finding the correct $P_{const}$. Since there is no direct algebraic solution for power given a total time over a variable course, the algorithm employs a **bisection search**, an efficient root-finding algorithm.
+
+1.  **Define the Function:** The algorithm seeks the root of the function $f(P) = \text{calculateTimeForProfile}(P) - \text{target\_time}$. The goal is to find a power $P$ where $f(P) = 0$.
+2.  **Establish a Bracket:** It starts with a wide bracket of possible power values, `low_power = 0` and `high_power = 1500` W.
+3.  **Iterate:** For a fixed number of iterations (`bisectionIterations = 20`):
+    a.  Calculate the midpoint power: `mid_power = (low_power + high_power) / 2`.
+    b.  Calculate the total time it would take to complete the profile at `mid_power` by calling the inner-loop function, `calculateTimeForProfile(mid_power, ...)`.
+    c.  **Compare and Narrow:**
+        *   If the `calculated_time` is greater than the `target_time`, it means `mid_power` was too low. The correct power must be in the upper half of the bracket, so it sets `low_power = mid_power`.
+        *   If the `calculated_time` is less than the `target_time`, it means `mid_power` was too high. It sets `high_power = mid_power`.
+4.  **Result:** After 20 iterations, the `[low_power, high_power]` bracket is extremely narrow, and `mid_power` is a very close approximation of the required constant power.
+
+### 4.2. The Inner Loop: Iterative Solver for Speed
+The bisection search relies on the `calculateTimeForProfile()` function. This function, in turn, must calculate the rider's speed on *each individual segment* of the course, given the constant power output $P_{const}$ and that segment's specific gradient.
+
+The function `solveSpeedForPower()` is used for this. The relationship between power and speed is a complex polynomial equation that cannot be solved algebraically for speed ($V_g$). Therefore, an iterative numerical solver is used.
+
+1.  **Initial Guess:** Start with an initial guess for speed, `Vg = 5.0` m/s.
+2.  **Iterate:** For a fixed number of iterations (`solverIterations = 15`):
+    a.  **Calculate Power at Guess:** Using the current speed guess `Vg`, calculate the resulting net power (`calculated_pnet`) using the forward `calculatePowerComponents()` function.
+    b.  **Calculate Error:** Find the difference between the target net power (`target_pnet = P_const * Ec`) and the `calculated_pnet`.
+    c.  **Adjust Guess:** Adjust the speed guess `Vg` based on the error. The adjustment is scaled by a factor related to the derivative of the power-speed curve to improve convergence (similar to a Newton-Raphson step): `Vg += error * (Vg / (3 * calculated_pnet))`.
+    d.  **Check for Convergence:** If the absolute error is very small (`< 0.1` W), the loop terminates early as a solution has been found.
+3.  **Return Speed:** After the iterations, the final `Vg` is the calculated speed for that segment.
+
+This nested solver structure allows the application to accurately and efficiently solve a complex, real-world physics problem that lacks a simple closed-form solution.
+
+

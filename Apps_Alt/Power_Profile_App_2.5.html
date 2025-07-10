@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Composite Power Profile Analyzer</title>
+    <!-- External libraries for file parsing and model fitting -->
+    <script src="https://cdn.jsdelivr.net/npm/fit-file-parser@2.1.2/dist/fit-file-parser.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/numeric/1.2.6/numeric.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2683C6; --secondary-color: #9C85C0; --accent-color: #EF5350;
+            --light-color: #f8f9fa; --dark-color: #343a40; --border-color: #dee2e6;
+            --gradient-start: #f1f8ff; --gradient-end: #ffffff;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Roboto', 'Segoe UI', sans-serif; }
+        body { background-color: #f5f5f5; color: var(--dark-color); line-height: 1.6; overflow-y: auto; }
+        .container { display: flex; min-height: 100vh; max-width: 100%; }
+        .sidebar { width: 380px; flex-shrink: 0; background: linear-gradient(to bottom, var(--gradient-start), var(--gradient-end)); padding: 20px; box-shadow: 2px 0 5px rgba(0,0,0,0.1); overflow-y: auto; border-right: 1px solid var(--border-color); max-height: 100vh; position: relative; z-index: 10; }
+        .main-content { flex: 1; padding: 20px; display: flex; flex-direction: column; background-color: #fff; }
+        h1 { color: var(--primary-color); margin-bottom: 20px; font-size: 1.6rem; text-align: center; padding-bottom: 10px; border-bottom: 2px solid var(--border-color); }
+        .control-group { margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid var(--border-color); background-color: white; border-radius: 6px; padding: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .control-group:last-child { border-bottom: none; }
+        .control-label { display: block; margin-bottom: 5px; font-weight: 600; color: var(--dark-color); }
+        .slider-container { margin-bottom: 15px; }
+        .slider-label { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+        .slider-label label { flex-grow: 1; font-size: 0.9em; }
+        .slider-value { min-width: 60px; text-align: right; font-weight: bold; color: var(--primary-color); }
+        .range-slider { -webkit-appearance: none; width: 100%; height: 8px; border-radius: 5px; background: linear-gradient(to right, #ddd, var(--primary-color)); outline: none; margin: 10px 0; }
+        .range-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--primary-color); cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+        .range-slider::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: var(--primary-color); cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+        .fancy-checkbox { display: block; position: relative; padding-left: 30px; cursor: pointer; font-size: 0.9rem; user-select: none; margin-bottom: 10px; }
+        .fancy-checkbox input { position: absolute; opacity: 0; cursor: pointer; height: 0; width: 0; }
+        .checkmark { position: absolute; top: 0; left: 0; height: 20px; width: 20px; background-color: #eee; border-radius: 3px; transition: all 0.2s; }
+        .fancy-checkbox:hover input ~ .checkmark { background-color: #ccc; }
+        .fancy-checkbox input:checked ~ .checkmark { background-color: var(--primary-color); }
+        .checkmark:after { content: ""; position: absolute; display: none; }
+        .fancy-checkbox input:checked ~ .checkmark:after { display: block; }
+        .fancy-checkbox .checkmark:after { left: 7px; top: 3px; width: 5px; height: 10px; border: solid white; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+        button, .button { background-color: var(--primary-color); color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: 600; transition: all 0.3s; margin-top: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: inline-block; text-align: center; width: 100%; }
+        button:hover, .button:hover { background-color: #1a6eae; transform: translateY(-1px); box-shadow: 0 3px 5px rgba(0,0,0,0.15); }
+        button:active, .button:active { transform: translateY(0); }
+        button:disabled { background-color: #a0a0a0; cursor: not-allowed; transform: none; box-shadow: none; }
+        .plot-container { background-color: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); margin-bottom: 20px; padding: 15px; height: 60vh; }
+        #power-duration-plot-container { height: calc(100vh - 270px); min-height: 400px; width: 100%; }
+        #values-container { background-color: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); font-family: monospace; white-space: pre-wrap; height: 230px; overflow-y: auto; color: #444; font-size: 0.92rem; border-left: 4px solid var(--primary-color); margin-top: 10px; }
+        .dropdown-select { width: 100%; padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.9em; background-color: white; margin-bottom: 10px; height: 38px; }
+        .data-point-display { background-color: var(--light-color); padding: 8px; border-radius: 4px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 0.9em; }
+        .remove-point-btn { background-color: var(--accent-color); color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8em; margin-left: 10px; flex-shrink: 0; }
+        .header-section { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .info-icon { color: var(--primary-color); cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background-color: rgba(38, 131, 198, 0.1); }
+        .tooltip { position: relative; display: inline-block; }
+        .tooltip .tooltiptext { visibility: hidden; width: 280px; background-color: #555; color: #fff; text-align: left; border-radius: 6px; padding: 10px; position: absolute; z-index: 1000; top: 25px; left: auto; right: 0; opacity: 0; transition: opacity 0.3s; font-size: 0.9rem; line-height: 1.4; box-shadow: 0 4px 8px rgba(0,0,0,0.2); overflow-wrap: break-word; word-wrap: break-word; pointer-events: none; }
+        .tooltip:hover .tooltiptext { visibility: visible; opacity: 1; }
+        .small-text { font-size: 0.85rem; color: #666; margin-top: 5px; }
+        .notification { position: fixed; top: 20px; right: 20px; background-color: white; padding: 10px 15px; border-radius: 5px; box-shadow: 0 2px 15px rgba(0,0,0,0.2); display: none; max-width: 300px; z-index: 1000; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .notification.warning { border-left: 4px solid #EF5350; } 
+        .notification.info { border-left: 4px solid var(--primary-color); }
+        .notification.success { border-left: 4px solid #009688; }
+        .sidebar-tabs { display: flex; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); }
+        .tab-button { flex-grow: 1; padding: 10px 15px; cursor: pointer; border: none; background-color: transparent; color: var(--dark-color); font-weight: 500; text-align: center; transition: background-color 0.3s, color 0.3s; border-bottom: 3px solid transparent; margin-top: 0; box-shadow: none; }
+        .tab-button:hover { background-color: rgba(38, 131, 198, 0.1); color: var(--primary-color); transform: none; box-shadow: none; }
+        .tab-button.active { color: var(--primary-color); border-bottom: 3px solid var(--primary-color); font-weight: 700; }
+        .tab-content { display: none; animation: fadeInTab 0.5s; }
+        @keyframes fadeInTab { from { opacity: 0; } to { opacity: 1; } }
+        #file-drop-area { border: 2px dashed var(--border-color); border-radius: 6px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.2s ease-in-out; margin-bottom: 15px; }
+        #file-drop-area.dragover { border-color: var(--primary-color); background-color: var(--gradient-start); }
+        #file-drop-area p { margin: 0; font-size: 0.9em; color: #666; }
+        #file-input { display: none; }
+        #file-list { max-height: 100px; overflow-y: auto; background-color: var(--light-color); border: 1px solid var(--border-color); border-radius: 4px; padding: 5px 10px; margin-top: 5px; font-size: 0.85em; }
+        .spinner { border: 4px solid rgba(0, 0, 0, 0.1); width: 36px; height: 36px; border-radius: 50%; border-left-color: var(--primary-color); animation: spin 1s ease infinite; margin: 20px auto; display: none; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .fancy-radio { display: block; position: relative; padding-left: 30px; cursor: pointer; font-size: 0.9rem; user-select: none; margin-bottom: 10px; }
+        .fancy-radio input { position: absolute; opacity: 0; cursor: pointer; }
+        .fancy-radio .radiomark { position: absolute; top: 0; left: 0; height: 20px; width: 20px; background-color: #eee; border-radius: 50%; transition: all 0.2s; }
+        .fancy-radio:hover input ~ .radiomark { background-color: #ccc; }
+        .fancy-radio input:checked ~ .radiomark { background-color: var(--primary-color); }
+        .radiomark:after { content: ""; position: absolute; display: none; }
+        .fancy-radio input:checked ~ .radiomark:after { display: block; }
+        .fancy-radio .radiomark:after { top: 6px; left: 6px; width: 8px; height: 8px; border-radius: 50%; background: white; }
+        .button-with-icon { display: flex; align-items: center; justify-content: center; gap: 8px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h1>Power Profile Analyzer</h1>
+
+            <div class="sidebar-tabs" id="sidebar-tabs-container">
+                <button class="tab-button active" onclick="openTab(event, 'tabFileAnalysis')">Analysis & Settings</button>
+                <button class="tab-button" onclick="openTab(event, 'tabPowerData')">Composite Power Data</button>
+                <!-- Key Efforts tab will be inserted here by JS -->
+            </div>
+
+            <div id="tabFileAnalysis" class="tab-content" style="display: block;">
+                <div class="control-group">
+                    <div class="header-section">
+                        <div class="control-label">1. Upload Activity Files</div>
+                        <div class="tooltip info-icon">ⓘ<span class="tooltiptext">Upload one or more FIT, TCX, or GPX files. All uploaded files will be analyzed together to create a single composite power profile.</span></div>
+                    </div>
+                    <div id="file-drop-area"><input type="file" id="file-input" multiple accept=".fit,.tcx,.gpx"><p>Drag & drop files here or click to select files.</p></div>
+                    <div class="control-label">Uploaded Files</div>
+                    <div id="file-list"><p class="small-text" style="text-align:center;">No files uploaded.</p></div>
+                    
+                    <!-- START: New Key Efforts Checkbox -->
+                    <div style="display: flex; align-items: center; margin-top: 15px;">
+                        <label class="fancy-checkbox" style="margin-bottom: 0;">
+                            <input type="checkbox" id="show-key-efforts-toggle" checked>
+                            <span class="checkmark"></span>
+                            Show Key Efforts
+                        </label>
+                        <div class="tooltip info-icon" style="margin-left: 147px;">ⓘ<span class="tooltiptext">
+                             Highlights key 'breakthrough' efforts as star markers on the plot, relative to the fitted model curve.<br><br>
+                             <b>Selection Logic:</b><br>
+                             - Always includes the max power for <b>1s</b> and <b>20s</b>.<br>
+                             - For several time buckets (e.g., 1-3m, 5-10m, etc.), it finds the point with the highest <b>positive</b> percentage deviation from the model and adds it if it's above the curve.<br><br>
+                             <b>Special Rule:</b><br>
+                             - For critical fitting time-ranges, if no point is above the curve, it will instead select the point with the <b>smallest negative</b> deviation to provide a reference.
+                         </span></div>
+                    </div>
+                    <!-- END: New Key Efforts Checkbox -->
+
+                    <div id="analysis-spinner" class="spinner"></div>
+                </div>
+
+                <div class="control-group">
+                     <div class="header-section">
+                        <div class="control-label">2. Athlete & Unit Settings</div>
+                         <div class="tooltip info-icon">ⓘ<span class="tooltiptext">Set your body mass for relative power (W/kg) calculations. This setting affects plots, calculations, and data display.</span></div>
+                    </div>
+                    <div class="control-label" style="margin-top:5px;">Gender:</div>
+                    <div style="display: flex; justify-content: flex-start; gap: 10px; margin-bottom: 10px; padding-left: 5px;">
+                        <label class="fancy-radio">Male
+                            <input type="radio" id="gender-male" name="gender" value="Male" checked>
+                            <span class="radiomark"></span>
+                        </label>
+                        <label class="fancy-radio">Female
+                            <input type="radio" id="gender-female" name="gender" value="Female">
+                            <span class="radiomark"></span>
+                        </label>
+                    </div>
+                    <div class="slider-container">
+                        <div class="slider-label"><label for="body_mass">Body Mass (kg):</label><span id="body_mass-value" class="slider-value">75.0</span></div>
+                        <input type="range" id="body_mass" class="range-slider" min="40" max="120" value="75" step="0.1">
+                    </div>
+                    <div class="slider-container">
+                        <div class="slider-label"><label for="age">Age (years):</label><span id="age-value" class="slider-value">30</span></div>
+                        <input type="range" id="age" class="range-slider" min="18" max="100" value="30" step="1">
+                    </div>
+                    <div class="slider-container">
+                        <div class="slider-label"><label for="height">Height (cm):</label><span id="height-value" class="slider-value">180</span></div>
+                        <input type="range" id="height" class="range-slider" min="140" max="220" value="180" step="1">
+                    </div>
+                    <div class="control-label" style="margin-top:15px;">Global Power Unit:</div>
+                    <label class="fancy-checkbox"><input type="checkbox" id="use_absolute_power_toggle" checked>
+                        <span class="checkmark"></span>Use Absolute Units (W)
+                    </label>
+                </div>
+                
+                <div class="control-group">
+                    <div class="header-section"><div class="control-label">3. Power-Duration Model & Plot</div></div>
+                    <select id="pd-model-select" class="dropdown-select">
+                        <option value="ompd" selected>OmPD</option>
+                        <option value="twoParam">2-Parameter CP</option>
+                        <option value="powerLaw">Power-Law</option>
+                    </select>
+                    
+                    <label class="fancy-checkbox"><input type="checkbox" id="use_fixed_pmax_toggle"><span class="checkmark"></span>Use Fixed P<sub>max</sub> (1s Power)</label>
+                    <div id="fixed-pmax-controls" style="display:none; margin-top: 10px;">
+                        <div class="slider-container">
+                            <div class="slider-label"><label for="fixed_pmax_value">P<sub>max,fixed</sub> (<span id="fixed_pmax_unit_label">W</span>):</label><span id="fixed_pmax_value-value" class="slider-value">1200</span></div>
+                            <input type="range" id="fixed_pmax_value" class="range-slider" min="500" max="2500" value="1200" step="10">
+                        </div>
+                    </div>
+
+                    <label class="fancy-checkbox"><input type="checkbox" id="use_custom_fit_range" checked><span class="checkmark"></span>Customize Fitting Range</label>
+                    <div id="custom-fit-range-controls" style="display:block;">
+                        <div class="slider-container">
+                             <div class="slider-label"><label for="fit_range_start">Fitting Start (s):</label><span id="fit_range_start-value" class="slider-value">1</span></div>
+                            <input type="range" id="fit_range_start" class="range-slider" min="1" max="7200" value="1" step="1">
+                        </div>
+                        <div class="slider-container">
+                             <div class="slider-label"><label for="fit_range_end">Fitting End (s):</label><span id="fit_range_end-value" class="slider-value">3600</span></div>
+                            <input type="range" id="fit_range_end" class="range-slider" min="1" max="7200" value="3600" step="1">
+                        </div>
+                    </div>
+
+                    <label class="fancy-checkbox"><input type="checkbox" id="use_custom_x_axis"><span class="checkmark"></span>Customize Plot X-Axis</label>
+                    <div id="custom-x-axis-controls" style="display:none;">
+                        <div class="slider-container">
+                             <div class="slider-label"><label for="x_axis_start">Plot Start (s):</label><span id="x_axis_start-value" class="slider-value">0</span></div>
+                            <input type="range" id="x_axis_start" class="range-slider" min="0" max="7199" value="0" step="1">
+                        </div>
+                        <div class="slider-container">
+                             <div class="slider-label"><label for="x_axis_end">Plot End (s):</label><span id="x_axis_end-value" class="slider-value">3600</span></div>
+                            <input type="range" id="x_axis_end" class="range-slider" min="1" max="7200" value="3600" step="1">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <div class="header-section"><div class="control-label">4. Export</div></div>
+                    
+                    <!-- START: New Profile Name Input -->
+                    <div class="control-label" style="margin-top: 5px;">Profile Name:</div>
+                    <input type="text" id="profile-name-input" placeholder="e.g., 'Athlete Name' - Power Profile" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; margin-bottom: 10px; font-size: 0.9em;">
+                    <!-- END: New Profile Name Input -->
+                    <button id="export-key-efforts-btn" class="button" disabled>Export Key Efforts Profile</button>
+                    <button id="export-profile-btn" class="button" disabled>Export Full Profile</button>
+
+                </div>
+
+            </div> <!-- END OF tabFileAnalysis -->
+
+            <div id="tabPowerData" class="tab-content" style="display: none;">
+                <div class="control-group">
+                    <div class="header-section">
+                        <div class="control-label">Composite Power Curve</div>
+                        <div class="tooltip info-icon">ⓘ<span class="tooltiptext">The maximal average power for every second, extracted from all uploaded files. Click "Remove" to delete a point and refit the model.</span></div>
+                    </div>
+                    <div id="power-data-points-container" style="max-height: calc(100vh - 200px); overflow-y: auto;"><p class="small-text" style="text-align: center;">No files analyzed yet.</p></div>
+                </div>
+            </div>
+
+            <div id="tabKeyEfforts" class="tab-content" style="display: none;">
+                 <div class="control-group">
+                    <div class="header-section">
+                        <div class="control-label">Key Efforts</div>
+                         <div class="tooltip info-icon">ⓘ<span class="tooltiptext">These are the 'breakthrough' efforts identified by the analysis, relative to the fitted model. You can remove points from this list before exporting them.</span></div>
+                    </div>
+                    <div id="key-efforts-container" style="max-height: calc(100vh - 200px); overflow-y: auto;"><p class="small-text" style="text-align: center;">No key efforts found yet. Find them via the "Analysis & Settings" tab.</p></div>
+                </div>
+            </div>
+
+        </div> <!-- END OF sidebar -->
+
+        <div class="main-content">
+            <div class="plot-container" id="power-duration-plot-container">
+                <div class="plot-title" style="font-size: 1.3em; font-weight: bold; margin-bottom: 0px; text-align: center; color: var(--primary-color);">Power-Duration Profile</div>
+                <div id="power_duration_plot_div" style="width:100%; height: calc(100% - 25px);"></div>
+            </div>
+            <div id="values-container">Awaiting file upload and analysis...</div>
+        </div>
+    </div>
+    <div id="notification" class="notification"></div>
+</body>
+
+<script>
+function openTab(evt,tabName){let i,t,l;t=document.getElementsByClassName("tab-content");for(i=0;i<t.length;i++)t[i].style.display="none";l=document.getElementsByClassName("tab-button");for(i=0;i<l.length;i++)l[i].className=l[i].className.replace(" active","");document.getElementById(tabName).style.display="block";if(evt)evt.currentTarget.className+=" active";}
+document.addEventListener('DOMContentLoaded',()=>{
+        const appState={gender: 'Male', body_mass:75.0, age: 30, height: 180, useAbsolutePower:true,selectedPDModel:'ompd',useFixedPmax:false,fixedPmaxValue:1200,useCustomXAxis:false,xAxisStart:0,xAxisEnd:3600,useCustomFitRange:true,fitRangeStart:1,fitRangeEnd:3600,powerDurationPoints:[],uploadedFiles:{},isAnalyzing:false,powerDurationModelParams:null,maxActivityDuration:0,keyEfforts:[], showKeyEfforts: true, keyEffortsTabCreated:false};
+    const dom={fileDropArea:document.getElementById('file-drop-area'),fileInput:document.getElementById('file-input'),fileList:document.getElementById('file-list'),analysisSpinner:document.getElementById('analysis-spinner'),bodyMassSlider:document.getElementById('body_mass'),bodyMassValueSpan:document.getElementById('body_mass-value'),ageSlider: document.getElementById('age'), ageValueSpan: document.getElementById('age-value'), heightSlider: document.getElementById('height'), heightValueSpan: document.getElementById('height-value'), useAbsolutePowerToggle:document.getElementById('use_absolute_power_toggle'),showKeyEffortsToggle: document.getElementById('show-key-efforts-toggle'), pdModelSelect:document.getElementById('pd-model-select'),profileNameInput: document.getElementById('profile-name-input'), useFixedPmaxToggle:document.getElementById('use_fixed_pmax_toggle'),fixedPmaxControlsDiv:document.getElementById('fixed-pmax-controls'),fixedPmaxValueSlider:document.getElementById('fixed_pmax_value'),fixedPmaxValueSpan:document.getElementById('fixed_pmax_value-value'),fixedPmaxUnitLabel:document.getElementById('fixed_pmax_unit_label'),useCustomXAxisCheckbox:document.getElementById('use_custom_x_axis'),customXAxisControlsDiv:document.getElementById('custom-x-axis-controls'),xAxisStartSlider:document.getElementById('x_axis_start'),xAxisStartValueSpan:document.getElementById('x_axis_start-value'),xAxisEndSlider:document.getElementById('x_axis_end'),xAxisEndValueSpan:document.getElementById('x_axis_end-value'),useCustomFitRangeCheckbox:document.getElementById('use_custom_fit_range'),customFitRangeControlsDiv:document.getElementById('custom-fit-range-controls'),fitRangeStartSlider:document.getElementById('fit_range_start'),fitRangeStartValueSpan:document.getElementById('fit_range_start-value'),fitRangeEndSlider:document.getElementById('fit_range_end'),fitRangeEndValueSpan:document.getElementById('fit_range_end-value'),exportProfileBtn:document.getElementById('export-profile-btn'),exportKeyEffortsBtn:document.getElementById('export-key-efforts-btn'),powerDataPointsContainer:document.getElementById('power-data-points-container'),keyEffortsContainer:document.getElementById('key-efforts-container'),powerDurationPlotDiv:document.getElementById('power_duration_plot_div'),valuesContainer:document.getElementById('values-container'),notificationDiv:document.getElementById('notification'),sidebarTabsContainer:document.getElementById('sidebar-tabs-container')};
+    
+    function showNotification(m,t='info'){dom.notificationDiv.innerHTML=m;dom.notificationDiv.className=`notification ${t}`;dom.notificationDiv.style.display='block';setTimeout(()=>{dom.notificationDiv.style.display='none';},4000);}
+    function formatDuration(s){if(s<60)return`${s}s`;const m=Math.floor(s/60),sec=Math.round(s%60);if(m>=60){const h=Math.floor(m/60),rM=m%60;return`${h}h ${rM}m`;}return sec===0?`${m}m`:`${m}m ${sec.toString().padStart(2,'0')}s`;}
+    function setAnalysisState(isAnalyzing){appState.isAnalyzing=isAnalyzing;dom.analysisSpinner.style.display=isAnalyzing?'block':'none';dom.fileDropArea.style.pointerEvents=isAnalyzing?'none':'auto';dom.exportProfileBtn.disabled=isAnalyzing||appState.powerDurationPoints.length===0;}
+    
+    function handleFileSelect(event){
+        const files=event.target.files||event.dataTransfer.files;if(!files.length||appState.isAnalyzing)return;
+        setAnalysisState(true);appState.keyEfforts=[];let filesToProcess=Array.from(files),processedCount=0,readSuccessCount=0;
+        filesToProcess.forEach(file=>{
+            const reader=new FileReader(),fileType=file.name.split('.').pop().toLowerCase();
+            if(!['fit','tcx','gpx'].includes(fileType)){showNotification(`Unsupported: ${file.name}`,'warning');processedCount++;if(processedCount===filesToProcess.length)analyzeAllFiles();return;}
+            reader.onload=e=>{appState.uploadedFiles[file.name]={buffer:e.target.result,type:fileType};processedCount++;readSuccessCount++;if(processedCount===filesToProcess.length){showNotification(`Read ${readSuccessCount} file(s). Analyzing...`,'info');analyzeAllFiles();}};
+            reader.onerror=()=>{showNotification(`Error reading ${file.name}`,'warning');processedCount++;if(processedCount===filesToProcess.length)analyzeAllFiles();};
+            if(fileType==='fit')reader.readAsArrayBuffer(file);else reader.readAsText(file);
+        });
+        dom.fileInput.value='';
+    }
+    
+    async function getPowerCurveForFile(fileName){
+        const fileInfo=appState.uploadedFiles[fileName];let records;
+        if(fileInfo.type==='fit')records=await parseFit(fileInfo.buffer);else if(fileInfo.type==='tcx')records=parseTcx(fileInfo.buffer);else if(fileInfo.type==='gpx')records=parseGpx(fileInfo.buffer);
+        if(!records||records.length<2||!records.some(r=>r.power>0))throw new Error("No valid power data.");
+        const powerArray=interpolatePowerData(records);
+        if(powerArray.length < 1) throw new Error("Activity too short.");
+        return calculatePowerCurve(powerArray);
+    }
+
+    async function analyzeAllFiles() {
+        updateFileListUI();
+        if(Object.keys(appState.uploadedFiles).length===0){setAnalysisState(false);return;}
+        let allFilesPowerCurves = {}; let filesAnalyzedCount = 0;
+        appState.maxActivityDuration = 0;
+        for (const fileName of Object.keys(appState.uploadedFiles)) {
+            try {
+                const curve = await getPowerCurveForFile(fileName);
+                allFilesPowerCurves[fileName] = curve;
+                if (curve.length > appState.maxActivityDuration) {
+                    appState.maxActivityDuration = curve.length;
+                }
+                filesAnalyzedCount++;
+            } catch (error) { showNotification(`Skipping ${fileName}: ${error.message}`, 'warning'); }
+        }
+        createCompositeCurve(allFilesPowerCurves);
+        setAnalysisState(false);
+        if (filesAnalyzedCount > 0) {
+            showNotification(`Composite analysis complete from ${filesAnalyzedCount} file(s).`, 'success');
+            const sliderMax = Math.ceil(appState.maxActivityDuration * 1.02) || 7200;
+            [dom.xAxisEndSlider, dom.fitRangeEndSlider].forEach(s => s.max = sliderMax);
+            setFittingRangeDefaults();
+            updateAllPlotsAndCalculations(); // This single call now handles everything in the correct order.
+            renderExtractedPowerData(); 
+            // renderCompositeSummary is already called inside updateAllPlotsAndCalculations, so we can remove it here too for cleanliness.
+        } else { showNotification('Analysis failed. No valid files found.', 'warning'); }
+        }
+
+    function createCompositeCurve(allFilesPowerCurves) {
+        if (Object.keys(allFilesPowerCurves).length === 0) {
+            appState.powerDurationPoints = [];
+            return;
+        }
+        
+        const compositeCurve = new Array(appState.maxActivityDuration).fill(0);
+        const sourceFileCurve = new Array(appState.maxActivityDuration).fill(null);
+
+        for (let d = 1; d <= appState.maxActivityDuration; d++) {
+            let maxPowerAtDuration = -1;
+            let sourceFile = null;
+            for (const fileName in allFilesPowerCurves) {
+                const curve = allFilesPowerCurves[fileName];
+                if (curve && curve.length >= d && curve[d - 1].power > maxPowerAtDuration) {
+                    maxPowerAtDuration = curve[d - 1].power;
+                    sourceFile = fileName.replace(/\.[^/.]+$/, "");
+                }
+            }
+            compositeCurve[d - 1] = maxPowerAtDuration;
+            sourceFileCurve[d - 1] = sourceFile;
+        }
+
+        appState.powerDurationPoints = compositeCurve.map((power, index) => ({
+            duration: index + 1,
+            absolute_power: power,
+            sourceFile: sourceFileCurve[index]
+        }));
+    }
+
+    function parseFit(buffer){return new Promise((resolve,reject)=>{const fitParser=new window.Fit.FitParser({force:true});fitParser.parse(buffer,(error,data)=>{if(error){reject(new Error("FIT parse failed: "+error));return;}if(data&&data.records){const records=data.records.filter(r=>r.timestamp&&r.power!=null).map(r=>({timestamp:new Date(r.timestamp),power:r.power}));resolve(records);}else{reject(new Error("No records found in FIT file."));}});});}
+    function parseTcx(xml){const p=new DOMParser(),d=p.parseFromString(xml,"text/xml"),t=d.getElementsByTagName("Trackpoint");if(!t.length)throw new Error("No trackpoints in TCX.");return Array.from(t).map(tp=>{const time=tp.getElementsByTagName("Time")[0];let powerEl=tp.querySelector("Watts");if(!powerEl){const tpx=tp.querySelector("TPX");if(tpx)powerEl=tpx.querySelector("Watts");}return!time||!powerEl?null:{timestamp:new Date(time.textContent),power:parseInt(powerEl.textContent,10)};}).filter(r=>r&&r.power!=null&&!isNaN(r.power));}
+    function parseGpx(xml){const p=new DOMParser(),d=p.parseFromString(xml,"text/xml"),t=d.getElementsByTagName("trkpt");if(!t.length)throw new Error("No trackpoints in GPX.");return Array.from(t).map(tp=>{const time=tp.getElementsByTagName("time")[0],power=tp.querySelector("power, extensions power");return!time||!power?null:{timestamp:new Date(time.textContent),power:parseInt(power.textContent,10)};}).filter(r=>r&&r.power!=null&&!isNaN(r.power));}
+    function interpolatePowerData(r){if(r.length<2)return[];const sT=r[0].timestamp.getTime(),eT=r[r.length-1].timestamp.getTime(),dur=Math.round((eT-sT)/1000),pA=new Array(dur+1).fill(0);let rI=0;for(let t=0;t<=dur;t++){const cT=sT+t*1000;while(rI<r.length-1&&r[rI+1].timestamp.getTime()<cT)rI++;if(rI>=r.length-1){pA[t]=r[r.length-1].power;continue;}const p1=r[rI],p2=r[rI+1],t1=p1.timestamp.getTime(),t2=p2.timestamp.getTime();if(t2-t1>10000){pA[t]=0;continue;}if(t2===t1)pA[t]=p1.power;else pA[t]=Math.round(p1.power+((cT-t1)/(t2-t1))*(p2.power-p1.power));}return pA;}
+    
+    function calculatePowerCurve(pA) {
+        const res = [];
+        const n = pA.length;
+        const calculationLimit = Math.min(n, 10800);
+
+        for (let d = 1; d <= calculationLimit; d++) {
+            let currentSum = 0;
+            for(let i = 0; i < d; i++) currentSum += pA[i];
+            let maxSum = currentSum;
+            for (let i = d; i < n; i++) {
+                currentSum = currentSum - pA[i - d] + pA[i];
+                if (currentSum > maxSum) maxSum = currentSum;
+            }
+            res.push({ duration: d, power: maxSum / d });
+        }
+        return res;
+    }
+
+    function updateFileListUI(){const f=Object.keys(appState.uploadedFiles);dom.fileList.innerHTML='';if(f.length===0){dom.fileList.innerHTML=`<p class="small-text" style="text-align:center;">No files uploaded.</p>`;return;}f.forEach(n=>{const p=document.createElement('p');p.textContent=n;dom.fileList.appendChild(p);});}
+    
+    function renderExtractedPowerData(){
+        dom.powerDataPointsContainer.innerHTML='';
+        if(!appState.powerDurationPoints.length){
+            dom.powerDataPointsContainer.innerHTML=`<p class="small-text">No data.</p>`;
+            return;
+        }
+        const u=appState.useAbsolutePower?"W":"W·kg⁻¹";
+        const m=appState.body_mass > 0 ? appState.body_mass : 1;
+        
+        appState.powerDurationPoints.forEach(p=>{
+            const d=document.createElement('div');
+            d.className='data-point-display';
+            const pwr=appState.useAbsolutePower ? p.absolute_power : (p.absolute_power / m);
+            const pStr=appState.useAbsolutePower ? pwr.toFixed(0) : pwr.toFixed(2);
+            d.innerHTML=`<span>${formatDuration(p.duration)}: ${pStr} ${u}</span>
+                         <button class="remove-point-btn" data-duration="${p.duration}">Remove</button>`;
+            dom.powerDataPointsContainer.appendChild(d);
+        });
+    }
+    
+        function renderCompositeSummary() {
+        const p = appState.powerDurationPoints;
+        const fittedParams = appState.powerDurationModelParams;
+
+        if (p.length === 0) {
+            dom.valuesContainer.textContent = "No summary data.";
+            return;
+        }
+
+        let h = `Composite Profile from ${Object.keys(appState.uploadedFiles).length} files\n`;
+        h += `-----------------------------------------\n`;
+
+        const model = appState.selectedPDModel;
+        if ((model === 'twoParam' || model === 'ompd') && fittedParams && fittedParams.CP) {
+            // --- CORRECTED LOGIC ---
+            // The model is always fitted with relative power (W/kg), so fittedParams.CP is always in W/kg.
+            // We now derive the absolute and relative values from this single source of truth.
+            const cpWkgValue = fittedParams.CP;
+            const cpAbsValue = appState.body_mass > 0 ? cpWkgValue * appState.body_mass : NaN;
+            
+            if (!isNaN(cpAbsValue) && !isNaN(cpWkgValue)) {
+                h += `Critical Power (CP): ${cpAbsValue.toFixed(0)} W (${cpWkgValue.toFixed(2)} W/kg)\n`;
+            } else {
+                h += `Critical Power (CP): N/A (fit failed)\n`;
+            }
+        } else {
+            const ftpPoint = p.find(pt => pt.duration === 20 * 60);
+            if (ftpPoint) {
+                const ftpEstimated = ftpPoint.absolute_power * 0.95;
+                const ftpWkg = appState.body_mass > 0 ? (ftpEstimated / appState.body_mass).toFixed(2) : "N/A";
+                h += `eFTP (from 20min):   ${ftpEstimated.toFixed(0)} W (${ftpWkg} W/kg)\n`;
+            } else {
+                h += `eFTP (from 20min):   N/A (no 20min effort)\n`;
+            }
+        }
+        
+        h += `\nMaximal Mean Power (MMP)\n-----------------------------------------\n`;
+        
+        const durationsToShow = [1, 15, 30, 60, 180, 300, 600, 1200, 1800, 2400, 3600];
+        const durationLabels = {
+            1: '1s Best:', 15: '15s Best:', 30: '30s Best:', 60: '1min Best:', 180: '3min Best:',
+            300: '5min Best:', 600: '10min Best:', 1200: '20min Best:', 1800: '30min Best:',
+            2400: '40min Best:', 3600: '60min Best:'
+        };
+
+        durationsToShow.forEach(duration => {
+            const point = p.find(pt => pt.duration === duration);
+            const label = durationLabels[duration].padEnd(14, ' ');
+            if (point) {
+                const powerAbs = point.absolute_power;
+                const powerWkg = appState.body_mass > 0 ? (powerAbs / appState.body_mass).toFixed(2) : "N/A";
+                h += `${label} ${powerAbs.toFixed(0).padStart(4,' ')} W (${powerWkg.padStart(5,' ')} W/kg)\n`;
+            } else {
+                h += `${label} N/A\n`;
+            }
+        });
+
+        dom.valuesContainer.innerHTML = h;
+    }
+    
+    function updateFixedPmaxSliderUI(){const isAbs=appState.useAbsolutePower;dom.fixedPmaxUnitLabel.textContent=isAbs?"W":"W·kg⁻¹";if(isAbs){dom.fixedPmaxValueSlider.min=500;dom.fixedPmaxValueSlider.max=2500;dom.fixedPmaxValueSlider.step=10;appState.fixedPmaxValue=Math.round(appState.fixedPmaxValue);}else{dom.fixedPmaxValueSlider.min=5;dom.fixedPmaxValueSlider.max=30;dom.fixedPmaxValueSlider.step=0.1;appState.fixedPmaxValue=parseFloat(appState.fixedPmaxValue.toFixed(1));}appState.fixedPmaxValue=Math.max(parseFloat(dom.fixedPmaxValueSlider.min),Math.min(parseFloat(dom.fixedPmaxValueSlider.max),appState.fixedPmaxValue));dom.fixedPmaxValueSlider.value=appState.fixedPmaxValue;dom.fixedPmaxValueSpan.textContent=isAbs?appState.fixedPmaxValue.toFixed(0):appState.fixedPmaxValue.toFixed(1);}
+    
+    function exportProfile(isKeyEfforts = false) {
+        // Source points for the export (either key efforts or the full composite curve)
+        const sourcePoints = isKeyEfforts ? appState.keyEfforts : appState.powerDurationPoints;
+
+        if (sourcePoints.length === 0) {
+            showNotification(`No ${isKeyEfforts ? 'key efforts' : 'data'} to export.`, "warning");
+            return;
+        }
+
+        // --- NEW: Get profile name from the input field ---
+        const profileNameInput = dom.profileNameInput.value.trim();
+        const defaultName = isKeyEfforts ? "Key Efforts Profile" : "Composite Profile";
+        const profileName = profileNameInput || defaultName; // Use default if input is empty
+
+        // --- Find 1s and 20s power from the *full* composite curve ---
+        const p1s_point = appState.powerDurationPoints.find(p => p.duration === 1);
+        const p20s_point = appState.powerDurationPoints.find(p => p.duration === 20);
+        
+        const defaultPmaxAbs = p1s_point ? Math.round(p1s_point.absolute_power) : 1200;
+        const p20sPower = p20s_point ? Math.round(p20s_point.absolute_power) : 900;
+
+        const filteredPointsForExport = sourcePoints
+            .filter(p => p.duration !== 1 && p.duration !== 20)
+            .map(p => ({
+                absolute_power: Math.round(p.absolute_power),
+                duration: p.duration,
+                label: p.label || `${formatDuration(p.duration)} effort from ${p.sourceFile || 'activity'}`
+            }));
+
+        const exportObj = {
+            profileName: profileName, // Use the name from the input field
+            gender: appState.gender,
+            body_mass: appState.body_mass,
+            age: appState.age,
+            height: appState.height,
+            defaultPmaxAbs: defaultPmaxAbs,
+            p20sPower: p20sPower,
+            powerData: filteredPointsForExport
+        };
+
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObj, null, 2));
+        
+        // --- NEW: Create a file-safe name for the download ---
+        const sanitizedProfileName = profileName.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_-]/g, '');
+        const fileName = `${sanitizedProfileName}_for_MetabolicApp.json`;
+        
+        const a = document.createElement('a');
+        a.setAttribute("href", dataStr);
+        a.setAttribute("download", fileName);
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+
+        showNotification(`${isKeyEfforts ? "Key efforts" : "Profile"} exported successfully.`, "success");
+    }
+    
+    function setFittingRangeDefaults() {
+        const model = appState.selectedPDModel;
+        let start, end;
+
+        switch(model) {
+            case 'ompd':
+                start = 1;
+                end = 3600;
+                break;
+            case 'twoParam':
+                start = 120; // 2 minutes
+                end = 1200; // 20 minutes
+                break;
+            case 'powerLaw':
+                start = 1;
+                end = appState.maxActivityDuration > 0 ? appState.maxActivityDuration : 3600;
+                break;
+            default:
+                start = 1;
+                end = 3600;
+        }
+        
+        start = Math.max(parseInt(dom.fitRangeStartSlider.min), Math.min(parseInt(dom.fitRangeStartSlider.max), start));
+        end = Math.max(parseInt(dom.fitRangeEndSlider.min), Math.min(parseInt(dom.fitRangeEndSlider.max), end));
+        if (start >= end) start = end - 1;
+
+        appState.fitRangeStart = start;
+        appState.fitRangeEnd = end;
+        dom.fitRangeStartSlider.value = start;
+        dom.fitRangeEndSlider.value = end;
+        dom.fitRangeStartValueSpan.textContent = start;
+        dom.fitRangeEndValueSpan.textContent = end;
+    }
+    
+    function setupEventListeners(){
+        ['dragenter','dragover','dragleave','drop'].forEach(ev=>dom.fileDropArea.addEventListener(ev,e=>{e.preventDefault();e.stopPropagation();},false));
+        ['dragenter','dragover'].forEach(ev=>dom.fileDropArea.addEventListener(ev,()=>dom.fileDropArea.classList.add('dragover'),false));
+        ['dragleave','drop'].forEach(ev=>dom.fileDropArea.addEventListener(ev,()=>dom.fileDropArea.classList.remove('dragover'),false));
+        dom.fileDropArea.addEventListener('drop',handleFileSelect,false);dom.fileDropArea.addEventListener('click',()=>dom.fileInput.click());dom.fileInput.addEventListener('change',handleFileSelect);
+        dom.bodyMassSlider.addEventListener('input',e=>{appState.body_mass=parseFloat(e.target.value);dom.bodyMassValueSpan.textContent=appState.body_mass.toFixed(1);updateAllPlotsAndCalculations();renderExtractedPowerData();if(appState.powerDurationPoints.length>0)renderCompositeSummary();});
+        dom.ageSlider.addEventListener('input', e => { appState.age = parseInt(e.target.value, 10); dom.ageValueSpan.textContent = appState.age; });
+        dom.heightSlider.addEventListener('input', e => { appState.height = parseInt(e.target.value, 10); dom.heightValueSpan.textContent = appState.height; });
+        document.querySelectorAll('input[name="gender"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    appState.gender = e.target.value;
+                    // Note: No plot update is needed as gender only affects the export.
+                }
+            });
+        });
+        dom.useAbsolutePowerToggle.addEventListener('change',()=>{appState.keyEfforts = []; const old=appState.useAbsolutePower;appState.useAbsolutePower=dom.useAbsolutePowerToggle.checked;const m=appState.body_mass>0?appState.body_mass:75;if(appState.useAbsolutePower&&!old)appState.fixedPmaxValue=Math.round(appState.fixedPmaxValue*m);else if(!appState.useAbsolutePower&&old)appState.fixedPmaxValue=parseFloat((appState.fixedPmaxValue/m).toFixed(1));updateFixedPmaxSliderUI();updateAllPlotsAndCalculations();renderExtractedPowerData();});
+        dom.pdModelSelect.addEventListener('change',e=>{appState.keyEfforts = []; appState.selectedPDModel=e.target.value;setFittingRangeDefaults();updateAllPlotsAndCalculations();});
+        dom.useFixedPmaxToggle.addEventListener('change',()=>{appState.keyEfforts = []; appState.useFixedPmax=dom.useFixedPmaxToggle.checked;
+            if(appState.useFixedPmax){const p1s=appState.powerDurationPoints.find(p=>p.duration===1);if(p1s){const p1s_abs=p1s.absolute_power;appState.fixedPmaxValue=appState.useAbsolutePower?Math.round(p1s_abs):parseFloat((p1s_abs/(appState.body_mass>0?appState.body_mass:1)).toFixed(1));updateFixedPmaxSliderUI();}}
+            dom.fixedPmaxControlsDiv.style.display=appState.useFixedPmax?'block':'none';updateAllPlotsAndCalculations();});
+        dom.fixedPmaxValueSlider.addEventListener('input',()=>{appState.fixedPmaxValue=parseFloat(dom.fixedPmaxValueSlider.value);dom.fixedPmaxValueSpan.textContent=appState.useAbsolutePower?appState.fixedPmaxValue.toFixed(0):appState.fixedPmaxValue.toFixed(1);if(appState.useFixedPmax){ appState.keyEfforts = []; updateAllPlotsAndCalculations();} });
+        dom.useCustomXAxisCheckbox.addEventListener('change',e=>{appState.useCustomXAxis=e.target.checked;dom.customXAxisControlsDiv.style.display=appState.useCustomXAxis?'block':'none';updateAllPlotsAndCalculations();});
+        dom.xAxisStartSlider.addEventListener('input',e=>{appState.xAxisStart=parseInt(e.target.value);dom.xAxisStartValueSpan.textContent=appState.xAxisStart;if(appState.useCustomXAxis)updateAllPlotsAndCalculations();});
+        dom.xAxisEndSlider.addEventListener('input',e=>{appState.xAxisEnd=parseInt(e.target.value);dom.xAxisEndValueSpan.textContent=appState.xAxisEnd;if(appState.useCustomXAxis)updateAllPlotsAndCalculations();});
+        dom.useCustomFitRangeCheckbox.addEventListener('change', e=>{appState.keyEfforts = []; appState.useCustomFitRange=e.target.checked;dom.customFitRangeControlsDiv.style.display=appState.useCustomFitRange?'block':'none';if(appState.useCustomFitRange)setFittingRangeDefaults();updateAllPlotsAndCalculations();});
+        dom.fitRangeStartSlider.addEventListener('input', e=>{appState.fitRangeStart=parseInt(e.target.value);dom.fitRangeStartValueSpan.textContent=appState.fitRangeStart;if(appState.useCustomFitRange){ appState.keyEfforts = []; updateAllPlotsAndCalculations();} });
+        dom.fitRangeEndSlider.addEventListener('input', e=>{appState.fitRangeEnd=parseInt(e.target.value);dom.fitRangeEndValueSpan.textContent=appState.fitRangeEnd;if(appState.useCustomFitRange){ appState.keyEfforts = []; updateAllPlotsAndCalculations();} });
+        dom.exportProfileBtn.addEventListener('click', () => exportProfile(false));
+        dom.exportKeyEffortsBtn.addEventListener('click', () => exportProfile(true));
+        dom.showKeyEffortsToggle.addEventListener('change', (e) => {
+            appState.showKeyEfforts = e.target.checked;
+            // Simply re-plot. The key efforts are already calculated.
+            plotPowerDurationProfile();
+        });
+        dom.powerDataPointsContainer.addEventListener('click', (e) => {
+            if (e.target && e.target.classList.contains('remove-point-btn')) {
+                const durationToRemove = parseInt(e.target.dataset.duration);
+                const indexToRemove = appState.powerDurationPoints.findIndex(p => p.duration === durationToRemove);
+                if (indexToRemove > -1) {
+                    appState.powerDurationPoints.splice(indexToRemove, 1);
+                    appState.keyEfforts = [];
+                    renderExtractedPowerData();
+                    updateAllPlotsAndCalculations();
+                }
+            }
+        });
+        window.addEventListener('resize',()=>{if(dom.powerDurationPlotDiv.offsetParent)Plotly.Plots.resize(dom.powerDurationPlotDiv);});
+    }
+
+    function updateAllPlotsAndCalculations() {
+    // This function now orchestrates the entire update sequence to ensure logical consistency.
+    
+    // Step 1: Fit the power model based on current settings and data.
+    fitAndSetPowerModel();
+
+    // Step 2: Recalculate key efforts based on the newly fitted model.
+    calculateKeyEfforts();
+
+    // Step 3: Draw the plot, which will now have access to the up-to-date model and key efforts.
+    plotPowerDurationProfile();
+
+    // Step 4: Update the summary text container with the new model results.
+    renderCompositeSummary();
+}
+    function linearRegression(x,y){const n=x.length;if(n===0)return{s:NaN,i:NaN,r2:NaN};let sx=0,sy=0,sxy=0,sxx=0,syy=0;for(let i=0;i<n;i++){sx+=x[i];sy+=y[i];sxy+=x[i]*y[i];sxx+=x[i]*x[i];syy+=y[i]*y[i];}const d=(n*sxx-sx*sx);if(d===0)return{s:NaN,i:NaN,r2:NaN};const s=(n*sxy-sx*sy)/d,i=(sy-s*sx)/n;const rN=(n*sxy-sx*sy),rD=Math.sqrt((n*sxx-sx*sx)*(n*syy-sy*sy));if(rD===0)return{s,i,r2:NaN};const r=rN/rD;return{s,i,r2:r*r};}
+    function calculateRSquared(o,p){if(o.length!==p.length||o.length===0)return NaN;const mO=o.reduce((a,b)=>a+b,0)/o.length,ssT=o.reduce((s,v)=>s+Math.pow(v-mO,2),0),ssR=o.reduce((s,v,i)=>s+Math.pow(v-p[i],2),0);if(ssT===0)return ssR===0?1:0;return 1-(ssR/ssT);}
+    
+    const modelFunctions = {
+        powerLaw: (t, p) => p.S * Math.pow(t, p.E - 1),
+        twoParam: (t, p) => p.CP + p.Wprime / t,
+        ompd: (t, p) => {
+            if (!p || isNaN(p.CP) || isNaN(p.Wprime) || isNaN(p.Pmax)) return NaN;
+            if (p.Pmax <= p.CP || p.Wprime <= 0) return p.CP;
+
+            const TCPmax = 1800;
+            const tau = p.Wprime / (p.Pmax - p.CP);
+            if (tau <= 0) return p.CP;
+
+            const weff = p.Wprime * (1 - Math.exp(-t / tau));
+            const basePower = (weff / t) + p.CP;
+
+            if (t <= TCPmax || isNaN(p.A) || p.A === 0) {
+                return basePower;
+            } else {
+                const decay = p.A * Math.log(t / TCPmax);
+                return basePower - decay;
+            }
+        }
+    };
+    
+    function fitPowerLawModel(d,p){if(appState.useFixedPmax&&appState.fixedPmaxValue>0){if(d.length<1)return null;const S=appState.fixedPmaxValue;let s_ltsq=0,s_ltY=0;for(let i=0;i<d.length;i++){if(d[i]<=0||p[i]<=0||(p[i]/S)<=0)continue;const lt=Math.log(d[i]),Y=Math.log(p[i]/S);s_ltsq+=lt*lt;s_ltY+=lt*Y;}if(s_ltsq===0)return{S,E:NaN};return{S,E:s_ltY/s_ltsq+1,modelType:'Power-Law (Fixed Pmax)'};}else{if(d.length<2)return null;const ld=d.map(Math.log),lp=p.map(Math.log);const r=linearRegression(ld,lp);if(isNaN(r.s))return null;return{S:Math.exp(r.i),E:r.s+1,modelType:'Power-Law'};}}
+    function fit2ParamCPModel(d,p){if(d.length<2)return null;const id=d.map(v=>1/v),r=linearRegression(id,p);if(isNaN(r.s)||isNaN(r.i))return null;return{CP:r.i,Wprime:r.s,modelType:'2-Parameter CP'};}
+    function fitAdvancedCPModel(d, p, m) {
+        const isFixP = appState.useFixedPmax && appState.fixedPmaxValue > 0;
+        const fitAParameter = m === 'ompd' && d.some(dur => dur > 1800);
+        const minPoints = isFixP ? (fitAParameter ? 3 : 2) : (fitAParameter ? 4 : 3);
+
+        if (d.length < minPoints) return null;
+
+        const f = modelFunctions[m.toLowerCase()];
+        
+        const tpf = fit2ParamCPModel(d, p);
+        const igPmax = Math.max(...p) * 1.1;
+        const igCP = tpf && tpf.CP > 0 ? tpf.CP : (Math.min(...p) * 0.9);
+        // MODIFICATION: The initial guess for W' was calculated incorrectly for absolute units,
+        // leading to a value that was too large for the optimizer. This new logic is more robust.
+        const igWp = (tpf && tpf.Wprime > 0) 
+            ? tpf.Wprime 
+            : (appState.useAbsolutePower ? 15000 : 200); // Use a sensible, scaled default if the 2-param fit fails.
+        const igA = 0.1;
+
+        let ig, objW;
+
+        const baseObjective = (params) => {
+            let s = 0;
+            for (let i = 0; i < d.length; i++) s += Math.pow(p[i] - f(d[i], params), 2);
+            return s;
+        };
+
+        if (isFixP) {
+            ig = fitAParameter ? [igCP, igWp, igA] : [igCP, igWp];
+            objW = fitAParameter 
+                ? par => { if (par[0] <= 0 || par[1] <= 0 || par[0] >= appState.fixedPmaxValue || par[2] < 0) return 1e12; return baseObjective({ CP: par[0], Wprime: par[1], Pmax: appState.fixedPmaxValue, A: par[2] }); }
+                : par => { if (par[0] <= 0 || par[1] <= 0 || par[0] >= appState.fixedPmaxValue) return 1e12; return baseObjective({ CP: par[0], Wprime: par[1], Pmax: appState.fixedPmaxValue, A: 0 }); };
+        } else {
+            ig = fitAParameter ? [igCP, igWp, igPmax, igA] : [igCP, igWp, igPmax];
+             objW = fitAParameter 
+                ? par => { if (par[0] <= 0 || par[1] <= 0 || par[2] <= par[0] || par[3] < 0) return 1e12; return baseObjective({ CP: par[0], Wprime: par[1], Pmax: par[2], A: par[3] }); }
+                : par => { if (par[0] <= 0 || par[1] <= 0 || par[2] <= par[0]) return 1e12; return baseObjective({ CP: par[0], Wprime: par[1], Pmax: par[2], A: 0 }); };
+        }
+
+        try {
+            const res = numeric.uncmin(objW, ig, 1e-8, undefined, 1000);
+            if (res.f > 1e10) return null;
+            const sol = res.solution;
+            
+            let fittedParams;
+            if (isFixP) {
+                 fittedParams = fitAParameter
+                    ? { CP: sol[0], Wprime: sol[1], Pmax: appState.fixedPmaxValue, A: sol[2] }
+                    : { CP: sol[0], Wprime: sol[1], Pmax: appState.fixedPmaxValue, A: 0 };
+                 fittedParams.modelType = `${m.toUpperCase()}(Fixed Pmax${fitAParameter ? ', A fit' : ''})`;
+            } else {
+                fittedParams = fitAParameter
+                    ? { CP: sol[0], Wprime: sol[1], Pmax: sol[2], A: sol[3] }
+                    : { CP: sol[0], Wprime: sol[1], Pmax: sol[2], A: 0 };
+                fittedParams.modelType = m.toUpperCase() + (fitAParameter ? '' : ' (A=0)');
+            }
+            
+            if (m === 'ompd' && fittedParams.A > 0) {
+                const power_1800 = f(1800, fittedParams);
+                const power_3600 = f(3600, fittedParams);
+                if (power_1800 > 0 && power_3600 > 0) {
+                    const decay_percentage = (power_1800 - power_3600) / power_1800;
+                    if (decay_percentage > 0.10) {
+                        const tau_val = fittedParams.Wprime / (fittedParams.Pmax - fittedParams.CP);
+                        const base_power_1800 = (fittedParams.Wprime * (1 - Math.exp(-1800 / tau_val))) / 1800 + fittedParams.CP;
+                        const target_power_3600 = base_power_1800 * 0.90;
+                        const base_power_3600 = (fittedParams.Wprime * (1 - Math.exp(-3600 / tau_val))) / 3600 + fittedParams.CP;
+                        const required_decay_amount = base_power_3600 - target_power_3600;
+                        const log_term = Math.log(3600 / 1800);
+                        if (log_term > 0) {
+                            const newA = required_decay_amount / log_term;
+                            if (newA >= 0) {
+                                fittedParams.A = newA;
+                                fittedParams.modelType += ' (A capped)';
+                            }
+                        }
+                    }
+                }
+            }
+
+            return fittedParams;
+
+        } catch (e) {
+            console.error(`Error fitting ${m} model:`, e);
+            return null;
+        }
+    }
+
+    function calculateKeyEfforts() {
+        if (!appState.powerDurationModelParams || !appState.powerDurationPoints.length) {
+            appState.keyEfforts = [];
+            renderKeyEffortsList();
+            return;
+        }
+
+        const modelFunc = modelFunctions[appState.selectedPDModel];
+        const fittedParams = appState.powerDurationModelParams;
+        const allPoints = appState.powerDurationPoints.map(p => ({
+            ...p,
+            power_rel: p.absolute_power / (appState.body_mass > 0 ? appState.body_mass : 1)
+        }));
+
+        // --- CORRECTED LOGIC ---
+        // The deviation must ALWAYS be calculated by comparing relative power against the relative model prediction.
+        // This makes the deviation value unit-agnostic and correct for all display modes.
+        const pointsWithDeviation = allPoints.map(point => {
+            const actualRelativePower = point.power_rel; // ALWAYS use relative power (W/kg)
+            const predictedPower = modelFunc(point.duration, fittedParams); // The model prediction is also always relative
+            const deviation = predictedPower > 0 ? (actualRelativePower - predictedPower) / predictedPower : 0;
+            return { ...point, deviation };
+        });
+
+        const buckets = [
+            { start: 2, end: 19, special: false }, { start: 21, end: 35, special: false },
+            { start: 36, end: 60, special: false }, { start: 61, end: 120, special: false },
+            { start: 120, end: 180, special: false }, { start: 181, end: 300, special: true }, 
+            { start: 301, end: 600, special: true }, { start: 601, end: 1200, special: true }, 
+            { start: 1201, end: 1800, special: true }, { start: 1801, end: 2400, special: true }, 
+            { start: 2401, end: 3000, special: true }, { start: 3001, end: 3600, special: true },
+            { start: 3601, end: 5400, special: false }, { start: 5401, end: appState.maxActivityDuration, special: false }
+        ];
+
+        let keyEfforts = [];
+        
+        const p1s = pointsWithDeviation.find(p => p.duration === 1); if (p1s) keyEfforts.push(p1s);
+        const p20s = pointsWithDeviation.find(p => p.duration === 20); if (p20s) keyEfforts.push(p20s);
+        
+        buckets.forEach(bucket => {
+            const pointsInBucket = pointsWithDeviation.filter(p => p.duration >= bucket.start && p.duration <= bucket.end);
+            if (pointsInBucket.length === 0) return;
+
+            let topEffort = null;
+            const positiveDeviations = pointsInBucket.filter(p => p.deviation > 0);
+            
+            if (positiveDeviations.length > 0) {
+                topEffort = positiveDeviations.reduce((max, p) => p.deviation > max.deviation ? p : max, positiveDeviations[0]);
+            } else if (bucket.special) {
+                topEffort = pointsInBucket.reduce((max, p) => p.deviation > max.deviation ? p : max, pointsInBucket[0]);
+            }
+            
+            if (topEffort) {
+                keyEfforts.push(topEffort);
+            }
+        });
+        
+        appState.keyEfforts = [...new Map(keyEfforts.map(item => [item.duration, item])).values()].sort((a,b) => a.duration - b.duration);
+
+        if (!appState.keyEffortsTabCreated) {
+            createKeyEffortsTab();
+            appState.keyEffortsTabCreated = true;
+        }
+
+        renderKeyEffortsList();
+    }
+
+    function createKeyEffortsTab() {
+        const tabButton = document.createElement('button');
+        tabButton.className = 'tab-button';
+        tabButton.textContent = 'Key Efforts';
+        tabButton.onclick = (e) => openTab(e, 'tabKeyEfforts');
+        dom.sidebarTabsContainer.appendChild(tabButton);
+    }
+    
+    function renderKeyEffortsList() {
+        dom.keyEffortsContainer.innerHTML = '';
+        if (appState.keyEfforts.length === 0) {
+            dom.keyEffortsContainer.innerHTML = `<p class="small-text" style="text-align: center;">No key efforts found yet.</p>`;
+            dom.exportKeyEffortsBtn.disabled = true;
+            return;
+        }
+
+        const unit = appState.useAbsolutePower ? "W" : "W·kg⁻¹";
+        appState.keyEfforts.forEach((p, index) => {
+            const div = document.createElement('div');
+            div.className = 'data-point-display';
+            const power = appState.useAbsolutePower ? p.absolute_power : p.power_rel;
+            const powerStr = power.toFixed(appState.useAbsolutePower ? 0 : 2);
+            div.innerHTML = `<span>${formatDuration(p.duration)} (${p.sourceFile}): ${powerStr} ${unit}</span>
+                             <button class="remove-point-btn" data-index="${index}">Remove</button>`;
+            dom.keyEffortsContainer.appendChild(div);
+        });
+
+        dom.keyEffortsContainer.querySelectorAll('.remove-point-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const indexToRemove = parseInt(e.target.dataset.index);
+                appState.keyEfforts.splice(indexToRemove, 1);
+                renderKeyEffortsList();
+                plotPowerDurationProfile();
+            });
+        });
+        
+        dom.exportKeyEffortsBtn.disabled = false;
+    }
+
+    function fitAndSetPowerModel() {
+        // This function is now responsible ONLY for fitting the model and updating the state.
+        // --- CORE CHANGE: We ALWAYS fit using relative (W/kg) values for numerical stability. ---
+        if (!appState.powerDurationPoints.length) {
+            appState.powerDurationModelParams = null;
+            return;
+        }
+        
+        const bodyMass = appState.body_mass > 0 ? appState.body_mass : 1;
+        
+        // Convert all points to relative W/kg for the fitting process
+        const allPointsRelative = appState.powerDurationPoints.map(p => ({
+            duration: p.duration,
+            power: p.absolute_power / bodyMass
+        }));
+
+        const fitRangeStart = appState.useCustomFitRange ? appState.fitRangeStart : 1;
+        const fitRangeEnd = appState.useCustomFitRange ? appState.fitRangeEnd : Math.max(3600, ...allPointsRelative.map(p => p.duration));
+        
+        // Filter the RELATIVE points for fitting
+        const pointsForFitting = allPointsRelative.filter(p => p.duration >= fitRangeStart && p.duration <= fitRangeEnd);
+        
+        let fittedParams = null;
+        if (pointsForFitting.length > 1) {
+            const durations = pointsForFitting.map(p => p.duration);
+            const powers = pointsForFitting.map(p => p.power); // These are now always relative powers
+            switch (appState.selectedPDModel) {
+                case 'powerLaw':
+                    fittedParams = fitPowerLawModel(durations, powers);
+                    break;
+                case 'twoParam':
+                    fittedParams = fit2ParamCPModel(durations, powers);
+                    break;
+                case 'ompd':
+                    // Pass the relative powers to the fitting function
+                    fittedParams = fitAdvancedCPModel(durations, powers, appState.selectedPDModel);
+                    break;
+            }
+        }
+
+        // Store the final parameters. It's crucial to note they were fitted with RELATIVE values.
+        // We do this by setting a flag `fittedWithAbsolutePower` to false.
+        appState.powerDurationModelParams = fittedParams ? { ...fittedParams, fittedWithAbsolutePower: false } : null;
+    }
+
+        function plotPowerDurationProfile(){
+    if(!appState.powerDurationPoints.length){Plotly.purge(dom.powerDurationPlotDiv);return;}
+    const bodyMass=appState.body_mass>0?appState.body_mass:1;
+    
+    // Use the model parameters that are already in the app state
+    const fittedParams = appState.powerDurationModelParams;
+
+    const plotPoints=appState.powerDurationPoints.map(p=>({duration:p.duration,power:appState.useAbsolutePower?p.absolute_power:p.absolute_power/bodyMass}));
+    const fitRangeStart=appState.useCustomFitRange?appState.fitRangeStart:1;
+    const fitRangeEnd=appState.useCustomFitRange?appState.fitRangeEnd:Math.max(3600,...plotPoints.map(p=>p.duration));
+    
+    const yAxisPowerUnit=appState.useAbsolutePower?'W':'W·kg⁻¹';
+    const pFmt=appState.useAbsolutePower?':.0f':':.2f';
+    const traces=[];
+    let annotations=[],shapes=[];
+
+    if (fittedParams) {
+        // This block executes if a model was successfully fitted.
+        const modelFunc = modelFunctions[appState.selectedPDModel];
+        // The model was always fitted with relative data.
+        const { fittedWithAbsolutePower } = fittedParams; // This will always be false, but kept for clarity
+        
+        const spectral = ['#9e0142', '#d53e4f', '#f46d43', '#fdae61', '#fee08b', '#e6f598', '#abdda4', '#66c2a5', '#3288bd', '#5e4fa2'];
+        const colorscale = spectral.map((color, i) => [i / (spectral.length - 1), color]);
+        
+        // --- CORRECTED DEVIATION LOGIC ---
+        // We now correctly calculate deviation based on the current display unit (absolute or relative)
+        const allDeviations = plotPoints.map(point => {
+            const actualPower = point.power; // This is already in the correct display unit
+            let predictedPower = modelFunc(point.duration, fittedParams); // This is in relative W/kg
+            
+            // If we are displaying absolute power, convert the prediction to absolute power before comparing
+            if (appState.useAbsolutePower) {
+                predictedPower *= bodyMass;
+            }
+            
+            return predictedPower > 0 ? (actualPower - predictedPower) / predictedPower : 0;
+        });
+
+        const cmin = -0.075;
+        const cmax = 0.075;
+
+        traces.push({
+            x: plotPoints.map(p => p.duration),
+            y: plotPoints.map(p => p.power),
+            text: plotPoints.map((p, i) => `${p.power.toFixed(appState.useAbsolutePower ? 0 : 2)} ${yAxisPowerUnit}<br>Deviation: ${(allDeviations[i] * 100).toFixed(1)}%`),
+            hoverinfo: 'text', type: 'scatter', mode: 'lines+markers', name: 'Composite Curve',
+            line: { color: 'lightgrey', width: 2 },
+            marker: { color: allDeviations, colorscale: colorscale, cmin: cmin, cmax: cmax, size: 4, opacity: 0.80, showscale: false }
+        });
+
+        if (appState.showKeyEfforts && appState.keyEfforts.length > 0) {
+            // Key efforts have their deviation pre-calculated, so we can use it directly.
+            const keyEffortPoints = appState.keyEfforts.map(p => ({
+                duration: p.duration,
+                power: appState.useAbsolutePower ? p.absolute_power : p.power_rel,
+                deviation: p.deviation, // This deviation was calculated when key efforts were identified.
+                sourceFile: p.sourceFile
+            }));
+            
+            traces.push({
+                x: keyEffortPoints.map(p => p.duration),
+                y: keyEffortPoints.map(p => p.power),
+                text: keyEffortPoints.map(p => `Key Effort: ${formatDuration(p.duration)} (from ${p.sourceFile})<br>${p.power.toFixed(appState.useAbsolutePower ? 0 : 2)} ${yAxisPowerUnit}<br>Deviation: ${(p.deviation * 100).toFixed(1)}%`),
+                hoverinfo: 'text',
+                type: 'scatter',
+                mode: 'markers',
+                name: 'Key Efforts',
+                marker: {
+                    color: keyEffortPoints.map(p => p.deviation), // Use the point's pre-calculated deviation for color
+                    colorscale: colorscale,
+                    cmin: cmin,
+                    cmax: cmax,
+                    showscale: false,
+                    size: 14,
+                    symbol: 'star'
+                    // The 'line' property has been removed to get rid of the black border
+                }
+            });
+        }
+    
+        const plotEnd=Math.max(3600,...plotPoints.map(p=>p.duration));
+        const modelX=Array.from({length:plotEnd},(_,i)=>i+1);
+        
+        // --- CONVERSION LOGIC FOR DISPLAY ---
+        const modelY = modelX.map(t => {
+            let y = modelFunc(t, fittedParams); // y is in relative W/kg
+            // If we need to display absolute but fitted with relative, convert now.
+            if (appState.useAbsolutePower) {
+                y *= bodyMass;
+            }
+            return y;
+        });
+        
+        const solidY = modelY.map((y, i) => (modelX[i] >= fitRangeStart && modelX[i] <= fitRangeEnd) ? y : null);
+        const dashedY = modelY.map((y, i) => (modelX[i] < fitRangeStart || modelX[i] > fitRangeEnd) ? y : null);
+        traces.push({ x: modelX, y: dashedY, mode: 'lines', line: { color: '#666666', width: 2.0, dash: 'dash' }, hoverinfo: 'none', showlegend: false });
+        traces.push({ x: modelX, y: solidY, mode: 'lines', line: { color: '#666666', width: 2.0, opacity: 0.20 }, name: fittedParams.modelType, hovertemplate: `P: %{y${pFmt}} ${yAxisPowerUnit}<br>t: %{x:.0f}s<extra></extra>` });
+        
+        const pointsForFitting = plotPoints.filter(p => p.duration >= fitRangeStart && p.duration <= fitRangeEnd);
+        const rSquared=calculateRSquared(pointsForFitting.map(p=>p.power),
+            pointsForFitting.map(p => {
+                let pred = modelFunc(p.duration,fittedParams);
+                if(appState.useAbsolutePower) pred *= bodyMass;
+                return pred;
+            })
+        );
+        
+        let paramString="";
+        // fittedParams are always relative, so we convert for display if needed
+        const cp_rel = fittedParams.CP;
+        const cp_abs = cp_rel * bodyMass;
+        const wp_rel = fittedParams.Wprime;
+        const wp_abs = wp_rel * bodyMass;
+        const pmax_rel = fittedParams.Pmax;
+        const pmax_abs = pmax_rel * bodyMass;
+        const s_rel = fittedParams.S;
+        const s_abs = s_rel * bodyMass;
+
+        if(fittedParams.S) paramString+=`S: ${appState.useAbsolutePower ? s_abs.toFixed(0) : s_rel.toFixed(2)}`;
+        if(fittedParams.E) paramString+=`, E: ${fittedParams.E.toFixed(3)}`;
+        if(fittedParams.CP) paramString+=`CP: ${appState.useAbsolutePower ? cp_abs.toFixed(0) : cp_rel.toFixed(2)} ${yAxisPowerUnit}`;
+        if(fittedParams.Wprime) paramString+=`, W': ${appState.useAbsolutePower ? (wp_abs / 1000).toFixed(1) + ' kJ' : (wp_rel / 1000).toFixed(2) + ' kJ/kg'}`;
+        if(fittedParams.Pmax && !appState.useFixedPmax) paramString+=`, Pmax: ${appState.useAbsolutePower ? pmax_abs.toFixed(0) : pmax_rel.toFixed(2)}`;
+        if(fittedParams.A && fittedParams.A !== 0) paramString += `, A: ${fittedParams.A.toFixed(4)}`;
+        
+        let fitRangeText = appState.useCustomFitRange ? `<br>(Fitted on ${fitRangeStart}s - ${fitRangeEnd}s)` : "";
+        annotations.push({text:`${fittedParams.modelType}<br>${paramString}<br>R² = ${!isNaN(rSquared)?rSquared.toFixed(3):'N/A'}${fitRangeText}`,align:'left',showarrow:false,xref:'paper',yref:'paper',x:0.05,y:0.95});
+        
+        if(fittedParams.CP){
+            const cpDisplay = appState.useAbsolutePower ? cp_abs : cp_rel;
+            shapes.push({type:'line',xref:'paper',yref:'y',x0:0,y0:cpDisplay,x1:1,y1:cpDisplay,line:{color:'grey',width:2,dash:'dot'}});
+            annotations.push({text:`CP: ${cpDisplay.toFixed(appState.useAbsolutePower ? 0 : 2)}`,align:'left',showarrow:false,xref:'paper',yref:'y',x:0.95,y:cpDisplay,xanchor:'right',yanchor:'bottom'});
+        }
+    
+    } else {
+        // Fallback for when no model is fitted: draw a simple blue line.
+        const dataTrace={x:plotPoints.map(p=>p.duration),y:plotPoints.map(p=>p.power),text:plotPoints.map(p=>`${p.power.toFixed(appState.useAbsolutePower?0:2)} ${yAxisPowerUnit}`),hoverinfo:'text',type:'scatter',mode:'lines',name:'Composite Curve',line:{color:'var(--primary-color)',width:3}};
+        traces.push(dataTrace);
+    }
+    
+    // Final plot layout
+    const yMax=Math.max(...plotPoints.map(p=>p.power).filter(p => p > 0))*1.2;
+    const xAxisRange=appState.useCustomXAxis?[appState.xAxisStart,appState.xAxisEnd]:[1,Math.min(3600, appState.maxActivityDuration || 3600)];
+    const layout={xaxis:{title:'Duration (s)',type:'linear',range:xAxisRange,showgrid:true,gridcolor:'rgba(200,200,200,0.2)'},yaxis:{title:`Power (${yAxisPowerUnit})`,range:[0,yMax],showgrid:true,gridcolor:'rgba(200,200,200,0.2)'},showlegend:true,legend:{x:1,xanchor:'right',y:1},margin:{t:25,b:50,l:60,r:20},hovermode:'closest',annotations:annotations,shapes:shapes,paper_bgcolor:'rgba(255,255,255,0)',plot_bgcolor:'rgba(255,255,255,0.5)',};
+    Plotly.react(dom.powerDurationPlotDiv,traces,layout,{responsive:true});
+}
+
+    function initializeApp(){
+        openTab(null,'tabFileAnalysis');
+        dom.bodyMassValueSpan.textContent=appState.body_mass.toFixed(1);
+        dom.ageValueSpan.textContent = appState.age;
+        dom.heightValueSpan.textContent = appState.height;
+        dom.useCustomFitRangeCheckbox.checked = true;
+        dom.customFitRangeControlsDiv.style.display = 'block';
+        updateFixedPmaxSliderUI();
+        setFittingRangeDefaults();
+        setupEventListeners();
+        showNotification("App ready. Please upload files.",'info');
+    }
+    initializeApp();
+});
+</script>
+</body>
+</html>

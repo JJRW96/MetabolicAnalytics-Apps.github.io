@@ -1,0 +1,156 @@
+{
+  "settings": {
+    "body_mass": 64.5,
+    "bike_mass": 7.2,
+    "Crr": 0.0035,
+    "CdA": 0.3,
+    "rho": 1.1,
+    "drivetrainLoss": 2.5
+  },
+  "performances": [
+    {
+      "label": "San Vito - 2024",
+      "lengthKm": 1.4,
+      "elevationM": 132,
+      "etalonWkg": 8.74,
+      "durationS": 214,
+      "absolute_power": 553,
+      "relative_power": 8.58,
+      "gradient": 9.43,
+      "speedKmh": 23.55,
+      "VAM": 2221
+    },
+    {
+      "label": "Puy Mary - 2024",
+      "lengthKm": 2.08,
+      "elevationM": 270,
+      "etalonWkg": 6.81,
+      "durationS": 443,
+      "absolute_power": 6.66,
+      "relative_power": 6.66,
+      "gradient": 12.98,
+      "speedKmh": 16.9,
+      "VAM": 2194
+    },
+    {
+      "label": "Collada de Sant Isidre - 2024",
+      "lengthKm": 5,
+      "elevationM": 439,
+      "etalonWkg": 7.02,
+      "durationS": 824,
+      "absolute_power": 425,
+      "relative_power": 6.58,
+      "gradient": 8.78,
+      "speedKmh": 21.84,
+      "VAM": 1918
+    },
+    {
+      "label": "La Turbie - 2024",
+      "lengthKm": 8.05,
+      "elevationM": 469,
+      "etalonWkg": 7.05,
+      "durationS": 1018,
+      "absolute_power": 422,
+      "relative_power": 6.54,
+      "gradient": 5.83,
+      "speedKmh": 28.47,
+      "VAM": 1659
+    },
+    {
+      "label": "Pla d'Adet - 2024",
+      "lengthKm": 10.58,
+      "elevationM": 845,
+      "etalonWkg": 6.85,
+      "durationS": 1670,
+      "absolute_power": 423,
+      "relative_power": 6.56,
+      "gradient": 7.99,
+      "speedKmh": 22.81,
+      "VAM": 1822
+    },
+    {
+      "label": "Isola 2000 - 2024",
+      "lengthKm": 15.7,
+      "elevationM": 1136,
+      "etalonWkg": 6.83,
+      "durationS": 2264,
+      "absolute_power": 423,
+      "relative_power": 6.56,
+      "gradient": 7.24,
+      "speedKmh": 24.96,
+      "VAM": 1806
+    },
+    {
+      "label": "Plateau de Beille - 2024",
+      "lengthKm": 15.74,
+      "elevationM": 1250,
+      "etalonWkg": 6.98,
+      "durationS": 2390,
+      "absolute_power": 424,
+      "relative_power": 6.58,
+      "gradient": 7.94,
+      "speedKmh": 23.71,
+      "VAM": 1883
+    },
+    {
+      "label": "Côte de Domancy to Combloux - La Cry - 2025",
+      "lengthKm": 8.69,
+      "elevationM": 625,
+      "etalonWkg": 7.21,
+      "durationS": 1190,
+      "absolute_power": 424,
+      "relative_power": 6.58,
+      "gradient": 7.19,
+      "speedKmh": 26.29,
+      "VAM": 1891
+    },
+    {
+      "label": "San Luca - 2024",
+      "lengthKm": 2.1,
+      "elevationM": 197,
+      "etalonWkg": 7.89,
+      "durationS": 327,
+      "absolute_power": 470,
+      "relative_power": 7.29,
+      "gradient": 9.38,
+      "speedKmh": 23.12,
+      "VAM": 2169
+    },
+    {
+      "label": "Valmeinier 1800 - 2025",
+      "lengthKm": 16.5,
+      "elevationM": 1122,
+      "etalonWkg": 6.74,
+      "durationS": 2378,
+      "absolute_power": 422,
+      "relative_power": 6.54,
+      "gradient": 6.8,
+      "speedKmh": 24.98,
+      "VAM": 1699
+    },
+    {
+      "label": "La Couillole - 2024",
+      "lengthKm": 15.61,
+      "elevationM": 1175,
+      "etalonWkg": 6.52,
+      "durationS": 2357,
+      "absolute_power": 423,
+      "relative_power": 6.56,
+      "gradient": 7.53,
+      "speedKmh": 23.84,
+      "VAM": 1795
+    },
+    {
+      "label": "Monte Grappa - 2024",
+      "lengthKm": 18.1,
+      "elevationM": 1482,
+      "etalonWkg": 6.19,
+      "durationS": 3102,
+      "absolute_power": 422,
+      "relative_power": 6.54,
+      "gradient": 8.19,
+      "speedKmh": 21.01,
+      "VAM": 1720
+    }
+  ]
+}

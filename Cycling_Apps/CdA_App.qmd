@@ -1,0 +1,184 @@
+---
+title: "CdA Calculator"
+format:
+  html:
+    resources: 
+      - shinylive-sw.js
+      
+filters:
+  - shinylive
+
+execute:
+  message: false
+  engine: knitr
+  echo: false
+  warning: false
+  error: false
+bibliography: references_all.bib
+lang: eng
+number-sections: false
+editor: 
+  markdown: 
+    wrap: 72
+    
+nocite: |
+  @Hintzy-Cloutier2003, @Dunst2025, @Dunst2024; @Mader2003; @Hauser2014; @Ji2021; @Nolte2022; @Mader1984; @Mader1986; @Mader1996; @Oezyener2001; @Jeukendrup2005; @Brooks2004; @Brooks2012; @Jeukendrup2019; @Stegemann1991; @Friedlander1998; @Friedlander1999
+    
+---
+
+```{css}
+#| echo: false
+p {
+  text-align: justify
+}
+caption, .figure-caption {
+  text-align: left;
+}
+figure.quarto-float-tbl figcaption {
+  text-align: left !important;
+}
+figure figcaption {
+  text-align: justify;
+}
+```
+
+
+<div style="position: relative; width: 100%; height: 800px;">
+  <iframe src="CdA_App_1.5.html" style="position: absolute; width: 100%; height: 100%; border: none;"></iframe>
+</div>
+
+<br>
+
+[Fullscreen-Link: CdA Calculator  ](/CdA_App_1.5.html)
+
+# CdA Calculator App - Feature Guide"
+## Introduction
+
+The **CdA Calculator** is designed to perform aerodynamic analysis on ride data. Its primary purpose is to calculate a rider's coefficient of aerodynamic drag area ($C_d A$) using a GPX file containing power, GPS, and elevation data. The application enriches this data with meteorological information such as wind and temperature.
+
+The tool operates in three distinct, sequential steps:
+1.  **Parameter Input:** The user provides a GPX file and sets key physical parameters like rider/bike mass and rolling resistance.
+2.  **CdA Analysis:** The application processes the entire ride, filters for segments with stable conditions, calculates the instantaneous $C_d A$ for each, and presents the average value along with detailed charts and a map visualization.
+3.  **Performance Simulation:** Using the average $C_d A$ derived from the analysis, the tool simulates the power required for the *entire* ride, providing a model-vs-actual comparison to validate the results.
+
+This process allows an athlete to get a robust, data-driven estimate of their aerodynamic profile from a real-world ride, bypassing the need for expensive wind tunnel or velodrome testing.
+
+## The Main Interface
+
+The application is built with a two-column layout for a clear, guided user experience.
+
+*   **Input Sidebar (Left):** This is the control panel. It houses all user inputs, parameters, and action buttons. It remains visible (`position: sticky`) so users can tweak parameters and see the results update in real-time in the main content area.
+*   **Main Content (Right):** This area is dedicated to displaying the results of the analysis, including summary statistics, interactive charts, and a route map. It is initially populated with a welcome message and dynamically filled with content as the analysis progresses.
+
+---
+
+## Part 1: The Sidebar (Parameters & Controls)
+
+This section serves as the command center for the entire analysis.
+
+### Step 1: Parameters
+
+This is the initial data-gathering stage. All inputs here directly affect the physics calculations.
+
+*   **Upload GPX File:** The primary input for the application.
+    *   **Functionality:** The user clicks to select a `.gpx` file from their local system.
+    *   **Requirement:** The GPX file **must** contain power data, typically found within `<extensions>` tags (e.g., `<power>` or `<gpxtpx:power>`). Files without power data will result in an error.
+*   **Rider Mass & Bike Mass (kg):** These two values are summed to get the total system mass ($m_T$). This total mass is a critical input for calculating the power required to overcome gravity ($P_{PE}$) and changes in kinetic energy ($P_{KE}$).
+*   **Rolling Resistance (Crr):** A dimensionless coefficient representing the friction between the tires and the road surface. This value is used to calculate the power lost to rolling resistance ($P_{RR}$). The default of `0.0040` is a reasonable estimate for good quality road tires on smooth asphalt.
+*   **Air Density (ρ) (kg/m³):** A critical parameter for calculating aerodynamic drag power ($P_{aero}$).
+    *   **Automatic Calculation:** Upon processing a GPX file, the application fetches historical weather data (temperature) and uses the elevation data from the GPX file to calculate a ride-averaged air density. This value automatically populates the slider.
+    *   **Manual Override:** The user can manually adjust this slider to override the calculated value or to perform "what-if" analyses for different conditions (e.g., sea level vs. altitude).
+
+### Action Buttons
+
+*   **Analyze CdA:** The primary action button. Kicking off the full analysis workflow: file parsing, weather fetching, data merging, and the initial $C_d A$ calculation. A loader animation appears on the button during this process.
+*   **Recalculate Analysis:** This button replaces "Analyze CdA" after the first successful analysis. It allows the user to change the input parameters (e.g., Rider Mass, Crr) and re-run the $C_d A$ calculation *without* re-fetching the GPX and weather data, providing a near-instant update to the results.
+*   **Status Area:** A small panel below the buttons that provides real-time feedback on the analysis process (e.g., "1/3: Reading GPX file...") or displays any errors that occur.
+
+---
+
+## Part 2: The Analysis Workflow (The Physics Engine)
+
+When the "Analyze CdA" button is clicked, a multi-stage computational process begins.
+
+### Step A: Data Ingestion & Enrichment
+
+1.  **GPX Parsing:** The selected GPX file is read as text and parsed using the browser's `DOMParser`. The code iterates through all `<trkpt>` (trackpoint) elements, extracting latitude, longitude, elevation, timestamp, and crucially, the power value from the extension data.
+2.  **Weather Data Fetching:** The application determines the ride's date and geographical midpoint. It then makes an API call to the `archive-api.open-meteo.com` service to retrieve historical hourly weather data, specifically `temperature_2m`, `windspeed_10m`, and `winddirection_10m`.
+3.  **Data Merging & Interpolation:** This is a key step for accuracy. The raw, second-by-second GPX data is merged with the coarse, hourly weather data. For each trackpoint, the application performs a **linear interpolation** between the two closest hourly weather data points to estimate the precise temperature, wind speed, and wind direction for that exact moment in time.
+    *   **Wind Direction:** To correctly interpolate wind direction (avoiding the 360° to 0° wrap-around issue), the directions are first converted into vector components (x, y), which are then interpolated. The resulting vector is converted back to an angle.
+4.  **Per-Segment Calculation:** The code calculates additional metrics for each segment (the space between two trackpoints), including ground speed ($V_g$), gradient ($Gr$), and bearing. It also calculates the air density ($\rho$) for each segment using its specific elevation and the interpolated temperature.
+
+### Step B: The Physics of $C_d A$ Calculation
+
+With a complete, enriched dataset, the app iterates through each segment to find the rider's $C_d A$.
+
+1.  **The Governing Equation:** The total power a cyclist produces ($P_{GPX}$) is used to overcome several forces. The relationship, accounting for drivetrain efficiency ($\eta_{drive}$), is:
+    $P_{GPX} \cdot \eta_{drive} = P_{aero} + P_{gravity} + P_{rolling} + P_{kinetic}$
+2.  **Isolating Aerodynamic Power:** The application rearranges this equation to solve for the power used exclusively to overcome air resistance:
+    $P_{aero} = (P_{GPX} \cdot \eta_{drive}) - (P_{gravity} + P_{rolling} + P_{kinetic})$
+3.  **Solving for $C_d A$:** The definition of aerodynamic power is $P_{aero} = 0.5 \cdot \rho \cdot C_d A \cdot V_a^2 \cdot V_g$, where $V_a$ is airspeed and $V_g$ is groundspeed. The app solves for $C_d A$:
+    $C_d A = \frac{2 \cdot P_{aero}}{\rho \cdot V_a^2 \cdot V_g}$
+    *   **Airspeed ($V_a$):** This is calculated as ground speed ($V_g$) plus the effective component of the wind ($V_{w\_eff}$), which is the wind speed projected onto the rider's direction of travel.
+4.  **Critical Data Filtering:** This is the core of the method's robustness. To ensure the calculation is only performed on clean, stable data, a strict set of filters is applied. A data point is **discarded** if any of the following are true:
+    *   Speed is outside the 5.5 m/s to 20 m/s range (to avoid slow, unsteady efforts or extreme downhills).
+    *   Power is below 80 Watts (to avoid coasting or very low-power sections).
+    *   Gradient is steeper than +/- 15%.
+    *   Acceleration exceeds +/- 0.8 m/s² (to filter out hard braking or sharp attacks).
+    *   Available aerodynamic power ($P_{aero}$) is less than 20W.
+    *   The calculated $C_d A$ is outside the physically plausible range of 0.15 to 0.5.
+5.  **Averaging:** Only the data points that pass all filters are considered "valid". The final "Average CdA" reported by the app is the arithmetic mean of the $C_d A$ values from these valid points.
+
+---
+
+## Part 3: The Main Content Area (Results & Visualization)
+
+This area presents the outcomes of the analysis in a comprehensive and interactive manner.
+
+### Step 2: CdA Analysis (Measurement)
+
+*   **Summary Cards:** Four cards provide a high-level overview of the results from the *filtered data*:
+    *   **Average CdA:** The primary result of the analysis.
+    *   **Average Power:** The average power during the valid segments.
+    *   **Average Speed:** The average speed during the valid segments.
+    *   **Valid Data Points:** The number of data points that passed the filtering, shown as a fraction of the total ride data points.
+*   **CdA Chart (`cdaChart`):** An interactive time-series plot rendered with Chart.js, visualizing the valid segments of the ride.
+    *   **Datasets:**
+        1.  `CdA (m²)`: The calculated $C_d A$ value for each valid point.
+        2.  `Avg CdA`: A dashed horizontal line showing the final average $C_d A$.
+        3.  `Power (W)`: The rider's power output.
+        4.  `Speed (km/h)`: The rider's speed.
+    *   **Axes:** It uses a dual Y-axis configuration. The left axis is for $C_d A$, and the right is for Power and Speed (speed is multiplied by 10 internally to be visible on the same scale).
+    *   **`Smooth Chart Further` Button:** This button applies a moving average filter to the chart data, smoothing the lines to make trends easier to see. It can be clicked multiple times for increased smoothing.
+*   **Route with Wind Analysis (`map`):** An interactive map rendered with Leaflet.js.
+    *   **Route Polyline:** The entire ride path is drawn on the map. The color of each segment is dynamically set based on the effective wind: green indicates a tailwind, yellow is a crosswind, and red indicates a headwind.
+    *   **Wind Overlay:** An animated layer of arrows flows across the map, indicating the average wind direction and speed for the ride. A static control in the top-right corner also displays the average wind speed and direction.
+
+### Step 3: Performance Simulation (Model)
+
+This section acts as a verification of the calculated $C_d A$.
+
+*   **Functionality:** After clicking the `Simulate Full Ride with Avg. CdA` button, the app uses the derived average $C_d A$ to calculate the theoretical power required to match the rider's actual speed at every point during the *entire ride* (not just the filtered segments).
+*   **Simulation Chart (`simulationChart`):** This chart compares the actual performance with the modeled performance.
+    *   **`Actual Power (GPX)`:** The power data as recorded in the GPX file.
+    *   **`Modelled Power (calculated)`:** The power predicted by the physics model using the calculated average $C_d A$.
+    *   **Interpretation:** A close match between the two lines suggests that the calculated $C_d A$ is a reliable representation of the rider's aerodynamic profile and that the rider maintained a consistent position throughout the ride. Significant deviations can indicate changes in position, drafting, or other factors not captured by the model. Both data series are smoothed for improved readability.
+
+## Technical Appendix
+
+*   **Key Constants:**
+    *   Gravitational Acceleration (`g`): `9.80665 m/s²`
+    *   Drivetrain Efficiency (`Ec`): `0.977` (97.7%)
+    *   Specific Gas Constant for Dry Air (`R_specific`): `287.058 J/(kg·K)`
+*   **Formulas:**
+    *   $P_{RR} = C_{rr} \cdot m_T \cdot g \cdot \cos(\arctan(Gr)) \cdot V_g$
+    *   $P_{PE} = m_T \cdot g \cdot \sin(\arctan(Gr)) \cdot V_g$
+    *   $P_{KE} = m_T \cdot V_g \cdot a$ (where $a$ is acceleration)
+    *   $V_a = V_g + (V_w \cdot \cos(\theta_{wind} - \theta_{bearing}))$
+*   **External Libraries:**
+    *   **Chart.js:** For all data visualizations and charts.
+    *   **chartjs-adapter-date-fns:** To enable time-series axes in Chart.js.
+    *   **Leaflet.js:** For the interactive route map.
+*   **Data Sources:**
+    *   **User GPX File:** For ride data (GPS, elevation, time, power).
+    *   **Open-Meteo Historical Weather API:** For temperature and wind data.

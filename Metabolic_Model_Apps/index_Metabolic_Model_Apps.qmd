@@ -1,0 +1,47 @@
+---
+title: "Metabolic Model Apps"
+
+format:
+  html:
+    resources: 
+      - shinylive-sw.js
+      
+filters:
+  - shinylive
+
+execute:
+  message: false
+  engine: knitr
+  echo: false
+  warning: false
+  error: false
+bibliography: references_all.bib
+lang: eng
+number-sections: false
+editor: 
+  markdown: 
+    wrap: 72
+---
+
+
+```{css}
+#| echo: false
+p {
+  text-align: justify
+}
+caption, .figure-caption {
+  text-align: left;
+}
+figure.quarto-float-tbl figcaption {
+  text-align: left !important;
+}
+figure figcaption {
+  text-align: justify;
+}
+```
+
+....
+
+
+::: {#refs}
+:::

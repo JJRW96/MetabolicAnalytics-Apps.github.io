@@ -1,0 +1,144 @@
+{
+  "settings": {
+    "riderMass": 64,
+    "bikeMass": 7.2,
+    "Crr": 0.0035,
+    "CdA": 0.3,
+    "rho": 1.1,
+    "drivetrainLoss": 2.5
+  },
+  "performances": [
+    {
+      "label": "Lo Port - 2023",
+      "lengthKm": 8.6,
+      "elevationM": 765,
+      "etalonWkg": 6.87,
+      "durationS": 1434,
+      "realAbsolutePower": 434,
+      "realWkg": 6.79,
+      "gradient": 8.9,
+      "speedKmh": 21.59,
+      "VAM": 1921
+    },
+    {
+      "label": "Monte Lussari (TT) - 2023",
+      "lengthKm": 6.8,
+      "elevationM": 858,
+      "etalonWkg": 6.46,
+      "durationS": 1715,
+      "realAbsolutePower": 408,
+      "realWkg": 6.38,
+      "gradient": 12.62,
+      "speedKmh": 14.27,
+      "VAM": 1801
+    },
+    {
+      "label": "Plateau de Solaison - 2022",
+      "lengthKm": 11.4,
+      "elevationM": 1015,
+      "etalonWkg": 6.27,
+      "durationS": 2074,
+      "realAbsolutePower": 397,
+      "realWkg": 6.2,
+      "gradient": 8.9,
+      "speedKmh": 19.79,
+      "VAM": 1762
+    },
+    {
+      "label": "Alto de Angliru - 2023",
+      "lengthKm": 12.2,
+      "elevationM": 1280,
+      "etalonWkg": 6.43,
+      "durationS": 2484,
+      "realAbsolutePower": 407,
+      "realWkg": 6.36,
+      "gradient": 10.49,
+      "speedKmh": 17.68,
+      "VAM": 1855
+    },
+    {
+      "label": "Mende - 2018",
+      "lengthKm": 3.1,
+      "elevationM": 310,
+      "etalonWkg": 7.26,
+      "durationS": 550,
+      "realAbsolutePower": 459,
+      "realWkg": 7.17,
+      "gradient": 10,
+      "speedKmh": 20.29,
+      "VAM": 2029
+    },
+    {
+      "label": "Superga - 2021",
+      "lengthKm": 4.9,
+      "elevationM": 445,
+      "etalonWkg": 7.05,
+      "durationS": 808,
+      "realAbsolutePower": 446,
+      "realWkg": 6.97,
+      "gradient": 9.08,
+      "speedKmh": 21.83,
+      "VAM": 1983
+    },
+    {
+      "label": "Col de la Loze - 2020",
+      "lengthKm": 21.5,
+      "elevationM": 1677,
+      "etalonWkg": 5.9,
+      "durationS": 3668,
+      "realAbsolutePower": 373,
+      "realWkg": 5.83,
+      "gradient": 7.8,
+      "speedKmh": 21.1,
+      "VAM": 1646
+    },
+    {
+      "label": "Alto de Moncavillo - 2025",
+      "lengthKm": 8.48,
+      "elevationM": 765,
+      "etalonWkg": 6.97,
+      "durationS": 1435,
+      "realAbsolutePower": 440,
+      "realWkg": 6.88,
+      "gradient": 9.02,
+      "speedKmh": 21.27,
+      "VAM": 1919
+    },
+    {
+      "label": "Sierra de la Cazorla - 2024",
+      "lengthKm": 4.85,
+      "elevationM": 349,
+      "etalonWkg": 7.22,
+      "durationS": 667,
+      "realAbsolutePower": 455,
+      "realWkg": 7.11,
+      "gradient": 7.2,
+      "speedKmh": 26.18,
+      "VAM": 1884
+    },
+    {
+      "label": "San Luca - 2019",
+      "lengthKm": 2.1,
+      "elevationM": 197,
+      "etalonWkg": 7.67,
+      "durationS": 338,
+      "realAbsolutePower": 484,
+      "realWkg": 7.57,
+      "gradient": 9.38,
+      "speedKmh": 22.37,
+      "VAM": 2098
+    },
+    {
+      "label": "Puerto Cruxeiras - 2024",
+      "lengthKm": 2.96,
+      "elevationM": 261,
+      "etalonWkg": 7.72,
+      "durationS": 470,
+      "realAbsolutePower": 486,
+      "realWkg": 7.6,
+      "gradient": 8.82,
+      "speedKmh": 22.67,
+      "VAM": 1999
+    }
+  ]
+}

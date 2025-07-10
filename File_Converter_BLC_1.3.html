@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Training Data Converter</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Root variables for color scheme */
+        :root {
+            --primary-color: #2683C6;
+            --secondary-color: #9C85C0;  
+            --accent-color: #EF5350;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --border-color: #dee2e6;
+            --gradient-start: #f1f8ff;
+            --gradient-end: #ffffff;
+        }
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+            background-color: #f5f5f5;
+            color: var(--dark-color);
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-family: monospace;
+            resize: vertical;
+        }
+        
+        button {
+            padding: 10px 15px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+            margin-top: 10px;
+        }
+        
+        button:hover {
+            background-color: #1a6eae;
+        }
+        
+        .output-container {
+            width: 100%;
+            overflow-x: auto;
+        }
+        
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 20px;
+        }
+        
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 8px;
+            text-align: left;
+        }
+        
+        th {
+            background-color: rgba(38, 131, 198, 0.05);
+            font-weight: bold;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        .file-input-container {
+            margin-bottom: 10px;
+        }
+        
+        .result-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .main-button {
+            background-color: var(--primary-color);
+            font-size: 18px;
+            padding: 12px 20px;
+        }
+        
+        .main-button:hover {
+            background-color: #1a6eae;
+        }
+        
+        .loading {
+            display: none;
+            margin-top: 10px;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 2s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error {
+            color: var(--accent-color);
+            background-color: #ffebee;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            display: none;
+        }
+        
+        .info {
+            color: var(--primary-color);
+            background-color: #e3f2fd;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            display: none;
+        }
+        
+        .note {
+            font-style: italic;
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .fit-note {
+            background-color: #fff3e0;
+            border-left: 4px solid #ff9800;
+            padding: 10px;
+            margin: 15px 0;
+        }
+        
+        .fit-note a {
+            color: #ff9800;
+            font-weight: bold;
+            text-decoration: none;
+        }
+        
+        .fit-note a:hover {
+            text-decoration: underline;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+        }
+        
+        /* Purpose note */
+        .purpose-note {
+            background-color: rgba(38, 131, 198, 0.05);
+            border-left: 4px solid var(--primary-color);
+            padding: 12px;
+            margin: 15px 0;
+            border-radius: 4px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+        
+        h2 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+        
+        /* Custom file input styling */
+        .custom-file-input {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+        
+        .custom-file-input input {
+            position: absolute;
+            width: 0.1px;
+            height: 0.1px;
+            opacity: 0;
+            overflow: hidden;
+            z-index: -1;
+        }
+        
+        .custom-file-input label {
+            display: inline-block;
+            padding: 8px 15px;
+            background-color: #f8f9fa;
+            color: #495057;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .custom-file-input label:hover {
+            background-color: #e9ecef;
+        }
+        
+        .file-name {
+            margin-left: 10px;
+            font-size: 0.9em;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <h1 class="app-title">Training Data Converter</h1>
+        <div class="container">
+            <div class="input-section">
+                <div class="info-card">
+                    <h3>Purpose</h3>
+                    <p>This converter extracts time, power, cadence, VO2, and Heart Rate (HR) data from training files and converts them to the correct format for use with the Mader's Metabolic Simulation app. The output format is designed to be compatible with the exercise simulation component. It can also interpret power data defined by `t_s_power` time steps.</p>
+                    
+                    <h3>Note about .fit-files</h3>
+                    <p>Due to limitations, direct .fit-file processing is not supported. Please convert your fit files to csv first using the <a href="https://gotoes.org/strava/convert_fit_files_to_csv.php" target="_blank">GOTOES .fit to .csv Converter</a> tool.</p>
+                </div>
+
+                <div class="upload-section">
+                    <h3>Upload your files</h3>
+                    <div class="custom-file-input">
+                        <input type="file" id="fileInput" accept=".csv,.xlsx,.xls,.tcx">
+                        <label for="fileInput">Choose file</label>
+                        <span id="fileName" class="file-name"></span>
+                    </div>
+                    <p class="supported-formats">Supported formats: .csv & .tcx</p>
+                    
+                    <h3>Or paste your data directly</h3>
+                    <textarea id="inputData" placeholder="Paste your data here... e.g., t_s,power,cadence,VO2,HR or use t_s_power for stepped power values."></textarea>
+                    
+                    <button id="convertAndDownloadBtn" class="main-button">
+                        <span class="button-text">Convert and Download</span>
+                        <span class="button-icon">↓</span>
+                    </button>
+                    
+                    <div id="loading" class="loading">
+                        <div class="spinner"></div> 
+                        <span>Processing data...</span>
+                    </div>
+                    <div id="errorMessage" class="error"></div>
+                    <div id="infoMessage" class="info"></div>
+                </div>
+            </div>
+            
+            <div class="output-section">
+                <h2>Preview of converted data</h2>
+                <div class="output-container">
+                    <table id="outputTable">
+                        <thead>
+                            <tr>
+                                <th>t_s</th>
+                                <th>power</th>
+                                <th>cadence</th>
+                                <th>VO2</th>
+                                <th>HR</th>
+                                <th>BLC</th>
+                                </tr>
+                            </tr>
+                        </thead>
+                        <tbody id="outputBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const fileInput = document.getElementById('fileInput');
+            const fileNameDisplay = document.getElementById('fileName');
+            const inputData = document.getElementById('inputData');
+            const convertAndDownloadBtn = document.getElementById('convertAndDownloadBtn');
+            const outputBody = document.getElementById('outputBody');
+            const loadingDiv = document.getElementById('loading');
+            const errorMessageDiv = document.getElementById('errorMessage');
+            const infoMessageDiv = document.getElementById('infoMessage');
+            
+            let originalFileName = '';
+            let isTcxData = false;
+            let tcxProcessedData = null;
+
+            fileInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                originalFileName = file.name.replace(/\.[^/.]+$/, "");
+                fileNameDisplay.textContent = file.name;
+                
+                inputData.value = '';
+                errorMessageDiv.style.display = 'none';
+                infoMessageDiv.style.display = 'none';
+                outputBody.innerHTML = '';
+                tcxProcessedData = null;
+                
+                loadingDiv.style.display = 'flex';
+                
+                const fileNameLower = file.name.toLowerCase();
+                const fileExtension = fileNameLower.substring(fileNameLower.lastIndexOf('.') + 1);
+                
+                isTcxData = (fileExtension === 'tcx');
+                
+                if (isTcxData) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        try {
+                            const xmlContent = event.target.result;
+                            tcxProcessedData = processTcxDirectly(xmlContent);
+                            const previewData = "TCX file loaded and processed. Contains " + tcxProcessedData.length + 
+                                               " data points.\n\n" + 
+                                               "Preview of first few data points:\n" +
+                                               "t_s\tpower\tcadence\tVO2\tHR\tBLC\n" + 
+                                               tcxProcessedData.slice(0, 5).map(row => 
+                                                  `${row.t_s}\t${row.power || ''}\t${row.cadence || ''}\t${row.vo2 || ''}\t${row.hr || ''}\t${ (row.blc && typeof row.blc === 'string') ? row.blc.replace(',', '.') : (row.blc || '')}`).join('\n');
+                            
+                            inputData.value = previewData;
+                            loadingDiv.style.display = 'none';
+                            showInfo(`TCX file processed successfully with ${tcxProcessedData.length} data points. Click "Convert and Download" to save the data.`);
+                        } catch (error) {
+                            loadingDiv.style.display = 'none';
+                            showError(`Error processing TCX file: ${error.message}`);
+                        }
+                    };
+                    reader.onerror = function() {
+                        loadingDiv.style.display = 'none';
+                        showError('Error reading file.');
+                    };
+                    reader.readAsText(file);
+                } else {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        inputData.value = event.target.result;
+                        loadingDiv.style.display = 'none';
+                        showInfo('File loaded successfully. Click "Convert and Download" to process the data.');
+                    };
+                    reader.onerror = function(e) {
+                        loadingDiv.style.display = 'none';
+                        showError('Error reading file: ' + e.target.error);
+                    };
+                    reader.readAsText(file);
+                }
+            });
+            
+            function processTcxDirectly(xmlContent) { 
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(xmlContent, "text/xml");
+                const trackpoints = xmlDoc.getElementsByTagName('Trackpoint');
+                if (trackpoints.length === 0) throw new Error('No trackpoints found in tcx file.');
+                let activityStartTime = null;
+                const activityElements = xmlDoc.getElementsByTagName('Activity');
+                if (activityElements.length > 0) {
+                    const idElements = activityElements[0].getElementsByTagName('Id');
+                    if (idElements.length > 0) activityStartTime = new Date(idElements[0].textContent);
+                }
+                if (!activityStartTime && trackpoints.length > 0) {
+                    const timeElement = trackpoints[0].getElementsByTagName('Time')[0];
+                    if (timeElement) activityStartTime = new Date(timeElement.textContent);
+                }
+                if (!activityStartTime) activityStartTime = new Date();
+                const result = [];
+                for (let i = 0; i < trackpoints.length; i++) {
+                    const tp = trackpoints[i];
+                    let seconds = i;
+                    const timeEl = tp.getElementsByTagName('Time')[0];
+                    if (timeEl) seconds = Math.round((new Date(timeEl.textContent) - activityStartTime) / 1000);
+                    if (seconds < 0) seconds = 0;
+                    const cadEl = tp.getElementsByTagName('Cadence')[0];
+                    const cadence = cadEl ? cadEl.textContent : '';
+                    let power = '';
+                    const ext = tp.getElementsByTagName('Extensions')[0];
+                    if (ext) {
+                        const tpx = ext.getElementsByTagNameNS('*', 'TPX')[0] || ext.getElementsByTagName('TPX')[0];
+                        if (tpx) {
+                            const wattsEl = tpx.getElementsByTagNameNS('*', 'Watts')[0] || tpx.getElementsByTagName('Watts')[0];
+                            if (wattsEl) power = wattsEl.textContent;
+                        }
+                        if (!power) {
+                             const wattsElNoTpx = ext.getElementsByTagNameNS('*', 'Watts')[0] || ext.getElementsByTagName('Watts')[0];
+                             if(wattsElNoTpx) power = wattsElNoTpx.textContent;
+                        }
+                    }
+                    let hr = '';
+                    const hrEl = tp.getElementsByTagName('HeartRateBpm')[0];
+                    if (hrEl) {
+                        const valEl = hrEl.getElementsByTagName('Value')[0];
+                        if (valEl) hr = valEl.textContent;
+                    }
+                    if (power || cadence || hr) result.push({ t_s: seconds, power: power, cadence: cadence, vo2: '', hr: hr, blc: '' });
+                }
+                return result;
+            }
+
+            convertAndDownloadBtn.addEventListener('click', function() {
+                try {
+                    loadingDiv.style.display = 'flex';
+                    errorMessageDiv.textContent = '';
+                    errorMessageDiv.style.display = 'none';
+                    infoMessageDiv.textContent = '';
+                    infoMessageDiv.style.display = 'none';
+                    outputBody.innerHTML = ''; 
+                    
+                    let processedData;
+                    const rawData = inputData.value.trim();
+                    if (!rawData) {
+                        showError('Please enter data or upload a file.');
+                        loadingDiv.style.display = 'none';
+                        return;
+                    }
+                    
+                    console.log("--- Starting Data Conversion ---");
+                    processedData = convertData(rawData); 
+                    console.log("--- Data Conversion Finished ---");
+                    
+                    if (processedData && processedData.length > 0) {
+                        if (infoMessageDiv.style.display !== 'block' || infoMessageDiv.textContent === '') {
+                           showInfo(`Successfully processed ${processedData.length} data points (resampled to 1Hz where applicable).`);
+                        }
+                        displayPreview(processedData);
+                        downloadCsv(processedData);
+                    } else if (errorMessageDiv.style.display !== 'block' && processedData !== null) { 
+                         showError('No data to display or download after processing.');
+                    }
+                    
+                    loadingDiv.style.display = 'none';
+                    
+                } catch (error) {
+                    console.error("Error in convertAndDownloadBtn:", error);
+                    loadingDiv.style.display = 'none';
+                    showError('Error during conversion: ' + error.message);
+                }
+            });
+            
+            function detectDelimiter(data) {
+                const firstLine = data.split('\n')[0];
+                if (!firstLine) return ',';
+                const delimiters = ['\t', ';', ','];
+                let bestDelimiter = ','; 
+                let maxCount = 0;
+                for (const delimiter of delimiters) {
+                    const count = (firstLine.match(new RegExp(delimiter.replace('\t', '\\t'), 'g')) || []).length;
+                    if (count > maxCount) { maxCount = count; bestDelimiter = delimiter; }
+                }
+                return bestDelimiter;
+            }
+
+            function showError(message) {
+                errorMessageDiv.textContent = message;
+                errorMessageDiv.style.display = 'block';
+                infoMessageDiv.style.display = 'none';
+            }
+            
+            function showInfo(message) {
+                let currentInfo = "";
+                if (infoMessageDiv.style.display === 'block' && infoMessageDiv.textContent) {
+                    currentInfo = infoMessageDiv.textContent;
+                    if (!currentInfo.endsWith(".") && !currentInfo.endsWith(" ") && !currentInfo.endsWith("!")) {
+                        currentInfo += ". ";
+                    } else if (!currentInfo.endsWith(" ")) {
+                         currentInfo += " ";
+                    }
+                }
+                infoMessageDiv.textContent = currentInfo + message;
+                infoMessageDiv.style.display = 'block';
+                errorMessageDiv.style.display = 'none';
+            }
+
+
+            function convertVo2ToMlIfNeeded(data) {
+                if (!data || data.length === 0) return data;
+                let foundSmallVo2 = false;
+                let conversionApplied = false;
+                for (const row of data) {
+                    if (row.vo2 != null && String(row.vo2).trim() !== '') { 
+                        const vo2Val = parseFloat(String(row.vo2).replace(',', '.'));
+                        if (!isNaN(vo2Val) && vo2Val > 0 && vo2Val < 100) { foundSmallVo2 = true; break; }
+                    }
+                }
+                if (foundSmallVo2) {
+                    data = data.map(row => {
+                        if (row.vo2 != null && String(row.vo2).trim() !== '') {
+                            const vo2Val = parseFloat(String(row.vo2).replace(',', '.'));
+                            if (!isNaN(vo2Val) && vo2Val > 0 && vo2Val < 100) {
+                                row.vo2 = String(Math.round(vo2Val * 1000));
+                                conversionApplied = true;
+                            } else if (!isNaN(vo2Val)) { row.vo2 = String(Math.round(vo2Val)); }
+                        }
+                        return row;
+                    });
+                    if (conversionApplied) showInfo("VO2 values detected as Liters and converted to mL.");
+                } else {
+                     data = data.map(row => {
+                        if (row.vo2 != null && String(row.vo2).trim() !== '') {
+                            const vo2Val = parseFloat(String(row.vo2).replace(',', '.'));
+                            if (!isNaN(vo2Val)) row.vo2 = String(Math.round(vo2Val));
+                        }
+                        return row;
+                    });
+                }
+                return data;
+            }
+            
+            function displayPreview(data) {
+                outputBody.innerHTML = ''; 
+                const displayData = data.slice(0, 100);
+                displayData.forEach(row => {
+                    const tr = document.createElement('tr');
+                    ['t_s', 'power', 'cadence', 'vo2', 'hr', 'blc'].forEach(key => { 
+                        const td = document.createElement('td');
+                        let value = row[key];
+                        if (key === 'blc' && value && typeof value === 'string') {
+                            value = value.replace(',', '.'); // Replace comma with dot for display
+                        }
+                        td.textContent = value == null ? '' : value; 
+                        tr.appendChild(td);
+                    });
+                    outputBody.appendChild(tr);
+                });
+                if (data.length > 100) {
+                    const tr = document.createElement('tr');
+                    const td = document.createElement('td');
+                    td.colSpan = 6; 
+                    td.textContent = `... and ${data.length - 100} more rows not shown in preview.`;
+                    td.style.textAlign = 'center'; td.style.fontStyle = 'italic';
+                    tr.appendChild(td); outputBody.appendChild(tr);
+                }
+            }
+
+            function downloadCsv(data) {
+                let csvContent = 't_s,power,cadence,VO2,HR,BLC\n';  
+                data.forEach(row => {
+                    const t_s = row.t_s == null ? '' : row.t_s;
+                    const power = row.power == null ? '' : row.power;
+                    const cadence = row.cadence == null ? '' : row.cadence;
+                    const vo2 = row.vo2 == null ? '' : row.vo2;
+                    const hr = row.hr == null ? '' : row.hr;
+                    
+                    let blcValue = row.blc;
+                    if (blcValue == null) {
+                        blcValue = 'N/A';
+                    } else if (typeof blcValue === 'string') {
+                        blcValue = blcValue.replace(',', '.'); // Replace comma with dot for CSV
+                    }
+
+                    csvContent += `${t_s},${power},${cadence},${vo2},${hr},${blcValue}\n`;
+                });
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                let downloadFilename;
+                if (originalFileName) {
+                    downloadFilename = `${originalFileName}_resampled_converted.csv`;
+                } else {
+                    const date = new Date();
+                    const dateString = date.toISOString().split('T')[0] + '_' + date.toTimeString().split(' ')[0].replace(/:/g, '-');
+                    downloadFilename = `converted_data_${dateString}.csv`;
+                }
+                a.download = downloadFilename;
+                document.body.appendChild(a); a.click();
+                document.body.removeChild(a); URL.revokeObjectURL(url);
+            }
+
+            function linearInterpolate(x, x0, y0, x1, y1) {
+                if (x0 === x1) return y0; 
+                x = Number(x); x0 = Number(x0); y0 = Number(y0); x1 = Number(x1); y1 = Number(y1);
+                if ([x, x0, y0, x1, y1].some(isNaN)) return undefined; 
+                const result = y0 + (x - x0) * (y1 - y0) / (x1 - x0);
+                return isNaN(result) ? undefined : result;
+            }
+
+            function findPowerForTimeFromProfile(currentTimeSec, powerProfileSteps) {
+                if (!powerProfileSteps || powerProfileSteps.length === 0) return '';
+                const numCurrentTime = parseFloat(String(currentTimeSec).replace(',', '.'));
+                if (isNaN(numCurrentTime)) return '';
+
+                let applicablePower = ''; 
+
+                if (powerProfileSteps[0].time <= numCurrentTime) {
+                     applicablePower = String(powerProfileSteps[0].power);
+                } else { 
+                     return ''; 
+                }
+
+                for (const step of powerProfileSteps) {
+                    if (numCurrentTime >= step.time) {
+                        applicablePower = String(step.power); 
+                    } else {
+                        break; 
+                    }
+                }
+                return applicablePower;
+            }
+
+            function convertData(rawData) {
+                const lines = rawData.split('\n').map(line => line.trim()).filter(line => line);
+                if (lines.length < 2) throw new Error('Not enough data lines (header + data).');
+
+                const primaryDelimiter = detectDelimiter(rawData);
+                const header = lines[0];
+                const headerParts = header.split(primaryDelimiter).map(h => h.trim().replace(/"/g, '').toLowerCase());
+
+                const timeColumnNames = ['time', 'timestamp', 'zeit', 'time2', 'datetime', 't_s', 'record.timestamp[s]'];
+                const powerValueColumnNames = ['power', 'p', 'leistung', 'watt', 'w', 'ns1:watts', 'record.power[watts]', 'avg power'];
+                const cadenceColumnNames = ['cadence', 'cad', 'trittfrequenz', 'trittfreq', 'rpm', 'kadenz', 'trittrate', 'ns1:cad', 'record.cadence[rpm]'];
+                const vo2ColumnNames = ['vo2', 'v\'o2', 'vo_2', 'sauerstoffaufnahme', 'v̇o₂', 'v.o2', 'vo2 [ml/min/kg]'];
+                const hrColumnNames = ['hr', 'heartrate', 'heart_rate', 'herzfrequenz', 'hf', 'record.heart_rate[bpm]'];
+                const tsPowerTimeDefColumnNames = ['t_s_power', 'time_power', 'power_time', 'powersegment_start_time', 't_s_power [s]'];
+                const blcTimeColumnNames = ['t_s_blc', 't_blc', 'time_blc', 'blc_time', 'blc_t_s'];
+                const blcValueColumnNames = ['blc', 'lactate', 'lak', 'laktat', '[la]'];
+
+                let mainTimeIdx = -1, powerValIdx = -1, cadenceIdx = -1, vo2Idx = -1, hrIdx = -1, tsPowerTimeDefIdx = -1;
+                let blcTimeIdx = -1, blcValIdx = -1; 
+                
+                let tempPowerValIdx = -1;
+                let tempTsPowerTimeDefIdx = -1;
+                let tempBlcTimeIdx = -1;
+                let tempBlcValIdx = -1;
+
+                for (let i = 0; i < headerParts.length; i++) {
+                    const col = headerParts[i];
+                    if (mainTimeIdx === -1 && timeColumnNames.some(n => col.includes(n))) mainTimeIdx = i;
+                    if (tempPowerValIdx === -1 && powerValueColumnNames.some(n => col.includes(n))) tempPowerValIdx = i;
+                    if (tempTsPowerTimeDefIdx === -1 && tsPowerTimeDefColumnNames.some(n => col.includes(n))) tempTsPowerTimeDefIdx = i;
+                    if (cadenceIdx === -1 && cadenceColumnNames.some(n => col.includes(n))) cadenceIdx = i;
+                    if (vo2Idx === -1 && vo2ColumnNames.some(n => col.includes(n))) vo2Idx = i;
+                    if (hrIdx === -1 && hrColumnNames.some(n => col.includes(n))) hrIdx = i;
+                    if (tempBlcTimeIdx === -1 && blcTimeColumnNames.some(n => col.includes(n))) tempBlcTimeIdx = i;
+                    if (tempBlcValIdx === -1 && blcValueColumnNames.some(n => col.includes(n))) tempBlcValIdx = i;
+                }
+
+                if (tempTsPowerTimeDefIdx !== -1) {
+                    tsPowerTimeDefIdx = tempTsPowerTimeDefIdx;
+                    powerValIdx = -1; 
+                    for (let i = 0; i < headerParts.length; i++) {
+                        if (i === tsPowerTimeDefIdx) continue; 
+                        const col = headerParts[i];
+                        if (powerValueColumnNames.some(n => col.includes(n))) {
+                            powerValIdx = i;
+                            break; 
+                        }
+                    }
+                    if (powerValIdx === -1 && tempPowerValIdx !== -1 && tempPowerValIdx !== tsPowerTimeDefIdx) {
+                        powerValIdx = tempPowerValIdx;
+                    }
+                } else if (tempPowerValIdx !== -1) {
+                    powerValIdx = tempPowerValIdx;
+                }
+
+                if (tempBlcTimeIdx !== -1) {
+                    blcTimeIdx = tempBlcTimeIdx;
+                    blcValIdx = -1; 
+                    for (let i = 0; i < headerParts.length; i++) {
+                        if (i === blcTimeIdx) continue; 
+                        const col = headerParts[i];
+                        if (blcValueColumnNames.some(n => col.includes(n))) {
+                            blcValIdx = i;
+                            break; 
+                        }
+                    }
+                    if (blcValIdx === -1 && tempBlcValIdx !== -1 && tempBlcValIdx !== blcTimeIdx) {
+                        blcValIdx = tempBlcValIdx;
+                    }
+                } else if (tempBlcValIdx !== -1) { 
+                    blcValIdx = tempBlcValIdx;
+                }
+                
+                console.log(`Column Indices: mainTimeIdx=${mainTimeIdx}, powerValIdx=${powerValIdx}, cadenceIdx=${cadenceIdx}, vo2Idx=${vo2Idx}, hrIdx=${hrIdx}, tsPowerTimeDefIdx=${tsPowerTimeDefIdx}, blcTimeIdx=${blcTimeIdx}, blcValIdx=${blcValIdx}`);
+                if (mainTimeIdx === -1 && tsPowerTimeDefIdx === -1 && blcTimeIdx === -1) { 
+                    console.warn("No time source identified (t_s, t_s_power, or t_s_blc)!");
+                }
+                if (tsPowerTimeDefIdx !== -1 && powerValIdx === -1) {
+                    console.error("CRITICAL: 't_s_power' column identified, but no separate 'power' column for step values!");
+                    showError("Config error: 't_s_power' found, but no 'power' value column.");
+                    return null; 
+                }
+                 if (blcTimeIdx !== -1 && blcValIdx === -1) { 
+                    console.error("CRITICAL: 't_s_blc' column identified, but no separate 'BLC' value column was found!");
+                    showError("Config error: 't_s_blc' (time) column found, but no corresponding 'BLC' (value) column.");
+                    return null; 
+                } else if (blcTimeIdx === -1 && blcValIdx !== -1) {
+                     console.warn("'BLC' value column identified, but no 't_s_blc' time column. BLC data will be effectively ignored.");
+                }
+
+                if (tsPowerTimeDefIdx !== -1) console.log("t_s_power column identified, will attempt to build profile.");
+                if (blcTimeIdx !== -1 && blcValIdx !== -1) console.log("BLC columns (time and value) identified.");
+
+                const isGotoes = header.startsWith('GOTOES_CSV');
+                // ... (GOTOES logic if needed) ...
+
+                let originalParsedData = [];
+                let powerProfileDefinitionRows = []; 
+                let blcMeasurementPoints = [];
+
+                const dataStartLine = isGotoes ? (lines[1] && lines[1].startsWith('Data') ? 2 : 1) : 1;
+
+                for (let i = dataStartLine; i < lines.length; i++) {
+                    const parts = lines[i].split(primaryDelimiter).map(p => p.trim().replace(/"/g, ''));
+                    let row = { t_s: null, power: null, cadence: null, vo2: null, hr: null, blc: null };
+                    
+                    if (mainTimeIdx !== -1 && parts[mainTimeIdx] && parts[mainTimeIdx].trim() !== '') {
+                        row.t_s = parseFloat(parts[mainTimeIdx].replace(',', '.'));
+                    }
+                    if (cadenceIdx !== -1 && parts[cadenceIdx] && parts[cadenceIdx].trim() !== '') {
+                        row.cadence = parseFloat(parts[cadenceIdx].replace(',', '.'));
+                    }
+                    if (vo2Idx !== -1 && parts[vo2Idx] && parts[vo2Idx].trim() !== '') {
+                        row.vo2 = parseFloat(parts[vo2Idx].replace(',', '.'));
+                    }
+                    if (hrIdx !== -1 && parts[hrIdx] && parts[hrIdx].trim() !== '') {
+                        row.hr = parseFloat(parts[hrIdx].replace(',', '.'));
+                    }
+                    
+                    let powerValueFromCurrentRowPowerColumn = (powerValIdx !== -1 && parts[powerValIdx] && parts[powerValIdx].trim() !== '') ? parseFloat(parts[powerValIdx].replace(',', '.')) : null;
+
+                    if (tsPowerTimeDefIdx !== -1 && parts[tsPowerTimeDefIdx] && parts[tsPowerTimeDefIdx].trim() !== '') {
+                        let stepTime = parseFloat(parts[tsPowerTimeDefIdx].replace(',', '.'));
+                        if (!isNaN(stepTime) && powerValueFromCurrentRowPowerColumn != null && !isNaN(powerValueFromCurrentRowPowerColumn)) {
+                            powerProfileDefinitionRows.push({ time: stepTime, power: powerValueFromCurrentRowPowerColumn });
+                        }
+                    } else if (powerValIdx !== -1) { 
+                        row.power = powerValueFromCurrentRowPowerColumn;
+                    }
+
+                    if (blcTimeIdx !== -1 && blcValIdx !== -1 && parts[blcTimeIdx] && parts[blcTimeIdx].trim() !== '') {
+                        let blcTime = parseFloat(parts[blcTimeIdx].replace(',', '.'));
+                        let blcValueFromCurrentRow = (parts[blcValIdx] && parts[blcValIdx].trim() !== '') ? parts[blcValIdx].trim() : null;
+                        
+                        if (!isNaN(blcTime) && blcValueFromCurrentRow !== null) {
+                            blcMeasurementPoints.push({ time: blcTime, value: blcValueFromCurrentRow });
+                        }
+                    }
+
+                    if (row.t_s != null && !isNaN(row.t_s)) {
+                        originalParsedData.push(row);
+                    }
+                }
+                
+                if (originalParsedData.length === 0 && powerProfileDefinitionRows.length === 0 && blcMeasurementPoints.length === 0) {
+                    showError("No processable data rows found in input.");
+                    return [];
+                }
+                
+                originalParsedData.sort((a, b) => a.t_s - b.t_s);
+
+                let powerProfileSteps = null;
+                if (tsPowerTimeDefIdx !== -1 && powerProfileDefinitionRows.length > 0) {
+                    powerProfileDefinitionRows.sort((a, b) => a.time - b.time);
+                    powerProfileSteps = powerProfileDefinitionRows;
+                    console.log("Final Power Profile Steps (sorted):", JSON.stringify(powerProfileSteps));
+                    showInfo(`Power profile constructed (${powerProfileSteps.length} steps).`);
+                }
+                
+                if (blcMeasurementPoints.length > 0) {
+                    blcMeasurementPoints.sort((a, b) => a.time - b.time);
+                    console.log("BLC Measurement Points (sorted):", JSON.stringify(blcMeasurementPoints));
+                    showInfo(`BLC measurement points found (${blcMeasurementPoints.length}).`);
+                }
+
+                let resampledData = [];
+                let wasResampled = false;
+                if (originalParsedData.length > 0) {
+                    const firstOriginalTime = originalParsedData[0].t_s;
+                    const lastOriginalTime = originalParsedData[originalParsedData.length - 1].t_s;
+
+                    if (isNaN(firstOriginalTime) || isNaN(lastOriginalTime) || lastOriginalTime < firstOriginalTime || originalParsedData.length < 2) {
+                         originalParsedData.forEach(opd => {
+                            if (opd.t_s != null && !isNaN(opd.t_s)) {
+                                resampledData.push({
+                                    t_s: opd.t_s, 
+                                    cadence: opd.cadence, vo2: opd.vo2, hr: opd.hr,
+                                    power: (powerProfileSteps) ? null : opd.power,
+                                    blc: null 
+                                });
+                            }
+                        });
+                        if (resampledData.length > 0 && originalParsedData.length >=2) showInfo("Data not resampled to 1Hz; using original time points.");
+                        else if (resampledData.length > 0 && originalParsedData.length < 2 && resampledData[0]) {
+                           resampledData[0].power = (powerProfileSteps) ? null : originalParsedData[0].power;
+                        }
+                    } else {
+                        const firstTargetTime = Math.ceil(firstOriginalTime);
+                        const lastTargetTime = Math.floor(lastOriginalTime);
+                        
+                        if (lastTargetTime >= firstTargetTime) {
+                            wasResampled = true;
+                            let currentOriginalIdx = 0;
+                            for (let t = firstTargetTime; t <= lastTargetTime; t++) {
+                                let newRow = { t_s: t, cadence: null, vo2: null, hr: null, power: null, blc: null };
+
+                                while (currentOriginalIdx < originalParsedData.length - 1 && originalParsedData[currentOriginalIdx + 1].t_s < t) {
+                                    currentOriginalIdx++;
+                                }
+
+                                let p0 = originalParsedData[currentOriginalIdx];
+                                let p1 = (currentOriginalIdx + 1 < originalParsedData.length) ? originalParsedData[currentOriginalIdx + 1] : p0;
+                                
+                                if (p0.t_s == null || p1.t_s == null || isNaN(p0.t_s) || isNaN(p1.t_s) ) continue;
+
+                                if (p0.cadence != null && !isNaN(p0.cadence) && p1.cadence != null && !isNaN(p1.cadence)) newRow.cadence = linearInterpolate(t, p0.t_s, p0.cadence, p1.t_s, p1.cadence);
+                                else if (p0.cadence != null && !isNaN(p0.cadence) && Math.abs(t - p0.t_s) < 0.001) newRow.cadence = p0.cadence;
+                                
+                                if (p0.vo2 != null && !isNaN(p0.vo2) && p1.vo2 != null && !isNaN(p1.vo2)) newRow.vo2 = linearInterpolate(t, p0.t_s, p0.vo2, p1.t_s, p1.vo2);
+                                else if (p0.vo2 != null && !isNaN(p0.vo2) && Math.abs(t - p0.t_s) < 0.001) newRow.vo2 = p0.vo2;
+
+                                if (p0.hr != null && !isNaN(p0.hr) && p1.hr != null && !isNaN(p1.hr)) newRow.hr = linearInterpolate(t, p0.t_s, p0.hr, p1.t_s, p1.hr);
+                                else if (p0.hr != null && !isNaN(p0.hr) && Math.abs(t - p0.t_s) < 0.001) newRow.hr = p0.hr;
+
+                                if (!powerProfileSteps) { 
+                                    if (p0.power != null && !isNaN(p0.power) && p1.power != null && !isNaN(p1.power)) newRow.power = linearInterpolate(t, p0.t_s, p0.power, p1.t_s, p1.power);
+                                    else if (p0.power != null && !isNaN(p0.power) && Math.abs(t - p0.t_s) < 0.001) newRow.power = p0.power;
+                                }
+                                
+                                if (newRow.cadence != null && !isNaN(newRow.cadence)) newRow.cadence = Math.round(newRow.cadence);
+                                if (newRow.hr != null && !isNaN(newRow.hr)) newRow.hr = Math.round(newRow.hr);
+                                if (newRow.power != null && !isNaN(newRow.power) && !powerProfileSteps) newRow.power = Math.round(newRow.power);
+
+                                resampledData.push(newRow);
+                            }
+                        } else { 
+                             originalParsedData.forEach(opd => {
+                                if (opd.t_s != null && !isNaN(opd.t_s)) {
+                                    resampledData.push({
+                                        t_s: opd.t_s, 
+                                        cadence: opd.cadence, vo2: opd.vo2, hr: opd.hr,
+                                        power: (powerProfileSteps) ? null : opd.power,
+                                        blc: null
+                                    });
+                                }
+                            });
+                            if (resampledData.length > 0) showInfo("Data not resampled to 1Hz; using original time points.");
+                        }
+                        if(wasResampled && resampledData.length > 0) showInfo("Main data resampled to 1Hz.");
+                    }
+                } else if (powerProfileSteps && powerProfileSteps.length > 0) {
+                    const uniqueProfileTimes = [...new Set(powerProfileSteps.map(s => s.time))].sort((a,b) => a-b);
+                    uniqueProfileTimes.forEach(time => {
+                        resampledData.push({ t_s: time, cadence: null, vo2: null, hr: null, power: null, blc: null });
+                    });
+                     if(resampledData.length > 0) showInfo("No main 't_s' data found; using 't_s_power' time points for output 't_s'.");
+                } else if (blcMeasurementPoints.length > 0) {
+                     const uniqueBlcTimes = [...new Set(blcMeasurementPoints.map(s => Math.round(s.time)))].sort((a,b) => a-b);
+                     uniqueBlcTimes.forEach(time => {
+                        resampledData.push({ t_s: time, cadence: null, vo2: null, hr: null, power: null, blc: null });
+                    });
+                     if(resampledData.length > 0) showInfo("No main 't_s' or 't_s_power' data found; using rounded 't_s_blc' time points for output 't_s'.");
+                }
+                
+                if (resampledData.length === 0) {
+                    showError("No data available after parsing and resampling attempts.");
+                    return [];
+                }
+
+                console.log("Assigning power to resampled data. Profile steps available:", !!powerProfileSteps);
+                for (let row of resampledData) {
+                    if (powerProfileSteps && powerProfileSteps.length > 0) {
+                        row.power = findPowerForTimeFromProfile(row.t_s, powerProfileSteps);
+                    } 
+                    const powerNum = parseFloat(String(row.power).replace(',','.'));
+                    row.power = (row.power != null && !isNaN(powerNum)) ? String(Math.round(powerNum)) : '';
+                }
+
+                if (blcMeasurementPoints.length > 0) {
+                    for (let row of resampledData) {
+                        const currentTsRounded = Math.round(row.t_s);
+                        let foundBlc = 'N/A'; 
+                        for (const blcPoint of blcMeasurementPoints) {
+                            if (Math.round(blcPoint.time) === currentTsRounded) {
+                                // BLC value is already a string ("1,05", "#NV"), directly assign it.
+                                // The comma will be replaced by a dot for CSV/display later.
+                                foundBlc = blcPoint.value; 
+                            }
+                        }
+                        row.blc = foundBlc;
+                    }
+                }
+
+                resampledData = convertVo2ToMlIfNeeded(resampledData);
+                
+                console.log("First 5 rows of final processed data:", resampledData.slice(0, 5));
+                return resampledData;
+            }
+        });
+    </script>
+</body>
+</html>

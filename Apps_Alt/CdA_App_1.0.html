@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Automatischer Cycling CdA Rechner (mit GPX & Wetterdaten)</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --secondary-color: #6c757d;
+            --accent-color: #17a2b8;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --border-color: #dee2e6;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #f5f5f5; color: var(--dark-color); line-height: 1.6; }
+        .container { display: flex; flex-direction: column; max-width: 1200px; margin: 0 auto; padding: 20px; }
+
+        header {
+            background-color: white; padding: 25px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border: 1px solid var(--border-color);
+        }
+        header h1 { color: var(--primary-color); text-align: center; font-size: 2rem; margin-bottom: 5px; }
+        header p { text-align: center; font-size: 1.1rem; color: #666; }
+
+        .main-layout { display: grid; grid-template-columns: 340px 1fr; gap: 20px; align-items: flex-start; }
+        @media (max-width: 900px) { .main-layout { grid-template-columns: 1fr; } }
+
+        .input-sidebar, .main-content {
+            background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border: 1px solid var(--border-color);
+        }
+        .input-sidebar { position: sticky; top: 20px; }
+        .input-sidebar h2, .main-content h2 {
+            font-size: 1.3rem; color: var(--primary-color); margin-bottom: 20px; text-align: center; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;
+        }
+
+        .input-group { margin-bottom: 18px; }
+        .input-group label { display: block; margin-bottom: 5px; font-weight: 500; font-size: 0.9rem; }
+        .input-group .label-flex { display: flex; justify-content: space-between; align-items: center; }
+        .input-group .value-display { font-weight: bold; color: var(--primary-color); }
+        .input-group input[type="file"] { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.9rem; }
+        .input-group input[type="range"] { -webkit-appearance: none; width: 100%; height: 8px; border-radius: 5px; background: #ddd; outline: none; margin-top: 5px; cursor: pointer; }
+        .input-group input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--primary-color); cursor: pointer; margin-top: -5px; }
+        .input-group input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: var(--primary-color); cursor: pointer; border: none; }
+        .info-text { font-size: 0.8rem; color: #666; margin-top: 4px; display: block; }
+        
+        button {
+            display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 12px 15px; background-color: var(--success-color); color: white; border: none; border-radius: 4px; font-size: 1.1em; cursor: pointer; transition: background-color 0.3s ease; margin-top: 20px;
+        }
+        button:hover { background-color: #218838; }
+        button:disabled { background-color: #aaa; cursor: not-allowed; }
+        .loader { border: 4px solid rgba(255,255,255,0.3); border-radius: 50%; border-top: 4px solid white; width: 20px; height: 20px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        #status-area {
+            background-color: var(--light-color); border-left: 4px solid var(--accent-color); padding: 15px; margin-top: 15px; border-radius: 4px; display: none;
+        }
+        #status-area p { margin: 0; font-weight: 500; }
+        #status-area.success { border-left-color: var(--success-color); }
+        #status-area.error { border-left-color: var(--danger-color); }
+
+        #results-area { display: none; }
+        .results-summary {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; padding: 15px 0;
+        }
+        .summary-card {
+            padding: 15px; background-color: var(--light-color); border-radius: 8px; text-align: center; border: 1px solid var(--border-color);
+        }
+        .summary-card .value { font-size: 2rem; font-weight: bold; color: var(--primary-color); }
+        .summary-card .value .unit { font-size: 1rem; font-weight: normal; color: #666; margin-left: 5px; }
+        .summary-card .label { font-size: 0.9rem; color: #333; }
+        #cda-chart-container { width: 100%; min-height: 350px; margin-top: 20px; }
+        
+        .explanation-section { background-color: #fff; padding: 20px; border-radius: 8px; margin-top: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border: 1px solid var(--border-color); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Automatischer Cycling CdA Rechner</h1>
+        <p>Analysieren Sie eine GPX-Datei mit Leistungsdaten und historischen Wetterdaten, um Ihren CdA-Wert zu finden.</p>
+    </header>
+
+    <div class="main-layout">
+        <aside class="input-sidebar">
+            <h2>1. Parameter & Fahrt-Daten</h2>
+            <div class="input-group">
+                <label for="gpxFile">GPX-Datei hochladen</label>
+                <input type="file" id="gpxFile" accept=".gpx">
+                <span class="info-text">Muss Zeit-, Höhen- und Leistungsdaten enthalten.</span>
+            </div>
+            <div class="input-group"><div class="label-flex"><label for="riderMass">Fahrermasse</label><span id="riderMass-value" class="value-display">75.0 kg</span></div><input type="range" id="riderMass" min="40" max="120" value="75" step="0.5"></div>
+            <div class="input-group"><div class="label-flex"><label for="bikeMass">Radmasse</label><span id="bikeMass-value" class="value-display">8.5 kg</span></div><input type="range" id="bikeMass" min="5" max="20" value="8.5" step="0.1"></div>
+            <div class="input-group"><div class="label-flex"><label for="crr">Rollwiderstand (Crr)</label><span id="crr-value" class="value-display">0.0040</span></div><input type="range" id="crr" min="0.0020" max="0.0080" value="0.0040" step="0.0001"></div>
+            <div class="input-group"><div class="label-flex"><label for="airDensity">Luftdichte (ρ)</label><span id="airDensity-value" class="value-display">1.225 kg/m³</span></div><input type="range" id="airDensity" min="0.95" max="1.35" value="1.225" step="0.001"></div>
+            
+            <button id="calculateBtn">
+                <span>CdA Berechnen</span>
+                <div id="loader" class="loader" style="display: none;"></div>
+            </button>
+            <div id="status-area">
+                <p id="status-text"></p>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <h2>2. Ergebnisse der Analyse</h2>
+            <div id="welcome-message">
+                <p>Bitte laden Sie eine GPX-Datei hoch, passen Sie bei Bedarf Ihre Parameter an und klicken Sie auf "CdA Berechnen".</p>
+                <p style="margin-top: 15px;">Die App ruft dann automatisch die Wetterdaten für Ihre Fahrt ab und analysiert Ihre Leistung, um den CdA-Wert zu berechnen.</p>
+            </div>
+            <div id="results-area">
+                <div class="results-summary">
+                    <div class="summary-card"><div id="avgCda" class="value">---<span class="unit">m²</span></div><div class="label">Durchschnittl. CdA</div></div>
+                    <div class="summary-card"><div id="avgPower" class="value">---<span class="unit">W</span></div><div class="label">Durchschnittl. Leistung</div></div>
+                    <div class="summary-card"><div id="avgSpeed" class="value">---<span class="unit">km/h</span></div><div class="label">Durchschnittl. Geschwindigkeit</div></div>
+                    <div class="summary-card"><div id="dataPoints" class="value">---</div><div class="label">Analysierte Datenpunkte</div></div>
+                </div>
+                <div id="cda-chart-container"><canvas id="cdaChart"></canvas></div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // --- KONSTANTEN & GLOBALE VARIABLEN ---
+    const g = 9.80665; // Erdbeschleunigung
+    const Ec = 0.977;  // Effizienz des Antriebsstrangs (angenommen)
+    const Fw = 0.0;    // Rad-Aerodynamik (wird in CdA einbezogen)
+    let cdaChart = null;
+
+    // --- DOM-ELEMENTE ---
+    const gpxFileInput = document.getElementById('gpxFile');
+    const riderMassInput = document.getElementById('riderMass');
+    const bikeMassInput = document.getElementById('bikeMass');
+    const crrInput = document.getElementById('crr');
+    const airDensityInput = document.getElementById('airDensity');
+    const calculateBtn = document.getElementById('calculateBtn');
+    const loader = document.getElementById('loader');
+    const statusArea = document.getElementById('status-area');
+    const statusText = document.getElementById('status-text');
+    const welcomeMessage = document.getElementById('welcome-message');
+    const resultsArea = document.getElementById('results-area');
+    const avgCdaSpan = document.getElementById('avgCda');
+    const avgPowerSpan = document.getElementById('avgPower');
+    const avgSpeedSpan = document.getElementById('avgSpeed');
+    const dataPointsSpan = document.getElementById('dataPoints');
+
+    // --- EVENT LISTENER ---
+    riderMassInput.addEventListener('input', (e) => document.getElementById('riderMass-value').textContent = `${parseFloat(e.target.value).toFixed(1)} kg`);
+    bikeMassInput.addEventListener('input', (e) => document.getElementById('bikeMass-value').textContent = `${parseFloat(e.target.value).toFixed(1)} kg`);
+    crrInput.addEventListener('input', (e) => document.getElementById('crr-value').textContent = parseFloat(e.target.value).toFixed(4));
+    airDensityInput.addEventListener('input', (e) => document.getElementById('airDensity-value').textContent = `${parseFloat(e.target.value).toFixed(3)} kg/m³`);
+    calculateBtn.addEventListener('click', handleCalculation);
+
+    // --- HILFSFUNKTIONEN ---
+    const toRad = (deg) => deg * Math.PI / 180;
+    const toDeg = (rad) => rad * 180 / Math.PI;
+
+    function setStatus(message, type = 'info') {
+        statusArea.style.display = 'block';
+        statusText.textContent = message;
+        statusArea.className = type; // 'success', 'error', oder ''
+    }
+
+    function haversineDistance(p1, p2) {
+        const R = 6371e3;
+        const lat1 = toRad(p1.lat), lon1 = toRad(p1.lon);
+        const lat2 = toRad(p2.lat), lon2 = toRad(p2.lon);
+        const dLat = lat2 - lat1;
+        const dLon = lon2 - lon1;
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    }
+
+    function calculateBearing(p1, p2) {
+        const lat1 = toRad(p1.lat), lon1 = toRad(p1.lon);
+        const lat2 = toRad(p2.lat), lon2 = toRad(p2.lon);
+        const y = Math.sin(lon2 - lon1) * Math.cos(lat2);
+        const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(lon2 - lon1);
+        return (toDeg(Math.atan2(y, x)) + 360) % 360;
+    }
+
+    // --- DATENVERARBEITUNG ---
+
+    function parseGPX(gpxText) {
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(gpxText, "text/xml");
+        const trackPoints = xmlDoc.getElementsByTagName('trkpt');
+        const data = [];
+
+        if (trackPoints.length === 0) throw new Error("Keine <trkpt> Elemente in der GPX-Datei gefunden.");
+
+        for (const pt of trackPoints) {
+            const timeEl = pt.getElementsByTagName('time')[0];
+            const eleEl = pt.getElementsByTagName('ele')[0];
+            const extEl = pt.getElementsByTagName('extensions')[0];
+            
+            if (timeEl && eleEl && extEl) {
+                const powerEl = extEl.querySelector('power, [nodeName="power"], [nodeName="gpxtpx:power"]');
+                if (powerEl) {
+                    data.push({
+                        lat: parseFloat(pt.getAttribute('lat')),
+                        lon: parseFloat(pt.getAttribute('lon')),
+                        ele: parseFloat(eleEl.textContent),
+                        time: new Date(timeEl.textContent),
+                        power: parseInt(powerEl.textContent, 10)
+                    });
+                }
+            }
+        }
+        if (data.length < 50) {
+            throw new Error(`Nicht genügend Datenpunkte mit Leistung gefunden (nur ${data.length}). Stellen Sie sicher, dass die GPX-Datei Leistungsdaten enthält.`);
+        }
+        return data;
+    }
+    
+    async function fetchWindData(gpxData) {
+        const startDate = gpxData[0].time.toISOString().split('T')[0];
+        const endDate = gpxData[gpxData.length - 1].time.toISOString().split('T')[0];
+        const lat = gpxData[Math.floor(gpxData.length / 2)].lat.toFixed(4);
+        const lon = gpxData[Math.floor(gpxData.length / 2)].lon.toFixed(4);
+
+        const url = `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${startDate}&end_date=${endDate}&hourly=windspeed_10m,winddirection_10m&timezone=auto`;
+        
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`Wetter-API-Fehler: ${response.statusText}`);
+        }
+        const weatherData = await response.json();
+        if (weatherData.error) {
+             throw new Error(`Wetter-API-Fehler: ${weatherData.reason}`);
+        }
+        return weatherData.hourly;
+    }
+
+    function processAndMergeData(gpxData, weatherData) {
+        const segments = [];
+        const weatherMap = {};
+        weatherData.time.forEach((t, i) => {
+            weatherMap[t] = {
+                windSpeed: weatherData.windspeed_10m[i] / 3.6, // m/s
+                windDir: weatherData.winddirection_10m[i]
+            };
+        });
+
+        for (let i = 1; i < gpxData.length; i++) {
+            const p1 = gpxData[i - 1];
+            const p2 = gpxData[i];
+            const timeDiff = (p2.time - p1.time) / 1000;
+            if (timeDiff <= 0) continue;
+
+            const distance = haversineDistance(p1, p2);
+            const eleDiff = p2.ele - p1.ele;
+            const speed = distance / timeDiff; // m/s
+            const gradient = distance > 1 ? eleDiff / distance : 0;
+            
+            const hourlyTimeKey = p2.time.toISOString().substring(0, 13) + ":00";
+            const weather = weatherMap[hourlyTimeKey];
+
+            if (weather) {
+                segments.push({
+                    speed: speed,
+                    gradient: gradient,
+                    power: p2.power,
+                    bearing: calculateBearing(p1, p2),
+                    ...weather
+                });
+            }
+        }
+        return segments;
+    }
+    
+    function calculateCdAForRide(segments, params) {
+        const cdaResults = [];
+        let validPowerSum = 0;
+        let validSpeedSum = 0;
+        
+        segments.forEach((seg, i) => {
+            if (i === 0) return;
+            const prev_seg = segments[i - 1];
+            
+            // --- FILTER ---
+            // Geschwindigkeit zu niedrig/hoch
+            if (seg.speed < 5.5 || seg.speed > 20) return; // ~20-72 km/h
+            // Leistung zu niedrig
+            if (seg.power < 80) return;
+            // Extreme Steigungen vermeiden (GPS-Fehler)
+            if (Math.abs(seg.gradient) > 0.15) return;
+            // Starke Beschleunigung/Verzögerung vermeiden
+            const acceleration = (seg.speed - prev_seg.speed);
+            if (Math.abs(acceleration) > 0.5) return;
+
+            // --- BERECHNUNG ---
+            const { m_T, Crr, rho } = params;
+            const { speed, gradient, power, bearing, windSpeed, windDir } = seg;
+
+            const P_gpx = power;
+            const Vg = speed;
+            const Gr = gradient;
+
+            // Effektive Windgeschwindigkeit (Gegenwind/Rückenwind-Komponente)
+            const Vw_eff = windSpeed * Math.cos(toRad(windDir - bearing));
+            const Va = Vg + Vw_eff; // Relative Luftgeschwindigkeit
+            if (Math.abs(Va) < 1.0) return;
+            
+            const P_RR = Crr * m_T * g * Math.cos(Math.atan(Gr)) * Vg;
+            const P_PE = m_T * g * Math.sin(Math.atan(Gr)) * Vg;
+            
+            // Kinetische Energie (Leistung für Beschleunigung)
+            const P_KE = m_T * Vg * acceleration;
+
+            const P_net_required = P_RR + P_PE + P_KE;
+            const P_aero_available = (P_gpx * Ec) - P_net_required;
+
+            if (P_aero_available <= 20) return;
+
+            const denominator = 0.5 * rho * Math.pow(Va, 2) * Vg;
+            if (denominator < 1) return;
+
+            const cda = P_aero_available / denominator;
+            
+            // Unrealistische CdA-Werte filtern
+            if (cda > 0.15 && cda < 0.5) {
+                cdaResults.push(cda);
+                validPowerSum += P_gpx;
+                validSpeedSum += Vg;
+            }
+        });
+
+        if (cdaResults.length < 20) {
+            throw new Error(`Analyse fehlgeschlagen: Nur ${cdaResults.length} gültige Datenpunkte gefunden. Die Datenqualität könnte zu schlecht sein oder die Fahrt ist ungeeignet (z.B. Stop-and-Go, MTB).`);
+        }
+        
+        const avgCda = cdaResults.reduce((a, b) => a + b, 0) / cdaResults.length;
+        const avgPower = validPowerSum / cdaResults.length;
+        const avgSpeed = (validSpeedSum / cdaResults.length) * 3.6; // km/h
+
+        return { avgCda, avgPower, avgSpeed, cdaPoints: cdaResults, totalPoints: segments.length };
+    }
+
+    // --- VISUALISIERUNG ---
+    function updateChart(cdaPoints) {
+        const ctx = document.getElementById('cdaChart').getContext('2d');
+        const labels = cdaPoints.map((_, i) => i + 1);
+
+        if (cdaChart) cdaChart.destroy();
+        cdaChart = new Chart(ctx, {
+            type: 'line',
+            data: { labels, datasets: [{
+                label: 'CdA (m²)', data: cdaPoints, borderColor: 'rgba(0, 123, 255, 0.8)', backgroundColor: 'rgba(0, 123, 255, 0.1)', borderWidth: 1.5, fill: true, pointRadius: 0, tension: 0.4
+            }]},
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                scales: {
+                    x: { title: { display: true, text: 'Gefilterte Datenpunkte' }, ticks: { maxTicksLimit: 10 } },
+                    y: { title: { display: true, text: 'CdA (m²)' }, suggestedMin: 0.18, suggestedMax: 0.45 }
+                },
+                plugins: { tooltip: { mode: 'index', intersect: false }, legend: { display: false } }
+            }
+        });
+    }
+
+    // --- HAUPTSTEUERUNG ---
+    async function handleCalculation() {
+        const file = gpxFileInput.files[0];
+        if (!file) {
+            alert("Bitte wählen Sie zuerst eine GPX-Datei aus.");
+            return;
+        }
+
+        calculateBtn.disabled = true;
+        loader.style.display = 'block';
+        resultsArea.style.display = 'none';
+        welcomeMessage.style.display = 'block';
+
+        try {
+            setStatus("1/4: Lese GPX-Datei...");
+            const fileContent = await file.text();
+            const gpxData = parseGPX(fileContent);
+
+            setStatus("2/4: Rufe historische Wetterdaten ab...");
+            const weatherData = await fetchWindData(gpxData);
+
+            setStatus("3/4: Führe Daten zusammen...");
+            const rideSegments = processAndMergeData(gpxData, weatherData);
+
+            const params = {
+                m_T: parseFloat(riderMassInput.value) + parseFloat(bikeMassInput.value),
+                Crr: parseFloat(crrInput.value),
+                rho: parseFloat(airDensityInput.value)
+            };
+            
+            setStatus("4/4: Berechne CdA-Werte...");
+            const results = calculateCdAForRide(rideSegments, params);
+
+            // Ergebnisse anzeigen
+            avgCdaSpan.innerHTML = `${results.avgCda.toFixed(3)}<span class="unit">m²</span>`;
+            avgPowerSpan.innerHTML = `${results.avgPower.toFixed(0)}<span class="unit">W</span>`;
+            avgSpeedSpan.innerHTML = `${results.avgSpeed.toFixed(1)}<span class="unit">km/h</span>`;
+            dataPointsSpan.textContent = `${results.cdaPoints.length} / ${results.totalPoints}`;
+            updateChart(results.cdaPoints);
+
+            welcomeMessage.style.display = 'none';
+            resultsArea.style.display = 'block';
+            setStatus("Analyse erfolgreich abgeschlossen!", "success");
+
+        } catch (error) {
+            console.error(error);
+            setStatus(`Fehler: ${error.message}`, "error");
+        } finally {
+            calculateBtn.disabled = false;
+            loader.style.display = 'none';
+        }
+    }
+});
+</script>
+
+</body>
+</html>

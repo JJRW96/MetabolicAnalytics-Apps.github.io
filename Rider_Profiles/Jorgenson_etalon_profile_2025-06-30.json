@@ -1,0 +1,60 @@
+{
+  "settings": {
+    "body_mass": 68,
+    "bike_mass": 7.2,
+    "Crr": 0.0035,
+    "CdA": 0.3,
+    "rho": 1.1,
+    "drivetrainLoss": 2.5
+  },
+  "performances": [
+    {
+      "label": "Côte de Domancy to Combloux - 2025",
+      "lengthKm": 8.69,
+      "elevationM": 625,
+      "etalonWkg": 6.46,
+      "durationS": 1280,
+      "absolute_power": 429,
+      "relative_power": 6.3,
+      "gradient": 7.19,
+      "speedKmh": 24.44,
+      "VAM": 1758
+    },
+    {
+      "label": "Col de la Couillole - 2024",
+      "lengthKm": 15.61,
+      "elevationM": 1175,
+      "etalonWkg": 6.3,
+      "durationS": 2450,
+      "absolute_power": 418,
+      "relative_power": 6.15,
+      "gradient": 7.53,
+      "speedKmh": 22.94,
+      "VAM": 1727
+    },
+    {
+      "label": "San Luca - 2024",
+      "lengthKm": 2.1,
+      "elevationM": 197,
+      "etalonWkg": 7.46,
+      "durationS": 342,
+      "absolute_power": 495,
+      "relative_power": 7.29,
+      "gradient": 9.38,
+      "speedKmh": 22.11,
+      "VAM": 2074
+    },
+    {
+      "label": "Le Collet d'Allevard - 2024",
+      "lengthKm": 11.23,
+      "elevationM": 954,
+      "etalonWkg": 6.39,
+      "durationS": 1915,
+      "absolute_power": 425,
+      "relative_power": 6.25,
+      "gradient": 8.5,
+      "speedKmh": 21.11,
+      "VAM": 1793
+    }
+  ]
+}

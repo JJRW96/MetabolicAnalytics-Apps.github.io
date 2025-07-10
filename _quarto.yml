@@ -25,10 +25,18 @@ website:
     collapse-level: 3 #Ab welchem Level die Unterpunkt nicht mehr angezeigt werden. Bei 2 wird bspw. bei Energieumsatz die Unterpunkte eingeklappt
     contents:
        - about.qmd
-       - Mader_Modell.qmd
+       - section: Metabolic_Model_Apps/index_Metabolic_Model_Apps.qmd
+         contents:
+           - section: Metabolic_Model_Apps/Power_Profile/Power_Profile.qmd
+             contents:
+              - Metabolic_Model_Apps/Power_Profile/Etalon_Calculator.qmd         
+           - Metabolic_Model_Apps/Metabolic_Profile.qmd
+           - Metabolic_Model_Apps/Mader_Modell.qmd
+       - section: Cycling_Apps/index_Cycling_Apps.qmd
+         contents: 
+           - Cycling_Apps//Cycling_Forces.qmd
+           - Cycling_Apps//CdA_App.qmd
        - Cadence_Test.qmd
-       - Critical_Power.qmd
-       - Cycling_Forces.qmd
        
 lang: en
 number-sections: true

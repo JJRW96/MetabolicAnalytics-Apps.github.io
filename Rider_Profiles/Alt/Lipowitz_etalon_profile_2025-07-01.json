@@ -1,0 +1,60 @@
+{
+  "settings": {
+    "body_mass": 67,
+    "bike_mass": 7.2,
+    "Crr": 0.0035,
+    "CdA": 0.3,
+    "rho": 1.1,
+    "drivetrainLoss": 2.5
+  },
+  "performances": [
+    {
+      "label": "Côte de Domancy to Combloux - 2025",
+      "lengthKm": 8.69,
+      "elevationM": 625,
+      "etalonWkg": 6.6,
+      "durationS": 1272,
+      "absolute_power": 432,
+      "relative_power": 6.45,
+      "gradient": 7.19,
+      "speedKmh": 24.59,
+      "VAM": 1769
+    },
+    {
+      "label": "Valmenier 1800 - 2025",
+      "lengthKm": 16.5,
+      "elevationM": 1122,
+      "etalonWkg": 6.26,
+      "durationS": 2452,
+      "absolute_power": 409,
+      "relative_power": 6.11,
+      "gradient": 6.8,
+      "speedKmh": 24.23,
+      "VAM": 1647
+    },
+    {
+      "label": "Alto de Moncavillo - 2024",
+      "lengthKm": 8.48,
+      "elevationM": 765,
+      "etalonWkg": 6.45,
+      "durationS": 1518,
+      "absolute_power": 424,
+      "relative_power": 6.32,
+      "gradient": 9.02,
+      "speedKmh": 20.11,
+      "VAM": 1814
+    },
+    {
+      "label": "Sierra de la Cazorla - 2024",
+      "lengthKm": 4.85,
+      "elevationM": 349,
+      "etalonWkg": 6.63,
+      "durationS": 703,
+      "absolute_power": 434,
+      "relative_power": 6.48,
+      "gradient": 7.2,
+      "speedKmh": 24.84,
+      "VAM": 1787
+    }
+  ]
+}

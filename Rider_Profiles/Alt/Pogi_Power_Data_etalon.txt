@@ -1,0 +1,15 @@
+        powerData: [
+            { power: 7.05, duration: 16 * 60 + 58, label: "La Turbie - 2024 | 8.05km | 5.83% | 469m | 28.47km/h | VAM: 1644m/h" },
+            { power: 6.52, duration: 39 * 60 + 17, label: "La Couillole - 2024 | 15.61km | 7.53% | 1175m | 23.77km/h | VAM: 1800m/h" },
+            { power: 6.98, duration: 39 * 60 + 50, label: "Plateau de Beille - 2024 | 15.74km | 7.94% | 1250m | 23.71km/h | VAM: 1882m/h" },
+            { power: 6.85, duration: 27 * 60 + 50, label: "Pla d'Adet - 2024 | 10.58km | 7.99% | 845m | 22.81km/h | VAM: 1821m/h" },
+            { power: 6.83, duration: 37 * 60 + 44, label: "Isola 2000 - 2024 | 15.7km | 7.24% | 1136m | 24.96km/h | VAM: 1806m/h" },
+            { power: 7.50, duration: 7 * 60 + 23, label: "Puy Mary - 2024 | 2.08km | 12.98% | 270m | 16.9km/h | VAM: 2200m/h" },
+            { power: 7.02, duration: 13 * 60 + 44, label: "Collada de Sant Isidre - 2024 | 5.00km | 8.78% | 439m | 21.84km/h | VAM: 1916m/h" },
+            { power: 7.89, duration: 5 * 60 + 27, label: "San Luca - 2024 | 2.10km | 9.38% | 197m | 23.12km/h | VAM: 2176m/h" },
+            { power: 6.19, duration: 51 * 60 + 42, label: "Monte Grappa - 2024 | 18.1km | 8.19% | 1482m | 21.01km/h | VAM: 1720m/h" },
+            { power: 7.50, duration: 8 * 60 + 59, label: "Cipressa - 2025 | 5.58km | 4.2% | 229m | 37.6km/h | VAM: 1540m/h" },
+            { power: 9.70, duration: 1 * 60 + 01, label: "Cipressa Attack - 2025" }, // Keine zusätzlichen Geo-Daten für Cipressa Attack vorhanden
+            { power: 8.30, duration: 2 * 60 + 49, label: "Oude Kwaremont - 2025 | 1.48km | 4.8% | 64m | 31.7km/h | VAM: 1370m/h" }
+        ]
+    },

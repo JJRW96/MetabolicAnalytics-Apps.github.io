@@ -1,0 +1,48 @@
+JJRW:
+⌀ Leistung 2 s
+1206 W
+MAX: 1209 W
+
+⌀ Leistung 20 s
+1075 W
+SD: 82 W
+
+⌀ Leistung 4 min
+468 W
+SD: 51 W
+
+⌀ Leistung 12 min
+418 W
+SD: 43 W 
+
+Max. Sauerstoffaufnahme
+
+    Absolute VO2max
+    5916 ml/min
+    Relative VO2max
+    65,7 ml/min/kg
+    Leistung bei VO2max
+    471 W
+
+Max. Laktatbildungssrate
+
+    VLamax
+    0,52 mmol/l/s 
+
+Anaerobe Schwelle
+
+    Absolute Schwellenleistung
+    370 W
+    Relative Schwellenleistung
+    4,11 W/kg
+    Ausnutzung der VO2max
+    78,46% 
+
+Max. Fettverbrennung
+
+    Absolute Leistung bei max. Fettverbrennung
+    257 W
+    Relative Leistung bei max. Fettverbrennung
+    2,86 W/kg
+    Ausnutzung der VO2max
+    54,57% 

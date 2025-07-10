@@ -1,0 +1,171 @@
+---
+title: "Power Profile"
+format:
+  html:
+    resources: 
+      - shinylive-sw.js
+      
+filters:
+  - shinylive
+
+execute:
+  message: false
+  engine: knitr
+  echo: false
+  warning: false
+  error: false
+bibliography: references_all.bib
+lang: eng
+number-sections: false
+editor: 
+  markdown: 
+    wrap: 72
+    
+nocite: |
+  @Hintzy-Cloutier2003, @Dunst2025, @Dunst2024; @Mader2003; @Hauser2014; @Ji2021; @Nolte2022; @Mader1984; @Mader1986; @Mader1996; @Oezyener2001; @Jeukendrup2005; @Brooks2004; @Brooks2012; @Jeukendrup2019; @Stegemann1991; @Friedlander1998; @Friedlander1999
+    
+---
+
+```{css}
+#| echo: false
+p {
+  text-align: justify
+}
+caption, .figure-caption {
+  text-align: left;
+}
+figure.quarto-float-tbl figcaption {
+  text-align: left !important;
+}
+figure figcaption {
+  text-align: justify;
+}
+```
+
+
+<div style="position: relative; width: 100%; height: 800px;">
+  <iframe src="Power_Profile_App_2.8.html" style="position: absolute; width: 100%; height: 100%; border: none;"></iframe>
+</div>
+
+<br>
+
+[Fullscreen-Link: Power Profile Analyzer  ](/Power_Profile_App_2.8.html)
+
+# Power Profile Analyzer: A Detailed Feature Guide
+
+The **Composite Power Profile Analyzer** is a sophisticated, web-based tool designed for the in-depth analysis of cycling performance data. Its primary function is to process raw activity files (from sources like FIT, TCX, or GPX) and transform them into a comprehensive and actionable power profile. The application serves as a crucial "top-down" analytical engine, starting with an athlete's real-world performance data to model their maximal power-duration capabilities.
+
+The core workflow of the application can be broken down into several key stages:
+
+1.  **Data Aggregation and Parsing:** The app can ingest multiple activity files from different training sessions or races. It parses these files to extract the fundamental time-stamped power data.
+2.  **Mean Maximal Power (MMP) Curve Generation:** For each individual file, the app calculates the Mean Maximal Power (MMP) curve, which represents the highest average power achieved for every possible duration within that activity.
+3.  **Composite Profile Synthesis:** The app's key innovation is its ability to create a single, "best-ever" composite power curve by taking the peak MMP value for each duration across *all* uploaded files. This composite profile represents the athlete's absolute best performance capabilities based on the provided data.
+4.  **Power-Duration Modeling:** The composite curve is then fitted with a selection of established mathematical models (e.g., 2-Parameter Critical Power, OmPD, Power-Law) to derive key performance parameters like Critical Power (CP) and W'.
+5.  **Key Effort Identification and Refinement:** A powerful algorithm automatically identifies "breakthrough" performances—points on the curve that significantly exceed the model's prediction. This curated list can be further refined by the user.
+6.  **Profile Export:** The final, refined profile (either the full composite curve or just the key efforts) can be exported as a `.json` file, specifically formatted for seamless import into metabolic modeling applications, such as the *Integrated Metabolic & Power Profile* app.
+
+This tool is invaluable for athletes and coaches who wish to build a robust and accurate picture of their power profile from a wealth of training data, moving beyond the limitations of single-session analysis.
+
+## The Sidebar: The Control Center
+
+The sidebar is the primary interface for controlling the entire analysis workflow, organized into logical tabs that guide the user from file upload to final export.
+
+### Tab 1: Analysis & Settings
+
+This is the main control panel for data input, athlete configuration, and model selection.
+
+#### **1. Upload Activity Files**
+
+This section handles the initial data ingestion.
+
+*   **File Drop Area:** Users can drag and drop multiple activity files or click to open a file selection dialog. The app supports three common formats:
+    *   **`.fit` (Flexible and Interoperable Data Transfer):** The standard format for modern Garmin devices and many other GPS computers. It is a binary format that the app parses using the `fit-file-parser.js` library.
+    *   **`.tcx` (Training Center XML):** An XML-based format that also contains detailed workout data, including power.
+    *   **`.gpx` (GPS Exchange Format):** An XML-based format primarily for GPS tracks, but it can contain power data within its `<extensions>` tags, which the app is equipped to parse.
+*   **Analysis Process:** Once files are uploaded, the app performs a multi-step analysis "under the hood":
+    1.  **Parsing:** Each file is read and the raw, time-stamped power data points are extracted.
+    2.  **Interpolation:** The raw data, which may have variable recording intervals, is interpolated to a consistent 1-second resolution. This ensures that the subsequent MMP calculation is accurate and standardized.
+    3.  **MMP Calculation:** For each individual activity file, the app calculates the Mean Maximal Power (MMP) curve. This is achieved using a sliding window algorithm: for every duration *d* (from 1 second up to the total activity duration), the algorithm slides a window of size *d* across the 1-second power data array, calculating the average power for each window position. The highest average found for that duration *d* becomes the MMP value for that duration.
+    4.  **Composite Curve Synthesis:** After calculating the MMP curve for every uploaded file, the app creates the final composite power curve. For each second of duration (e.g., 1s, 2s, ..., 3600s, etc.), it compares the MMP value from all the individual files and retains only the single highest value. The result is a single curve representing the athlete's absolute best performance across all provided activities.
+*   **Show Key Efforts (Checkbox):** This toggle controls the visibility of "Key Effort" markers on the main plot. These markers highlight significant "breakthrough" performances. The logic for their selection is based on a comparison between the athlete's actual composite curve and the power predicted by the fitted mathematical model:
+    *   **Selection Logic:** The app divides the power curve into time "buckets" (e.g., 1-3 min, 5-10 min, etc.). Within each bucket, it identifies the data point that has the highest *positive* percentage deviation from the fitted model line.
+    *   **Special Rule:** For critical endurance ranges (e.g., around the 5 to 60-minute mark), if no data point lies *above* the model's prediction, the algorithm pragmatically selects the point with the *smallest negative* deviation. This ensures that even in a well-modeled profile, a representative point is chosen for these important durations.
+    *   **Protected Efforts:** The maximal power for 1 second and 20 seconds are always identified and protected as key efforts, given their physiological significance for neuromuscular and glycolytic power.
+
+#### **2. Athlete & Unit Settings**
+
+This section allows for personalization and sets the units for display.
+
+*   **Gender, Age, Height:** These anthropometric details are primarily collected for compatibility when exporting the profile for use in other applications that may require them for metabolic calculations (like the *Integrated Metabolic & Power Profile* app).
+*   **Body Mass (kg):** A critical input. This value is used to calculate and display mass-relative power (in W/kg) if the user chooses.
+*   **Global Power Unit (Toggle):** This switch (`Use Absolute Units (W)`) determines how power data is displayed throughout the application—on the plot's Y-axis, in the summary tables, and in the data lists. When checked, all values are in absolute Watts (W). When unchecked, values are in Watts per kilogram (W·kg⁻¹). This setting only affects visualization; the underlying model fitting is handled internally to ensure consistency.
+
+#### **3. Power-Duration Model & Plot**
+
+This section configures the mathematical modeling and visualization of the composite power curve.
+
+*   **Power-Duration Model (Dropdown):** Selects the model to be fitted to the composite power data. The options are the same as in the metabolic app:
+    *   **2-Parameter CP (Hyperbolic):** The classic model where power is the sum of a sustainable component (CP) and an unsustainable component (W') that depletes over time [@Monod1965].
+        $$ P(t) = CP + \frac{W'}{t} $$
+        *   **Pros:** Well-established; the parameters are physiologically interpretable (CP as a metabolic threshold, W' as anaerobic work capacity).
+        *   **Cons:** Unrealistic for very short durations (predicts infinite power as t→0) and very long durations (predicts no fatigue below CP).
+        *   **Data:** Best suited for efforts in the "severe" intensity domain, typically from 2 to 20 minutes. Requires 3-5 reliable data points for a robust fit [@Leo2022].
+    *   **Omni-Domain (OmPD):** A 4-parameter extension of the 2P-CP model, designed for a more realistic fit across a wider range of durations, including prolonged endurance [@Puchowicz2020]. It adds a maximal power parameter ($P_{max}$) to anchor the short end of the curve and a fatigue parameter (A) to model the performance decline during very long efforts.
+        $$ P(t) = 
+        \begin{cases} 
+        \frac{W'_{\text{eff}}(t)}{t} + CP & \text{if } t \le 1800s \\
+        \frac{W'_{\text{eff}}(t)}{t} + CP - A \cdot \ln(\frac{t}{1800}) & \text{if } t > 1800s
+        \end{cases}
+        $$
+        Where $W'_{\text{eff}}(t) = W' \cdot (1 - e^{-t/\tau})$ and $\tau = W' / (P_{max} - CP)$.
+        *   **Pros:** Aims to model the entire power curve, from sprints to ultra-endurance.
+        *   **Cons:** More complex; requires more data points (≥4, including efforts >30 min) for a stable fit.
+        *   **Virtual Points:** To improve stability, the app automatically adds a virtual 20s data point (based on the "Best 20s Avg. Power" input) if no real data exists in the 1-35s range when this model is selected.
+    *   **Power-Law:** A simple, robust 2-parameter model where power is a power function of time.
+        $$ P(t) = S \cdot t^{E-1} $$
+        *   **Pros:** Often provides an excellent mathematical fit across all durations with as few as two data points.
+        *   **Cons:** The parameters (S and E) are less directly interpretable as physiological thresholds compared to CP and W'.
+        
+        
+*   **Customize Fitting Range (Toggle & Sliders):** This allows the user to precisely control which portion of the composite power curve is used for the model fitting. By adjusting the "Fitting Start (s)" and "Fitting End (s)" sliders, a user can, for example, focus the fit of a 2P-CP model on the 2-20 minute range to get a more robust CP value, or use the entire curve for a Power-Law model.
+*   **Customize Plot X-Axis (Toggle & Sliders):** These controls adjust the visible time range of the main plot's X-axis *without* affecting the data or the model fit. It is purely a visualization tool for zooming in on specific sections of the power curve (e.g., focusing on sprint performance from 0-60 seconds).
+
+#### **4. Export Profile**
+
+This is the final output stage of the application.
+
+*   **Profile Name:** A text input field allowing the user to assign a descriptive name to the exported profile (e.g., "Pogi - Stage 1").
+*   **Clean Up Key Efforts (Button):** This triggers a sophisticated algorithm designed to refine the list of automatically-identified key efforts, removing redundant points to create a more balanced and representative set for export. The algorithm works as follows:
+    1.  **Protect:** The 1s and 20s efforts are always kept.
+    2.  **Filter:** Efforts that fall significantly below the model's prediction (e.g., deviation < -3%) are removed.
+    3.  **Winner-Takes-All:** The remaining efforts are sorted by their "quality" (i.e., their positive deviation from the model). The algorithm iterates through this sorted list. The highest-quality effort is selected and "claims" a surrounding time window. The size of this window is dynamic: it's wider for longer-duration efforts (e.g., +/- 20% for efforts >30 min) and narrower for shorter ones (e.g., +/- 50% for efforts <1 min). Any other efforts falling within the winner's claimed window are discarded. This process repeats until all efforts have either been selected as a winner or discarded, ensuring the final list is well-distributed across the time spectrum.
+*   **Export Key Efforts Profile (Button):** Exports a `.json` file containing only the curated list of key efforts. This is the recommended export format for use in metabolic modeling, as it provides a set of high-quality, non-redundant maximal efforts.
+*   **Export Full Profile (Button):** Exports a `.json` file containing the *entire* composite power curve (MMP data for every second).
+
+### Tab 2: Composite Power Data
+
+This tab provides a simple, scrollable list of the entire composite Mean Maximal Power curve, showing the duration and the corresponding maximal power value for every second of the profile. Users can manually remove individual data points from this list, which will trigger a refit of the power-duration model.
+
+### Tab 3: Key Efforts
+
+This tab, which appears after the first analysis, displays only the curated list of key efforts identified by the app's algorithm. It provides the same functionality as the "Composite Power Data" tab, allowing users to inspect and manually remove points from this specific list before exporting. This is the primary interface for refining the profile that will be used in other modeling tools.
+
+## The Main Content Area: Visualizations & Outputs
+
+This is where the results of the analysis are graphically and numerically presented.
+
+#### **Power-Duration Profile Plot**
+
+This is the central visualization of the application.
+
+*   **Composite Curve (Light Grey Line with Markers):** The full Mean Maximal Power curve derived from all uploaded files. The markers on this line are color-coded based on their percentage deviation from the fitted model curve, providing an immediate visual assessment of the model's fit. Colors typically range from cool (e.g., blue, for points far below the model) to hot (e.g., red, for points far above the model).
+*   **Fitted Model (Dark Grey Line):** The selected mathematical model (e.g., OmPD) is overlaid on the data. It is drawn as a solid line within the user-defined fitting range and as a dashed line where it is extrapolated.
+*   **Key Efforts (Star Markers):** The identified "breakthrough" efforts are highlighted with large, distinct star markers, making them easy to identify. These markers are also color-coded by their deviation.
+*   **Annotations:** A text box on the plot provides a detailed summary of the fitted model, including its name, the derived parameters (CP, W', S, E, etc.), and the R² value indicating the goodness of fit.
+
+#### **Values Container**
+
+This text area below the plot provides a concise numerical summary of the analysis.
+
+*   **Model Parameters:** It lists the key parameters derived from the fitted model, such as Critical Power (CP) and W', providing both absolute (W, kJ) and relative (W/kg, kJ/kg) values.
+*   **MMP Table:** It displays a table of the maximal mean power values from the composite curve for standard, physiologically relevant durations (e.g., 1s, 15s, 1min, 5min, 20min, 60min), giving a quick performance overview.

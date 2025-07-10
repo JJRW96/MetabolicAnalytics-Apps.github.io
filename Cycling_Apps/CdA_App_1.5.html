@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cycling CdA Analysis & Simulation</title>
+    <!-- Chart.js for diagrams -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <!-- Leaflet.js for the interactive map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #007bff; --secondary-color: #6c757d; --accent-color: #17a2b8;
+            --success-color: #28a745; --danger-color: #dc3545; --light-color: #f8f9fa;
+            --dark-color: #343a40; --border-color: #dee2e6;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #f5f5f5; color: var(--dark-color); line-height: 1.6; }
+        .container { display: flex; flex-direction: column; max-width: 1200px; margin: 0 auto; padding: 20px; }
+
+        header { background-color: white; padding: 25px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border: 1px solid var(--border-color); }
+        h1 { color: var(--primary-color); text-align: center; font-size: 2rem; margin-bottom: 5px; }
+        header p { text-align: center; font-size: 1.1rem; color: #666; }
+
+        .main-layout { display: grid; grid-template-columns: 340px 1fr; gap: 20px; align-items: flex-start; }
+        @media (max-width: 900px) { .main-layout { grid-template-columns: 1fr; } }
+
+        .input-sidebar, .main-content { background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border: 1px solid var(--border-color); }
+        .input-sidebar { position: sticky; top: 20px; }
+        h2 { font-size: 1.3rem; color: var(--primary-color); margin-bottom: 20px; text-align: center; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
+
+        .input-group { margin-bottom: 18px; }
+        .input-group label { display: block; margin-bottom: 5px; font-weight: 500; font-size: 0.9rem; }
+        .input-group .label-flex { display: flex; justify-content: space-between; align-items: center; }
+        .input-group .value-display { font-weight: bold; color: var(--primary-color); }
+        .input-group input[type="file"] { display: none; /* Hide original input */ }
+        .input-group input[type="range"] { -webkit-appearance: none; width: 100%; height: 8px; border-radius: 5px; background: #ddd; outline: none; margin-top: 5px; cursor: pointer; }
+        .input-group input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--primary-color); cursor: pointer; margin-top: -5px; }
+        
+        /* Custom File Input Styles */
+        .custom-file-upload {
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 8px;
+            cursor: pointer;
+            width: 100%;
+            background-color: white;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+        }
+        .custom-file-upload .button-text {
+            background-color: #e9ecef;
+            padding: 4px 12px;
+            border-radius: 4px;
+            border: 1px solid #ced4da;
+            margin-right: 10px;
+            white-space: nowrap;
+            font-size: 0.9rem;
+        }
+        .custom-file-upload .file-name {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+
+        button { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 12px 15px; background-color: var(--success-color); color: white; border: none; border-radius: 4px; font-size: 1.1em; cursor: pointer; transition: background-color 0.3s ease; margin-top: 20px; }
+        button:hover { background-color: #218838; }
+        button:disabled { background-color: #aaa; cursor: not-allowed; }
+        #smoothBtn, #runSimulationBtn { background-color: var(--accent-color); margin-top: 10px; }
+
+        .loader { border: 4px solid rgba(255,255,255,0.3); border-radius: 50%; border-top: 4px solid white; width: 20px; height: 20px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        #status-area { background-color: var(--light-color); border-left: 4px solid var(--accent-color); padding: 15px; margin-top: 15px; border-radius: 4px; display: none; }
+        
+        #results-area { display: none; }
+        .summary-card { padding: 15px; background-color: var(--light-color); border-radius: 8px; text-align: center; border: 1px solid var(--border-color); }
+        .summary-card .value { font-size: 2rem; font-weight: bold; color: var(--primary-color); }
+        
+        #map-container, #simulation-section { display: none; margin-top: 20px; }
+        #map { height: 500px; width: 100%; border-radius: 8px; border: 1px solid var(--border-color); background-color: #f0f0f0; }
+        .wind-arrow-wrapper { position: relative; }
+        .wind-arrow-anim { font-size: 18px; color: darkgrey; opacity: 0.7; position: absolute; }
+        @keyframes wind-flow { from { transform: translate(-20px, 0); } to { transform: translate(20px, 0); } }
+        .wind-overlay { background: rgba(255, 255, 255, 0.8); padding: 5px 10px; border-radius: 5px; box-shadow: 0 1px 5px rgba(0,0,0,0.4); text-align: center; }
+        .wind-overlay-arrow { font-size: 24px; line-height: 1; display: block; }
+        .wind-overlay-speed { font-size: 12px; font-weight: bold; }
+
+        .chart-container { width: 100%; min-height: 450px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header><h1>"Shit" mywindsock - CdA Calculator</h1><p>Measure your CdA and simulate your performance for the entire ride.</p></header>
+    <div class="main-layout">
+        <aside class="input-sidebar">
+            <h2>Step 1: Parameters</h2>
+            <div class="input-group">
+                <label for="gpxFile">Upload GPX File</label>
+                <input type="file" id="gpxFile" accept=".gpx">
+                <label for="gpxFile" class="custom-file-upload">
+                    <span class="button-text">Browse...</span>
+                    <span class="file-name">No file chosen.</span>
+                </label>
+            </div>
+            <div class="input-group"><div class="label-flex"><label for="riderMass">Rider Mass</label><span id="riderMass-value" class="value-display">90.0 kg</span></div><input type="range" id="riderMass" min="40" max="120" value="90" step="0.5"></div>
+            <div class="input-group"><div class="label-flex"><label for="bikeMass">Bike Mass</label><span id="bikeMass-value" class="value-display">8.5 kg</span></div><input type="range" id="bikeMass" min="5" max="20" value="8.5" step="0.1"></div>
+            <div class="input-group"><div class="label-flex"><label for="crr">Rolling Resistance (Crr)</label><span id="crr-value" class="value-display">0.0040</span></div><input type="range" id="crr" min="0.0020" max="0.0080" value="0.0040" step="0.0001"></div>
+            <div class="input-group"><div class="label-flex"><label for="airDensity">Air Density (ρ)</label><span id="airDensity-value" class="value-display">1.225 kg/m³</span></div><input type="range" id="airDensity" min="1.000" max="1.400" value="1.225" step="0.001"></div>
+            <button id="recalculateBtn" style="display:none; background-color: var(--secondary-color);">Recalculate Analysis</button>
+            <button id="calculateBtn"><span>Analyze CdA</span><div id="loader" class="loader" style="display: none;"></div></button>
+            <div id="status-area"><p id="status-text"></p></div>
+        </aside>
+        <main class="main-content">
+            <div id="welcome-message"><h2>Welcome!</h2><p>Please upload a GPX file and click "Analyze CdA" to get started.</p></div>
+            <div id="results-area">
+                <div id="analysis-section">
+                    <h2>Step 2: CdA Analysis (Measurement)</h2>
+                    <div class="results-summary" style="grid-template-columns: repeat(4, 1fr); gap:15px;"><div class="summary-card"><div id="avgCda" class="value">---</div><div class="label">Average CdA</div></div><div class="summary-card"><div id="avgPower" class="value">---</div><div class="label">Average Power</div></div><div class="summary-card"><div id="avgSpeed" class="value">---</div><div class="label">Average Speed</div></div><div class="summary-card"><div id="dataPoints" class="value">---</div><div class="label">Valid Data Points</div></div></div>
+                    <button id="smoothBtn" style="display:none;">Smooth Chart Further</button>
+                    <div class="chart-container"><canvas id="cdaChart"></canvas></div>
+                    <div id="map-container"><h3>Route with Wind Analysis</h3><div id="map"></div></div>
+                </div>
+                <hr style="margin: 40px 0; border: 1px solid var(--border-color);">
+                <div id="simulation-section">
+                    <h2>Step 3: Performance Simulation (Model)</h2>
+                    <p>Use the average CdA calculated above to simulate your entire ride. This compares your actual power with the power predicted by the model for every point in the ride.</p>
+                    <button id="runSimulationBtn">Simulate Full Ride with Avg. CdA</button>
+                    <div class="chart-container" style="display:none;"><canvas id="simulationChart"></canvas></div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const g = 9.80665, Ec = 0.977, R_specific = 287.058;
+    let cdaChart = null, simulationChart = null, map = null, windOverlayControl = null;
+    let fullRouteSegments = [], validSegments = [], calculatedAvgCda = 0;
+
+    const dom = {
+        gpxFile: document.getElementById('gpxFile'), riderMass: document.getElementById('riderMass'), bikeMass: document.getElementById('bikeMass'),
+        crr: document.getElementById('crr'), airDensity: document.getElementById('airDensity'),
+        calculateBtn: document.getElementById('calculateBtn'), recalculateBtn: document.getElementById('recalculateBtn'), 
+        smoothBtn: document.getElementById('smoothBtn'), runSimulationBtn: document.getElementById('runSimulationBtn'),
+        loader: document.getElementById('loader'), statusArea: document.getElementById('status-area'), statusText: document.getElementById('status-text'),
+        welcomeMessage: document.getElementById('welcome-message'), resultsArea: document.getElementById('results-area'), 
+        analysisSection: document.getElementById('analysis-section'), simulationSection: document.getElementById('simulation-section'),
+        avgCda: document.getElementById('avgCda'), avgPower: document.getElementById('avgPower'),
+        avgSpeed: document.getElementById('avgSpeed'), dataPoints: document.getElementById('dataPoints'), 
+        mapContainer: document.getElementById('map-container'), riderMassValue: document.getElementById('riderMass-value'), 
+        bikeMassValue: document.getElementById('bikeMass-value'), crrValue: document.getElementById('crr-value'), 
+        airDensityValue: document.getElementById('airDensity-value'),
+        fileNameDisplay: document.querySelector('.file-name')
+    };
+    
+    // Event listener for the custom file input
+    dom.gpxFile.addEventListener('change', () => {
+        if (dom.gpxFile.files.length > 0) {
+            dom.fileNameDisplay.textContent = dom.gpxFile.files[0].name;
+        } else {
+            dom.fileNameDisplay.textContent = 'No file chosen.';
+        }
+    });
+
+    dom.riderMass.addEventListener('input', (e) => dom.riderMassValue.textContent = `${parseFloat(e.target.value).toFixed(1)} kg`);
+    dom.bikeMass.addEventListener('input', (e) => dom.bikeMassValue.textContent = `${parseFloat(e.target.value).toFixed(1)} kg`);
+    dom.crr.addEventListener('input', (e) => dom.crrValue.textContent = parseFloat(e.target.value).toFixed(4));
+    dom.airDensity.addEventListener('input', (e) => dom.airDensityValue.textContent = `${parseFloat(e.target.value).toFixed(3)} kg/m³`);
+    dom.calculateBtn.addEventListener('click', handleFullCalculation);
+    dom.recalculateBtn.addEventListener('click', () => handleRecalculation(false));
+    dom.smoothBtn.addEventListener('click', handleSmooth);
+    dom.runSimulationBtn.addEventListener('click', runSimulation);
+
+    const toRad = (deg) => deg * Math.PI / 180, toDeg = (rad) => rad * 180 / Math.PI;
+    const setStatus = (message, type = 'info') => { dom.statusArea.style.display = 'block'; dom.statusText.textContent = message; dom.statusArea.className = type; };
+    const haversineDistance = (p1, p2) => { const R = 6371e3; const lat1 = toRad(p1.lat), lon1 = toRad(p1.lon), lat2 = toRad(p2.lat), lon2 = toRad(p2.lon); const dLat = lat2 - lat1, dLon = lon2 - lon1; const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2; return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)); };
+    const calculateBearing = (p1, p2) => { const lat1 = toRad(p1.lat), lon1 = toRad(p1.lon), lat2 = toRad(p2.lat), lon2 = toRad(p2.lon); const y = Math.sin(lon2 - lon1) * Math.cos(lat2); const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(lon2 - lon1); return (toDeg(Math.atan2(y, x)) + 360) % 360; };
+    const calculateAirDensity = (tempC, altM) => { const p = 101325 * Math.pow(1 - 2.25577e-5 * altM, 5.25588); return p / (R_specific * (tempC + 273.15)); };
+    const updateAirDensitySlider = (rho) => { dom.airDensity.value = rho; dom.airDensityValue.textContent = `${rho.toFixed(3)} kg/m³`; };
+    const smoothData = (data, windowSize = 10) => { const smoothed = []; for (let i = 0; i < data.length; i++) { const start = Math.max(0, i - Math.floor(windowSize / 2)); const end = Math.min(data.length, i + Math.ceil(windowSize / 2)); const windowSlice = data.slice(start, end); const avg = windowSlice.reduce((a, b) => a + b, 0) / windowSlice.length; smoothed.push(avg); } return smoothed; };
+    
+    function parseGPX(gpxText) { const parser = new DOMParser(); const xmlDoc = parser.parseFromString(gpxText, "text/xml"); const trackPoints = xmlDoc.getElementsByTagName('trkpt'); const data = []; if (trackPoints.length === 0) throw new Error("No <trkpt> elements found in the GPX file."); for (const pt of trackPoints) { const timeEl = pt.getElementsByTagName('time')[0], eleEl = pt.getElementsByTagName('ele')[0], extEl = pt.getElementsByTagName('extensions')[0]; if (timeEl && eleEl && extEl) { const powerEl = extEl.querySelector('power, [nodeName="power"], [nodeName="gpxtpx:power"]'); if (powerEl) data.push({ lat: parseFloat(pt.getAttribute('lat')), lon: parseFloat(pt.getAttribute('lon')), ele: parseFloat(eleEl.textContent), time: new Date(timeEl.textContent), power: parseInt(powerEl.textContent, 10) }); } } if (data.length < 50) throw new Error(`Only ${data.length} data points with power found.`); return data; }
+    async function fetchWeatherData(gpxData) { const startDate = gpxData[0].time.toISOString().split('T')[0]; const endDate = gpxData[gpxData.length - 1].time.toISOString().split('T')[0]; const lat = gpxData[Math.floor(gpxData.length / 2)].lat.toFixed(4); const lon = gpxData[Math.floor(gpxData.length / 2)].lon.toFixed(4); const url = `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${startDate}&end_date=${endDate}&hourly=temperature_2m,windspeed_10m,winddirection_10m&timezone=auto`; const response = await fetch(url); if (!response.ok) throw new Error(`Weather API Error: ${response.statusText}`); const weatherData = await response.json(); if (weatherData.error) throw new Error(`Weather API Error: ${weatherData.reason}`); return weatherData.hourly; }
+    
+    function processAndMergeData(gpxData, weatherData) {
+        let segments = [];
+        for (let i = 1; i < gpxData.length; i++) {
+            const p1 = gpxData[i - 1], p2 = gpxData[i]; const timeDiff = (p2.time - p1.time) / 1000; if (timeDiff <= 0) continue;
+            const distance = haversineDistance(p1, p2), eleDiff = p2.ele - p1.ele, speed = distance / timeDiff, gradient = distance > 1 ? eleDiff / distance : 0;
+            segments.push({ ...p2, speed, gradient, bearing: calculateBearing(p1, p2) });
+        }
+        let totalDensity = 0; let weatherCount = 0;
+        segments.forEach(seg => {
+            const time_ms = seg.time.getTime(); const hourIndex = weatherData.time.findIndex(t => new Date(t).getTime() > time_ms);
+            if (hourIndex < 1) return; 
+            const h1_time = new Date(weatherData.time[hourIndex - 1]).getTime(), h2_time = new Date(weatherData.time[hourIndex]).getTime();
+            const factor = h2_time > h1_time ? (time_ms - h1_time) / (h2_time - h1_time) : 0;
+            seg.temp = weatherData.temperature_2m[hourIndex-1] * (1-factor) + weatherData.temperature_2m[hourIndex] * factor;
+            seg.windSpeed = (weatherData.windspeed_10m[hourIndex-1] * (1-factor) + weatherData.windspeed_10m[hourIndex] * factor) / 3.6;
+            const d1 = toRad(weatherData.winddirection_10m[hourIndex-1]), d2 = toRad(weatherData.winddirection_10m[hourIndex]);
+            const x1 = Math.cos(d1), y1 = Math.sin(d1), x2 = Math.cos(d2), y2 = Math.sin(d2);
+            const x = x1 * (1-factor) + x2 * factor, y = y1 * (1-factor) + y2 * factor;
+            seg.windDir = (toDeg(Math.atan2(y, x)) + 360) % 360;
+            seg.rho = calculateAirDensity(seg.temp, seg.ele);
+            totalDensity += seg.rho; weatherCount++;
+        });
+        const avgDensity = weatherCount > 0 ? totalDensity / weatherCount : 1.225;
+        return { segments, avgDensity };
+    }
+
+    function calculateCdAForRide(segments, params) { const validSegmentsResult = []; for (let i = 1; i < segments.length; i++) { const seg = segments[i], prev_seg = segments[i-1]; const timeDiffSeg = (seg.time - prev_seg.time) / 1000; if (timeDiffSeg <= 0) continue; const acceleration = (seg.speed - prev_seg.speed) / timeDiffSeg; if (seg.speed < 5.5 || seg.speed > 20 || seg.power < 80 || Math.abs(seg.gradient) > 0.15 || Math.abs(acceleration) > 0.8) continue; const { m_T, Crr, rho } = params; const { speed, gradient, power, bearing, windSpeed, windDir } = seg; const Vg = speed, Gr = gradient, P_gpx = power; const Vw_eff = windSpeed * Math.cos(toRad(windDir - bearing)); const Va = Vg + Vw_eff; if (Math.abs(Va) < 1.0) continue; const P_RR = Crr * m_T * g * Math.cos(Math.atan(Gr)) * Vg; const P_PE = m_T * g * Math.sin(Math.atan(Gr)) * Vg; const P_KE = m_T * Vg * acceleration; const P_aero_available = (P_gpx * Ec) - P_RR - P_PE - P_KE; if (P_aero_available <= 20) continue; const denominator = 0.5 * rho * Va**2 * Vg; if (denominator < 1) continue; const cda = P_aero_available / denominator; if (cda > 0.15 && cda < 0.5) validSegmentsResult.push({ cda, power, speed: Vg * 3.6, time: seg.time }); } if (validSegmentsResult.length < 20) throw new Error(`Only ${validSegmentsResult.length} valid data points found. Try a different ride with more consistent sections.`); const avgCda = validSegmentsResult.reduce((s, v) => s + v.cda, 0) / validSegmentsResult.length; const avgPower = validSegmentsResult.reduce((s, v) => s + v.power, 0) / validSegmentsResult.length; const avgSpeed = validSegmentsResult.reduce((s, v) => s + v.speed, 0) / validSegmentsResult.length; return { avgCda, avgPower, avgSpeed, validPoints: validSegmentsResult, totalPoints: segments.length }; }
+    
+    function updateAnalysisChart(segments, avgCda) { if (cdaChart) cdaChart.destroy(); const ctx = document.getElementById('cdaChart').getContext('2d'); cdaChart = new Chart(ctx, { type: 'line', data: { datasets: [ { label: 'CdA (m²)', data: segments.map(s => ({x: s.time, y: s.cda})), yAxisID: 'yCda', borderColor: 'rgba(0, 150, 136, 0.9)', tension: 0.4, borderWidth: 2, pointRadius: 0 }, { label: 'Avg CdA', data: [{x: segments[0].time, y: avgCda}, {x: segments[segments.length-1].time, y: avgCda}], yAxisID: 'yCda', borderColor: 'rgba(0, 150, 136, 0.9)', borderDash: [6,6], borderWidth: 1.5, pointRadius: 0 }, { label: 'Power (W)', data: segments.map(s => ({x: s.time, y: s.power})), yAxisID: 'yPowerSpeed', borderColor: 'rgba(52, 58, 64, 0.6)', tension: 0.4, pointRadius: 0 }, { label: 'Speed (km/h)', data: segments.map(s => ({x: s.time, y: s.speed * 10})), yAxisID: 'yPowerSpeed', borderColor: 'rgba(38, 131, 198, 0.6)', tension: 0.4, borderDash: [5, 5], pointRadius: 0 } ]}, options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, scales: { x: { type: 'time', time: { unit: 'minute', tooltipFormat: 'HH:mm:ss' }, title: { display: true, text: 'Time of Valid Segments' } }, yCda: { type: 'linear', position: 'left', min: 0.15, max: 0.45, title: { display: true, text: 'CdA (m²)' } }, yPowerSpeed: { type: 'linear', position: 'right', min: 0, max: 1000, title: { display: true, text: 'Power (W) / Speed (km/h) * 10' }, grid: { drawOnChartArea: false } } }, plugins: { legend: { position: 'top', labels: { filter: item => item.text !== 'Avg CdA' }}, tooltip: { callbacks: { label: (ctx) => { let label = ctx.dataset.label || ''; if (label === 'Avg CdA') return null; if (label) label += ': '; if (ctx.dataset.label === 'Speed (km/h)') label += (ctx.parsed.y / 10).toFixed(1) + ' km/h'; else if (ctx.dataset.label === 'Power (W)') label += ctx.parsed.y.toFixed(0) + ' W'; else label += ctx.parsed.y.toFixed(3); return label; }}}}}}); }
+    function handleSmooth() { ['CdA (m²)', 'Power (W)', 'Speed (km/h)'].forEach(label => { const dataset = cdaChart.data.datasets.find(d => d.label === label); if (!dataset) return; const originalData = dataset.data.map(d => d.y); const smoothed = smoothData(originalData); dataset.data = smoothed.map((val, i) => ({ x: dataset.data[i].x, y: val })); }); cdaChart.update(); }
+    
+    const RedGreenGold = ['#d73027','#f46d43','#fdae61','#fee08b','#ffffbf','#d9ef8b','#a6d96a','#66bd63','#1a9641'];
+    const getColorForWind = (windComponent) => { const normalized = ((-windComponent) + 8) / 16; const index = Math.round(Math.max(0, Math.min(1, normalized)) * (RedGreenGold.length - 1)); return RedGreenGold[index]; };
+
+    function renderMapAndRoute(segments) {
+        dom.mapContainer.style.display = 'block'; if (map) map.remove(); map = null;
+        map = L.map('map'); map.whenReady(() => setTimeout(() => map.invalidateSize(), 0));
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', { attribution: '© CartoDB' }).addTo(map);
+        
+        const routeGroup = L.featureGroup();
+        segments.forEach((p2, i) => {
+            if (i === 0) return;
+            const p1 = segments[i-1];
+            const windComponent = p2.windSpeed * Math.cos(toRad(p2.windDir - p2.bearing));
+            L.polyline([[p1.lat, p1.lon], [p2.lat, p2.lon]], { color: getColorForWind(windComponent), weight: 5, opacity: 0.85 }).addTo(routeGroup);
+        });
+        routeGroup.addTo(map); if (routeGroup.getLayers().length > 0) map.fitBounds(routeGroup.getBounds().pad(0.1));
+        
+        const avgWindDir = segments.reduce((a,b)=>a+b.windDir, 0) / segments.length;
+        const avgWindSpeedKmh = segments.reduce((a,b)=>a+(b.windSpeed*3.6), 0) / segments.length;
+        let animDuration = 4 / Math.max(avgWindSpeedKmh / 10, 0.5); animDuration = Math.max(1, Math.min(animDuration, 8));
+        
+        const arrowLayer = L.layerGroup(); const mapBounds = map.getBounds(); const paddedBounds = mapBounds.pad(0.1);
+        for (let lat = paddedBounds.getSouth(); lat < paddedBounds.getNorth(); lat += (paddedBounds.getNorth() - paddedBounds.getSouth()) / 10) {
+            for (let lon = paddedBounds.getWest(); lon < paddedBounds.getEast(); lon += (paddedBounds.getEast() - paddedBounds.getWest()) / 10) {
+                const icon = L.divIcon({ className: 'wind-arrow-wrapper', html: `<div style="transform: rotate(${avgWindDir}deg);"><div class="wind-arrow-anim" style="animation: wind-flow ${animDuration}s linear infinite;">➔</div></div>` });
+                L.marker([lat, lon], { icon, interactive: false }).addTo(arrowLayer);
+            }
+        }
+        arrowLayer.addTo(map);
+
+        if (windOverlayControl) map.removeControl(windOverlayControl);
+        const WindControl = L.Control.extend({ onAdd: function(map) { const div = L.DomUtil.create('div', 'wind-overlay'); div.innerHTML = `<span class="wind-overlay-arrow" style="transform: rotate(${avgWindDir}deg);">➔</span><span class="wind-overlay-speed">${avgWindSpeedKmh.toFixed(1)} km/h</span>`; return div; } });
+        windOverlayControl = new WindControl({ position: 'topright' }); windOverlayControl.addTo(map);
+    }
+    
+    async function handleFullCalculation() {
+        const file = dom.gpxFile.files[0]; if (!file) { alert("Please select a GPX file first."); return; }
+        dom.calculateBtn.disabled = true; dom.recalculateBtn.style.display = 'none'; dom.loader.style.display = 'block';
+        try {
+            setStatus("1/3: Reading GPX file..."); const fileContent = await file.text(); const gpxData = parseGPX(fileContent);
+            setStatus("2/3: Fetching & interpolating weather data..."); const weatherData = await fetchWeatherData(gpxData);
+            const { segments, avgDensity } = processAndMergeData(gpxData, weatherData);
+            fullRouteSegments = segments; updateAirDensitySlider(avgDensity);
+            setStatus("3/3: Calculating CdA values...");
+            handleRecalculation(true); renderMapAndRoute(fullRouteSegments);
+            dom.calculateBtn.style.display = 'none'; dom.recalculateBtn.style.display = 'block';
+            dom.simulationSection.style.display = 'block';
+            setStatus("Analysis completed successfully!", "success");
+        } catch (error) {
+            console.error(error); setStatus(`Error: ${error.message}`, "error");
+            dom.calculateBtn.style.display = 'block'; dom.recalculateBtn.style.display = 'none';
+        } finally {
+            dom.calculateBtn.disabled = false; dom.loader.style.display = 'none';
+        }
+    }
+
+    function handleRecalculation(isInitial = false) {
+        if (fullRouteSegments.length === 0) return;
+        const params = { m_T: parseFloat(dom.riderMass.value) + parseFloat(dom.bikeMass.value), Crr: parseFloat(dom.crr.value), rho: parseFloat(dom.airDensity.value) };
+        const results = calculateCdAForRide(fullRouteSegments, params);
+        validSegments = results.validPoints;
+        calculatedAvgCda = results.avgCda;
+        dom.avgCda.innerHTML = `${results.avgCda.toFixed(3)} <span class="unit">m²</span>`;
+        dom.avgPower.innerHTML = `${results.avgPower.toFixed(0)} <span class="unit">W</span>`;
+        dom.avgSpeed.innerHTML = `${results.avgSpeed.toFixed(1)} <span class="unit">km/h</span>`;
+        dom.dataPoints.textContent = `${results.validPoints.length} / ${results.totalPoints}`;
+        let chartSegments = JSON.parse(JSON.stringify(validSegments));
+        if (isInitial) {
+            const smoothedCda = smoothData(chartSegments.map(s => s.cda)); const smoothedPower = smoothData(chartSegments.map(s => s.power)); const smoothedSpeed = smoothData(chartSegments.map(s => s.speed));
+            chartSegments.forEach((s, i) => { s.cda = smoothedCda[i]; s.power = smoothedPower[i]; s.speed = smoothedSpeed[i]; });
+        }
+        updateAnalysisChart(chartSegments, results.avgCda);
+        dom.welcomeMessage.style.display = 'none'; dom.resultsArea.style.display = 'block'; dom.smoothBtn.style.display = 'inline-block';
+    }
+
+    function runSimulation() {
+        if (fullRouteSegments.length === 0 || calculatedAvgCda === 0) return;
+        const params = { m_T: parseFloat(dom.riderMass.value) + parseFloat(dom.bikeMass.value), Crr: parseFloat(dom.crr.value) };
+        const simulationData = [];
+        for (let i = 1; i < fullRouteSegments.length; i++) {
+            const seg = fullRouteSegments[i], prev_seg = fullRouteSegments[i-1];
+            const timeDiffSeg = (seg.time - prev_seg.time) / 1000; if (timeDiffSeg <= 0) continue;
+            const { speed, gradient, power, bearing, windSpeed, windDir, rho } = seg;
+            const Vg = speed, Gr = gradient, P_gpx = power; const Vw_eff = windSpeed * Math.cos(toRad(windDir - bearing)); const Va = Vg + Vw_eff;
+            const P_RR = params.Crr * params.m_T * g * Math.cos(Math.atan(Gr)) * Vg;
+            const P_PE = params.m_T * g * Math.sin(Math.atan(Gr)) * Vg;
+            const P_KE = params.m_T * Vg * ((seg.speed - prev_seg.speed) / timeDiffSeg);
+            const P_aero = 0.5 * rho * calculatedAvgCda * Va**2 * Vg;
+            const P_modelled = (P_aero + P_RR + P_PE + P_KE) / Ec;
+            simulationData.push({ time: seg.time, actualPower: P_gpx, modelledPower: P_modelled });
+        }
+        updateSimulationChart(simulationData);
+    }
+
+    function updateSimulationChart(data) {
+        const container = document.querySelector('#simulation-section .chart-container');
+        container.style.display = 'block';
+        
+        // Find the maximum actual power to set the y-axis scale dynamically
+        const maxActualPower = Math.max(...data.map(d => d.actualPower));
+        
+        // Smooth the data series for the chart
+        // A smaller window for actual power to retain its shape
+        const smoothedActualPower = smoothData(data.map(d => d.actualPower), 50);
+        // A much larger window for modelled power for a significantly smoother curve as requested
+        const smoothedModelledPower = smoothData(data.map(d => d.modelledPower), 200);
+
+        const ctx = document.getElementById('simulationChart').getContext('2d');
+        if (simulationChart) simulationChart.destroy();
+        
+        simulationChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                datasets: [
+                    {
+                        label: 'Actual Power (GPX)',
+                        data: data.map((s, i) => ({x: s.time, y: smoothedActualPower[i]})),
+                        borderColor: 'rgba(52, 58, 64, 0.7)',
+                        borderWidth: 1.5,
+                        pointRadius: 0,
+                        tension: 0.2
+                    },
+                    {
+                        label: 'Modelled Power (calculated)',
+                        data: data.map((s, i) => ({x: s.time, y: smoothedModelledPower[i]})),
+                        borderColor: 'rgba(220, 53, 69, 0.7)',
+                        borderWidth: 2,
+                        borderDash: [6,6],
+                        pointRadius: 0,
+                        tension: 0.2
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                scales: {
+                    x: {
+                        type: 'time',
+                        time: { unit: 'minute', tooltipFormat: 'HH:mm:ss' },
+                        title: { display: true, text: 'Total Ride Time' }
+                    },
+                    y: {
+                        min: 0, // Y-axis starts at 0
+                        max: 500, // Y-axis goes to 1.5x the max actual power
+                        title: { display: true, text: 'Power (W)' }
+                    }
+                },
+                plugins: {
+                    legend: { position: 'top' }
+                }
+            }
+        });
+    }
+});
+</script>
+</body>
+</html>

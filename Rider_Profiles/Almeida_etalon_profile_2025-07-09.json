@@ -1,0 +1,108 @@
+{
+  "settings": {
+    "riderMass": 62,
+    "bikeMass": 7.2,
+    "Crr": 0.0035,
+    "CdA": 0.3,
+    "rho": 1.1,
+    "drivetrainLoss": 2.5
+  },
+  "performances": [
+    {
+      "label": "Stockhütte - Emmetten (TT) - 2025",
+      "lengthKm": 9.44,
+      "elevationM": 841,
+      "etalonWkg": 6.88,
+      "durationS": 1608,
+      "realAbsolutePower": 424,
+      "realWkg": 6.83,
+      "gradient": 8.91,
+      "speedKmh": 21.13,
+      "VAM": 1883
+    },
+    {
+      "label": "Santa Maria - 2025",
+      "lengthKm": 6.34,
+      "elevationM": 607,
+      "etalonWkg": 6.8,
+      "durationS": 1142,
+      "realAbsolutePower": 419,
+      "realWkg": 6.76,
+      "gradient": 9.57,
+      "speedKmh": 19.99,
+      "VAM": 1913
+    },
+    {
+      "label": "Cari - 2024",
+      "lengthKm": 11.59,
+      "elevationM": 933,
+      "etalonWkg": 6.51,
+      "durationS": 1907,
+      "realAbsolutePower": 401,
+      "realWkg": 6.47,
+      "gradient": 8.05,
+      "speedKmh": 21.88,
+      "VAM": 1761
+    },
+    {
+      "label": "Villars-sur-Ollon (TT) - 2024",
+      "lengthKm": 9.42,
+      "elevationM": 758,
+      "etalonWkg": 6.75,
+      "durationS": 1511,
+      "realAbsolutePower": 415,
+      "realWkg": 6.7,
+      "gradient": 8.05,
+      "speedKmh": 22.44,
+      "VAM": 1806
+    },
+    {
+      "label": "Emmetten (TT) - 2025",
+      "lengthKm": 3.58,
+      "elevationM": 315,
+      "etalonWkg": 7.23,
+      "durationS": 563,
+      "realAbsolutePower": 445,
+      "realWkg": 7.18,
+      "gradient": 8.8,
+      "speedKmh": 22.89,
+      "VAM": 2014
+    },
+    {
+      "label": "Arrate - Matsaria - 2025",
+      "lengthKm": 3.35,
+      "elevationM": 412,
+      "etalonWkg": 6.93,
+      "durationS": 745,
+      "realAbsolutePower": 427,
+      "realWkg": 6.89,
+      "gradient": 12.3,
+      "speedKmh": 16.19,
+      "VAM": 1991
+    },
+    {
+      "label": "Thyon 2000 - 2025",
+      "lengthKm": 20.65,
+      "elevationM": 1592,
+      "etalonWkg": 5.89,
+      "durationS": 3522,
+      "realAbsolutePower": 363,
+      "realWkg": 5.85,
+      "gradient": 7.71,
+      "speedKmh": 21.11,
+      "VAM": 1627
+    },
+    {
+      "label": "San Luca - 2024",
+      "lengthKm": 2.1,
+      "elevationM": 197,
+      "etalonWkg": 7.34,
+      "durationS": 347,
+      "realAbsolutePower": 452,
+      "realWkg": 7.29,
+      "gradient": 9.38,
+      "speedKmh": 21.79,
+      "VAM": 2044
+    }
+  ]
+}

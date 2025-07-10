@@ -1,0 +1,84 @@
+{
+  "settings": {
+    "body_mass": 60,
+    "bike_mass": 7.2,
+    "Crr": 0.0035,
+    "CdA": 0.3,
+    "rho": 1.1,
+    "drivetrainLoss": 2.5
+  },
+  "performances": [
+    {
+      "label": "Lo Port - 2023",
+      "lengthKm": 8.6,
+      "elevationM": 765,
+      "etalonWkg": 6.9,
+      "durationS": 1440,
+      "absolute_power": 414,
+      "relative_power": 6.9,
+      "gradient": 8.9,
+      "speedKmh": 21.5,
+      "VAM": 1913
+    },
+    {
+      "label": "Plateau de Beille - 2024",
+      "lengthKm": 15.74,
+      "elevationM": 1250,
+      "etalonWkg": 6.53,
+      "durationS": 2561,
+      "absolute_power": 392,
+      "relative_power": 6.53,
+      "gradient": 7.94,
+      "speedKmh": 22.13,
+      "VAM": 1757
+    },
+    {
+      "label": "Erlaitz - 2022",
+      "lengthKm": 3.8,
+      "elevationM": 408,
+      "etalonWkg": 7.25,
+      "durationS": 716,
+      "absolute_power": 435,
+      "relative_power": 7.25,
+      "gradient": 10.74,
+      "speedKmh": 19.11,
+      "VAM": 2051
+    },
+    {
+      "label": "I Cappuccini - 2023",
+      "lengthKm": 1.9,
+      "elevationM": 208,
+      "etalonWkg": 7.68,
+      "durationS": 347,
+      "absolute_power": 461,
+      "relative_power": 7.68,
+      "gradient": 10.95,
+      "speedKmh": 19.71,
+      "VAM": 2158
+    },
+    {
+      "label": "Jebel Hafeet - 2023",
+      "lengthKm": 11,
+      "elevationM": 744,
+      "etalonWkg": 6.78,
+      "durationS": 1562,
+      "absolute_power": 407,
+      "relative_power": 6.78,
+      "gradient": 6.76,
+      "speedKmh": 25.35,
+      "VAM": 1715
+    },
+    {
+      "label": "San Luca - 2024",
+      "lengthKm": 2.1,
+      "elevationM": 197,
+      "etalonWkg": 7.64,
+      "durationS": 336,
+      "absolute_power": 458,
+      "relative_power": 7.64,
+      "gradient": 9.38,
+      "speedKmh": 22.5,
+      "VAM": 2111
+    }
+  ]
+}

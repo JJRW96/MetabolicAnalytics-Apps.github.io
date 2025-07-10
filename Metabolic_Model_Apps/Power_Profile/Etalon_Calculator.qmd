@@ -1,0 +1,180 @@
+---
+title: "Etalon Converter"
+format:
+  html:
+    resources: 
+      - shinylive-sw.js
+      
+filters:
+  - shinylive
+
+execute:
+  message: false
+  engine: knitr
+  echo: false
+  warning: false
+  error: false
+bibliography: references_all.bib
+lang: eng
+number-sections: false
+editor: 
+  markdown: 
+    wrap: 72
+    
+nocite: |
+  @Hintzy-Cloutier2003, @Dunst2025, @Dunst2024; @Mader2003; @Hauser2014; @Ji2021; @Nolte2022; @Mader1984; @Mader1986; @Mader1996; @Oezyener2001; @Jeukendrup2005; @Brooks2004; @Brooks2012; @Jeukendrup2019; @Stegemann1991; @Friedlander1998; @Friedlander1999
+    
+---
+
+```{css}
+#| echo: false
+p {
+  text-align: justify
+}
+caption, .figure-caption {
+  text-align: left;
+}
+figure.quarto-float-tbl figcaption {
+  text-align: left !important;
+}
+figure figcaption {
+  text-align: justify;
+}
+```
+
+
+<div style="position: relative; width: 100%; height: 800px;">
+  <iframe src="Etalon_Calculator_App_1.9.html" style="position: absolute; width: 100%; height: 100%; border: none;"></iframe>
+</div>
+
+<br>
+
+[Fullscreen-Link: Etalon W/kg Performance Converter](/Etalon_Calculator_App_1.9.html)
+
+# Advanced Etalon W/kg Performance Converter: A Feature Guide
+
+The **Advanced Etalon W/kg Performance Converter** is a specialized, web-based physics simulation tool designed to deconstruct and analyze cycling performances with a high degree of precision. It moves beyond simple power-to-weight ratios by employing a robust mathematical model, grounded in the fundamental principles of physics detailed by researchers like @Martin1998, to account for the multiple forces a cyclist must overcome. The application's core purpose is to facilitate objective performance comparisons by translating real-world efforts into a standardized benchmark, known as **"Etalon W/kg"**, and vice-versa.
+
+The app operates in two distinct, powerful modes:
+
+1.  **Etalon → Real Power (Standard Mode):** This mode allows users to take a standardized performance benchmark (the Etalon W/kg) and calculate the *actual* power a specific rider would need to produce to match that benchmark on a given climb, considering their unique physical and equipment characteristics. This is the primary mode for analyzing and comparing performances between different riders or against historical benchmarks. It can also quantify the impact of environmental factors like wind.
+
+2.  **Real Power → Etalon (Reverse Mode):** This mode takes a known, real-world power output from an athlete and calculates the equivalent Etalon W/kg performance. This is an valuable tool for athletes and coaches who want to standardize their own power meter data, allowing for "apples-to-apples" comparisons of their efforts across different climbs, conditions, and even changes in their own body weight over time.
+
+By providing this bidirectional conversion, the application serves as a comprehensive bridge between standardized performance metrics and the complex reality of individual athletic performance.
+
+## Core Concepts: Deconstructing Cycling Power
+
+To propel a bicycle, a rider must produce power to overcome a series of opposing physical forces. The application's calculation engine is a sophisticated physics model that quantifies each of these forces to determine the total power required. This model is built upon the foundational work of researchers like @Martin1998.
+
+The primary forces modeled by the app are:
+
+*   **Gravitational Resistance ($P_{PE}$):** The power required to lift the total mass of the rider and bike against gravity. This is a function of the system mass, the acceleration due to gravity (g), and the vertical speed, which is determined by the road gradient. It is the dominant force on steep climbs.
+*   **Aerodynamic Drag ($P_{AD}$):** The power required to push through the air. This force is a function of air density ($\rho$), the rider's frontal area and shape (combined into the drag area coefficient, $C_d A$), and the relative air velocity. It is the dominant force on flat terrain and at high speeds.
+*   **Rolling Resistance ($P_{RR}$):** The power lost due to the deformation of the tires against the road surface. This is a function of the total system mass, the road gradient (which affects the normal force), and the coefficient of rolling resistance ($C_{rr}$), which itself depends on tire type, pressure, and road surface.
+*   **Drivetrain Frictional Losses ($P_{F}$):** The power lost to friction within the chain, cogs, and bearings of the bicycle's drivetrain. The app models this as a percentage of the total power transmitted.
+
+The total power ($P_{Total}$) an athlete must produce at the pedals is the sum of these resistive powers, adjusted for drivetrain efficiency ($E_c$):
+$$ P_{Total} = \frac{P_{PE} + P_{AD} + P_{RR}}{E_c} $$
+The application uses detailed equations, as described by @Martin1998, to calculate each of these components precisely.
+
+### Why Etalon W/kg? - The Need for Standardization
+
+A simple watts-per-kilogram (W/kg) calculation, derived by dividing a rider's power output by their body mass, is an incomplete metric for comparison and heavier riders have inherent advantages. For the same speed on a climb, a heavier rider requires a lower W/kg than a lighter rider. This is due to two main factors:
+
+1.  **Bike Weight Ratio:** The UCI-mandated minimum bike weight (6.8 kg) constitutes a smaller percentage of a heavier rider's total system mass, reducing their "rider + bike" w/kg.
+2.  **Aerodynamics:** A heavier rider's aerodynamic drag does not typically increase in direct proportion to their weight, often resulting in a superior power-to-drag-area ratio, which is beneficial at higher speeds and on shallower gradients.
+
+To create a true "apples-to-apples" comparison, the application uses the **Etalon** standard. "Etalon" is French for "standard" or "benchmark." The app standardizes all performances to a **60 kg rider** on a **7.2 kg bike**. The resulting "Etalon W/kg" is not the rider's actual power output, but a standardized metric representing the performance level required of this benchmark rider to achieve the same speed. This allows for objective evaluation across athletes of all sizes.
+
+## The Sidebar: The Control Center
+
+The sidebar is the primary interface for setting all model parameters and managing performance data.
+
+### Calculation Mode & Tabs
+
+*   **Mode Switcher:** A prominent toggle at the top allows the user to switch between the two primary calculation modes: **Etalon → Real Power** and **Real Power → Etalon**. Switching modes reconfigures the input fields and the results table accordingly.
+*   **Tabs:** The sidebar is organized into two tabs:
+    *   **Model Parameters:** For setting all rider, equipment, and environmental variables.
+    *   **Performance Data:** For inputting and managing the list of performances to be analyzed.
+
+### Tab 1: Model Parameters
+
+This tab is for defining the physical context of the simulation.
+
+#### **Load Example Profile**
+
+*   A dropdown menu allows users to instantly load pre-configured profiles, such as "Pogi's 2024 Performances". This populates all rider, equipment, and performance data fields, providing a powerful demonstration and a starting point for analysis.
+
+#### **Rider & Equipment**
+
+These sliders define the physical characteristics of the *actual* rider being analyzed.
+
+*   **Rider Mass (kg):** The body mass of the specific athlete whose performance is being calculated or compared.
+*   **Bike & Gear Mass (kg):** The total mass of the bicycle, clothing, helmet, shoes, water bottles, etc. The UCI minimum is 6.8 kg, but a realistic race-ready weight is often closer to 7.2 kg or more.
+
+#### **Environmental & Mechanical Factors**
+
+These sliders allow for fine-tuning of the physical model to match specific conditions. Each includes an info icon with a tooltip providing typical physiological or real-world values.
+
+*   **Rolling Resistance (Crr):** The Coefficient of Rolling Resistance. This dimensionless value quantifies the friction from the tires. Typical values range from 0.0025 for a fast track to 0.0050 for average road tires.
+*   **Aerodynamic Drag (CdA):** The drag area (in m²), which is the product of the drag coefficient ($C_d$) and the frontal area (A). This is a critical determinant of speed on flats and shallow gradients. Typical values range from 0.200 m² for an elite time-trial position to 0.400 m² for an relatively upright, non-aerodynamic position.
+*   **Air Density ($\rho$):** The density of the air (in kg/m³). This is highly dependent on altitude and temperature. Typically around ~1.225 kg/m³ at sea level, while at 1500m it drops to ~1.058 kg/m³. A lower air density reduces aerodynamic drag.
+*   **Drivetrain Loss (%):** The percentage of power lost to friction in the chain, pulleys, and bearings. Typically ranges from 1.5% for a perfectly maintained, top-tier drivetrain system to 5.0% for a more worn or dirty drivetrain.
+
+### Tab 2: Performance Data
+
+This tab is for managing the list of climbs or performances to be analyzed.
+
+*   **Add & Compare Performance:** The main input section for adding new data. The fields displayed here dynamically change based on the selected calculation mode.
+    *   **Mode 1 (Etalon → Real):** The user inputs the climb's `Label`, `Length (km)`, `Elevation (m)`, a benchmark `Etalon W/kg`, and the `Actual Time` taken by the real rider.
+    *   **Mode 2 (Real → Etalon):** The user inputs the climb's `Label`, `Length (km)`, `Elevation (m)`, and the rider's `Actual Power (W)`. The time is then calculated by the model.
+*   **Performance List:** Displays a list of all added performances. Each can be removed individually.
+*   **Profile Management:**
+    *   **Save/Load Profile:** Allows the user to save the current set of parameters and performances to a `.json` file for later use, or to load a previously saved profile.
+
+## The Main Content Area: Results & Explanations
+
+This area displays the detailed output of the calculations in a clear, tabular format and provides context for the results.
+
+### Results Table
+
+This is the primary output, presenting a detailed, sortable table with the results for each performance. The columns displayed change dynamically based on the selected calculation mode.
+
+**Mode: Etalon → Real Power**
+This table is designed to answer: "Given a standard performance level (Etalon W/kg) and an actual time, what power did my rider *really* produce, and what factors influenced this?"
+
+*   **Label, Length, Elev., Gradient, Speed, VAM:** Basic characteristics of the climb.
+*   **Act. Time:** The actual time the rider took.
+*   **Exp. Time:** The *expected* time the Etalon rider would have taken to achieve the benchmark Etalon W/kg in windless conditions.
+*   **Time Diff.:** The difference between actual and expected time. A positive value (red) means the rider was slower than expected (indicating a headwind or other resistive force), while a negative value (green) means they were faster (indicating a tailwind).
+*   **Eff. Wind (m/s):** The key output. This is the calculated constant headwind (positive value) or tailwind (negative value) that would be required in the physics model to account for the observed Time Difference.
+*   **Etalon W/kg:** The benchmark performance input.
+*   **W/kg (rider mass):** The calculated real-world, mass-relative power of the specific rider.
+*   **Power (W):** The calculated absolute power the rider had to produce to achieve their actual time, factoring in their mass, equipment, and the calculated effective wind.
+
+**Mode: Real Power → Etalon**
+This table is designed to answer: "Given my rider's actual power output, what is their standardized Etalon W/kg performance?"
+
+*   **Label, Real Power (W), Real W/kg:** The input data for the actual rider.
+*   **Calc. Duration, Calc. Speed, VAM, Gradient:** The performance characteristics (time, speed) that are *calculated* to result from the given real power output in windless conditions.
+*   **Etalon W/kg:** The key output. The standardized performance benchmark calculated from the real power input.
+*   **Etalon Power (W):** The absolute power a 60 kg Etalon rider would need to produce to match the real rider's speed.
+
+      
+### Interpreting the Results: Key Concepts and Model Limitations
+
+To correctly interpret the outputs of the performance converter, it is essential to recognize the context provided by its underlying physics model and its inherent assumptions.
+
+As detailed previously, the **'Etalon W/kg'** metric is the cornerstone of this tool's comparative power. By standardizing all performances to a 60 kg rider, it provides a unified benchmark for objective evaluation, removing the confounding variables of rider mass and equipment.
+
+In the "Etalon → Real Power" mode, the **'Effective Wind'** calculation quantifies the environmental conditions of a performance. It represents the constant headwind or tailwind required to explain the difference between the rider's actual time and the time predicted by the model in ideal, windless conditions, offering a tangible measure of environmental assistance or resistance.
+
+It is crucial to acknowledge the model's limitations. The calculations are based on a simplified physics engine that assumes constant conditions throughout an effort. It does not account for real-world complexities such as:
+
+*   Variable wind speeds or gusts.
+*   The significant aerodynamic benefit of drafting within a group.
+*   Changes in rider position (e.g., moving from the hoods to the drops), which alter aerodynamic drag.
+
+Therefore, while the results provide a powerful framework for standardized analysis, they may differ from on-bike power meter data recorded under dynamic conditions. 
+    

@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Composite Power Profile Analyzer</title>
+    <!-- External libraries for file parsing and model fitting -->
+    <script src="https://unpkg.com/fit-file-parser@2.1.2/dist/fit-file-parser.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/numeric/1.2.6/numeric.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Root variables for color scheme based on Mader_App */
+        :root {
+            --primary-color: #2683C6; /* Mader Primary */
+            --secondary-color: #9C85C0; /* Mader Secondary */
+            --accent-color: #EF5350;    /* Mader Accent */
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --border-color: #dee2e6;
+            --gradient-start: #f1f8ff;
+            --gradient-end: #ffffff;
+            --cho-color: #D81B60; 
+            --fat-color: #009688; 
+            --glycogen-color: #D81B60; 
+
+            /* Colors for CP Models (from Critical_Power_App) */
+            --power-law-color: #000000;
+            --param2-color: #808080; /* Grey */
+            --ompd-color: #FF8C00; /* Dark Orange - distinct from Mader Accent */
+            --om3cp-color: #4682B4; /* Steel Blue - distinct */
+            --omexp-color: #32CD32; /* Lime Green - distinct */
+        }
+
+        /* Base styles for all elements */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* Body styles */
+        body {
+            background-color: #f5f5f5;
+            color: var(--dark-color);
+            line-height: 1.6;
+            overflow-y: auto; 
+        }
+
+        /* Main container layout */
+        .container {
+            display: flex;
+            min-height: 100vh; 
+            max-width: 100%;
+        }
+
+        /* Sidebar styles */
+        .sidebar {
+            width: 380px; 
+            flex-shrink: 0;
+            background: linear-gradient(to bottom, var(--gradient-start), var(--gradient-end));
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            overflow-y: auto;
+            border-right: 1px solid var(--border-color);
+            max-height: 100vh;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Main content area */
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            background-color: #fff;
+        }
+
+        /* Heading styles */
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            font-size: 1.6rem; 
+            text-align: center;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        /* Control group container */
+        .control-group {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+            background-color: white;
+            border-radius: 6px;
+            padding: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .control-group:last-child {
+            border-bottom: none;
+        }
+
+        /* Control label styles */
+        .control-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+        
+        /* Slider container */
+        .slider-container {
+            margin-bottom: 15px;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
+        .slider-label label {
+            flex-grow: 1;
+        }
+
+        .slider-value {
+            min-width: 60px;
+            text-align: right;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        /* Range slider styling */
+        .range-slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: linear-gradient(to right, #ddd, var(--primary-color));
+            outline: none;
+            margin: 10px 0;
+        }
+
+        .range-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+
+        .range-slider::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+
+        /* Checkbox styling (Fancy Checkbox from Mader_App) */
+        .fancy-checkbox {
+            display: inline-block;
+            position: relative;
+            padding-left: 30px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            user-select: none;
+            margin-bottom: 10px; 
+        }
+        .fancy-checkbox input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+            height: 0;
+            width: 0;
+        }
+        .checkmark {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 20px;
+            width: 20px;
+            background-color: #eee;
+            border-radius: 3px;
+            transition: all 0.2s;
+        }
+        .fancy-checkbox:hover input ~ .checkmark {
+            background-color: #ccc;
+        }
+        .fancy-checkbox input:checked ~ .checkmark {
+            background-color: var(--primary-color);
+        }
+        .checkmark:after {
+            content: "";
+            position: absolute;
+            display: none;
+        }
+        .fancy-checkbox input:checked ~ .checkmark:after {
+            display: block;
+        }
+        .fancy-checkbox .checkmark:after {
+            left: 7px;
+            top: 3px;
+            width: 5px;
+            height: 10px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+
+        /* Button styling */
+        button, .button { 
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin-top: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: inline-block; 
+            text-align: center;
+        }
+        button:hover, .button:hover {
+            background-color: #1a6eae; /* Darker primary */
+            transform: translateY(-1px);
+            box-shadow: 0 3px 5px rgba(0,0,0,0.15);
+        }
+        button:active, .button:active {
+            transform: translateY(0);
+        }
+
+        /* Plot container styling */
+        .plot-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+            padding: 15px; 
+            height: 60vh;
+        }
+        #power-duration-plot-container { 
+            height: calc(100vh - 270px); 
+            min-height: 400px;
+            width: 100%;
+        }
+
+        /* Values container for data display */
+        #values-container {
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            font-family: monospace;
+            white-space: pre-wrap;
+            height: 230px; 
+            overflow-y: auto;
+            color: #444;
+            font-size: 0.92rem;
+            border-left: 4px solid var(--primary-color);
+            margin-top: 10px;
+        }
+
+        /* Dropdown select styling */
+        .dropdown-select {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 0.9em;
+            background-color: white;
+            margin-bottom: 10px;
+            height: 38px;
+        }
+
+        .data-point-display {
+            background-color: var(--light-color);
+            padding: 8px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9em;
+        }
+
+        /* Header section with info icon (from Mader_App) */
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .info-icon {
+            color: var(--primary-color);
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background-color: rgba(38, 131, 198, 0.1);
+        }
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 280px;
+            background-color: #555;
+            color: #fff;
+            text-align: left;
+            border-radius: 6px;
+            padding: 10px;
+            position: absolute;
+            z-index: 1000;
+            top: 25px;
+            left: auto;
+            right: 0;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            overflow-wrap: break-word;
+            word-wrap: break-word;
+            pointer-events: none;
+        }
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        .small-text {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        /* Notification popup */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.2);
+            display: none;
+            max-width: 300px;
+            z-index: 1000;
+            animation: fadeIn 0.3s;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .notification.warning { border-left: 4px solid #EF5350; } 
+        .notification.info { border-left: 4px solid var(--primary-color); }
+        .notification.success { border-left: 4px solid var(--fat-color); }
+
+
+        /* Tab Styles */
+        .sidebar-tabs {
+            display: flex;
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .tab-button {
+            flex-grow: 1;
+            padding: 10px 15px;
+            cursor: pointer;
+            border: none;
+            background-color: transparent;
+            color: var(--dark-color);
+            font-weight: 500;
+            text-align: center;
+            transition: background-color 0.3s, color 0.3s;
+            border-bottom: 3px solid transparent; /* For active indicator */
+            margin-top: 0; /* Override general button margin */
+            box-shadow: none; /* Override general button shadow */
+        }
+        .tab-button:hover {
+            background-color: rgba(38, 131, 198, 0.1); /* Light primary hover */
+            color: var(--primary-color);
+            transform: none; /* Override general button transform */
+            box-shadow: none; /* Override general button shadow */
+        }
+        .tab-button.active {
+            color: var(--primary-color);
+            border-bottom: 3px solid var(--primary-color);
+            font-weight: 700;
+        }
+        .tab-content {
+            display: none; /* Hidden by default, shown by JS */
+            animation: fadeInTab 0.5s;
+        }
+        @keyframes fadeInTab {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* File Upload Area */
+        #file-drop-area {
+            border: 2px dashed var(--border-color);
+            border-radius: 6px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            margin-bottom: 15px;
+        }
+        #file-drop-area.dragover {
+            border-color: var(--primary-color);
+            background-color: var(--gradient-start);
+        }
+        #file-drop-area p {
+            margin: 0;
+            font-size: 0.9em;
+            color: #666;
+        }
+        #file-input {
+            display: none;
+        }
+        
+        #file-list {
+            max-height: 100px;
+            overflow-y: auto;
+            background-color: var(--light-color);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 5px 10px;
+            margin-top: 5px;
+            font-size: 0.85em;
+        }
+
+        /* Spinner for loading indicator */
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: var(--primary-color);
+            animation: spin 1s ease infinite;
+            margin: 20px auto;
+            display: none; /* Hidden by default */
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h1>Power Profile Analyzer</h1>
+
+            <div class="sidebar-tabs">
+                <button class="tab-button active" onclick="openTab(event, 'tabFileAnalysis')">Analysis & Settings</button>
+                <button class="tab-button" onclick="openTab(event, 'tabPowerData')">Composite Power Data</button>
+            </div>
+
+            <div id="tabFileAnalysis" class="tab-content" style="display: block;">
+                <!-- Tab 1: File Upload & Analysis Settings -->
+                <div class="control-group">
+                    <div class="header-section">
+                        <div class="control-label">1. Upload Activity Files</div>
+                        <div class="tooltip info-icon">ⓘ
+                            <span class="tooltiptext">Upload one or more FIT, TCX, or GPX files. All uploaded files will be analyzed together to create a single composite power profile.</span>
+                        </div>
+                    </div>
+                    <div id="file-drop-area">
+                        <input type="file" id="file-input" multiple accept=".fit,.tcx,.gpx">
+                        <p>Drag & drop files here or click to select files.</p>
+                    </div>
+
+                    <div class="control-label">2. Uploaded Files</div>
+                    <div id="file-list">
+                         <p class="small-text" style="text-align:center;">No files uploaded.</p>
+                    </div>
+                    <div id="analysis-spinner" class="spinner"></div>
+                </div>
+
+                <div class="control-group">
+                     <div class="header-section">
+                        <div class="control-label">3. Athlete & Unit Settings</div>
+                         <div class="tooltip info-icon">ⓘ
+                            <span class="tooltiptext">Set your body mass for relative power (W/kg) calculations. This setting affects plots, calculations, and data display.</span>
+                        </div>
+                    </div>
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <label for="body_mass">Body Mass (kg):</label>
+                            <span id="body_mass-value" class="slider-value">75.0</span>
+                        </div>
+                        <input type="range" id="body_mass" class="range-slider" min="40" max="120" value="75" step="0.1">
+                    </div>
+                    <div class="control-label" style="margin-top:15px;">Global Power Unit:</div>
+                    <label class="fancy-checkbox">
+                        <input type="checkbox" id="use_absolute_power_toggle" name="use_absolute_power_toggle">
+                        <span class="checkmark"></span>
+                        Use Absolute Units (W)
+                    </label>
+                </div>
+                
+                <div class="control-group">
+                    <div class="header-section">
+                        <div class="control-label">4. Power-Duration Model</div>
+                        <div class="tooltip info-icon">ⓘ
+                            <span class="tooltiptext">Choose a model to fit to the composite power data. Use a fixed Pmax for models that require it (e.g., Power-Law with fixed S).</span>
+                        </div>
+                    </div>
+                    
+                    <select id="pd-model-select" class="dropdown-select">
+                        <option value="powerLaw" selected>Power-Law (Default)</option>
+                        <option value="twoParam">2-Parameter CP</option>
+                        <option value="ompd">OmPD</option>
+                        <option value="om3cp">Om3CP</option>
+                        <option value="omexp">OmExp</option>
+                    </select>
+
+                    <label class="fancy-checkbox" style="margin-top: 15px;">
+                        <input type="checkbox" id="use_fixed_pmax_toggle">
+                        <span class="checkmark"></span>
+                        Use Fixed P<sub>max</sub> (1s Power)
+                    </label>
+                    <div id="fixed-pmax-controls" style="display:none; margin-top: 10px;">
+                        <div class="slider-container">
+                            <div class="slider-label">
+                                <label for="fixed_pmax_value">P<sub>max,fixed</sub> (<span id="fixed_pmax_unit_label">W</span>):</label>
+                                <span id="fixed_pmax_value-value" class="slider-value">1200</span>
+                            </div>
+                            <input type="range" id="fixed_pmax_value" class="range-slider" min="500" max="2500" value="1200" step="10">
+                        </div>
+                    </div>
+                </div>
+
+            </div> <!-- End of Tab 1 Content -->
+
+            <div id="tabPowerData" class="tab-content" style="display: none;">
+                <div class="control-group">
+                    <div class="header-section">
+                        <div class="control-label">Composite Power Curve</div>
+                        <div class="tooltip info-icon">ⓘ
+                            <span class="tooltiptext">These are the best average power values (MMP) extracted from ALL uploaded activity files for various durations. This data is read-only.</span>
+                        </div>
+                    </div>
+                    <div id="power-data-points-container" style="max-height: calc(100vh - 200px); overflow-y: auto;">
+                        <p class="small-text" style="text-align: center;">No files analyzed yet.</p>
+                    </div>
+                </div>
+            </div> <!-- End of Tab 2 Content -->
+
+        </div> <!-- End of sidebar -->
+
+        <div class="main-content">
+            <div class="plot-container" id="power-duration-plot-container">
+                <div class="plot-title" style="font-size: 1.3em; font-weight: bold; margin-bottom: 0px; text-align: center; color: var(--primary-color);">Power-Duration Profile</div>
+                <div id="power_duration_plot_div" style="width:100%; height: calc(100% - 25px);"></div> <!-- Plot div -->
+            </div>
+            <div id="values-container">
+                Awaiting file upload and analysis...
+            </div>
+        </div>
+    </div>
+    <div id="notification" class="notification"></div>
+
+<script>
+// --- TAB MANAGEMENT ---
+function openTab(evt, tabName) {
+    var i, tabcontent, tablinks;
+    tabcontent = document.getElementsByClassName("tab-content");
+    for (i = 0; i < tabcontent.length; i++) {
+        tabcontent[i].style.display = "none";
+    }
+    tablinks = document.getElementsByClassName("tab-button");
+    for (i = 0; i < tablinks.length; i++) {
+        tablinks[i].className = tablinks[i].className.replace(" active", "");
+    }
+    document.getElementById(tabName).style.display = "block";
+    if (evt) {
+        evt.currentTarget.className += " active";
+    }
+}
+
+// --- MAIN APP ---
+document.addEventListener('DOMContentLoaded', () => {
+
+    // --- STATE MANAGEMENT ---
+    const appState = {
+        body_mass: 75.0,
+        useAbsolutePower: false,
+        selectedPDModel: 'powerLaw',
+        useFixedPmax: false,
+        fixedPmaxValue: 1200, 
+        powerDurationPoints: [], // Holds the COMPOSITE { absolute_power, duration, label }
+        uploadedFiles: {}, // { "filename.fit": { buffer: ArrayBuffer, type: 'fit' } }
+        isAnalyzing: false,
+    };
+
+    // --- DOM ELEMENTS ---
+    const domElements = {
+        fileDropArea: document.getElementById('file-drop-area'),
+        fileInput: document.getElementById('file-input'),
+        fileList: document.getElementById('file-list'),
+        analysisSpinner: document.getElementById('analysis-spinner'),
+        bodyMassSlider: document.getElementById('body_mass'),
+        bodyMassValueSpan: document.getElementById('body_mass-value'),
+        useAbsolutePowerToggle: document.getElementById('use_absolute_power_toggle'),
+        pdModelSelect: document.getElementById('pd-model-select'),
+        useFixedPmaxToggle: document.getElementById('use_fixed_pmax_toggle'),
+        fixedPmaxControlsDiv: document.getElementById('fixed-pmax-controls'),
+        fixedPmaxValueSlider: document.getElementById('fixed_pmax_value'),
+        fixedPmaxValueSpan: document.getElementById('fixed_pmax_value-value'),
+        fixedPmaxUnitLabel: document.getElementById('fixed_pmax_unit_label'),
+        powerDataPointsContainer: document.getElementById('power-data-points-container'),
+        powerDurationPlotDiv: document.getElementById('power_duration_plot_div'),
+        valuesContainer: document.getElementById('values-container'),
+        notificationDiv: document.getElementById('notification'),
+    };
+
+    // --- CONSTANTS ---
+    const DURATIONS_TO_CALCULATE = (()=>{
+        const durations = new Set();
+        for(let i=1; i<=10; i++) durations.add(i);
+        for(let i=12; i<=30; i+=2) durations.add(i);
+        for(let i=35; i<=60; i+=5) durations.add(i);
+        durations.add(90);
+        for(let i=2; i<=30; i++) durations.add(i*60);
+        for(let i=35; i<=60; i+=5) durations.add(i*60);
+        for(let i=70; i<=120; i+=10) durations.add(i*60);
+        for(let i=150; i<=240; i+=30) durations.add(i*60);
+        durations.add(300*60);
+        durations.add(360*60);
+        return Array.from(durations).sort((a,b)=>a-b);
+    })();
+
+    // --- UTILITY FUNCTIONS ---
+    function showNotification(message, type = 'info') {
+        domElements.notificationDiv.innerHTML = message;
+        domElements.notificationDiv.className = `notification ${type}`;
+        domElements.notificationDiv.style.display = 'block';
+        setTimeout(() => {
+            domElements.notificationDiv.style.display = 'none';
+        }, 4000);
+    }
+
+    function formatDuration(totalSeconds) {
+        if (totalSeconds < 60) return `${totalSeconds}s`;
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = Math.round(totalSeconds % 60);
+        if (minutes >= 60) {
+            const hours = Math.floor(minutes / 60);
+            const remMinutes = minutes % 60;
+            return `${hours}h ${remMinutes}m`;
+        }
+        if (seconds === 0) return `${minutes}m`;
+        return `${minutes}m ${seconds.toString().padStart(2, '0')}s`;
+    }
+    
+    function setAnalysisState(isAnalyzing) {
+        appState.isAnalyzing = isAnalyzing;
+        domElements.analysisSpinner.style.display = isAnalyzing ? 'block' : 'none';
+        domElements.fileDropArea.style.pointerEvents = isAnalyzing ? 'none' : 'auto';
+    }
+
+    // --- FILE HANDLING & PARSING ---
+    function handleFileSelect(event) {
+        const files = event.target.files || event.dataTransfer.files;
+        if (!files.length || appState.isAnalyzing) return;
+
+        let filesToProcess = Array.from(files);
+        let processedCount = 0;
+        let readSuccessCount = 0;
+        
+        setAnalysisState(true);
+
+        filesToProcess.forEach(file => {
+            const reader = new FileReader();
+            const fileType = file.name.split('.').pop().toLowerCase();
+
+            if (!['fit', 'tcx', 'gpx'].includes(fileType)) {
+                showNotification(`Unsupported file type: ${file.name}`, 'warning');
+                processedCount++;
+                if (processedCount === filesToProcess.length) analyzeAllFiles();
+                return;
+            }
+
+            reader.onload = (e) => {
+                appState.uploadedFiles[file.name] = { buffer: e.target.result, type: fileType };
+                processedCount++;
+                readSuccessCount++;
+                if (processedCount === filesToProcess.length) {
+                    showNotification(`Successfully read ${readSuccessCount} file(s). Starting analysis.`, 'info');
+                    analyzeAllFiles();
+                }
+            };
+            reader.onerror = () => {
+                showNotification(`Error reading file: ${file.name}`, 'warning');
+                processedCount++;
+                if (processedCount === filesToProcess.length) analyzeAllFiles();
+            };
+            
+            if (fileType === 'fit') reader.readAsArrayBuffer(file);
+            else reader.readAsText(file);
+        });
+        
+        domElements.fileInput.value = '';
+    }
+    
+    async function getPowerCurveForFile(fileName) {
+        const fileInfo = appState.uploadedFiles[fileName];
+        let records;
+
+        if (fileInfo.type === 'fit') records = parseFit(fileInfo.buffer);
+        else if (fileInfo.type === 'tcx') records = parseTcx(fileInfo.buffer);
+        else if (fileInfo.type === 'gpx') records = parseGpx(fileInfo.buffer);
+
+        if (!records || records.length < 2 || !records.some(r => r.power > 0)) {
+            throw new Error("No valid power data.");
+        }
+        
+        const powerArray = interpolatePowerData(records);
+
+        if (powerArray.length < Math.min(...DURATIONS_TO_CALCULATE)) {
+             throw new Error("Activity is too short.");
+        }
+        
+        return calculatePowerCurve(powerArray);
+    }
+
+    async function analyzeAllFiles() {
+        updateFileListUI();
+        if (Object.keys(appState.uploadedFiles).length === 0) {
+            setAnalysisState(false);
+            return;
+        }
+
+        let compositePowerCurve = {};
+        DURATIONS_TO_CALCULATE.forEach(d => { compositePowerCurve[d] = 0; });
+
+        let filesAnalyzedCount = 0;
+        for (const fileName of Object.keys(appState.uploadedFiles)) {
+            try {
+                const individualCurve = await getPowerCurveForFile(fileName);
+                individualCurve.forEach(point => {
+                    if (point.power > compositePowerCurve[point.duration]) {
+                        compositePowerCurve[point.duration] = point.power;
+                    }
+                });
+                filesAnalyzedCount++;
+            } catch (error) {
+                console.warn(`Could not analyze ${fileName}: ${error.message}`);
+                showNotification(`Skipping ${fileName}: ${error.message}`, 'warning');
+            }
+        }
+        
+        appState.powerDurationPoints = Object.entries(compositePowerCurve).map(([duration, power]) => ({
+            absolute_power: power,
+            duration: parseInt(duration),
+            label: `${formatDuration(parseInt(duration))} Max`
+        })).filter(p => p.absolute_power > 0); // Only keep points with actual power data
+        
+        setAnalysisState(false);
+        if (filesAnalyzedCount > 0) {
+            showNotification(`Composite analysis complete from ${filesAnalyzedCount} file(s).`, 'success');
+            updateAllPlotsAndCalculations();
+            renderExtractedPowerData();
+            renderCompositeSummary();
+        } else {
+             showNotification('Analysis failed. No valid files found.', 'warning');
+        }
+    }
+
+    function parseFit(buffer) {
+        const fitParser = new window.Fit.FitParser({ force: true });
+        let records = [];
+        fitParser.parse(buffer, (error, data) => {
+            if (error) throw new Error("Failed to parse FIT file.");
+            if (data.records) {
+                records = data.records
+                    .filter(r => r.timestamp && r.power != null)
+                    .map(r => ({ timestamp: new Date(r.timestamp), power: r.power }));
+            }
+        });
+        return records;
+    }
+    
+    function parseTcx(xmlString) {
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(xmlString, "text/xml");
+        const trackpoints = xmlDoc.getElementsByTagName("Trackpoint");
+        if (!trackpoints.length) throw new Error("No trackpoints in TCX.");
+        return Array.from(trackpoints).map(tp => {
+            const timeEl = tp.getElementsByTagName("Time")[0];
+            const powerEl = tp.getElementsByTagName("Watts")[0];
+            if (!timeEl || !powerEl) return null;
+            return { timestamp: new Date(timeEl.textContent), power: parseInt(powerEl.textContent, 10) };
+        }).filter(r => r && r.power != null && !isNaN(r.power));
+    }
+
+    function parseGpx(xmlString) {
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(xmlString, "text/xml");
+        const trackpoints = xmlDoc.getElementsByTagName("trkpt");
+        if (!trackpoints.length) throw new Error("No trackpoints in GPX.");
+        return Array.from(trackpoints).map(tp => {
+            const timeEl = tp.getElementsByTagName("time")[0];
+            const powerEl = tp.querySelector("power, extensions power");
+            if (!timeEl || !powerEl) return null;
+            return { timestamp: new Date(timeEl.textContent), power: parseInt(powerEl.textContent, 10) };
+        }).filter(r => r && r.power != null && !isNaN(r.power));
+    }
+
+    // --- ANALYSIS CORE ---
+    function interpolatePowerData(records) {
+        if (records.length < 2) return [];
+        const startTime = records[0].timestamp.getTime();
+        const endTime = records[records.length - 1].timestamp.getTime();
+        const totalDurationSeconds = Math.round((endTime - startTime) / 1000);
+        
+        const powerArray = new Array(totalDurationSeconds + 1).fill(0);
+        let recordIndex = 0;
+
+        for (let t = 0; t <= totalDurationSeconds; t++) {
+            const currentTime = startTime + t * 1000;
+            while (recordIndex < records.length - 1 && records[recordIndex + 1].timestamp.getTime() < currentTime) {
+                recordIndex++;
+            }
+            if (recordIndex >= records.length - 1) {
+                powerArray[t] = records[records.length - 1].power;
+                continue;
+            }
+            const p1 = records[recordIndex], p2 = records[recordIndex + 1];
+            const t1 = p1.timestamp.getTime(), t2 = p2.timestamp.getTime();
+            if (t2 - t1 > 10000) { powerArray[t] = 0; continue; }
+            if (t2 === t1) { powerArray[t] = p1.power; } 
+            else { powerArray[t] = Math.round(p1.power + ((currentTime - t1) / (t2 - t1)) * (p2.power - p1.power)); }
+        }
+        return powerArray;
+    }
+
+    function calculatePowerCurve(powerArray) {
+        const results = [];
+        const n = powerArray.length;
+        DURATIONS_TO_CALCULATE.forEach(d => {
+            if (d > n) return;
+            let maxSum = 0, currentSum = 0;
+            for (let i = 0; i < d; i++) currentSum += powerArray[i];
+            maxSum = currentSum;
+            for (let i = d; i < n; i++) {
+                currentSum = currentSum - powerArray[i - d] + powerArray[i];
+                if (currentSum > maxSum) maxSum = currentSum;
+            }
+            results.push({ duration: d, power: maxSum / d });
+        });
+        return results;
+    }
+
+    // --- UI RENDERING ---
+    function updateFileListUI() {
+        const filenames = Object.keys(appState.uploadedFiles);
+        domElements.fileList.innerHTML = '';
+        if (filenames.length === 0) {
+            domElements.fileList.innerHTML = `<p class="small-text" style="text-align:center;">No files uploaded.</p>`;
+            return;
+        }
+        filenames.forEach(name => {
+            const p = document.createElement('p');
+            p.textContent = name;
+            domElements.fileList.appendChild(p);
+        });
+    }
+
+    function renderExtractedPowerData() {
+        domElements.powerDataPointsContainer.innerHTML = '';
+        if (!appState.powerDurationPoints.length) {
+            domElements.powerDataPointsContainer.innerHTML = `<p class="small-text" style="text-align: center;">No power curve data available.</p>`;
+            return;
+        }
+        const displayUnit = appState.useAbsolutePower ? "W" : "W·kg⁻¹";
+        const bodyMass = appState.body_mass > 0 ? appState.body_mass : 1;
+        appState.powerDurationPoints.forEach(point => {
+            const div = document.createElement('div');
+            div.className = 'data-point-display';
+            const displayPower = appState.useAbsolutePower ? point.absolute_power : (point.absolute_power / bodyMass);
+            const powerString = appState.useAbsolutePower ? displayPower.toFixed(0) : displayPower.toFixed(2);
+            div.innerHTML = `<span>${formatDuration(point.duration)}:</span> <span>${powerString} ${displayUnit}</span>`;
+            domElements.powerDataPointsContainer.appendChild(div);
+        });
+    }
+
+    function renderCompositeSummary() {
+        const points = appState.powerDurationPoints;
+        if (points.length === 0) {
+            domElements.valuesContainer.textContent = "No composite summary available.";
+            return;
+        }
+        
+        let html = `Composite Profile from ${Object.keys(appState.uploadedFiles).length} files\n`;
+        html += `-----------------------------------------\n`;
+        
+        const p1s = points.find(p => p.duration === 1);
+        if (p1s) html += `Max Power (1s):    ${p1s.absolute_power.toFixed(0)} W\n`;
+        
+        const ftpPoint = points.find(p => p.duration === 20*60);
+        if (ftpPoint) {
+            const ftpEst = ftpPoint.absolute_power * 0.95;
+            const ftpWkg = appState.body_mass > 0 ? (ftpEst / appState.body_mass).toFixed(2) : "N/A";
+            html += `eFTP (from 20min): ${ftpEst.toFixed(0)} W (${ftpWkg} W/kg)\n`;
+        } else {
+             html += `eFTP (from 20min): N/A (no 20min effort)\n`;
+        }
+
+        const p5min = points.find(p => p.duration === 5*60);
+        if (p5min) {
+            const p5minWkg = appState.body_mass > 0 ? (p5min.absolute_power / appState.body_mass).toFixed(2) : "N/A";
+            html += `5min Best:         ${p5min.absolute_power.toFixed(0)} W (${p5minWkg} W/kg)\n`;
+        }
+
+        const p60min = points.find(p => p.duration === 60*60);
+        if (p60min) {
+            const p60minWkg = appState.body_mass > 0 ? (p60min.absolute_power / appState.body_mass).toFixed(2) : "N/A";
+            html += `60min Best:        ${p60min.absolute_power.toFixed(0)} W (${p60minWkg} W/kg)\n`;
+        }
+        
+        domElements.valuesContainer.innerHTML = html;
+    }
+
+    function updateFixedPmaxSliderUI() {
+        const isAbs = appState.useAbsolutePower;
+        domElements.fixedPmaxUnitLabel.textContent = isAbs ? "W" : "W·kg⁻¹";
+        if (isAbs) {
+            domElements.fixedPmaxValueSlider.min = 500; domElements.fixedPmaxValueSlider.max = 2500; domElements.fixedPmaxValueSlider.step = 10;
+            appState.fixedPmaxValue = Math.round(appState.fixedPmaxValue);
+        } else {
+            domElements.fixedPmaxValueSlider.min = 5; domElements.fixedPmaxValueSlider.max = 30; domElements.fixedPmaxValueSlider.step = 0.1;
+            appState.fixedPmaxValue = parseFloat(appState.fixedPmaxValue.toFixed(1));
+        }
+        appState.fixedPmaxValue = Math.max(parseFloat(domElements.fixedPmaxValueSlider.min), Math.min(parseFloat(domElements.fixedPmaxValueSlider.max), appState.fixedPmaxValue));
+        domElements.fixedPmaxValueSlider.value = appState.fixedPmaxValue;
+        domElements.fixedPmaxValueSpan.textContent = isAbs ? appState.fixedPmaxValue.toFixed(0) : appState.fixedPmaxValue.toFixed(1);
+    }
+    
+    // --- EVENT LISTENERS ---
+    function setupEventListeners() {
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(ev => domElements.fileDropArea.addEventListener(ev, e => {e.preventDefault(); e.stopPropagation();}, false));
+        ['dragenter', 'dragover'].forEach(ev => domElements.fileDropArea.addEventListener(ev, () => domElements.fileDropArea.classList.add('dragover'), false));
+        ['dragleave', 'drop'].forEach(ev => domElements.fileDropArea.addEventListener(ev, () => domElements.fileDropArea.classList.remove('dragover'), false));
+        domElements.fileDropArea.addEventListener('drop', handleFileSelect, false);
+        domElements.fileDropArea.addEventListener('click', () => domElements.fileInput.click());
+        domElements.fileInput.addEventListener('change', handleFileSelect);
+
+        domElements.bodyMassSlider.addEventListener('input', (e) => {
+            appState.body_mass = parseFloat(e.target.value);
+            domElements.bodyMassValueSpan.textContent = appState.body_mass.toFixed(1);
+            updateAllPlotsAndCalculations();
+            renderExtractedPowerData();
+            if (appState.powerDurationPoints.length > 0) renderCompositeSummary();
+        });
+        domElements.useAbsolutePowerToggle.addEventListener('change', () => {
+            const oldUseAbsolutePower = appState.useAbsolutePower;
+            appState.useAbsolutePower = domElements.useAbsolutePowerToggle.checked;
+            const bodyMassForConversion = appState.body_mass > 0 ? appState.body_mass : 75;
+            if (appState.useAbsolutePower && !oldUseAbsolutePower) appState.fixedPmaxValue = Math.round(appState.fixedPmaxValue * bodyMassForConversion);
+            else if (!appState.useAbsolutePower && oldUseAbsolutePower) appState.fixedPmaxValue = parseFloat((appState.fixedPmaxValue / bodyMassForConversion).toFixed(1));
+            updateFixedPmaxSliderUI();
+            updateAllPlotsAndCalculations();
+            renderExtractedPowerData();
+        });
+        domElements.pdModelSelect.addEventListener('change', (e) => { appState.selectedPDModel = e.target.value; updateAllPlotsAndCalculations(); });
+        domElements.useFixedPmaxToggle.addEventListener('change', () => {
+            appState.useFixedPmax = domElements.useFixedPmaxToggle.checked;
+            domElements.fixedPmaxControlsDiv.style.display = appState.useFixedPmax ? 'block' : 'none';
+            updateAllPlotsAndCalculations();
+        });
+        domElements.fixedPmaxValueSlider.addEventListener('input', () => {
+            appState.fixedPmaxValue = parseFloat(domElements.fixedPmaxValueSlider.value);
+            domElements.fixedPmaxValueSpan.textContent = appState.useAbsolutePower ? appState.fixedPmaxValue.toFixed(0) : appState.fixedPmaxValue.toFixed(1);
+            if (appState.useFixedPmax) updateAllPlotsAndCalculations();
+        });
+        window.addEventListener('resize', () => { Plotly.Plots.resize(domElements.powerDurationPlotDiv); });
+    }
+
+    // --- PLOTTING & MODEL FITTING ---
+    function updateAllPlotsAndCalculations() {
+        plotPowerDurationProfile();
+    }
+
+    function linearRegression(x, y) {
+        const n = x.length; if (n === 0) return { slope: NaN, intercept: NaN, rSquared: NaN };
+        let sx = 0, sy = 0, sxy = 0, sxx = 0, syy = 0;
+        for (let i = 0; i < n; i++) { sx += x[i]; sy += y[i]; sxy += x[i] * y[i]; sxx += x[i] * x[i]; syy += y[i] * y[i]; }
+        const d = (n * sxx - sx * sx); if (d === 0) return { slope: NaN, intercept: NaN, rSquared: NaN };
+        const s = (n * sxy - sx * sy) / d; const i = (sy - s * sx) / n;
+        const rN = (n * sxy - sx * sy); const rD = Math.sqrt((n * sxx - sx * sx) * (n * syy - sy * sy));
+        if (rD === 0) return { slope: s, intercept: i, rSquared: NaN };
+        const r = rN / rD; return { slope: s, intercept: i, rSquared: r*r };
+    }
+    function calculateRSquared(obs, pred) {
+        if (obs.length !== pred.length || obs.length === 0) return NaN;
+        const meanObs = obs.reduce((a, b) => a + b, 0) / obs.length;
+        const ssTot = obs.reduce((s, v) => s + Math.pow(v - meanObs, 2), 0);
+        const ssRes = obs.reduce((s, v, i) => s + Math.pow(v - pred[i], 2), 0);
+        if (ssTot === 0) return (ssRes === 0) ? 1 : 0; return 1 - (ssRes / ssTot);
+    }
+    const modelFunctions = {
+        powerLaw: (t, p) => p.S * Math.pow(t, p.E - 1),
+        twoParam: (t, p) => p.CP + p.Wprime / t,
+        ompd: (t, p) => p.CP + p.Wprime / (t + (p.Wprime / (p.Pmax - p.CP))),
+        om3cp: (t, p) => p.CP + (p.Pmax - p.CP) * (1 - Math.exp(-t / (p.Wprime / (p.Pmax - p.CP)))),
+        omexp: (t, p) => p.CP + (p.Pmax - p.CP) * (1 - Math.exp(-t / (p.Wprime / (p.Pmax - p.CP)))),
+    };
+    function fitPowerLawModel(d, p) {
+        if (appState.useFixedPmax && appState.fixedPmaxValue > 0) {
+            if(d.length < 1) return null; const S = appState.fixedPmaxValue;
+            let s_ltsq = 0, s_ltY = 0;
+            for (let i=0; i<d.length; i++) { if (d[i]<=0||p[i]<=0||(p[i]/S)<=0) continue; const lt=Math.log(d[i]), Y=Math.log(p[i]/S); s_ltsq+=lt*lt; s_ltY+=lt*Y; }
+            if (s_ltsq===0) return {S, E:NaN}; return {S, E: s_ltY/s_ltsq+1, modelType:'Power-Law (Fixed Pmax)'};
+        } else { if(d.length<2) return null; const ld=d.map(Math.log), lp=p.map(Math.log); const r=linearRegression(ld,lp); if(isNaN(r.slope))return null; return {S:Math.exp(r.intercept), E:r.slope+1, modelType:'Power-Law'}; }
+    }
+    function fit2ParamCPModel(d, p) { if (d.length < 2) return null; const id=d.map(v=>1/v); const r=linearRegression(id, p); if (isNaN(r.slope)) return null; return {CP:r.intercept, Wprime:r.slope, modelType:'2-Parameter CP'}; }
+    function fitAdvancedCPModel(d, p, m) {
+        const isFixP = appState.useFixedPmax && appState.fixedPmaxValue > 0; if (d.length < (isFixP?2:3)) return null;
+        const f = modelFunctions[m.toLowerCase()];
+        const obj = (par) => { let s=0; for(let i=0; i<d.length; i++){s+=Math.pow(p[i]-f(d[i],par),2);} return s; };
+        const tpf=fit2ParamCPModel(d,p); const igPmax=Math.max(...p)*1.1, igCP=tpf?tpf.CP:Math.min(...p)*0.9, igWp=tpf?tpf.Wprime:(igPmax-igCP)*180;
+        let ig, objW;
+        if(isFixP){ig=[igCP,igWp]; objW=(par)=>{if(par[0]<=0||par[1]<=0||par[0]>=appState.fixedPmaxValue)return 1e12; return obj({CP:par[0], Wprime:par[1], Pmax:appState.fixedPmaxValue});};}
+        else{ig=[igCP,igWp,igPmax]; objW=(par)=>{if(par[0]<=0||par[1]<=0||par[2]<=par[0])return 1e12; return obj({CP:par[0],Wprime:par[1],Pmax:par[2]});};}
+        try{const res=numeric.uncmin(objW,ig,1e-8); if(isFixP){return{CP:res.solution[0],Wprime:res.solution[1],Pmax:appState.fixedPmaxValue,modelType:`${m}(Fixed Pmax)`};} return{CP:res.solution[0],Wprime:res.solution[1],Pmax:res.solution[2],modelType:m};}
+        catch(e){console.error(`Error fitting ${m}:`,e); return null;}
+    }
+
+    function plotPowerDurationProfile() {
+        if (!appState.powerDurationPoints.length) {
+            Plotly.purge(domElements.powerDurationPlotDiv);
+            return;
+        }
+        const bodyMass = appState.body_mass > 0 ? appState.body_mass : 1;
+        const plotPoints = appState.powerDurationPoints.map(p => ({ duration: p.duration, power: appState.useAbsolutePower ? p.absolute_power : p.absolute_power / bodyMass, label: p.label }));
+        let fittedParams = null;
+        const durations = plotPoints.map(p => p.duration);
+        const powers = plotPoints.map(p => p.power);
+        switch (appState.selectedPDModel) {
+            case 'powerLaw': fittedParams = fitPowerLawModel(durations, powers); break;
+            case 'twoParam': fittedParams = fit2ParamCPModel(durations, powers); break;
+            case 'ompd': case 'om3cp': case 'omexp': fittedParams = fitAdvancedCPModel(durations, powers, appState.selectedPDModel); break;
+        }
+        const yAxisPowerUnit = appState.useAbsolutePower ? 'W' : 'W·kg⁻¹';
+        const powerHoverFormat = appState.useAbsolutePower ? ':.0f' : ':.2f';
+        const dataTrace = { x: plotPoints.map(p => p.duration), y: plotPoints.map(p => p.power), text: plotPoints.map(p => `${p.label}<br>${p.power.toFixed(appState.useAbsolutePower?0:2)} ${yAxisPowerUnit}`), hoverinfo: 'text', type: 'scatter', mode: 'markers', name: 'Composite Data', marker: { color: 'var(--primary-color)', size: 10 } };
+        const traces = [dataTrace];
+        let annotations = [], shapes = [];
+        
+        if (fittedParams) {
+            const modelFunc = modelFunctions[appState.selectedPDModel];
+            const modelX = []; for(let t = 1; t <= 3600; t++) modelX.push(t);
+            const modelY = modelX.map(t => modelFunc(t, fittedParams));
+            traces.push({ x: modelX, y: modelY, name: fittedParams.modelType, mode: 'lines', line: { color: 'var(--dark-color)', width: 2.5 }, hovertemplate: `P: %{y${powerHoverFormat}} ${yAxisPowerUnit}<br>t: %{x:.0f}s<extra></extra>` });
+            const rSquared = calculateRSquared(powers, durations.map(d => modelFunc(d, fittedParams)));
+            let paramString = ""; const pConv = (v) => v.toFixed(appState.useAbsolutePower ? 0 : 2);
+            if(fittedParams.S) paramString += `S: ${pConv(fittedParams.S)}`; if(fittedParams.E) paramString += `, E: ${fittedParams.E.toFixed(3)}`;
+            if(fittedParams.CP) paramString += `CP: ${pConv(fittedParams.CP)} ${yAxisPowerUnit}`; if(fittedParams.Wprime) paramString += `, W': ${(fittedParams.Wprime / 1000).toFixed(2)} ${appState.useAbsolutePower?'kJ':'kJ/kg'}`;
+            if(fittedParams.Pmax && !appState.useFixedPmax) paramString += `, Pmax: ${pConv(fittedParams.Pmax)}`;
+            annotations.push({ text: `${fittedParams.modelType}<br>${paramString}<br>R² = ${!isNaN(rSquared) ? rSquared.toFixed(3) : 'N/A'}`, align: 'left', showarrow: false, xref: 'paper', yref: 'paper', x: 0.05, y: 0.95 });
+            if (fittedParams.CP) {
+                shapes.push({ type: 'line', xref: 'paper', yref: 'y', x0: 0, y0: fittedParams.CP, x1: 1, y1: fittedParams.CP, line: { color: 'grey', width: 2, dash: 'dot' } });
+                annotations.push({ text: `CP: ${pConv(fittedParams.CP)}`, align: 'left', showarrow: false, xref: 'paper', yref: 'y', x: 0.95, y: fittedParams.CP, xanchor: 'right', yanchor: 'bottom' });
+            }
+        }
+        
+        const yMax = Math.max(...plotPoints.map(p => p.power)) * 1.2;
+        const layout = {
+            xaxis: { title: 'Duration (s)', type: 'linear', range: [1, 3600], showgrid: true, gridcolor: 'rgba(200,200,200,0.2)' },
+            yaxis: { title: `Power (${yAxisPowerUnit})`, range: [0, yMax], showgrid: true, gridcolor: 'rgba(200,200,200,0.2)'},
+            showlegend: true, legend: { x: 1, xanchor: 'right', y: 1 }, margin: { t: 25, b: 50, l: 60, r: 20 },
+            hovermode: 'closest', annotations: annotations, shapes: shapes,
+            paper_bgcolor: 'rgba(255,255,255,0)', plot_bgcolor: 'rgba(255,255,255,0.5)',
+        };
+        Plotly.react(domElements.powerDurationPlotDiv, traces, layout, {responsive: true});
+    }
+
+    // --- INITIALIZATION ---
+    function initializeApp() {
+        openTab(null, 'tabFileAnalysis');
+        domElements.bodyMassValueSpan.textContent = appState.body_mass.toFixed(1);
+        updateFixedPmaxSliderUI();
+        setupEventListeners();
+        showNotification("App ready. Please upload activity files.", 'info');
+    }
+    
+    initializeApp();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interaktive CP-Modell Analyse (Lineare Achsen)</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #1c1c1e;
+            color: #f2f2f7;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background-color: #2c2c2e;
+            padding: 25px 35px;
+            border-radius: 18px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            width: 95%;
+            max-width: 1100px;
+        }
+        h1, h2 {
+            color: #ffffff;
+            text-align: center;
+            margin-top: 0;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #444;
+        }
+        .main-layout {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        .controls {
+            flex: 1;
+            min-width: 300px;
+        }
+        .results-chart {
+            flex: 2;
+            min-width: 500px;
+        }
+        .control-group {
+            background-color: #3a3a3c;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+        }
+        .control-group label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            font-size: 1em;
+            margin-bottom: 10px;
+        }
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            transform: scale(0.85);
+            margin-right: -10px;
+        }
+        input[type="range"] {
+            width: 100%;
+            cursor: pointer;
+        }
+        .value-display {
+            font-weight: bold;
+            color: #34c759; /* Green for values */
+            font-size: 1.1em;
+        }
+        .results-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            background-color: #3a3a3c;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .result-item h3 {
+            margin: 0 0 5px 0;
+            font-size: 1.1em;
+            color: #bfbfbf;
+        }
+        .result-item p {
+            margin: 0;
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #34c759;
+        }
+        .chart-container {
+            position: relative;
+            height: 450px;
+            width: 100%;
+        }
+        .message {
+            text-align: center;
+            padding: 20px;
+            color: #ff453a; /* Red for errors */
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Interaktive CP-Modell Analyse</h1>
+    <div class="main-layout">
+        <div class="controls">
+            <h2>Eingabeparameter</h2>
+            <div id="sliders">
+                <!-- Sliders will be generated here -->
+                 <div class="control-group">
+                    <label for="mass">Körpermasse <span class="value-display"><span id="mass-value">90</span> kg</span></label>
+                    <input type="range" id="mass" class="param-slider" min="50" max="120" value="90" step="0.5">
+                </div>
+            </div>
+        </div>
+        <div class="results-chart">
+            <h2>Ergebnisse & Modellkurve</h2>
+            <div class="results-grid">
+                <div class="result-item">
+                    <h3>AWC (kJ)</h3>
+                    <p id="awc-result">--</p>
+                </div>
+                <div class="result-item">
+                    <h3>CP (W)</h3>
+                    <p id="cp-result">--</p>
+                </div>
+                 <div class="result-item">
+                    <h3>Relativer CP (W/kg)</h3>
+                    <p id="cp-rel-result">--</p>
+                </div>
+                 <div class="result-item">
+                    <h3>Pmax (W)</h3>
+                    <p id="pmax-result">--</p>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="powerCurveChart"></canvas>
+                <div id="chart-message" class="message" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const powerInputs = [
+        { id: 'p1s', time: 1, label: 'Leistung 1s', min: 1000, max: 1500, value: 1209, unit: 'W' },
+        { id: 'p20s', time: 20, label: 'Leistung 20s', min: 800, max: 1300, value: 1075, unit: 'W' },
+        { id: 'p4min', time: 240, label: 'Leistung 4min', min: 350, max: 600, value: 468, unit: 'W' },
+        { id: 'p12min', time: 720, label: 'Leistung 12min', min: 300, max: 550, value: 418, unit: 'W' }
+    ];
+
+    const sliderContainer = document.getElementById('sliders');
+
+    powerInputs.forEach(input => {
+        const group = document.createElement('div');
+        group.className = 'control-group';
+        group.innerHTML = `
+            <label for="${input.id}">
+                ${input.label}
+                <div class="checkbox-container">
+                    <span>Nutzen:</span> <input type="checkbox" id="${input.id}-check" class="param-check" checked>
+                </div>
+            </label>
+            <div>
+                <input type="range" id="${input.id}" class="param-slider" min="${input.min}" max="${input.max}" value="${input.value}" step="1">
+                <span class="value-display"><span id="${input.id}-value">${input.value}</span> ${input.unit}</span>
+            </div>
+        `;
+        sliderContainer.appendChild(group);
+    });
+
+    const ctx = document.getElementById('powerCurveChart').getContext('2d');
+    const powerCurveChart = new Chart(ctx, {
+        type: 'scatter',
+        data: {
+            datasets: [{
+                label: 'Eingabepunkte',
+                data: [],
+                backgroundColor: '#34c759',
+                pointRadius: 6,
+                pointHoverRadius: 8
+            }, {
+                label: 'Modellkurve (3-Parameter)',
+                data: [],
+                borderColor: '#0a84ff',
+                backgroundColor: 'transparent',
+                borderWidth: 3,
+                type: 'line',
+                pointRadius: 0,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    type: 'linear', // *** GEÄNDERT ***
+                    title: { display: true, text: 'Zeit (Sekunden)', color: '#e0e0e0', font: { size: 14 } },
+                    min: 0,         // *** NEU ***
+                    max: 3600,      // *** NEU ***
+                    ticks: { color: '#c0c0c0' },
+                    grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                },
+                y: {
+                    type: 'linear', // Sicherstellen, dass auch Y linear ist
+                    title: { display: true, text: 'Leistung (Watt)', color: '#e0e0e0', font: { size: 14 } },
+                    min: 0,         // *** NEU ***
+                    max: 1500,      // *** NEU ***
+                    ticks: { color: '#c0c0c0' },
+                    grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                }
+            },
+            plugins: { legend: { labels: { color: '#e0e0e0' } } }
+        }
+    });
+
+    function updateApp() {
+        powerInputs.forEach(input => {
+            document.getElementById(`${input.id}-value`).textContent = document.getElementById(input.id).value;
+        });
+        document.getElementById('mass-value').textContent = document.getElementById('mass').value;
+
+        const points = powerInputs
+            .filter(input => document.getElementById(`${input.id}-check`).checked)
+            .map(input => ({
+                t: input.time,
+                p: parseFloat(document.getElementById(input.id).value)
+            }));
+
+        const messageDiv = document.getElementById('chart-message');
+        if (points.length < 3) {
+            messageDiv.textContent = 'Bitte mindestens 3 Datenpunkte für die Berechnung auswählen.';
+            messageDiv.style.display = 'block';
+            resetResults();
+            updateChart([], []);
+            return;
+        }
+        messageDiv.style.display = 'none';
+
+        const fitResult = fit3ParamCPModel(points);
+        displayResults(fitResult);
+        
+        const modelCurve = generateModelCurve(fitResult);
+        updateChart(points, modelCurve);
+    }
+    
+    function fit3ParamCPModel(points) {
+        points.sort((a, b) => a.t - b.t);
+        const pMaxGuess = points[0].p;
+        let cpGuess = points[points.length - 1].p;
+        let awcGuess = (points[0].p - cpGuess) * points[0].t * 0.5;
+
+        let params = {
+            awc: Math.max(5000, awcGuess), 
+            cp: Math.max(100, cpGuess), 
+            pmax: Math.max(pMaxGuess, cpGuess + 100)
+        };
+        
+        const learningRate = 1e-8;
+        const iterations = 500;
+
+        for (let i = 0; i < iterations; i++) {
+            let grad = { awc: 0, cp: 0, pmax: 0 };
+            
+            points.forEach(point => {
+                const k = params.awc / (params.cp - params.pmax);
+                if (point.t - k <= 0) return;
+
+                const p_pred = params.cp + params.awc / (point.t - k);
+                const error = p_pred - point.p;
+                
+                const dk_dawc = 1 / (params.cp - params.pmax);
+                const dk_dcp = -params.awc / Math.pow(params.cp - params.pmax, 2);
+                const dk_dpmax = params.awc / Math.pow(params.cp - params.pmax, 2);
+
+                const common_term = -params.awc / Math.pow(point.t - k, 2);
+                
+                grad.cp += error * (1 + common_term * dk_dcp);
+                grad.awc += error * (1 / (point.t - k) + common_term * dk_dawc);
+                grad.pmax += error * (common_term * dk_dpmax);
+            });
+            
+            params.cp -= learningRate * grad.cp * 10;
+            params.awc -= learningRate * grad.awc * 10000;
+            params.pmax -= learningRate * grad.pmax * 10;
+            
+            params.cp = Math.max(100, params.cp);
+            params.awc = Math.max(1000, params.awc);
+            params.pmax = Math.max(params.cp + 50, params.pmax);
+        }
+        
+        return params;
+    }
+
+    function displayResults(fitResult) {
+        const mass = parseFloat(document.getElementById('mass').value);
+        document.getElementById('awc-result').textContent = (fitResult.awc / 1000).toFixed(1);
+        document.getElementById('cp-result').textContent = fitResult.cp.toFixed(0);
+        document.getElementById('pmax-result').textContent = fitResult.pmax.toFixed(0);
+        document.getElementById('cp-rel-result').textContent = (fitResult.cp / mass).toFixed(2);
+    }
+    
+    function resetResults() {
+        document.getElementById('awc-result').textContent = '--';
+        document.getElementById('cp-result').textContent = '--';
+        document.getElementById('pmax-result').textContent = '--';
+        document.getElementById('cp-rel-result').textContent = '--';
+    }
+
+    function generateModelCurve(fitResult) {
+        const { awc, cp, pmax } = fitResult;
+        if (!awc || !cp || !pmax || cp >= pmax) return []; // Verhindert Division durch Null oder positive k
+        
+        const k = awc / (cp - pmax);
+        const curve = [];
+        
+        // *** GEÄNDERT: Kurve wird immer von 1s bis 3600s berechnet ***
+        for (let t = 1; t <= 3600; t += 5) { // Schrittweite für bessere Performance
+            // Überprüfen, ob die Berechnung gültig ist (t > k)
+            if (t > k) {
+                const power = cp + awc / (t - k);
+                curve.push({ x: t, y: power });
+            }
+        }
+        return curve;
+    }
+    
+    function updateChart(points, modelCurve) {
+        powerCurveChart.data.datasets[0].data = points.map(p => ({ x: p.t, y: p.p }));
+        powerCurveChart.data.datasets[1].data = modelCurve;
+        powerCurveChart.update();
+    }
+    
+    document.querySelectorAll('.param-slider, .param-check').forEach(elem => {
+        elem.addEventListener('input', updateApp);
+    });
+
+    updateApp();
+});
+</script>
+
+</body>
+</html>

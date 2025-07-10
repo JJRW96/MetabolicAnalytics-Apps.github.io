@@ -1,0 +1,30 @@
+Analyze the provided source code file [path/to/your/file.ext] and generate comprehensive technical documentation for it in English.
+
+The documentation must be highly detailed, well-structured, and written for a technical audience (e.g., other developers or power users). It should explain not just what the code does, but also how and why it does it, detailing the key algorithms and processes involved.
+
+STYLE AND CONTENT GUIDANCE:
+
+Following these instructions, you will find a complete example document. This example serves as a strict template for the expected quality, style, and structure.
+
+You MUST emulate the provided example in the following ways:
+
+    Tone and Detail: Match the professional, in-depth analytical tone. Explain complex concepts clearly and thoroughly.
+
+    Structure: Follow a similar logical structure (e.g., Introduction, UI/Component Breakdown, Core Logic/Workflow, Technical Appendix).
+
+    Formatting: Replicate the use of headings, subheadings, bold text for key terms, inline code formatting for variables or functions(), and bulleted/numbered lists.
+
+    Formulas and Concepts: When explaining scientific or mathematical concepts, use a similar format, including LaTeX-style notation for variables (e.g., $C_d A$) and clear explanations of each term.
+
+CRITICAL OUTPUT FORMATTING INSTRUCTIONS (NON-NEGOTIABLE):
+
+    THE SINGLE BLOCK RULE: Your ENTIRE response MUST be a single Markdown code block. The response must start on the very first line with markdown and end on the very last line with .
+
+    THE NO-PREAMBLE RULE: There must be ABSOLUTELY ZERO text, explanation, or any characters whatsoever before the opening markdown or after the closing .
+
+    THE NO-HEADER RULE: DO NOT include a Quarto/YAML header (the ---...--- block). The content inside the code block must start IMMEDIATELY with the first line of the actual documentation.
+
+    THE RAW-SOURCE RULE: The content inside the block must be the RAW Markdown source text. Do not render it as formatted text. ## Heading must appear as the literal characters `#', '#', ' ', 'H', ... and not as a large, bold heading.
+
+--- START OF EXAMPLE DOCUMENT ---
+

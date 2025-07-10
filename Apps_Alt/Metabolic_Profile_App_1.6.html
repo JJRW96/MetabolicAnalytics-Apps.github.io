@@ -1,0 +1,2356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integrated Metabolic & Power Profile</title>
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/numeric/1.2.6/numeric.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script> <!-- For CP model fitting -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Root variables for color scheme based on Mader_App */
+        :root {
+            --primary-color: #2683C6; /* Mader Primary */
+            --secondary-color: #9C85C0; /* Mader Secondary */
+            --accent-color: #EF5350;    /* Mader Accent */
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --border-color: #dee2e6;
+            --gradient-start: #f1f8ff;
+            --gradient-end: #ffffff;
+            --cho-color: #D81B60;
+            --fat-color: #009688;
+            --glycogen-color: #D81B60;
+
+            /* Colors for CP Models (from Critical_Power_App) */
+            --power-law-color: #000000;
+            --param2-color: #808080; /* Grey */
+            --ompd-color: #FF8C00; /* Dark Orange - distinct from Mader Accent */
+            --om3cp-color: #4682B4; /* Steel Blue - distinct */
+            --omexp-color: #32CD32; /* Lime Green - distinct */
+        }
+
+        /* Base styles for all elements */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* Body styles */
+        body {
+            background-color: #f5f5f5;
+            color: var(--dark-color);
+            line-height: 1.6;
+            overflow-y: auto; 
+        }
+
+        /* Main container layout */
+        .container {
+            display: flex;
+            min-height: 100vh; 
+            max-width: 100%;
+        }
+
+        /* Sidebar styles */
+        .sidebar {
+            width: 380px; 
+            flex-shrink: 0;
+            background: linear-gradient(to bottom, var(--gradient-start), var(--gradient-end));
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            overflow-y: auto;
+            border-right: 1px solid var(--border-color);
+            max-height: 100vh;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Main content area */
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            background-color: #fff;
+        }
+
+        /* Heading styles */
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            font-size: 1.6rem; 
+            text-align: center;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        /* Control group container */
+        .control-group {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+            background-color: white;
+            border-radius: 6px;
+            padding: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .control-group:last-child {
+            border-bottom: none;
+        }
+
+        /* Control label styles */
+        .control-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+
+        /* Slider container */
+        .slider-container {
+            margin-bottom: 15px;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
+        .slider-label label {
+            flex-grow: 1;
+        }
+
+        .slider-value {
+            min-width: 60px;
+            text-align: right;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        /* Range slider styling */
+        .range-slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: linear-gradient(to right, #ddd, var(--primary-color));
+            outline: none;
+            margin: 10px 0;
+        }
+
+        .range-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+
+        .range-slider::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+
+        /* Checkbox styling (Fancy Checkbox from Mader_App) */
+        .fancy-checkbox {
+            display: inline-block;
+            position: relative;
+            padding-left: 30px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            user-select: none;
+            margin-bottom: 10px; 
+        }
+        .fancy-checkbox input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+            height: 0;
+            width: 0;
+        }
+        .checkmark {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 20px;
+            width: 20px;
+            background-color: #eee;
+            border-radius: 3px;
+            transition: all 0.2s;
+        }
+        .fancy-checkbox:hover input ~ .checkmark {
+            background-color: #ccc;
+        }
+        .fancy-checkbox input:checked ~ .checkmark {
+            background-color: var(--primary-color);
+        }
+        .checkmark:after {
+            content: "";
+            position: absolute;
+            display: none;
+        }
+        .fancy-checkbox input:checked ~ .checkmark:after {
+            display: block;
+        }
+        .fancy-checkbox .checkmark:after {
+            left: 7px;
+            top: 3px;
+            width: 5px;
+            height: 10px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+
+
+        /* Button styling */
+        button, .button { 
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin-top: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: inline-block; 
+            text-align: center;
+        }
+        button:hover, .button:hover {
+            background-color: #1a6eae; /* Darker primary */
+            transform: translateY(-1px);
+            box-shadow: 0 3px 5px rgba(0,0,0,0.15);
+        }
+        button:active, .button:active {
+            transform: translateY(0);
+        }
+
+        /* Plot container styling */
+        .plot-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+            padding: 15px; 
+        }
+        #power-duration-plot-container { 
+            height: 480px; 
+            width: 100%;
+        }
+        #metabolic-plot-container { 
+            height: 600px; 
+            width: 100%;
+        }
+        #substrate-plot-container {
+            height: 300px; 
+            width: 100%;
+            display: none; 
+        }
+
+
+        /* Values container for data display */
+        #values-container {
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            font-family: monospace;
+            white-space: pre-wrap;
+            height: auto; 
+            min-height: 150px;
+            overflow-y: auto;
+            color: #444;
+            font-size: 0.92rem;
+            border-left: 4px solid var(--primary-color);
+            margin-top: 10px;
+        }
+
+        /* Dropdown select styling */
+        .dropdown-select {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 0.9em;
+            background-color: white;
+            margin-bottom: 10px;
+            height: 38px;
+        }
+
+        /* NEUE STILE FÜR DIE EINGABEFELDER IM TAB "POWER DATA" */
+        .new-data-point-inputs {
+            margin-top: 10px;
+            margin-bottom: 10px; /* Optional: etwas Abstand nach unten zum Button */
+        }
+
+        .data-point-row {
+            display: flex;
+            gap: 10px; /* Abstand zwischen den Feldern in einer Zeile */
+            margin-bottom: 10px; /* Abstand zwischen den Zeilen */
+        }
+
+        .data-point-row:last-child {
+            margin-bottom: 0; /* Kein zusätzlicher Abstand nach der letzten Zeile, wenn dies die letzte Zeile in .new-data-point-inputs ist */
+        }
+
+        .new-data-point-inputs input[type="text"],
+        .new-data-point-inputs input[type="number"] {
+            /* Basiskonfiguration */
+            /* flex: 1;  <-- DIESE ZEILE ENTFERNEN ODER AUSKOMMENTIEREN */
+            padding: 6px 8px;
+            height: 32px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 0.9em;
+            box-sizing: border-box; /* Stellt sicher, dass Padding und Border in der Breite enthalten sind */
+
+            /* NEUE ZEILEN HINZUFÜGEN für 50/50 Aufteilung und korrekte Ausrichtung */
+            width: calc(50% - 5px); /* Jedes Feld 50% der Zeilenbreite, minus die Hälfte des Gaps (10px / 2 = 5px) */
+            min-width: 0; /* Wichtig, um Überläufe bei langen Placeholdern zu verhindern */
+        }
+        .data-point-display {
+            background-color: var(--light-color);
+            padding: 8px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9em;
+        }
+        .remove-point-btn {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8em;
+        }
+        .remove-point-btn:hover {
+            background-color: #d32f2f; /* Darker accent */
+        }
+        #add-data-point-btn {
+            width: 100%;
+            margin-top: 0; 
+        }
+
+        /* Model Toggles (from Critical_Power_App, adapted) */
+        .model-toggles-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px; 
+            margin-bottom: 10px;
+        }
+        .model-toggle-label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            padding: 6px 10px; 
+            border-radius: 4px;
+            transition: background-color 0.2s;
+            font-size: 0.85em; 
+            border-left: 3px solid transparent; 
+        }
+        .model-toggle-label input[type="checkbox"] {
+            margin-right: 5px;
+        }
+
+        /* Color coding for model toggles */
+        .model-toggle-label.power-law-model { border-left-color: var(--power-law-color); }
+        .model-toggle-label.param2-model { border-left-color: var(--param2-color); }
+        .model-toggle-label.ompd-model { border-left-color: var(--ompd-color); }
+        .model-toggle-label.om3cp-model { border-left-color: var(--om3cp-color); }
+        .model-toggle-label.omexp-model { border-left-color: var(--omexp-color); }
+
+
+        /* Header section with info icon (from Mader_App) */
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .info-icon {
+            color: var(--primary-color);
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background-color: rgba(38, 131, 198, 0.1);
+        }
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 220px;
+            background-color: #555;
+            color: #fff;
+            text-align: left;
+            border-radius: 6px;
+            padding: 10px;
+            position: absolute;
+            z-index: 1000;
+            top: 25px;
+            left: -10px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            overflow-wrap: break-word;
+            word-wrap: break-word;
+            pointer-events: none;
+        }
+        .sidebar .tooltip .tooltiptext { max-width: 280px; }
+        .sidebar .control-group .header-section .tooltip .tooltiptext,
+        .sidebar .control-group .slider-label .tooltip .tooltiptext {
+            left: auto;
+            right: 0;
+        }
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        .small-text {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        /* Notification popup */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.2);
+            display: none;
+            max-width: 300px;
+            z-index: 1000;
+            animation: fadeIn 0.3s;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .notification.warning { border-left: 4px solid #EF5350; } 
+        .notification.info { border-left: 4px solid var(--primary-color); }
+
+        /* Radio button group (from Mader_App) */
+        .radio-group { margin: 10px 0; }
+        .radio-option { margin: 5px 0; display: flex; align-items: center; cursor: pointer; }
+        .radio-option input { margin-right: 10px; cursor: pointer; }
+
+        /* Axis controls container */
+        .axis-controls {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px; 
+            padding: 8px; 
+            background-color: rgba(38, 131, 198, 0.05);
+            border-radius: 4px;
+        }
+        .card-title { 
+            margin-bottom: 10px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: var(--primary-color);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 5px;
+        }
+
+        /* Legend styling for plots */
+        .custom-legend {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 10px;
+            padding: 5px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            font-size: 0.9em;
+        }
+        .legend-color-box {
+            width: 12px;
+            height: 12px;
+            margin-right: 5px;
+            border: 1px solid #ccc; 
+        }
+
+        /* Tab Styles */
+        .sidebar-tabs {
+            display: flex;
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .tab-button {
+            flex-grow: 1;
+            padding: 10px 15px;
+            cursor: pointer;
+            border: none;
+            background-color: transparent;
+            color: var(--dark-color);
+            font-weight: 500;
+            text-align: center;
+            transition: background-color 0.3s, color 0.3s;
+            border-bottom: 3px solid transparent; /* For active indicator */
+            margin-top: 0; /* Override general button margin */
+            box-shadow: none; /* Override general button shadow */
+        }
+        .tab-button:hover {
+            background-color: rgba(38, 131, 198, 0.1); /* Light primary hover */
+            color: var(--primary-color);
+            transform: none; /* Override general button transform */
+            box-shadow: none; /* Override general button shadow */
+        }
+        .tab-button.active {
+            color: var(--primary-color);
+            border-bottom: 3px solid var(--primary-color);
+            font-weight: 700;
+        }
+        .tab-content {
+            display: none; /* Hidden by default, shown by JS */
+            animation: fadeInTab 0.5s;
+        }
+        @keyframes fadeInTab {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h1>Metabolic & Power Profile</h1>
+
+            <div class="sidebar-tabs">
+                <button class="tab-button active" onclick="openTab(event, 'tabSettingsProfile')">Settings & Profile</button>
+                <button class="tab-button" onclick="openTab(event, 'tabPowerData')">Power Data Points</button>
+            </div>
+
+            <div id="tabSettingsProfile" class="tab-content" style="display: block;">
+                <!-- Tab 1: Settings & Profile Content -->
+                <div class="control-group">
+                    <div class="control-label">Athlete Profile</div>
+                    <select id="athlete-profile-select" class="dropdown-select">
+                        <option value="Pogi">T. Pogačar (Default)</option>
+                        <!-- Add other profiles here if needed -->
+                    </select>
+                    <div class="radio-group">
+                        <div class="control-label">Gender:</div>
+                        <label class="radio-option"><input type="radio" id="male" name="gender" value="Male" checked> Male</label>
+                        <label class="radio-option"><input type="radio" id="female" name="gender" value="Female"> Female</label>
+                    </div>
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <label for="body_mass">Body Mass (kg):</label>
+                            <span id="body_mass-value" class="slider-value">92.0</span>
+                        </div>
+                        <input type="range" id="body_mass" class="range-slider" min="40" max="120" value="92" step="0.1">
+                    </div>
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <label for="age">Age (years):</label>
+                            <span id="age-value" class="slider-value">28</span>
+                        </div>
+                        <input type="range" id="age" class="range-slider" min="18" max="100" value="28" step="1">
+                    </div>
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <label for="height">Height (cm):</label>
+                            <span id="height-value" class="slider-value">193</span>
+                        </div>
+                        <input type="range" id="height" class="range-slider" min="140" max="220" value="193" step="1">
+                    </div>
+                    <button id="calculate_vo2base_btn" class="button" style="width:100%;">Calculate V̇O₂Base</button>
+                    <!-- End of Inserted V̇O₂Base Calculation Content -->
+                </div>
+
+                <!-- Consolidated Power Model & Unit Settings -->
+                <div class="control-group">
+                    <div class="header-section">
+                        <div class="control-label">Power Model & Unit Settings</div>
+                        <div class="tooltip info-icon">ⓘ
+                            <span class="tooltiptext">Configure power-duration modeling and global power units. Power data points (efforts) are managed in the 'Power Data' tab.</span>
+                        </div>
+                    </div>
+                    
+                    <div class="control-label" style="margin-top:10px;">Power-Duration Model:</div>    
+                    <select id="pd-model-select" class="dropdown-select">
+                                        <option value="powerLaw" selected>Power-Law (Default)</option>
+                                        <option value="twoParam">2-Parameter</option>
+                                        <option value="ompd">OmPD</option>
+                                        <option value="om3cp">Om3CP</option>
+                                        <option value="omexp">OmExp</option>
+                                    </select>
+
+    
+
+                    <div class="control-label" style="margin-top:15px;">Global Power Unit:</div>
+                    <label class="fancy-checkbox">
+                        <input type="checkbox" id="use_absolute_power_toggle" name="use_absolute_power_toggle">
+                        <span class="checkmark"></span>
+                        Use Absolute Power (W)
+                    </label>
+                    <p class="small-text">This setting affects plots, calculations, and inputs. Power data points are managed in the 'Power Data' tab.</p>
+                </div>
+
+                <!-- Metabolic Profile Controls (from Mader App Tab 1) -->
+                <div class="control-group" id="ce-controls">
+                    <div class="header-section">
+                        <div class="control-label">Oxygen Demand Settings</div>
+                        <div class="tooltip info-icon">ⓘ
+                            <span class="tooltiptext">Describes the P-V̇O₂ relationship.</span>
+                        </div>
+                    </div>
+                    <label class="fancy-checkbox">
+                        <input type="checkbox" id="curvilinear_ce" name="curvilinear_ce">
+                        <span class="checkmark"></span>
+                        Curvilinear CE relationship
+                    </label>
+                    <div id="linear-ce-control" class="slider-container">
+                        <div class="slider-label">
+                            <label for="CEVO2">CE (ml·min⁻¹·W⁻¹):</label>
+                            <span id="CEVO2-value" class="slider-value">11.7</span>
+                        </div>
+                        <input type="range" id="CEVO2" class="range-slider" min="8" max="15" value="11.7" step="0.1">
+                    </div>
+                    <div id="curvilinear-ce-control" class="slider-container" style="display:none;">
+                        <div class="slider-label">
+                            <label for="CE_range_start">CE<sub>Start</sub> (ml·min⁻¹·W⁻¹):</label>
+                            <span id="CE_range_start-value" class="slider-value">10.0</span>
+                        </div>
+                        <input type="range" id="CE_range_start" class="range-slider" min="8" max="15" value="10.0" step="0.1">
+                        <div class="slider-label">
+                            <label for="CE_range_end">CE<sub>Target</sub> (ml·min⁻¹·W⁻¹):</label>
+                            <span id="CE_range_end-value" class="slider-value">12.5</span>
+                        </div>
+                        <input type="range" id="CE_range_end" class="range-slider" min="8" max="15" value="12.5" step="0.1">
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <div class="header-section">
+                        <div class="control-label">Physiological Inputs (Mader Model)</div>
+                    </div>
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <label for="VO2max">V̇O₂max (ml·min⁻¹):</label>
+                            <span id="VO2max-value" class="slider-value">6450</span>
+                        </div>
+                        <input type="range" id="VO2max" class="range-slider" min="1000" max="7500" value="6450" step="10">
+                    </div>
+                    <button id="calculate_vo2max_from_profile_btn" class="button" style="width:100%; margin-bottom:10px; background-color: var(--secondary-color);">Calculate V̇O₂max from Power Profile</button>
+
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <label for="VO2Base">V̇O₂Base (ml·min⁻¹):</label>
+                            <span id="VO2Base-value" class="slider-value">394</span>
+                        </div>
+                        <input type="range" id="VO2Base" class="range-slider" min="150" max="800" value="394" step="1">
+                    </div>
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <label for="vLamax">vLa<sub>max</sub> (mmol·l⁻¹·s⁻¹):</label>
+                            <span id="vLamax-value" class="slider-value">0.96</span>
+                        </div>
+                        <input type="range" id="vLamax" class="range-slider" min="0.1" max="1.5" value="0.96" step="0.01">
+                    </div>
+                    <label class="fancy-checkbox">
+                        <input type="checkbox" id="weight_based_mader" name="weight_based_mader">
+                        <span class="checkmark"></span>
+                        Show Mader plot values relative to body mass
+                    </label>
+                </div>
+
+                <div class="control-group">
+                    <div class="header-section">
+                        <div class="control-label">Substrate Utilization (Mader Model)</div>
+                        <div class="tooltip info-icon">ⓘ
+                            <span class="tooltiptext">Display carbohydrate and fat oxidation rates based on lactate balance.</span>
+                        </div>
+                    </div>
+                    <label class="fancy-checkbox">
+                        <input type="checkbox" id="show_substrate_mader" name="show_substrate_mader">
+                        <span class="checkmark"></span>
+                        Show Substrate Utilization
+                    </label>
+                    <div id="substrate-controls-mader" style="display:none;">
+                        <div class="control-label" style="margin-top:10px;">Energy Unit:</div>
+                        <select id="energy_unit_mader" class="dropdown-select">
+                            <option value="g/h">g/h</option>
+                            <option value="kcal/h">kcal/h</option>
+                            <option value="kJ/h">kJ/h</option>
+                        </select>
+                        <label class="fancy-checkbox">
+                            <input type="checkbox" id="show_kh_adjust_mader" name="show_kh_adjust_mader">
+                            <span class="checkmark"></span>
+                            Adjust CHO utilization at rest
+                        </label>
+                        <div id="kh-adjust-control-mader" style="display:none;" class="slider-container">
+                            <div class="slider-label">
+                                <label for="rest_kh_percentage_mader">Resting CHO (%):</label>
+                                <span id="rest_kh_percentage_mader-value" class="slider-value">20</span>
+                            </div>
+                            <input type="range" id="rest_kh_percentage_mader" class="range-slider" min="0" max="100" value="20" step="1">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <div class="header-section">
+                        <div class="control-label">Metabolic Plot Settings</div>
+                    </div>
+                    <div class="axis-controls">
+                        <label class="fancy-checkbox">
+                            <input type="checkbox" id="lock_y_axis_mader" name="lock_y_axis_mader" checked>
+                            <span class="checkmark"></span>
+                            Lock Y-Axis
+                        </label>
+                        <label class="fancy-checkbox">
+                            <input type="checkbox" id="lock_x_axis_mader" name="lock_x_axis_mader" checked>
+                            <span class="checkmark"></span>
+                            Lock X-Axis
+                        </label>
+                    </div>
+                </div>
+            </div> <!-- End of Tab 1 Content (tabSettingsProfile) -->
+
+            <div id="tabPowerData" class="tab-content" style="display: none;">
+                <div class="control-group">
+                    <div class="header-section">
+                        <div class="control-label">Power Profile Data Points</div>
+                        <div class="tooltip info-icon">ⓘ
+                            <span class="tooltiptext">Input maximal efforts (Power, Duration, optional Label). At least 2 points are needed for modeling. Power unit (W or W/kg) is based on the 'Global Power Unit' setting in the 'Settings & Profile' tab.</span>
+                        </div>
+                    </div>
+                    <div id="power-data-points-container">
+                        </div>
+                    <div class="new-data-point-inputs">
+                        <div class="data-point-row">
+                            <input type="text" id="new-point-label" placeholder="Label">
+                            <input type="number" id="new-point-power" placeholder="Power (W·kg<sup>-1</sup>)" step="0.01">
+                        </div>
+                        <div class="data-point-row">
+                            <input type="number" id="new-point-duration-min" placeholder="Duration (min)" min="0">
+                            <input type="number" id="new-point-duration-sec" placeholder="Duration (s)" min="0" max="59">
+                        </div>
+                    </div>
+                    <button id="add-data-point-btn" class="button">Add Data Point</button>
+                </div>
+            </div>
+
+        </div> <!-- End of sidebar -->
+
+        <div class="main-content">
+            <div class="plot-container" id="power-duration-plot-container">
+                <div class="plot-title" style="font-size: 1.3em; font-weight: bold; margin-bottom: 10px; text-align: center; color: var(--primary-color);">Power-Duration Profile</div>
+                <div id="pd-legend-container" class="custom-legend"></div>
+                <div id="power_duration_plot_div" style="width:100%; height: calc(100% - 40px);"></div> <!-- Plot div -->
+            </div>
+            <div class="plot-container" id="metabolic-plot-container">
+                 <div class="plot-title" style="font-size: 1.3em; font-weight: bold; margin-bottom: 10px; text-align: center; color: var(--primary-color);">Metabolic Profile (Mader Model)</div>
+                <div id="metabolic_plot_div" style="width:100%; height: calc(100% - 30px);"></div> <!-- Plot div -->
+            </div>
+            <div class="plot-container" id="substrate-plot-container" style="display:none;">
+                 <div class="plot-title" style="font-size: 1.1em; font-weight: bold; margin-bottom: 5px; text-align: center; color: var(--primary-color);">Substrate Utilization</div>
+                <div id="substrate_plot_div" style="width:100%; height: calc(100% - 30px);"></div> <!-- Plot div -->
+            </div>
+            <div id="values-container">
+                <!-- Metabolic values will be displayed here -->
+            </div>
+        </div>
+    </div>
+    <div id="notification" class="notification"></div>
+
+<script>
+function openTab(evt, tabName) {
+    var i, tabcontent, tablinks;
+    tabcontent = document.getElementsByClassName("tab-content");
+    for (i = 0; i < tabcontent.length; i++) {
+        tabcontent[i].style.display = "none";
+    }
+    tablinks = document.getElementsByClassName("tab-button");
+    for (i = 0; i < tablinks.length; i++) {
+        tablinks[i].className = tablinks[i].className.replace(" active", "");
+    }
+    document.getElementById(tabName).style.display = "block";
+    if (evt) {
+        evt.currentTarget.className += " active";
+    } else { // For initial load
+        for (i = 0; i < tablinks.length; i++) {
+            if (tablinks[i].getAttribute('onclick').includes(tabName)) {
+                tablinks[i].className += " active";
+                break;
+            }
+        }
+    }
+}
+
+// JavaScript for Integrated Metabolic & Power Profile App
+
+const appState = {
+    // Athlete Profile and Power-Duration Data
+    currentProfileName: "Pogi", // Default profile name
+    powerDurationPoints: [],    // Will be populated by loadProfile
+    // Power-Duration Model Selection
+    selectedPDModel: 'powerLaw', // Changed to Om3CP as per original HTML selected option
+    // Mader Model Parameters (these will be set by loadProfile)
+    CEVO2: 11.7,
+    CE_range: [10.0, 12.5], 
+    VO2max: 6450,
+    VO2Base: 394,
+    vLamax: 0.96,
+    body_mass: 92.0, // This will be updated by loadProfile
+    gender: 'Male',
+    age: 28,
+    height: 193,
+    curvilinear_ce: false,
+    weight_based_mader: false, 
+    lock_y_axis_mader: true,
+    lock_x_axis_mader: true,
+    // Substrate Utilization (Mader Model)
+    show_substrate_mader: false,
+    energy_unit_mader: "g/h",
+    show_kh_adjust_mader: false,
+    rest_kh_percentage_mader: 20,
+    // Global Power Unit Toggle
+    useAbsolutePower: false, 
+    // Calculated values cache
+    maderCalculatedValues: null,
+    powerDurationModelParams: {}, 
+    pdPlotXRange: { min: 0, max: 1200 }, // Example, might need adjustment
+    P5minForVO2maxCalc: null 
+};
+
+const PREDEFINED_ATHLETE_PROFILES = {
+    "Pogi": {
+        // Physiological parameters
+        curvilinear_ce: false, CEVO2: 11.4, CE_range: [10.0, 12.5],
+        VO2max: 5850, VO2Base: 394, vLamax: 0.56,
+        gender: "Male", body_mass: 64.5, age: 26, height: 176,
+        // Power data points (stored as W/kg)
+        powerData: [
+            { power: 7.05, duration: 16 * 60 + 58, label: "La Turbie" },
+            { power: 6.52, duration: 39 * 60 + 17, label: "La Couillole" },
+            { power: 6.98, duration: 39 * 60 + 50, label: "Plateau de Beille" },
+            { power: 6.85, duration: 27 * 60 + 50, label: "Pla d'Adet" },
+            { power: 6.83, duration: 37 * 60 + 44, label: "Isola 2000" },
+            { power: 7.50, duration: 7 * 60 + 23, label: "Puy Mary" },
+            { power: 7.02, duration: 13 * 60 + 44, label: "Collada de Sant Isidre" },
+            { power: 7.89, duration: 5 * 60 + 27, label: "San Luca" },
+            { power: 7.50, duration: 8 * 60 + 59, label: "Cipressa" },
+            { power: 8.30, duration: 2 * 60 + 49, label: "Oude Kwaremont"}
+        ]
+    },
+    "Heavy Male Default": { // Renamed "Heavy Rider..." to match dropdown more closely
+        // Physiological parameters
+        curvilinear_ce: false, CEVO2: 11.7, CE_range: [10.0, 12.5],
+        VO2max: 6450, VO2Base: 394, vLamax: 0.96,
+        gender: 'Male', body_mass: 92.0, age: 28, height: 193,
+        // Power data points (converted to W/kg)
+        powerData: [
+            // Body mass for this profile is 92.0 kg
+            { power: 958 / 92.0, duration: 0 * 60 + 30, label: "Wingate" },       // 10.41 W/kg
+            { power: 500 / 92.0, duration: 3 * 60 + 0,  label: "3 Minuten" },      // 5.43 W/kg
+            { power: 475 / 92.0, duration: 5 * 60 + 0,  label: "5 Minuten" },      // 5.16 W/kg
+            { power: 397 / 92.0, duration: 20 * 60 + 0, label: "20 Minuten" }      // 4.32 W/kg (rounded)
+        ]
+    }
+};
+
+const domElements = {
+    athleteProfileSelect: document.getElementById('athlete-profile-select'),
+    pdModelSelect: document.getElementById('pd-model-select'),
+    useAbsolutePowerToggle: document.getElementById('use_absolute_power_toggle'),
+    powerDataPointsContainer: document.getElementById('power-data-points-container'),
+    newPointPowerInput: document.getElementById('new-point-power'),
+    newPointDurationMinInput: document.getElementById('new-point-duration-min'),
+    newPointDurationSecInput: document.getElementById('new-point-duration-sec'),
+    newPointLabelInput: document.getElementById('new-point-label'),
+    addDataPointBtn: document.getElementById('add-data-point-btn'),
+    curvilinearCeCheckbox: document.getElementById('curvilinear_ce'),
+    linearCeControlDiv: document.getElementById('linear-ce-control'),
+    curvilinearCeControlDiv: document.getElementById('curvilinear-ce-control'),
+    CEVO2Slider: document.getElementById('CEVO2'),
+    CEVO2ValueSpan: document.getElementById('CEVO2-value'),
+    CERangeStartSlider: document.getElementById('CE_range_start'),
+    CERangeStartValueSpan: document.getElementById('CE_range_start-value'),
+    CERangeEndSlider: document.getElementById('CE_range_end'),
+    CERangeEndValueSpan: document.getElementById('CE_range_end-value'),
+    VO2maxSlider: document.getElementById('VO2max'),
+    VO2maxValueSpan: document.getElementById('VO2max-value'),
+    calculateVo2maxFromProfileBtn: document.getElementById('calculate_vo2max_from_profile_btn'),
+    VO2BaseSlider: document.getElementById('VO2Base'),
+    VO2BaseValueSpan: document.getElementById('VO2Base-value'),
+    vLamaxSlider: document.getElementById('vLamax'),
+    vLamaxValueSpan: document.getElementById('vLamax-value'),
+    weightBasedMaderCheckbox: document.getElementById('weight_based_mader'),
+    maleRadio: document.getElementById('male'),
+    femaleRadio: document.getElementById('female'),
+    bodyMassSlider: document.getElementById('body_mass'),
+    bodyMassValueSpan: document.getElementById('body_mass-value'),
+    ageSlider: document.getElementById('age'),
+    ageValueSpan: document.getElementById('age-value'),
+    heightSlider: document.getElementById('height'),
+    heightValueSpan: document.getElementById('height-value'),
+    calculateVo2baseBtn: document.getElementById('calculate_vo2base_btn'),
+    showSubstrateMaderCheckbox: document.getElementById('show_substrate_mader'),
+    substrateControlsMaderDiv: document.getElementById('substrate-controls-mader'),
+    energyUnitMaderSelect: document.getElementById('energy_unit_mader'),
+    showKhAdjustMaderCheckbox: document.getElementById('show_kh_adjust_mader'),
+    khAdjustControlMaderDiv: document.getElementById('kh-adjust-control-mader'),
+    restKhPercentageMaderSlider: document.getElementById('rest_kh_percentage_mader'),
+    restKhPercentageMaderValueSpan: document.getElementById('rest_kh_percentage_mader-value'),
+    lockYAxisMaderCheckbox: document.getElementById('lock_y_axis_mader'),
+    lockXAxisMaderCheckbox: document.getElementById('lock_x_axis_mader'),
+    powerDurationPlotDiv: document.getElementById('power_duration_plot_div'),
+    pdLegendContainer: document.getElementById('pd-legend-container'),
+    metabolicPlotDiv: document.getElementById('metabolic_plot_div'),
+    substratePlotDiv: document.getElementById('substrate_plot_div'),
+    substratePlotContainer: document.getElementById('substrate-plot-container'),
+    valuesContainer: document.getElementById('values-container'),
+    notificationDiv: document.getElementById('notification')
+};
+
+// --- START OF MOVED/REORDERED FUNCTIONS (Helper and PD Model Calculations) ---
+// Helper function for linear regression
+function linearRegression(x, y) {
+    const n = x.length;
+    let sx = 0, sy = 0, sxy = 0, sxx = 0, syy = 0;
+    for (let i = 0; i < n; i++) {
+        sx += x[i];
+        sy += y[i];
+        sxy += x[i] * y[i];
+        sxx += x[i] * x[i];
+        syy += y[i] * y[i];
+    }
+    if ((n * sxx - sx * sx) === 0) return { slope: NaN, intercept: NaN, r: NaN, rSquared: NaN };
+    const slope = (n * sxy - sx * sy) / (n * sxx - sx * sx);
+    const intercept = (sy - slope * sx) / n;
+    const rNumerator = (n * sxy - sx * sy);
+    const rDenominator = Math.sqrt((n * sxx - sx * sx) * (n * syy - sy * sy));
+    if (rDenominator === 0) return { slope, intercept, r: NaN, rSquared: NaN };
+    const r = rNumerator / rDenominator;
+    return { slope, intercept, r, rSquared: r*r };
+}
+
+// Helper function to calculate R-squared
+function calculateRSquared(observed, predicted) {
+    if (observed.length !== predicted.length || observed.length === 0) {
+        return NaN;
+    }
+    const meanObserved = observed.reduce((a, b) => a + b, 0) / observed.length;
+    const ssTot = observed.reduce((sum, val) => sum + Math.pow(val - meanObserved, 2), 0);
+    const ssRes = observed.reduce((sum, val, i) => sum + Math.pow(val - predicted[i], 2), 0);
+
+    if (ssTot === 0) return (ssRes === 0) ? 1 : 0;
+    return 1 - (ssRes / ssTot);
+}
+
+const modelFunctions = {
+    powerLaw: (t, params) => { 
+        if (!params || isNaN(params.S) || isNaN(params.E) || t <= 0) return NaN;
+        return params.S * Math.pow(t, params.E - 1);
+    },
+    twoParam: (t, params) => { 
+        if (!params || isNaN(params.CP) || isNaN(params.Wprime) || t <= 0) return NaN;
+        return params.CP + params.Wprime / t;
+    },
+    ompd: (t, params) => { 
+        if (!params || isNaN(params.CP) || isNaN(params.Wprime) || isNaN(params.Pmax) || t < 0) return NaN;
+        if (params.Pmax <= params.CP || params.Wprime <=0) return params.CP;
+        const k = params.Wprime / (params.Pmax - params.CP);
+        if (t + k <= 0) return NaN;
+        return params.CP + params.Wprime / (t + k);
+    },
+    om3cp: (t, params) => { 
+        if (!params || isNaN(params.CP) || isNaN(params.Wprime) || isNaN(params.Pmax) || t < 0) return NaN;
+        if (params.Pmax <= params.CP || params.Wprime <= 0) return params.CP;
+        const tau = params.Wprime / (params.Pmax - params.CP);
+        if (tau <= 0) return params.CP;
+        return params.CP + (params.Pmax - params.CP) * (1 - Math.exp(-t / tau));
+    },
+    omexp: (t, params) => { 
+        if (!params || isNaN(params.CP) || isNaN(params.Wprime) || isNaN(params.Pmax) || t < 0) return NaN;
+        if (params.Pmax <= params.CP || params.Wprime <= 0) return params.CP;
+        const tau = params.Wprime / (params.Pmax - params.CP);
+        if (tau <= 0) return params.CP;
+        return params.CP + (params.Pmax - params.CP) * (1 - Math.exp(-t / tau));
+    }
+};
+
+function objectiveFunctionForNumeric(paramArray, durations, powers, modelFunc) { 
+    const params = { CP: paramArray[0], Wprime: paramArray[1], Pmax: paramArray[2] }; 
+    let sse = 0;
+    for (let i = 0; i < durations.length; i++) {
+        const predictedPower = modelFunc(durations[i], params);
+        if (isNaN(predictedPower) || !isFinite(predictedPower)) {
+            sse += 1e12;
+        } else {
+            sse += Math.pow(powers[i] - predictedPower, 2);
+        }
+    }
+    return sse;
+}
+
+// --- POWER-DURATION MODEL CALCULATIONS ---
+function fit2ParamCPModel(durations, powers) { 
+    if (durations.length < 2) return null;
+    const inverseDurations = durations.map(d => 1 / d);
+    const reg = linearRegression(inverseDurations, powers);
+    return { CP: reg.intercept, Wprime: reg.slope, modelType: '2-Parameter' };
+}
+
+function fitPowerLawModel(durations, powers) { 
+    if (durations.length < 2) return null;
+    const logDurations = durations.map(d => Math.log(d));
+    const logPowers = powers.map(p => Math.log(p));
+    const reg = linearRegression(logDurations, logPowers);
+    return { S: Math.exp(reg.intercept), E: reg.slope + 1, modelType: 'Power-Law' };
+}
+
+function fitAdvancedCPModel(durations, powers, modelType, initialGuess) { 
+    if (durations.length < 3) return null; 
+
+    const modelFunc = modelFunctions[modelType.toLowerCase()];
+    if (!modelFunc) return null;
+
+    const objFuncWrapper = (paramArray) => objectiveFunctionForNumeric(paramArray, durations, powers, modelFunc);
+    
+    const initialParams = [initialGuess.CP, initialGuess.Wprime, initialGuess.Pmax]; 
+
+    try {
+        const result = numeric.uncmin(objFuncWrapper, initialParams, 1e-8, undefined, 500);
+        const fittedParams = { CP: result.solution[0], Wprime: result.solution[1], Pmax: result.solution[2], modelType };
+        
+        if (fittedParams.Pmax <= fittedParams.CP || fittedParams.Wprime <=0) {
+            console.warn(`Advanced model ${modelType} fitting resulted in invalid parameters (Pmax <= CP or W' <= 0). Using initial guess.`, fittedParams);
+            return {...initialGuess, modelType}; 
+        }
+        return fittedParams; 
+    } catch (e) {
+        console.error(`Error fitting ${modelType} with numeric.uncmin:`, e);
+        return {...initialGuess, modelType}; 
+    }
+}
+// --- END OF MOVED/REORDERED FUNCTIONS ---
+
+
+// --- UTILITY FUNCTIONS (continued) ---
+function showNotification(message, type = 'info') {
+    domElements.notificationDiv.innerHTML = message;
+    domElements.notificationDiv.className = `notification ${type}`;
+    domElements.notificationDiv.style.display = 'block';
+    setTimeout(() => {
+        domElements.notificationDiv.style.display = 'none';
+    }, 3000);
+}
+
+function formatDuration(totalSeconds) {
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = Math.round(totalSeconds % 60);
+    return `${minutes}m ${seconds.toString().padStart(2, '0')}s`;
+}
+
+// --- ATHLETE PROFILE FUNCTIONS ---
+function populateAthleteProfileDropdown() {
+    const select = domElements.athleteProfileSelect;
+    select.innerHTML = '';
+    for (const name in PREDEFINED_ATHLETE_PROFILES) {
+        const option = document.createElement('option');
+        option.value = name;
+        option.textContent = name;
+        if (name === appState.currentProfileName) {
+            option.selected = true;
+        }
+        select.appendChild(option);
+    }
+}
+
+function loadProfile(profileName) {
+    const profile = PREDEFINED_ATHLETE_PROFILES[profileName];
+    if (!profile) {
+        showNotification(`Profile "${profileName}" not found.`, 'warning');
+        return;
+    }
+    appState.currentProfileName = profileName;
+
+    // Load physiological parameters
+    appState.curvilinear_ce = profile.curvilinear_ce !== undefined ? profile.curvilinear_ce : false;
+    appState.CEVO2 = profile.CEVO2 !== undefined ? profile.CEVO2 : 11.7;
+    appState.CE_range = profile.CE_range !== undefined ? [...profile.CE_range] : [10.0, 12.5]; // Ensure deep copy for arrays
+    appState.VO2max = profile.VO2max !== undefined ? profile.VO2max : 6450;
+    appState.VO2Base = profile.VO2Base !== undefined ? profile.VO2Base : 394;
+    appState.vLamax = profile.vLamax !== undefined ? profile.vLamax : 0.96;
+    appState.gender = profile.gender !== undefined ? profile.gender : 'Male';
+    appState.body_mass = profile.body_mass !== undefined ? profile.body_mass : 92.0;
+    appState.age = profile.age !== undefined ? profile.age : 28;
+    appState.height = profile.height !== undefined ? profile.height : 193;
+
+    // Load power duration points
+    if (profile.powerData && Array.isArray(profile.powerData)) {
+        // Create a deep copy of the power data to avoid modifying the original profile data
+        appState.powerDurationPoints = profile.powerData.map(point => ({ ...point }));
+    } else {
+        appState.powerDurationPoints = []; // Default to empty if no power data in profile
+    }
+    appState.powerDurationPoints.sort((a, b) => a.duration - b.duration); // Ensure sorted
+
+    appState.P5minForVO2maxCalc = null; // Reset this when profile changes
+    
+    updateMaderUIFromState(); // Update UI with new physiological params
+    renderPowerDataPointsUI(); // Update UI with new power data points
+    
+    showNotification(`Profile "${profileName}" loaded.`, 'info');
+    updateAllPlotsAndCalculations(); // Recalculate and redraw everything
+}
+
+// --- MADER MODEL UI AND CALCULATIONS ---
+function updateMaderUIFromState() {
+    domElements.curvilinearCeCheckbox.checked = appState.curvilinear_ce;
+    domElements.linearCeControlDiv.style.display = appState.curvilinear_ce ? 'none' : 'block';
+    domElements.curvilinearCeControlDiv.style.display = appState.curvilinear_ce ? 'block' : 'none';
+    domElements.CEVO2Slider.value = appState.CEVO2;
+    domElements.CEVO2ValueSpan.textContent = appState.CEVO2.toFixed(1);
+    domElements.CERangeStartSlider.value = appState.CE_range[0];
+    domElements.CERangeStartValueSpan.textContent = appState.CE_range[0].toFixed(1);
+    domElements.CERangeEndSlider.value = appState.CE_range[1];
+    domElements.CERangeEndValueSpan.textContent = appState.CE_range[1].toFixed(1);
+    domElements.VO2maxSlider.value = appState.VO2max;
+    domElements.VO2maxValueSpan.textContent = appState.VO2max.toFixed(0);
+    domElements.VO2BaseSlider.value = appState.VO2Base;
+    domElements.VO2BaseValueSpan.textContent = appState.VO2Base.toFixed(0);
+    domElements.vLamaxSlider.value = appState.vLamax;
+    domElements.vLamaxValueSpan.textContent = appState.vLamax.toFixed(2);
+    domElements.weightBasedMaderCheckbox.checked = appState.weight_based_mader;
+    domElements.maleRadio.checked = appState.gender === 'Male';
+    domElements.femaleRadio.checked = appState.gender === 'Female';
+    domElements.bodyMassSlider.value = appState.body_mass;
+    domElements.bodyMassValueSpan.textContent = appState.body_mass.toFixed(1);
+    domElements.ageSlider.value = appState.age;
+    domElements.ageValueSpan.textContent = appState.age;
+    domElements.heightSlider.value = appState.height;
+    domElements.heightValueSpan.textContent = appState.height;
+    domElements.showSubstrateMaderCheckbox.checked = appState.show_substrate_mader;
+    domElements.substrateControlsMaderDiv.style.display = appState.show_substrate_mader ? 'block' : 'none';
+    domElements.substratePlotContainer.style.display = appState.show_substrate_mader ? 'block' : 'none';
+    domElements.energyUnitMaderSelect.value = appState.energy_unit_mader;
+    domElements.showKhAdjustMaderCheckbox.checked = appState.show_kh_adjust_mader;
+    domElements.khAdjustControlMaderDiv.style.display = appState.show_kh_adjust_mader ? 'block' : 'none';
+    domElements.restKhPercentageMaderSlider.value = appState.rest_kh_percentage_mader;
+    domElements.restKhPercentageMaderValueSpan.textContent = appState.rest_kh_percentage_mader;
+    domElements.lockYAxisMaderCheckbox.checked = appState.lock_y_axis_mader;
+    domElements.lockXAxisMaderCheckbox.checked = appState.lock_x_axis_mader;
+    domElements.useAbsolutePowerToggle.checked = appState.useAbsolutePower;
+    domElements.newPointPowerInput.placeholder = appState.useAbsolutePower ? "Power (W)" : "Power (W·kg<sup>-1</sup>)";
+}
+
+function calculateBMR_Mader(gender, mass, height, age) {
+    if (gender === 'Male') {
+        return 66.5 + (13.75 * mass) + (5.003 * height) - (6.775 * age);
+    } else {
+        return 655.1 + (9.563 * mass) + (1.850 * height) - (4.676 * age);
+    }
+}
+
+function calculateVO2Base_Mader(kcalDay, gender) {
+    const ka = 19.946;
+    const factor = gender === 'Male' ? 1.287 : 1.278;
+    return (kcalDay / (24 * 60 * ka)) * 4.1868 * factor * 1000;
+}
+
+function findOptimalA_Mader(startCE, targetCE, VO2max, VO2Base) {
+    const objective = function(a) {
+        const precise_startCE = parseFloat(startCE.toFixed(10));
+        const precise_targetCE = parseFloat(targetCE.toFixed(10));
+        const precise_a = parseFloat(a.toFixed(10));
+        const precise_VO2Base = parseFloat(VO2Base.toFixed(10));
+        const precise_VO2max = parseFloat(VO2max.toFixed(10));
+        const c_term = precise_VO2Base - precise_VO2max;
+
+        if (Math.abs(precise_a) < 1e-9) {
+            return Math.pow(precise_startCE - precise_targetCE, 2);
+        }
+        const discriminant = precise_startCE * precise_startCE - 4 * precise_a * c_term;
+        if (discriminant < 0) return 1e8; 
+        
+        const p_intersect = (-precise_startCE + Math.sqrt(discriminant)) / (2 * precise_a);
+        
+        if (p_intersect < 1e-3) { 
+            if (targetCE >= startCE - 1e-7 && precise_a > -1e-5) { 
+                return 1e7; 
+            }
+        }
+        if (precise_a > 0 && targetCE < startCE && p_intersect < ( (precise_VO2max - precise_VO2Base) / startCE ) * 0.1 ) return 1e6;
+        if (precise_a < 0 && targetCE > startCE && p_intersect < ( (precise_VO2max - precise_VO2Base) / startCE ) * 0.1 ) return 1e6;
+
+        const slopeAtIntersection = 2 * precise_a * p_intersect + precise_startCE;
+        return Math.pow(slopeAtIntersection - precise_targetCE, 2);
+    };
+
+    let aMin_search = -0.03, aMax_search = 0.03;
+    if (targetCE < startCE) { aMin_search = -0.03; aMax_search = 0.001; }
+    else if (Math.abs(targetCE - startCE) < 0.1) { aMin_search = -0.001; aMax_search = 0.001; }
+    
+    let iterations_search = 500;
+    let step = (iterations_search > 0) ? (aMax_search - aMin_search) / iterations_search : 0;
+    if (Math.abs(step) < 1e-12 && iterations_search > 0) step = (aMax_search > aMin_search ? 1e-10 : -1e-10);
+
+    let bestA = aMin_search;
+    let minError = objective(bestA);
+    if (step !== 0) {
+      for (let i = 0; i <= iterations_search; i++) {
+          const a_current_iter = aMin_search + i * step;
+          const error = objective(a_current_iter);
+          if (error < minError) {
+              minError = error;
+              bestA = a_current_iter;
+          }
+      }
+    }
+    if (Math.abs(targetCE - startCE) < 0.001 && Math.abs(bestA) < 0.00001) bestA = 0.0;
+    return parseFloat(bestA.toFixed(10));
+}
+
+function calculateRQ_Mader(carbPercentage) {
+    if (carbPercentage === undefined || isNaN(carbPercentage)) return 0.7;
+    return 0.70 + (carbPercentage / 100) * 0.30;
+}
+
+function getKalorischesEquivalent_Mader(rq) {
+    const stegemann = {
+        rq: [0.700,0.710,0.720,0.730,0.740,0.750,0.760,0.770,0.780,0.790,0.800,0.810,0.820,0.830,0.840,0.850,0.860,0.870,0.880,0.890,0.900,0.910,0.920,0.930,0.940,0.950,0.960,0.970,0.980,0.990,1.000],
+        kJ_lO2: [19.619,19.636,19.686,19.737,19.791,19.841,19.887,19.946,20.009,20.046,20.101,20.151,20.201,20.256,20.306,20.356,20.411,20.461,20.515,20.561,20.616,20.666,20.716,20.771,20.821,20.871,20.926,20.976,21.026,21.081,21.131],
+        kcal_lO2: [4.686,4.690,4.702,4.714,4.727,4.739,4.750,4.764,4.779,4.788,4.801,4.813,4.825,4.838,4.850,4.862,4.875,4.887,4.900,4.911,4.924,4.936,4.948,4.961,4.973,4.985,4.998,5.010,5.022,5.035,5.047]
+    };
+    const boundedRQ = Math.max(0.70, Math.min(1.00, rq));
+    let closestIdx = 0;
+    let minDiff = Math.abs(boundedRQ - stegemann.rq[0]);
+    for (let i = 1; i < stegemann.rq.length; i++) {
+        const diff = Math.abs(boundedRQ - stegemann.rq[i]);
+        if (diff < minDiff) { minDiff = diff; closestIdx = i; }
+    }
+    if (boundedRQ === stegemann.rq[closestIdx]) {
+        return { kJ_lO2: stegemann.kJ_lO2[closestIdx], kcal_lO2: stegemann.kcal_lO2[closestIdx] };
+    } else if (boundedRQ < stegemann.rq[closestIdx] && closestIdx > 0) {
+        const rq1 = stegemann.rq[closestIdx-1], rq2 = stegemann.rq[closestIdx];
+        const kj1 = stegemann.kJ_lO2[closestIdx-1], kj2 = stegemann.kJ_lO2[closestIdx];
+        const kcal1 = stegemann.kcal_lO2[closestIdx-1], kcal2 = stegemann.kcal_lO2[closestIdx];
+        const factor = (rq2 - rq1) > 1e-9 ? (boundedRQ - rq1) / (rq2 - rq1) : 0;
+        return { kJ_lO2: kj1 + factor * (kj2 - kj1), kcal_lO2: kcal1 + factor * (kcal2 - kcal1) };
+    } else if (boundedRQ > stegemann.rq[closestIdx] && closestIdx < stegemann.rq.length - 1) {
+        const rq1 = stegemann.rq[closestIdx], rq2 = stegemann.rq[closestIdx+1];
+        const kj1 = stegemann.kJ_lO2[closestIdx], kj2 = stegemann.kJ_lO2[closestIdx+1];
+        const kcal1 = stegemann.kcal_lO2[closestIdx], kcal2 = stegemann.kcal_lO2[closestIdx+1];
+        const factor = (rq2 - rq1) > 1e-9 ? (boundedRQ - rq1) / (rq2 - rq1) : 0;
+        return { kJ_lO2: kj1 + factor * (kj2 - kj1), kcal_lO2: kcal1 + factor * (kcal2 - kcal1) };
+    }
+    return { kJ_lO2: stegemann.kJ_lO2[closestIdx], kcal_lO2: stegemann.kcal_lO2[closestIdx] };
+}
+
+function calculateMaderValues() {
+    const CELaO2 = 0.02049 / appState.body_mass;
+    const VolLa = 0.4;
+    const ks1 = 0.0635;
+    const ks2 = Math.pow(1.1, 3);
+
+    const maxPowerFactor = (appState.CE_range[0] > 0 || appState.CEVO2 > 0) ? 1.7 : 1.0;
+    const effectiveCEForMaxPower = appState.curvilinear_ce ? appState.CE_range[0] : appState.CEVO2; 
+    
+    const maxPowerAbs = effectiveCEForMaxPower > 0 ?
+        ((appState.VO2max - appState.VO2Base) / effectiveCEForMaxPower) * maxPowerFactor :
+        500; 
+    
+    const P_abs = Array.from({length: Math.max(1, Math.ceil(maxPowerAbs)) + 1}, (_, i) => i);
+    let VO2ss_unlimited, aOpt = null;
+
+    if (appState.curvilinear_ce) {
+        aOpt = findOptimalA_Mader(appState.CE_range[0], appState.CE_range[1], appState.VO2max, appState.VO2Base);
+        VO2ss_unlimited = P_abs.map(p_abs => aOpt * p_abs * p_abs + appState.CE_range[0] * p_abs + appState.VO2Base);
+    } else {
+        VO2ss_unlimited = P_abs.map(p_abs => appState.CEVO2 * p_abs + appState.VO2Base);
+    }
+    
+    const crossIndices = VO2ss_unlimited.findIndex(v => v >= appState.VO2max);
+    const crossPoint = crossIndices !== -1 ? crossIndices : VO2ss_unlimited.length;
+    const VO2ss = VO2ss_unlimited.map(v => Math.min(v, appState.VO2max));
+    
+    const vLass = VO2ss.map(vo2_abs => {
+        if (vo2_abs <= 0 || ks1 <= 0 || appState.VO2max <= vo2_abs) return 0;
+        const term = (appState.VO2max - vo2_abs) / (ks1 * vo2_abs);
+        if (term < 0) return 0; 
+        return appState.vLamax / (1 + ks2 * Math.pow(term, 1.5));
+    });
+
+    const vLaox = VO2ss_unlimited.map(vo2_abs => (CELaO2 * vo2_abs) / (VolLa * 60));
+    const PD = vLaox.map((ox, i) => ox - vLass[i]);
+    
+    const vLass_min = vLass.map(v => v * 60);
+    const vLaox_min = vLaox.map(v => v * 60);
+    const PD_min = PD.map(p => p * 60);
+    const netLactateProductionRate_min = PD_min.map(pd_val => Math.max(0, -pd_val));
+
+    let pdMaxPos_abs = P_abs.length > 0 ? P_abs[0] : 0;
+    if (PD_min.length > 0 && P_abs.length === PD_min.length) {
+       const validPdMin = PD_min.filter(pd => !isNaN(pd));
+       if (validPdMin.length > 0) {
+           const maxPdValue = Math.max(...validPdMin);
+           const maxPdIndex = PD_min.indexOf(maxPdValue);
+           if(maxPdIndex !== -1 && maxPdIndex < P_abs.length) pdMaxPos_abs = P_abs[maxPdIndex];
+       }
+    }
+
+    let minAbsPD = Infinity, pdZeroPos_abs = P_abs.length > 0 ? P_abs[0] : 0;
+    if (PD_min.length > 0 && P_abs.length === PD_min.length) {
+      let tempPdZeroIdx = -1;
+      for (let i = 0; i < PD_min.length; i++) {
+          if(isNaN(PD_min[i])) continue;
+          const absPD = Math.abs(PD_min[i]);
+          if (absPD < minAbsPD) {
+              minAbsPD = absPD;
+              tempPdZeroIdx = i;
+          }
+      }
+      if (tempPdZeroIdx !== -1 && tempPdZeroIdx < P_abs.length) {
+          pdZeroPos_abs = P_abs[tempPdZeroIdx];
+      }
+    }
+
+    let carbPercentage = [], fatPercentage = [], carbGramPerHour = [], fatGramPerHour = [],
+        carbKcalPerHour = [], fatKcalPerHour = [], carbKjPerHour = [], fatKjPerHour = [],
+        totalEnergyKcalPerHour = [], predictedRQ = [];
+
+    if (appState.show_substrate_mader) {
+        const kcalPerGramCarb = 4.1;
+        const kcalPerGramFat = 9.45;
+        const kjPerKcal = 4.184;
+
+        carbPercentage = new Array(P_abs.length).fill(0);
+        if (P_abs.length > 0) {
+            for (let i = 0; i < P_abs.length; i++) {
+                 if (vLaox_min[i] !== undefined && vLass_min[i] !== undefined) {
+                    if (vLaox_min[i] <= 1e-6) carbPercentage[i] = (vLass_min[i] > 1e-6 ? 100 : 0);
+                    else if (PD_min[i] !== undefined && PD_min[i] <= 0) carbPercentage[i] = 100;
+                    else carbPercentage[i] = Math.min(100, (vLass_min[i] / vLaox_min[i]) * 100);
+                }
+            }
+            if (appState.show_kh_adjust_mader && carbPercentage.length > 0 && typeof carbPercentage[0] === 'number') {
+                const initialCarb0 = carbPercentage[0];
+                const targetRest = appState.rest_kh_percentage_mader;
+                const diff = targetRest - initialCarb0;
+                if (initialCarb0 < 100 && initialCarb0 >= 0) { 
+                    carbPercentage = carbPercentage.map(cp_val => { 
+                        if (typeof cp_val !== 'number') return 0; 
+                        const adjustment = (cp_val < 100 && cp_val >=0) ? diff * (1 - cp_val / 100) : 0;
+                        return Math.min(100, Math.max(0, cp_val + adjustment));
+                    });
+                }
+            }
+        }
+        fatPercentage = carbPercentage.map(cp_val => (typeof cp_val === 'number' ? 100 - cp_val : 0));
+        predictedRQ = carbPercentage.map(cp_val => (typeof cp_val === 'number' ? calculateRQ_Mader(cp_val) : 0.7));
+
+        for (let i = 0; i < P_abs.length; i++) {
+            if (typeof predictedRQ[i] !== 'number' || typeof VO2ss[i] !== 'number' || typeof carbPercentage[i] !== 'number' || typeof fatPercentage[i] !== 'number') {
+                totalEnergyKcalPerHour.push(0); carbKcalPerHour.push(0); fatKcalPerHour.push(0);
+                carbKjPerHour.push(0); fatKjPerHour.push(0); carbGramPerHour.push(0); fatGramPerHour.push(0);
+                continue;
+            }
+            const current_rq = predictedRQ[i];
+            const current_kcal_per_o2l = getKalorischesEquivalent_Mader(current_rq).kcal_lO2;
+            const vo2L_min_curr = VO2ss[i] / 1000;
+            const totalKcalMin_curr = vo2L_min_curr * current_kcal_per_o2l;
+            
+            totalEnergyKcalPerHour.push(totalKcalMin_curr * 60);
+            const carbKcalMin = totalKcalMin_curr * (carbPercentage[i] / 100);
+            const fatKcalMin = totalKcalMin_curr * (fatPercentage[i] / 100);
+            
+            carbKcalPerHour.push(carbKcalMin * 60);
+            fatKcalPerHour.push(fatKcalMin * 60);
+            carbKjPerHour.push(carbKcalMin * 60 * kjPerKcal);
+            fatKjPerHour.push(fatKcalMin * 60 * kjPerKcal);
+            carbGramPerHour.push(kcalPerGramCarb > 0 ? (carbKcalMin / kcalPerGramCarb * 60) : 0);
+            fatGramPerHour.push(kcalPerGramFat > 0 ? (fatKcalMin / kcalPerGramFat * 60) : 0);
+        }
+    }
+    appState.maderCalculatedValues = {
+        P_abs: P_abs, 
+        VO2ss: VO2ss, 
+        VO2ss_unlimited: VO2ss_unlimited, 
+        crossPoint: crossPoint, 
+        vLass_min: vLass_min, vLaox_min: vLaox_min, PD_min: PD_min, netLactateProductionRate_min,
+        pd_max_pos_abs: pdMaxPos_abs, 
+        pd_zero_pos_abs: pdZeroPos_abs, 
+        max_power_abs: maxPowerAbs, 
+        a_opt: aOpt,
+        carb_percentage: carbPercentage, fat_percentage: fatPercentage,
+        carb_g_h: carbGramPerHour, fat_g_h: fatGramPerHour,
+        carb_kcal_h: carbKcalPerHour, fat_kcal_h: fatKcalPerHour,
+        carb_kj_h: carbKjPerHour, fat_kj_h: fatKjPerHour,
+        total_energy_kcal_h: totalEnergyKcalPerHour, predicted_rq: predictedRQ
+    };
+    return appState.maderCalculatedValues;
+}
+
+function updateMaderValuesDisplay() {
+    const vals = appState.maderCalculatedValues;
+    if (!vals || !vals.P_abs || vals.P_abs.length === 0) { 
+        domElements.valuesContainer.innerHTML = "No metabolic data calculated.";
+        return;
+    }
+
+    const pdMaxIdx = vals.P_abs.indexOf(vals.pd_max_pos_abs);
+    const pdZeroIdx = vals.P_abs.indexOf(vals.pd_zero_pos_abs);
+    
+    const formatOutput = (positionName, idx) => {
+        if (idx === -1 || idx >= vals.P_abs.length || vals.VO2ss[idx] === undefined) return `${positionName}: Data not available.\n`;
+        
+        const powerVal_abs = vals.P_abs[idx];
+        const powerVal_display = appState.useAbsolutePower ? powerVal_abs : powerVal_abs / appState.body_mass;
+        const powerUnit_display = appState.useAbsolutePower ? "W" : "W·kg⁻¹";
+
+        const vo2ssVal_abs = vals.VO2ss[idx];
+        const vo2ssVal_display = appState.weight_based_mader ? vo2ssVal_abs / appState.body_mass : vo2ssVal_abs;
+        const vo2ssUnit_display = appState.weight_based_mader ? "ml·min⁻¹·kg⁻¹" : "ml·min⁻¹";
+        
+        const vo2Max_abs = appState.VO2max;
+        const vo2Max_display_for_perc = appState.weight_based_mader ? vo2Max_abs / appState.body_mass : vo2Max_abs;
+        const vo2Percentage = vo2Max_display_for_perc > 0 ? (vo2ssVal_display / vo2Max_display_for_perc) * 100 : 0;
+
+        let substrateInfo = "";
+        if (appState.show_substrate_mader && vals.carb_percentage && idx < vals.carb_percentage.length) {
+            let choValue, fatValue, unit;
+            switch(appState.energy_unit_mader) {
+                case "g/h": choValue = vals.carb_g_h[idx]; fatValue = vals.fat_g_h[idx]; unit = "g·h⁻¹"; break;
+                case "kcal/h": choValue = vals.carb_kcal_h[idx]; fatValue = vals.fat_kcal_h[idx]; unit = "kcal·h⁻¹"; break;
+                case "kJ/h": choValue = vals.carb_kj_h[idx]; fatValue = vals.fat_kj_h[idx]; unit = "kJ·h⁻¹"; break;
+            }
+            substrateInfo = `  Carbs: ${choValue !== undefined ? choValue.toFixed(1) : 'N/A'} ${unit} (${vals.carb_percentage[idx] !== undefined ? vals.carb_percentage[idx].toFixed(1) : 'N/A'}%)\n` +
+                            `  Fat: ${fatValue !== undefined ? fatValue.toFixed(1) : 'N/A'} ${unit} (${vals.fat_percentage[idx] !== undefined ? vals.fat_percentage[idx].toFixed(1) : 'N/A'}%)\n` +
+                            `  RQ: ${vals.predicted_rq && vals.predicted_rq[idx] !== undefined ? vals.predicted_rq[idx].toFixed(3) : 'N/A'}\n`;
+        }
+        return `${positionName} (${powerVal_display.toFixed(appState.useAbsolutePower ? 0:1)} ${powerUnit_display}):\n` +
+               `  V̇O₂ss: ${vo2ssVal_display.toFixed(1)} ${vo2ssUnit_display} (${vo2Percentage.toFixed(1)}% V̇O<sub>2,max</sub>)\n` +
+               `  vLass: ${vals.vLass_min[idx] !== undefined ? vals.vLass_min[idx].toFixed(3) : 'N/A'} mmol·l⁻¹·min⁻¹\n` +
+               `  vLaox: ${vals.vLaox_min[idx] !== undefined ? vals.vLaox_min[idx].toFixed(3) : 'N/A'} mmol·l⁻¹·min⁻¹\n` +
+               `  PD: ${vals.PD_min[idx] !== undefined ? vals.PD_min[idx].toFixed(3) : 'N/A'} mmol·l⁻¹·min⁻¹\n` + substrateInfo;
+    };
+    domElements.valuesContainer.innerHTML = formatOutput("FATmax", pdMaxIdx) + formatOutput("MLSS", pdZeroIdx);
+}
+
+function plotMetabolicProfile() {
+    const vals = appState.maderCalculatedValues;
+     if (!vals || !vals.P_abs || vals.P_abs.length === 0) {
+        Plotly.purge(domElements.metabolicPlotDiv); 
+        return;
+    }
+
+    const displayPower = appState.useAbsolutePower ? vals.P_abs : vals.P_abs.map(p => p / appState.body_mass);
+    const powerUnit = appState.useAbsolutePower ? "W" : "W·kg⁻¹";
+    const powerFormat = appState.useAbsolutePower ? ':.0f' : ':.1f';
+
+    const displayVO2ss_abs = vals.VO2ss;
+    const displayVO2ss_unlimited_abs = vals.VO2ss_unlimited;
+    const displayVO2max_abs = appState.VO2max;
+
+    const displayVO2ss = appState.weight_based_mader ? displayVO2ss_abs.map(v => v / appState.body_mass) : displayVO2ss_abs;
+    const displayVO2ss_unlimited = appState.weight_based_mader ? displayVO2ss_unlimited_abs.map(v => v / appState.body_mass) : displayVO2ss_unlimited_abs;
+    const displayVO2max = appState.weight_based_mader ? displayVO2max_abs / appState.body_mass : displayVO2max_abs;
+    const vo2Unit = appState.weight_based_mader ? "ml·min⁻¹·kg⁻¹" : "ml·min⁻¹";
+    const vo2Format = appState.weight_based_mader ? ':.1f' : ':.0f';
+    
+    const traces = [];
+    
+    traces.push({
+        x: displayPower, y: Array(displayPower.length).fill(displayVO2max), name: "V̇O<sub>2,max</sub> Line",
+        type: 'scatter', mode: 'lines', line: {color: '#CCCCCC', dash: 'dot', width: 2}, hoverinfo: 'skip', showlegend: false
+    });
+
+    if (vals.crossPoint > 1 && displayVO2ss_unlimited.length >= vals.crossPoint) {
+        traces.push({
+            x: displayPower.slice(0, vals.crossPoint), y: displayVO2ss_unlimited.slice(0, vals.crossPoint),
+            name: "V̇O₂ss", type: 'scatter', mode: 'lines', line: {color: 'var(--primary-color)', width: 3},
+            hovertemplate: `<b>V̇O₂ss</b><br>P: %{x${powerFormat}} ${powerUnit}<br>V̇O₂: %{y${vo2Format}} ${vo2Unit}<extra></extra>`
+        });
+        if (vals.crossPoint < displayPower.length) {
+            traces.push({
+                x: displayPower.slice(vals.crossPoint), y: displayVO2ss_unlimited.slice(vals.crossPoint),
+                name: "V̇O₂ss<sub>extrapolated</sub>", type: 'scatter', mode: 'lines', line: {color: 'var(--primary-color)', dash: 'dash', width: 3},
+                hovertemplate: `<b>V̇O₂ss (extrap.)</b><br>P: %{x${powerFormat}} ${powerUnit}<br>V̇O₂: %{y${vo2Format}} ${vo2Unit}<extra></extra>`
+            });
+        }
+    } else if (displayVO2ss_unlimited.length > 0) { 
+         traces.push({
+            x: displayPower, y: displayVO2ss_unlimited,
+            name: "V̇O₂ss", type: 'scatter', mode: 'lines', line: {color: 'var(--primary-color)', width: 3},
+            hovertemplate: `<b>V̇O₂ss</b><br>P: %{x${powerFormat}} ${powerUnit}<br>V̇O₂: %{y${vo2Format}} ${vo2Unit}<extra></extra>`
+        });
+    }
+
+    traces.push({
+        x: displayPower, y: vals.vLass_min, name: "vLa<sub>SS</sub>", type: 'scatter', mode: 'lines', yaxis: 'y2',
+        line: {color: 'var(--accent-color)', dash: 'dash', width: 2},
+        hovertemplate: `<b>vLass</b><br>P: %{x${powerFormat}} ${powerUnit}<br>Rate: %{y:.3f} mmol·l⁻¹·min⁻¹<extra></extra>`
+    });
+    traces.push({
+        x: displayPower, y: vals.vLaox_min, name: "vLa<sub>ox</sub>", type: 'scatter', mode: 'lines', yaxis: 'y2',
+        line: {color: '#1CADE4', dash: 'dashdot', width: 2, opacity:0.8},
+        hovertemplate: `<b>vLaox</b><br>P: %{x${powerFormat}} ${powerUnit}<br>Rate: %{y:.3f} mmol·l⁻¹·min⁻¹<extra></extra>`
+    });
+    traces.push({
+        x: displayPower, y: vals.PD_min, name: "PD", type: 'scatter', mode: 'lines', yaxis: 'y2',
+        line: {color: 'var(--secondary-color)', width: 3},
+        hovertemplate: `<b>PD</b><br>P: %{x${powerFormat}} ${powerUnit}<br>Rate: %{y:.3f} mmol·l⁻¹·min⁻¹<extra></extra>`
+    });
+     traces.push({
+        x: displayPower, y: vals.netLactateProductionRate_min, name: "Lactate<sub>Accumulation Rate</sub>", type: 'scatter', mode: 'lines', yaxis: 'y2',
+        line: {color: '#C8133B', width: 3, opacity: 0.6},
+        hovertemplate: `<b>La<sup>-</sup> Accum. Rate</b><br>P: %{x${powerFormat}} ${powerUnit}<br>Rate: %{y:.3f} mmol·l⁻¹·min⁻¹<extra></extra>`
+    });
+    
+    const xMaxAbs = vals.max_power_abs;
+    const xMaxDisplay = appState.useAbsolutePower ? xMaxAbs : (xMaxAbs / appState.body_mass);
+    const defaultXRange = appState.useAbsolutePower ? [0, 600] : [0, (600 / (appState.body_mass > 0 ? appState.body_mass : 1))];
+    const xaxisRange = appState.lock_x_axis_mader ? defaultXRange : [0, Math.max(appState.useAbsolutePower ? 100 : 10, xMaxDisplay * 1.05)];
+    
+    const y1Max_abs = appState.VO2max;
+    const y1Max_display = appState.weight_based_mader ? (y1Max_abs / appState.body_mass) : y1Max_abs;
+    const defaultYRange = appState.weight_based_mader ? [0, 100] : [0, 7500];
+    const yaxisRange = appState.lock_y_axis_mader ? defaultYRange : [0, Math.max(appState.weight_based_mader ? 20 : 1000, y1Max_display * 1.25)];
+
+    const annotations = [];
+    const vo2max_relative_for_annotation = (appState.VO2max / appState.body_mass);
+    annotations.push({
+        x: xaxisRange[0] + (xaxisRange[1] - xaxisRange[0]) * 0.65, 
+        y: displayVO2max + (yaxisRange[1] - displayVO2max) * 0.1, 
+        text: `V̇O<sub>2,max</sub>: ${vo2max_relative_for_annotation.toFixed(1)} ml·min⁻¹·kg⁻¹`,
+        showarrow: false, font: { color: '#666666', size: 11 },
+        xanchor: 'center', yanchor: 'bottom',
+        bgcolor: 'rgba(255,255,255,0.7)', borderpad:2
+    });
+
+    const fatmaxPowerForAnnotation = appState.useAbsolutePower ? vals.pd_max_pos_abs : (vals.pd_max_pos_abs / appState.body_mass);
+    const mlssPowerForAnnotation = appState.useAbsolutePower ? vals.pd_zero_pos_abs : (vals.pd_zero_pos_abs / appState.body_mass);
+
+    annotations.push({ 
+        x: fatmaxPowerForAnnotation,
+        y: yaxisRange[1] * 0.98,
+        text: `FAT<sub>max</sub><br>${fatmaxPowerForAnnotation.toFixed(appState.useAbsolutePower ? 0:1)} ${powerUnit}`,
+        showarrow: false, font: { color: '#333333', size: 10 },
+        xanchor: 'center', yanchor: 'top',
+        bgcolor: 'rgba(255,255,255,0.7)', borderpad:2
+    });
+    annotations.push({ 
+        x: mlssPowerForAnnotation,
+        y: yaxisRange[1] * 0.98,
+        text: `MLSS<br>${mlssPowerForAnnotation.toFixed(appState.useAbsolutePower ? 0:1)} ${powerUnit}`,
+        showarrow: false, font: { color: '#333333', size: 10 },
+        xanchor: 'center', yanchor: 'top',
+        bgcolor: 'rgba(255,255,255,0.7)', borderpad:2
+    });
+    
+    const shapes = [];
+    if (fatmaxPowerForAnnotation >= xaxisRange[0] && fatmaxPowerForAnnotation <= xaxisRange[1]) {
+        shapes.push({
+            type: 'line', x0: fatmaxPowerForAnnotation, x1: fatmaxPowerForAnnotation,
+            y0: yaxisRange[0], y1: yaxisRange[1]*0.93, 
+            line: { color: '#cccccc', width: 1, dash: 'dot' }, xref: 'x', yref: 'y'
+        });
+    }
+    if (mlssPowerForAnnotation >= xaxisRange[0] && mlssPowerForAnnotation <= xaxisRange[1]) {
+         shapes.push({
+            type: 'line', x0: mlssPowerForAnnotation, x1: mlssPowerForAnnotation,
+            y0: yaxisRange[0], y1: yaxisRange[1]*0.93,
+            line: { color: '#cccccc', width: 1, dash: 'dot' }, xref: 'x', yref: 'y'
+        });
+    }
+
+    let formulaText = '';
+    const ce_eff_formula = appState.curvilinear_ce ? appState.CE_range[0] : appState.CEVO2;
+    const vo2_base_eff_formula = appState.VO2Base;
+    const a_opt_eff_formula = vals.a_opt;
+    const P_var_formula = appState.useAbsolutePower ? "P" : "P<sub>rel</sub>";
+
+    if (appState.curvilinear_ce) {
+        let a_term_coeff = a_opt_eff_formula;
+        let b_term_coeff = ce_eff_formula;
+        let c_term_val = vo2_base_eff_formula;
+        let y_axis_label = "V̇O₂ss";
+
+        if (appState.useAbsolutePower) {
+            if (appState.weight_based_mader) { 
+                y_axis_label = "V̇O₂ss<sub>rel</sub>";
+                a_term_coeff /= appState.body_mass;
+                b_term_coeff /= appState.body_mass;
+                c_term_val /= appState.body_mass;
+                formulaText = `${y_axis_label}(${P_var_formula}) = ${a_term_coeff ? a_term_coeff.toFixed(5):'N/A'}·${P_var_formula}² + ${b_term_coeff.toFixed(2)}·${P_var_formula} + ${c_term_val.toFixed(1)}`;
+            } else { 
+                 formulaText = `${y_axis_label}(${P_var_formula}) = ${a_term_coeff ? a_term_coeff.toFixed(4) : 'N/A'}·${P_var_formula}² + ${b_term_coeff.toFixed(1)}·${P_var_formula} + ${c_term_val.toFixed(0)}`;
+            }
+        } else { 
+            if (appState.weight_based_mader) { 
+                y_axis_label = "V̇O₂ss<sub>rel</sub>";
+                a_term_coeff = a_opt_eff_formula * appState.body_mass; 
+                c_term_val = vo2_base_eff_formula / appState.body_mass;
+                formulaText = `${y_axis_label}(${P_var_formula}) = ${a_term_coeff ? a_term_coeff.toFixed(4) : 'N/A'}·${P_var_formula}² + ${b_term_coeff.toFixed(1)}·${P_var_formula} + ${c_term_val.toFixed(1)}`;
+            } else { 
+                a_term_coeff = a_opt_eff_formula * appState.body_mass * appState.body_mass;
+                b_term_coeff = ce_eff_formula * appState.body_mass;
+                formulaText = `${y_axis_label}(${P_var_formula}) = ${a_term_coeff ? a_term_coeff.toFixed(2) : 'N/A'}·${P_var_formula}² + ${b_term_coeff.toFixed(1)}·${P_var_formula} + ${c_term_val.toFixed(0)}`;
+            }
+        }
+    } else { 
+        let b_term_coeff = ce_eff_formula;
+        let c_term_val = vo2_base_eff_formula;
+        let y_axis_label = "V̇O₂ss";
+
+        if (appState.useAbsolutePower) {
+             if (appState.weight_based_mader) {
+                y_axis_label = "V̇O₂ss<sub>rel</sub>";
+                b_term_coeff /= appState.body_mass;
+                c_term_val /= appState.body_mass;
+                formulaText = `${y_axis_label}(${P_var_formula}) = ${b_term_coeff.toFixed(2)}·${P_var_formula} + ${c_term_val.toFixed(1)}`;
+            } else {
+                formulaText = `${y_axis_label}(${P_var_formula}) = ${b_term_coeff.toFixed(1)}·${P_var_formula} + ${c_term_val.toFixed(0)}`;
+            }
+        } else {
+            if (appState.weight_based_mader) {
+                y_axis_label = "V̇O₂ss<sub>rel</sub>";
+                c_term_val = vo2_base_eff_formula / appState.body_mass;
+                formulaText = `${y_axis_label}(${P_var_formula}) = ${b_term_coeff.toFixed(1)}·${P_var_formula} + ${c_term_val.toFixed(1)}`;
+            } else { 
+                b_term_coeff = ce_eff_formula * appState.body_mass;
+                formulaText = `${y_axis_label}(${P_var_formula}) = ${b_term_coeff.toFixed(1)}·${P_var_formula} + ${c_term_val.toFixed(0)}`;
+            }
+        }
+    }
+     formulaText = formulaText.replace(/P<sub>rel<\/sub>²/g, "P²<sub>rel</sub>");
+    
+    annotations.push({
+        x: xaxisRange[0] + (xaxisRange[1] - xaxisRange[0]) * 0.05,
+        y: yaxisRange[0] + (yaxisRange[1] - yaxisRange[0]) * 0.15,
+        text: formulaText.replace(/BM/g, appState.body_mass.toFixed(1)),
+        showarrow: false,
+        font: { color: '#666666', size: 10 }, xanchor: 'left', yanchor: 'bottom',
+        align: 'left', bgcolor: 'rgba(255,255,255,0.7)', borderpad: 4, borderwidth:1, bordercolor: '#cccccc'
+    });
+
+
+    const layout = {
+        title: '',
+        margin: {l: 60, r: 80, t: 60, b: 70},
+        xaxis: { title: `Power (${powerUnit})`, range: xaxisRange, showgrid: true, gridcolor: 'rgba(200,200,200,0.2)'},
+        yaxis: { title: `V̇O₂ss (${vo2Unit})`, side: "left", range: yaxisRange, showgrid: true, gridcolor: 'rgba(200,200,200,0.2)'},
+        yaxis2: {
+            title: "Lactate & Metabolic Rates (mmol·l⁻¹·min⁻¹)",
+            overlaying: "y", side: "right", range: [-5, 25], showgrid: false, dtick: 5,
+            titlefont: {size: 10}, tickfont: {size:10}
+        },
+        showlegend: true,
+        legend: {x: 0.5, y: 1.12, xanchor: 'center', yanchor: 'top', orientation: 'h', bgcolor: 'rgba(255,255,255,0)'},
+        annotations: annotations,
+        shapes: shapes,
+        paper_bgcolor: 'rgba(255,255,255,0)',
+        plot_bgcolor: 'rgba(255,255,255,0.5)',
+        hovermode: 'closest'
+    };
+    Plotly.react(domElements.metabolicPlotDiv, traces, layout, {responsive: true});
+    plotSubstrateProfile(vals, xaxisRange);
+}
+
+function plotSubstrateProfile(vals, mainPlotXAxisRange) {
+    if (!appState.show_substrate_mader || !vals || !vals.P_abs || vals.P_abs.length === 0 || !vals.carb_g_h) {
+        Plotly.purge(domElements.substratePlotDiv);
+        domElements.substratePlotContainer.style.display = 'none';
+        return;
+    }
+    domElements.substratePlotContainer.style.display = 'block';
+
+    const displayPower = appState.useAbsolutePower ? vals.P_abs : vals.P_abs.map(p => p / appState.body_mass);
+    const powerUnit = appState.useAbsolutePower ? "W" : "W·kg⁻¹";
+    const powerFormat = appState.useAbsolutePower ? ':.0f' : ':.1f';
+
+    const tracesSubstrate = [];
+    let yAxisTitle = "Rate";
+    let hoverUnit = "";
+    let choData, fatData;
+
+    switch (appState.energy_unit_mader) {
+        case "g/h": choData = vals.carb_g_h; fatData = vals.fat_g_h; yAxisTitle = "Rate (g·h⁻¹)"; hoverUnit = "g·h⁻¹"; break;
+        case "kcal/h": choData = vals.carb_kcal_h; fatData = vals.fat_kcal_h; yAxisTitle = "Rate (kcal·h⁻¹)"; hoverUnit = "kcal·h⁻¹"; break;
+        case "kJ/h": choData = vals.carb_kj_h; fatData = vals.fat_kj_h; yAxisTitle = "Rate (kJ·h⁻¹)"; hoverUnit = "kJ·h⁻¹"; break;
+        default: choData = []; fatData = [];
+    }
+
+    if (choData && choData.length > 0) {
+        tracesSubstrate.push({
+            x: displayPower, y: choData, name: `CHO (${hoverUnit})`, type: 'scatter', mode: 'lines', legendgroup: 'substrate',
+            line: { color: 'var(--cho-color)', width: 2 },
+            hovertemplate: `<b>CHO</b><br>P: %{x${powerFormat}} ${powerUnit}<br>Rate: %{y:.1f} ${hoverUnit}<extra></extra>`
+        });
+    }
+    if (fatData && fatData.length > 0) {
+        tracesSubstrate.push({
+            x: displayPower, y: fatData, name: `Fat (${hoverUnit})`, type: 'scatter', mode: 'lines', legendgroup: 'substrate',
+            line: { color: 'var(--fat-color)', width: 2 },
+            hovertemplate: `<b>Fat</b><br>P: %{x${powerFormat}} ${powerUnit}<br>Rate: %{y:.1f} ${hoverUnit}<extra></extra>`
+        });
+    }
+    if (vals.predicted_rq && vals.predicted_rq.length > 0) {
+        tracesSubstrate.push({
+            x: displayPower, y: vals.predicted_rq, name: "Pred. RQ", type: 'scatter', mode: 'lines', yaxis: 'y2', legendgroup: 'substrate',
+            line: { color: '#FFC34C', width: 2, dash: 'dash' },
+            hovertemplate: `<b>RQ</b><br>P: %{x${powerFormat}} ${powerUnit}<br>RQ: %{y:.3f}<extra></extra>`
+        });
+    }
+
+    const layoutSubstrate = {
+        title: '',
+        margin: { l: 60, r: 80, t: 10, b: 70 },
+        xaxis: { title: `Power (${powerUnit})`, range: mainPlotXAxisRange, showgrid: true, gridcolor: 'rgba(200,200,200,0.2)'},
+        yaxis: { title: yAxisTitle, rangemode: 'tozero', showgrid: true, gridcolor: 'rgba(200,200,200,0.2)'},
+        yaxis2: {
+            title: "Predicted RQ", overlaying: 'y', side: 'right', range: [0.68, 1.02], showgrid: false, zeroline: false,
+            titlefont: {size: 10}, tickfont: {size:10}
+        },
+        showlegend: true,
+        legend: {x: 0.5, y: 1.15, xanchor: 'center', yanchor: 'top', orientation: 'h'},
+        paper_bgcolor: 'rgba(255,255,255,0)',
+        plot_bgcolor: 'rgba(255,255,255,0.5)',
+        hovermode: 'closest'
+    };
+    Plotly.react(domElements.substratePlotDiv, tracesSubstrate, layoutSubstrate, {responsive: true});
+}
+
+// --- EVENT LISTENERS (Mader Part) ---
+function setupMaderEventListeners() {
+    domElements.athleteProfileSelect.addEventListener('change', (e) => loadProfile(e.target.value));
+    domElements.curvilinearCeCheckbox.addEventListener('change', () => {
+        appState.curvilinear_ce = domElements.curvilinearCeCheckbox.checked;
+        domElements.linearCeControlDiv.style.display = appState.curvilinear_ce ? 'none' : 'block';
+        domElements.curvilinearCeControlDiv.style.display = appState.curvilinear_ce ? 'block' : 'none';
+        updateAllPlotsAndCalculations();
+    });
+    domElements.CEVO2Slider.addEventListener('input', () => {
+        appState.CEVO2 = parseFloat(domElements.CEVO2Slider.value);
+        domElements.CEVO2ValueSpan.textContent = appState.CEVO2.toFixed(1);
+        updateAllPlotsAndCalculations();
+    });
+    domElements.CERangeStartSlider.addEventListener('input', () => {
+        appState.CE_range[0] = parseFloat(domElements.CERangeStartSlider.value);
+        domElements.CERangeStartValueSpan.textContent = appState.CE_range[0].toFixed(1);
+        updateAllPlotsAndCalculations();
+    });
+    domElements.CERangeEndSlider.addEventListener('input', () => {
+        appState.CE_range[1] = parseFloat(domElements.CERangeEndSlider.value);
+        domElements.CERangeEndValueSpan.textContent = appState.CE_range[1].toFixed(1);
+        updateAllPlotsAndCalculations();
+    });
+    domElements.VO2maxSlider.addEventListener('input', () => {
+        appState.VO2max = parseFloat(domElements.VO2maxSlider.value);
+        domElements.VO2maxValueSpan.textContent = appState.VO2max.toFixed(0);
+        updateAllPlotsAndCalculations();
+    });
+    domElements.VO2BaseSlider.addEventListener('input', () => {
+        appState.VO2Base = parseFloat(domElements.VO2BaseSlider.value);
+        domElements.VO2BaseValueSpan.textContent = appState.VO2Base.toFixed(0);
+        updateAllPlotsAndCalculations();
+    });
+    domElements.vLamaxSlider.addEventListener('input', () => {
+        appState.vLamax = parseFloat(domElements.vLamaxSlider.value);
+        domElements.vLamaxValueSpan.textContent = appState.vLamax.toFixed(2);
+        updateAllPlotsAndCalculations();
+    });
+     domElements.weightBasedMaderCheckbox.addEventListener('change', () => {
+        appState.weight_based_mader = domElements.weightBasedMaderCheckbox.checked;
+        plotMetabolicProfile();
+        updateMaderValuesDisplay();
+    });
+    [domElements.maleRadio, domElements.femaleRadio].forEach(radio => {
+        radio.addEventListener('change', () => {
+            appState.gender = domElements.maleRadio.checked ? 'Male' : 'Female';
+        });
+    });
+    domElements.bodyMassSlider.addEventListener('input', () => {
+        appState.body_mass = parseFloat(domElements.bodyMassSlider.value);
+        domElements.bodyMassValueSpan.textContent = appState.body_mass.toFixed(1);
+        updateAllPlotsAndCalculations(); // This already calls plotPowerDurationProfile
+    });
+    domElements.ageSlider.addEventListener('input', () => {
+        appState.age = parseInt(domElements.ageSlider.value);
+        domElements.ageValueSpan.textContent = appState.age;
+    });
+    domElements.heightSlider.addEventListener('input', () => {
+        appState.height = parseInt(domElements.heightSlider.value);
+        domElements.heightValueSpan.textContent = appState.height;
+    });
+    domElements.calculateVo2baseBtn.addEventListener('click', () => {
+        const bmr = calculateBMR_Mader(appState.gender, appState.body_mass, appState.height, appState.age);
+        const vo2baseCalc = calculateVO2Base_Mader(bmr, appState.gender);
+        appState.VO2Base = Math.round(vo2baseCalc);
+        domElements.VO2BaseSlider.value = appState.VO2Base;
+        domElements.VO2BaseValueSpan.textContent = appState.VO2Base.toFixed(0);
+        showNotification(`V̇O₂Base calculated: ${appState.VO2Base} ml·min⁻¹`, 'info');
+        updateAllPlotsAndCalculations();
+    });
+    domElements.showSubstrateMaderCheckbox.addEventListener('change', () => {
+        appState.show_substrate_mader = domElements.showSubstrateMaderCheckbox.checked;
+        domElements.substrateControlsMaderDiv.style.display = appState.show_substrate_mader ? 'block' : 'none';
+        domElements.substratePlotContainer.style.display = appState.show_substrate_mader ? 'block' : 'none';
+        updateAllPlotsAndCalculations();
+    });
+    domElements.energyUnitMaderSelect.addEventListener('change', () => {
+        appState.energy_unit_mader = domElements.energyUnitMaderSelect.value;
+        updateMaderValuesDisplay();
+        plotSubstrateProfile(appState.maderCalculatedValues, domElements.metabolicPlotDiv.layout.xaxis.range);
+    });
+    domElements.showKhAdjustMaderCheckbox.addEventListener('change', () => {
+        appState.show_kh_adjust_mader = domElements.showKhAdjustMaderCheckbox.checked;
+        domElements.khAdjustControlMaderDiv.style.display = appState.show_kh_adjust_mader ? 'block' : 'none';
+        updateAllPlotsAndCalculations();
+    });
+    domElements.restKhPercentageMaderSlider.addEventListener('input', () => {
+        appState.rest_kh_percentage_mader = parseFloat(domElements.restKhPercentageMaderSlider.value);
+        domElements.restKhPercentageMaderValueSpan.textContent = appState.rest_kh_percentage_mader;
+        if (appState.show_kh_adjust_mader) {
+            updateAllPlotsAndCalculations();
+        }
+    });
+    domElements.lockYAxisMaderCheckbox.addEventListener('change', () => {
+        appState.lock_y_axis_mader = domElements.lockYAxisMaderCheckbox.checked;
+        plotMetabolicProfile();
+    });
+    domElements.lockXAxisMaderCheckbox.addEventListener('change', () => {
+        appState.lock_x_axis_mader = domElements.lockXAxisMaderCheckbox.checked;
+        plotMetabolicProfile();
+    });
+    domElements.useAbsolutePowerToggle.addEventListener('change', () => {
+        appState.useAbsolutePower = domElements.useAbsolutePowerToggle.checked;
+        domElements.newPointPowerInput.placeholder = appState.useAbsolutePower ? "Power (W)" : "Power (W·kg<sup>-1</sup>)";
+        appState.P5minForVO2maxCalc = null; 
+        updateAllPlotsAndCalculations();
+    });
+}
+
+// --- POWER-DURATION PROFILE DATA MANAGEMENT ---
+function renderPowerDataPointsUI() {
+    domElements.powerDataPointsContainer.innerHTML = '';
+    const displayUnit = appState.useAbsolutePower ? "W" : "W·kg<sup>-1</sup>";
+    const bodyMass = appState.body_mass;
+
+    appState.powerDurationPoints.forEach((point, index) => {
+        const div = document.createElement('div');
+        div.className = 'data-point-display';
+        const displayPower = appState.useAbsolutePower ? (point.power * bodyMass).toFixed(0) : point.power.toFixed(2);
+        div.innerHTML = `
+            <span>${point.label || `Effort ${index + 1}`}: ${displayPower} ${displayUnit} for ${formatDuration(point.duration)}</span>
+            <button class="remove-point-btn" data-index="${index}">X</button>
+        `;
+        domElements.powerDataPointsContainer.appendChild(div);
+    });
+    domElements.powerDataPointsContainer.querySelectorAll('.remove-point-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const indexToRemove = parseInt(e.target.dataset.index);
+            removePowerDataPoint(indexToRemove);
+        });
+    });
+}
+
+function addPowerDataPoint() {
+    let powerInputVal = parseFloat(domElements.newPointPowerInput.value);
+    const mins = parseInt(domElements.newPointDurationMinInput.value) || 0;
+    const secs = parseInt(domElements.newPointDurationSecInput.value) || 0;
+    const label = domElements.newPointLabelInput.value.trim();
+    const duration = mins * 60 + secs;
+
+    if (isNaN(powerInputVal) || powerInputVal <= 0 || duration <= 0) {
+        showNotification("Invalid power or duration for data point.", 'warning');
+        return;
+    }
+
+    let powerWkg; 
+    if (appState.useAbsolutePower) {
+        if (appState.body_mass <= 0) {
+            showNotification("Body mass must be positive to add absolute power values.", "warning");
+            return;
+        }
+        powerWkg = powerInputVal / appState.body_mass;
+    } else {
+        powerWkg = powerInputVal;
+    }
+
+    if (appState.powerDurationPoints.length >= 15) {
+        showNotification("Maximum number of data points (15) reached.", 'warning');
+        return;
+    }
+    appState.powerDurationPoints.push({ power: powerWkg, duration, label });
+    appState.powerDurationPoints.sort((a, b) => a.duration - b.duration);
+    appState.P5minForVO2maxCalc = null; 
+    renderPowerDataPointsUI();
+    updateAllPlotsAndCalculations();
+    domElements.newPointPowerInput.value = '';
+    domElements.newPointDurationMinInput.value = '';
+    domElements.newPointDurationSecInput.value = '';
+    domElements.newPointLabelInput.value = '';
+}
+
+function removePowerDataPoint(index) {
+    if (appState.powerDurationPoints.length > 2) {
+        appState.powerDurationPoints.splice(index, 1);
+        appState.P5minForVO2maxCalc = null;
+        renderPowerDataPointsUI();
+        updateAllPlotsAndCalculations();
+    } else {
+        showNotification("At least 2 data points are required.", 'warning');
+    }
+}
+
+// --- POWER-DURATION MODEL FITTING AND PLOTTING ---
+function fitAllPowerDurationModels() {
+    const validPoints = appState.powerDurationPoints.filter(pt => pt.duration > 0 && pt.power > 0 && !isNaN(pt.duration) && !isNaN(pt.power));
+    appState.powerDurationModelParams = {}; 
+
+    if (validPoints.length < 2) {
+        showNotification("At least 2 data points are needed for Power-Duration modeling.", "warning");
+        return;
+    }
+
+    const durations = validPoints.map(pt => pt.duration);
+    let modelingPowers = validPoints.map(pt => pt.power); 
+
+    if (appState.useAbsolutePower) {
+        if (appState.body_mass <= 0) {
+            showNotification("Body mass must be positive to use absolute power values for modeling.", "warning");
+            plotPowerDurationProfile(); 
+            return;
+        }
+        modelingPowers = modelingPowers.map(p_rel => p_rel * appState.body_mass);
+    }
+
+    const maxObservedModelingPower = Math.max(...modelingPowers);
+    const selectedModelKey = appState.selectedPDModel;
+
+    if (selectedModelKey === 'powerLaw') {
+        appState.powerDurationModelParams.powerLaw = fitPowerLawModel(durations, modelingPowers);
+    } else if (selectedModelKey === 'twoParam') {
+        appState.powerDurationModelParams.twoParam = fit2ParamCPModel(durations, modelingPowers);
+    } else if (['ompd', 'om3cp', 'omexp'].includes(selectedModelKey)) {
+        if (validPoints.length < 3) {
+            showNotification(`At least 3 data points are required for the ${selectedModelKey.toUpperCase()} model.`, "warning");
+            return;
+        }
+        const twoParamTemp = fit2ParamCPModel(durations, modelingPowers); 
+        const cpFrom2P = twoParamTemp ? twoParamTemp.CP : undefined;
+        const wPrimeFrom2P = twoParamTemp ? twoParamTemp.Wprime : undefined;
+
+        const initialCP = (cpFrom2P !== undefined && !isNaN(cpFrom2P)) ? cpFrom2P : (modelingPowers.length > 0 ? Math.min(...modelingPowers) * 0.85 : (appState.useAbsolutePower ? 150 : 3.0));
+        const initialWprime = (wPrimeFrom2P !== undefined && !isNaN(wPrimeFrom2P) && wPrimeFrom2P > 0) ? wPrimeFrom2P : (maxObservedModelingPower - initialCP) * (durations.length > 0 ? durations[Math.floor(durations.length/2)] : 180);
+        const initialPmax = maxObservedModelingPower * 1.2 + (appState.useAbsolutePower ? 50 : 1.0);
+
+        const guess3Param = {
+            CP: initialCP > 0 ? initialCP : (appState.useAbsolutePower ? 100 : 2.0),
+            Wprime: initialWprime > 0 ? initialWprime : (appState.useAbsolutePower ? 10000 : 200),
+            Pmax: initialPmax > (initialCP + (appState.useAbsolutePower ? 20 : 0.5)) ? initialPmax : initialCP + (appState.useAbsolutePower ? 50 : 1.0)
+        };
+        
+        if (guess3Param.Pmax <= guess3Param.CP) {
+            guess3Param.Pmax = guess3Param.CP + Math.max((appState.useAbsolutePower ? 20 : 0.5), 0.1 * guess3Param.CP);
+        }
+        appState.powerDurationModelParams[selectedModelKey] = fitAdvancedCPModel(durations, modelingPowers, selectedModelKey, guess3Param);
+    }
+}
+
+function plotPowerDurationProfile() {
+    const MODEL_COLOR = '#696969'; // Dark Gray
+    const MODEL_PLOT_X_MIN = 1;    // Min duration for model plotting (to avoid t=0 issues)
+    const MODEL_PLOT_X_MAX = 3600; // Max duration for model plotting (1 hour)
+    // const NUM_MODEL_PLOT_POINTS = 360; // Replaced by 1s steps
+    const NUM_MODEL_PLOT_POINTS = (MODEL_PLOT_X_MAX - MODEL_PLOT_X_MIN) + 1; // Plot every second
+    const DEFAULT_Y_AXIS_MAX_ABS = 1400; // Default max power for Y-axis in Watts
+    const Y_AXIS_SAFETY_MARGIN = 1.00; // 5% margin for Y-axis
+    const MIN_DURATION_FOR_Y_AXIS_MODEL_CHECK = 10; // s, check model power after this duration for Y-axis scaling
+
+    fitAllPowerDurationModels(); 
+
+    const validPoints = appState.powerDurationPoints.filter(pt => pt.duration > 0 && pt.power > 0 && !isNaN(pt.duration) && !isNaN(pt.power));
+    if (validPoints.length === 0 && Object.keys(appState.powerDurationModelParams).length === 0) {
+        Plotly.purge(domElements.powerDurationPlotDiv);
+        domElements.pdLegendContainer.innerHTML = '';
+        return;
+    }
+    
+    const yAxisPowerUnit = appState.useAbsolutePower ? 'W' : 'W·kg<sup>-1</sup>';
+    const displayPoints = validPoints.map(p => ({
+        duration: p.duration,
+        power: appState.useAbsolutePower ? p.power * appState.body_mass : p.power,
+        label: p.label
+    }));
+
+    const dataTrace = {
+        x: displayPoints.map(p => p.duration),
+        y: displayPoints.map(p => p.power),
+        text: displayPoints.map((p, i) => `${p.label || `Effort ${i + 1}`}<br>${p.power.toFixed(appState.useAbsolutePower ? 0:2)} ${yAxisPowerUnit} for ${formatDuration(p.duration)}`),
+        hoverinfo: 'text',
+        type: 'scatter',
+        mode: 'markers',
+        name: 'Data Points',
+        marker: { color: 'var(--primary-color)', size: 10 }
+    };
+    const traces = [dataTrace];
+    let annotations = []; 
+    let shapes = []; 
+    let annotationYOffsetFactor = 0.98;
+
+    const modelPlotXValues = [];
+    // if (MODEL_PLOT_X_MIN < MODEL_PLOT_X_MAX) { // Original loop based on NUM_MODEL_PLOT_POINTS
+    //     for (let i = 0; i < NUM_MODEL_PLOT_POINTS; i++) {
+    //         modelPlotXValues.push(MODEL_PLOT_X_MIN + (MODEL_PLOT_X_MAX - MODEL_PLOT_X_MIN) * i / (NUM_MODEL_PLOT_POINTS - 1));
+    //     }
+    // } else {
+    //     modelPlotXValues.push(MODEL_PLOT_X_MIN);
+    // }
+    for (let t = MODEL_PLOT_X_MIN; t <= MODEL_PLOT_X_MAX; t++) { // New loop for 1-second steps
+        modelPlotXValues.push(t);
+    }
+
+
+    let minDataDuration = MODEL_PLOT_X_MAX; 
+    let maxDataDuration = MODEL_PLOT_X_MIN; 
+    if (validPoints.length >= 2) {
+        minDataDuration = Math.min(...validPoints.map(p => p.duration));
+        maxDataDuration = Math.max(...validPoints.map(p => p.duration));
+    } else if (validPoints.length === 1) {
+        minDataDuration = validPoints[0].duration;
+        maxDataDuration = validPoints[0].duration;
+    }
+    minDataDuration = Math.max(MODEL_PLOT_X_MIN, minDataDuration);
+    maxDataDuration = Math.min(MODEL_PLOT_X_MAX, maxDataDuration);
+    if (minDataDuration > maxDataDuration) { 
+        maxDataDuration = minDataDuration;
+    }
+
+    const models = appState.powerDurationModelParams;
+    const selectedModelKey = appState.selectedPDModel;
+    
+    const modelDisplayInfo = {
+        powerLaw: { name: 'Power-Law' },
+        twoParam: { name: '2-Parameter' },
+        ompd: { name: 'OmPD' },
+        om3cp: { name: 'Om3CP' },
+        omexp: { name: 'OmExp' }
+    };
+    
+    let yAxisFinalMax;
+    const bodyMassForScaling = appState.body_mass > 0 ? appState.body_mass : 70;
+    const defaultYMaxThreshold = appState.useAbsolutePower ? DEFAULT_Y_AXIS_MAX_ABS : (DEFAULT_Y_AXIS_MAX_ABS / bodyMassForScaling);
+    yAxisFinalMax = defaultYMaxThreshold;
+
+    const maxPowerFromDataPoints = displayPoints.length > 0 ? Math.max(0, ...displayPoints.map(p => p.power).filter(isFinite)) : 0;
+    if (maxPowerFromDataPoints > 0) {
+        yAxisFinalMax = Math.max(yAxisFinalMax, maxPowerFromDataPoints * Y_AXIS_SAFETY_MARGIN);
+    }
+
+    if (models[selectedModelKey] && modelFunctions[selectedModelKey]) {
+        const fittedParams = models[selectedModelKey];
+        let modelParamsAreValid = true;
+        if (selectedModelKey === 'powerLaw') { 
+            if (isNaN(fittedParams.S) || isNaN(fittedParams.E)) modelParamsAreValid = false; 
+        } else if (selectedModelKey === 'twoParam') { 
+            if (isNaN(fittedParams.CP) || isNaN(fittedParams.Wprime)) modelParamsAreValid = false; 
+        } else if (['ompd', 'om3cp', 'omexp'].includes(selectedModelKey)) {
+            if (isNaN(fittedParams.CP) || isNaN(fittedParams.Wprime) || isNaN(fittedParams.Pmax) || 
+                fittedParams.Pmax <= fittedParams.CP || fittedParams.Wprime <= 0) {
+                modelParamsAreValid = false;
+            }
+        } else {
+            modelParamsAreValid = false;
+        }
+
+        if (modelParamsAreValid) {
+            const modelPowersAfterMinDuration = modelPlotXValues
+                .filter(t => t > MIN_DURATION_FOR_Y_AXIS_MODEL_CHECK)
+                .map(t => modelFunctions[selectedModelKey](t, fittedParams))
+                .filter(p => isFinite(p) && p > 0);
+            
+            if (modelPowersAfterMinDuration.length > 0) {
+                const maxModelPower = Math.max(...modelPowersAfterMinDuration);
+                const candidateModelYMax = maxModelPower * Y_AXIS_SAFETY_MARGIN;
+                yAxisFinalMax = Math.max(yAxisFinalMax, candidateModelYMax);
+            }
+        }
+    }
+    
+    if (!isFinite(yAxisFinalMax) || yAxisFinalMax <= (appState.useAbsolutePower ? 50 : 1)) {
+        yAxisFinalMax = appState.useAbsolutePower ? 200 : 5;
+    }
+
+    if (models[selectedModelKey] && modelFunctions[selectedModelKey]) {
+        const fittedParams = models[selectedModelKey];
+        const modelInfo = modelDisplayInfo[selectedModelKey];
+        
+        let modelParamsAreValid = true;
+        if (selectedModelKey === 'powerLaw') { if (isNaN(fittedParams.S) || isNaN(fittedParams.E)) modelParamsAreValid = false; }
+        else if (selectedModelKey === 'twoParam') { if (isNaN(fittedParams.CP) || isNaN(fittedParams.Wprime)) modelParamsAreValid = false; }
+        else if (['ompd', 'om3cp', 'omexp'].includes(selectedModelKey)) {
+            if (isNaN(fittedParams.CP) || isNaN(fittedParams.Wprime) || isNaN(fittedParams.Pmax) || fittedParams.Pmax <= fittedParams.CP || fittedParams.Wprime <=0) modelParamsAreValid = false;
+        } else {
+            modelParamsAreValid = false;
+        }
+
+        if (modelParamsAreValid) {
+            const segment1X = modelPlotXValues.filter(t => t < minDataDuration && t >= MODEL_PLOT_X_MIN);
+            if (segment1X.length > 0) {
+                traces.push({ x: segment1X, y: segment1X.map(t => modelFunctions[selectedModelKey](t, fittedParams)), mode: 'lines', name: `${modelInfo.name} (extrap.)`, line: { color: MODEL_COLOR, width: 2.5, dash: 'dash' }, legendgroup: 'model', showlegend: false });
+            }
+            const segment2X = modelPlotXValues.filter(t => t >= minDataDuration && t <= maxDataDuration);
+             if (segment2X.length > 0) {
+                traces.push({ x: segment2X, y: segment2X.map(t => modelFunctions[selectedModelKey](t, fittedParams)), mode: 'lines', name: modelInfo.name, line: { color: MODEL_COLOR, width: 2.5, dash: 'solid' }, legendgroup: 'model' });
+            } else {
+                 traces.push({ x: [null], y: [null], mode: 'lines', name: modelInfo.name, line: { color: MODEL_COLOR, width: 2.5, dash: 'solid' }, legendgroup: 'model', showlegend: (segment1X.length === 0 && modelPlotXValues.filter(t => t > maxDataDuration && t <= MODEL_PLOT_X_MAX).length === 0) });
+            }
+            const segment3X = modelPlotXValues.filter(t => t > maxDataDuration && t <= MODEL_PLOT_X_MAX);
+            if (segment3X.length > 0) {
+                traces.push({ x: segment3X, y: segment3X.map(t => modelFunctions[selectedModelKey](t, fittedParams)), mode: 'lines', name: `${modelInfo.name} (extrap.)`, line: { color: MODEL_COLOR, width: 2.5, dash: 'dash' }, legendgroup: 'model', showlegend: false });
+            }
+
+            let paramString = "";
+            const pConv = (val) => val.toFixed(appState.useAbsolutePower ? 0 : 1);
+            const wConv = (val) => { // W' in kJ or kJ/kg
+                const wPrimeVal = val / 1000; // Convert joules to kilojoules
+                if (appState.useAbsolutePower) { // If model was fitted with absolute powers, W' is in J, so display as kJ
+                    return wPrimeVal.toFixed(1); 
+                } else { // If model was fitted with relative powers, W' is in J/kg, so display as kJ/kg
+                    return wPrimeVal.toFixed(2); 
+                }
+            };
+            const sConv = (val) => val.toFixed(appState.useAbsolutePower ? 0 : 1);
+
+            if (selectedModelKey === 'powerLaw') paramString = `S=${sConv(fittedParams.S)}, E=${fittedParams.E.toFixed(3)}`;
+            else if (selectedModelKey === 'twoParam') paramString = `CP=${pConv(fittedParams.CP)}, W'=${wConv(fittedParams.Wprime)}${appState.useAbsolutePower ? 'kJ' : 'kJ/kg'}`;
+            else paramString = `CP=${pConv(fittedParams.CP)}, W'=${wConv(fittedParams.Wprime)}${appState.useAbsolutePower ? 'kJ' : 'kJ/kg'}, Pmax=${pConv(fittedParams.Pmax)}`;
+            
+            modelDisplayInfo[selectedModelKey].nameWithParams = `${modelInfo.name}: ${paramString}`;
+
+            const powersForR2 = appState.useAbsolutePower ? validPoints.map(p => p.power * appState.body_mass) : validPoints.map(p => p.power);
+            const predictedValuesForR2 = validPoints.map(p_orig => modelFunctions[selectedModelKey](p_orig.duration, fittedParams));
+            const rSq = calculateRSquared(powersForR2, predictedValuesForR2);
+
+            annotations.push({
+                text: `${modelInfo.name}: ${paramString}, R²=${!isNaN(rSq) ? rSq.toFixed(3) : 'N/A'}`,
+                x: 310,
+                y: yAxisFinalMax * annotationYOffsetFactor ,
+                showarrow: false, xanchor: 'left', yanchor: 'top', 
+                font: { color: MODEL_COLOR, size: 12, weight: 'bold' }
+            });
+            annotationYOffsetFactor -= 0.15;
+        } else {
+            modelDisplayInfo[selectedModelKey].nameWithParams = `${modelInfo.name} (Fit failed or invalid params)`;
+        }
+    }
+    
+    appState.P5minForVO2maxCalc = null; 
+    // V02max calculation based on P(5min) - now for ALL models if they have params
+    if (models[selectedModelKey] && modelFunctions[selectedModelKey] && Object.keys(models[selectedModelKey]).length > 0) {
+        const fittedParams = models[selectedModelKey];
+        let p5min_fitted_unit = modelFunctions[selectedModelKey](300, fittedParams);
+
+        if (!isNaN(p5min_fitted_unit) && p5min_fitted_unit > 0) {
+            let p5min_Wkg;
+            // Determine if p5min_fitted_unit is absolute or relative based on how model was fitted
+            if (appState.useAbsolutePower) { 
+                if (appState.body_mass > 0) p5min_Wkg = p5min_fitted_unit / appState.body_mass;
+                else p5min_Wkg = NaN; 
+            } else { 
+                p5min_Wkg = p5min_fitted_unit; // Already in W/kg
+            }
+
+            if (!isNaN(p5min_Wkg) && appState.body_mass > 0) {
+                const vo2max_relative_calc = 16.6 + 8.87 * p5min_Wkg;
+                // Update appState.VO2max directly if you want the slider to reflect this auto-calculation
+                // appState.VO2max = Math.round(vo2max_relative_calc * appState.body_mass);
+                // domElements.VO2maxSlider.value = appState.VO2max;
+                // domElements.VO2maxValueSpan.textContent = appState.VO2max.toFixed(0);
+                // For now, just store for annotation:
+                appState.P5minForVO2maxCalc = {
+                    p5min_displayUnit: appState.useAbsolutePower ? (p5min_Wkg * appState.body_mass) : p5min_Wkg,
+                    p5min_Wkg: p5min_Wkg,
+                    vo2max_rel_calculated: vo2max_relative_calc
+                };
+
+                const p5minVal_display = appState.P5minForVO2maxCalc.p5min_displayUnit;
+                const vo2maxRel_display = appState.P5minForVO2maxCalc.vo2max_rel_calculated;
+                const p5min_text_annotation = appState.useAbsolutePower ? p5minVal_display.toFixed(0) + " W" : p5minVal_display.toFixed(2) + " W·kg<sup>-1</sup>";
+
+                shapes.push({ type: 'line', x0: 300, x1: 300, y0: 0, y1: yAxisFinalMax, line: { color: 'darkgrey', width: 1.5, dash: 'dash'}, xref: 'x', yref: 'y' });
+                annotations.push({
+                    x: 300, y: yAxisFinalMax * annotationYOffsetFactor, 
+                    text: `P<sub>max,5min</sub>: ${p5min_text_annotation}<br>V̇O<sub>2,max, estimated</sub>: ${vo2maxRel_display.toFixed(1)} ml·min<sup>-1</sup>·kg<sup>-1</sup>`,
+                    showarrow: true, arrowhead: 2, ax: 60, ay: +0,
+                    font: {color: 'var(--secondary-color)', size:13},
+                    bgcolor: 'rgba(255,255,255,0.7)', borderpad: 2,
+                    xanchor: 'left'
+                });
+            }
+        }
+    }
+    
+    domElements.pdLegendContainer.innerHTML = '';
+    const dataLegendDiv = document.createElement('div');
+    dataLegendDiv.className = 'legend-item';
+    dataLegendDiv.innerHTML = `<span class="legend-color-box" style="background-color:${'var(--primary-color)'};"></span> Data Points`;
+    domElements.pdLegendContainer.appendChild(dataLegendDiv);
+
+    if (models[selectedModelKey] && modelDisplayInfo[selectedModelKey]) {
+        const modelInfo = modelDisplayInfo[selectedModelKey];
+        const modelLegendDiv = document.createElement('div');
+        modelLegendDiv.className = 'legend-item';
+        const legendText = modelInfo.nameWithParams || modelInfo.name;
+        modelLegendDiv.innerHTML = `<span class="legend-color-box" style="background-color:${MODEL_COLOR};"></span> ${legendText}`;
+        domElements.pdLegendContainer.appendChild(modelLegendDiv);
+    }
+
+    const layout = {
+        title: '',
+        xaxis: { title: 'Duration (s)', range: [0, MODEL_PLOT_X_MAX], showgrid: true, gridcolor: 'rgba(200,200,200,0.2)' },
+        yaxis: { title: yAxisPowerUnit, range: [0, yAxisFinalMax], autorange: false, showgrid: true, gridcolor: 'rgba(200,200,200,0.2)' },
+        showlegend: false,
+        margin: { t: 20, b: 50, l: 60, r: 20 },
+        hovermode: 'closest',
+        annotations: annotations,
+        shapes: shapes,
+        paper_bgcolor: 'rgba(255,255,255,0)',
+        plot_bgcolor: 'rgba(255,255,255,0.5)',
+    };
+    Plotly.react(domElements.powerDurationPlotDiv, traces, layout, {responsive: true});
+}
+
+function calculateAndSetVO2maxFromProfile() {
+    const selectedModelKey = appState.selectedPDModel;
+    if (!appState.powerDurationModelParams[selectedModelKey]) {
+        showNotification(`Selected model (${selectedModelKey.toUpperCase()}) has not been fitted or params are invalid. Fit model first.`, "warning");
+        appState.P5minForVO2maxCalc = null;
+        plotPowerDurationProfile(); 
+        return;
+    }
+
+    const fittedParams = appState.powerDurationModelParams[selectedModelKey];
+    
+    let p5min_fitted_unit = modelFunctions[selectedModelKey](300, fittedParams);
+
+    if (isNaN(p5min_fitted_unit) || p5min_fitted_unit <=0) {
+        showNotification(`Could not calculate a valid 5-min power using the ${selectedModelKey.toUpperCase()} model.`, "warning");
+        appState.P5minForVO2maxCalc = null;
+        plotPowerDurationProfile();
+        return;
+    }
+    
+    let p5min_Wkg;
+    if (appState.useAbsolutePower) { // If the model was fitted with absolute power values 
+        if (appState.body_mass <= 0) {
+            showNotification("Body mass must be positive to convert 5-min power for V̇O<sub>2,max</sub> calculation.", "warning");
+            appState.P5minForVO2maxCalc = null;
+            plotPowerDurationProfile();
+            return;
+        }
+        p5min_Wkg = p5min_fitted_unit / appState.body_mass;
+    } else { 
+        p5min_Wkg = p5min_fitted_unit;
+    }
+
+
+    const vo2max_relative_calc = 16.6 + 8.87 * p5min_Wkg;
+    const vo2max_absolute_calc = vo2max_relative_calc * appState.body_mass;
+
+    appState.VO2max = Math.round(vo2max_absolute_calc);
+    domElements.VO2maxSlider.value = appState.VO2max;
+    domElements.VO2maxValueSpan.textContent = appState.VO2max.toFixed(0);
+
+    appState.P5minForVO2maxCalc = {
+        p5min_displayUnit: appState.useAbsolutePower ? (p5min_Wkg * appState.body_mass) : p5min_Wkg,
+        p5min_Wkg: p5min_Wkg,
+        vo2max_rel_calculated: vo2max_relative_calc
+    };
+
+    const p5min_display_text = appState.useAbsolutePower ? (p5min_Wkg * appState.body_mass).toFixed(0) + " W" : p5min_Wkg.toFixed(2) + " W·kg<sup>-1</sup>";
+    showNotification(`V̇O<sub>2,max</sub> calculated from 5-min power (${p5min_display_text}) = ${appState.VO2max} ml·min⁻¹ (Rel: ${vo2max_relative_calc.toFixed(1)} ml·min<sup>-1</sup>·kg<sup>-1</sup>)`, 'info');
+    updateAllPlotsAndCalculations();
+}
+
+
+// --- COMBINED UPDATE FUNCTION & EVENT LISTENERS (Power Profile Part) ---
+function setupPowerProfileEventListeners() {
+    domElements.addDataPointBtn.addEventListener('click', addPowerDataPoint);
+
+    domElements.pdModelSelect.addEventListener('change', (e) => {
+        appState.selectedPDModel = e.target.value;
+        appState.P5minForVO2maxCalc = null;
+        plotPowerDurationProfile();
+    });
+
+    domElements.calculateVo2maxFromProfileBtn.addEventListener('click', calculateAndSetVO2maxFromProfile);
+}
+
+// --- MAIN INITIALIZATION ---
+function initializeApp() {
+    populateAthleteProfileDropdown();
+    openTab(null, 'tabSettingsProfile'); 
+
+    loadProfile(appState.currentProfileName); 
+    renderPowerDataPointsUI(); 
+    setupMaderEventListeners();
+    setupPowerProfileEventListeners();
+    updateMaderUIFromState(); 
+    updateAllPlotsAndCalculations();
+
+    window.addEventListener('resize', () => {
+        if (domElements.powerDurationPlotDiv && domElements.powerDurationPlotDiv.offsetParent !== null) {
+             Plotly.Plots.resize(domElements.powerDurationPlotDiv);
+        }
+        if (domElements.metabolicPlotDiv && domElements.metabolicPlotDiv.offsetParent !== null) {
+             Plotly.Plots.resize(domElements.metabolicPlotDiv);
+        }
+        if (appState.show_substrate_mader && domElements.substratePlotDiv && domElements.substratePlotDiv.offsetParent !== null) {
+            Plotly.Plots.resize(domElements.substratePlotDiv);
+        }
+    });
+}
+
+document.addEventListener('DOMContentLoaded', initializeApp);
+
+function updateAllPlotsAndCalculations() {
+    calculateMaderValues();
+    plotMetabolicProfile(); 
+    updateMaderValuesDisplay();
+    plotPowerDurationProfile(); 
+}
+</script>
+</body>
+</html>

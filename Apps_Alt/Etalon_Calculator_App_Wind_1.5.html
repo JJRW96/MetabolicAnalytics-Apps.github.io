@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Etalon W/kg Performance Converter</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2683C6;
+            --secondary-color: #9C85C0;
+            --accent-color: #EF5350;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --border-color: #dee2e6;
+            --gradient-start: #f1f8ff;
+            --gradient-end: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            color: var(--dark-color);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh; 
+            max-width: 100%;
+        }
+
+        .sidebar {
+            width: 340px;
+            flex-shrink: 0;
+            background: linear-gradient(to bottom, var(--gradient-start), var(--gradient-end));
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            overflow-y: auto;
+            border-right: 1px solid var(--border-color);
+            max-height: 100vh;
+            position: relative;
+            z-index: 10;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            background-color: #fff;
+            overflow-x: auto;
+        }
+
+        h1, h2 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            font-size: 1.5rem; 
+            text-align: center;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border-color);
+        }
+        
+        h2 {
+            font-size: 1.3rem;
+            border-bottom: none;
+            text-align: left;
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+            background-color: white;
+            border-radius: 6px;
+            padding: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .control-group:last-child {
+            border-bottom: none;
+        }
+
+        .control-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: var(--dark-color);
+            font-size: 0.95rem;
+        }
+        
+        .profile-selector {
+            width: 100%; 
+            padding: 8px; 
+            border-radius: 4px; 
+            border: 1px solid var(--border-color); 
+            margin-bottom: 10px;
+            font-size: 0.95rem;
+        }
+
+        .slider-container { margin-bottom: 15px; }
+        .slider-label { display: flex; justify-content: space-between; align-items: center; width: 100%; font-size: 0.9rem; }
+        .slider-label label { flex-grow: 1; }
+        .slider-value { min-width: 70px; text-align: right; font-weight: bold; color: var(--primary-color); }
+        .range-slider {
+            -webkit-appearance: none; width: 100%; height: 8px; border-radius: 5px;
+            background: linear-gradient(to right, #ddd, var(--primary-color)); outline: none; margin: 10px 0;
+        }
+        .range-slider::-webkit-slider-thumb {
+            -webkit-appearance: none; appearance: none; width: 18px; height: 18px; border-radius: 50%;
+            background: var(--primary-color); cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+        
+        button { 
+            background-color: var(--primary-color); color: white; border: none; padding: 8px 15px; border-radius: 4px;
+            cursor: pointer; font-weight: 600; transition: all 0.3s; margin-top: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); width: 100%;
+        }
+        button:hover { background-color: #1a6eae; transform: translateY(-1px); box-shadow: 0 3px 5px rgba(0,0,0,0.15); }
+        
+        .header-section { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .info-icon {
+            color: var(--primary-color); cursor: pointer; font-size: 1.1rem; width: 20px; height: 20px; border-radius: 50%;
+            display: inline-flex; align-items: center; justify-content: center; background-color: rgba(38, 131, 198, 0.1);
+            vertical-align: middle; margin-left: 5px;
+        }
+        .tooltip { position: relative; display: inline-block; }
+        .tooltip .tooltiptext {
+            visibility: hidden; width: 300px; background-color: #555; color: #fff; text-align: left; border-radius: 6px; padding: 10px;
+            position: absolute; z-index: 1000; top: 25px; left: -10px; opacity: 0; transition: opacity 0.3s;
+            font-size: 0.9rem; line-height: 1.4; box-shadow: 0 4px 8px rgba(0,0,0,0.2); pointer-events: none;
+        }
+        .tooltip:hover .tooltiptext { visibility: visible; opacity: 1; }
+        
+        .sidebar-tabs { display: flex; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); }
+        .tab-button {
+            flex-grow: 1; padding: 10px 15px; cursor: pointer; border: none; background-color: transparent; color: var(--dark-color);
+            font-weight: 500; text-align: center; transition: background-color 0.3s, color 0.3s;
+            border-bottom: 3px solid transparent; margin-top: 0; box-shadow: none; font-size: 0.9rem;
+        }
+        .tab-button:hover { background-color: rgba(38, 131, 198, 0.1); color: var(--primary-color); transform: none; box-shadow: none; }
+        .tab-button.active { color: var(--primary-color); border-bottom: 3px solid var(--primary-color); font-weight: 700; }
+        .tab-content { display: none; animation: fadeInTab 0.5s; }
+        @keyframes fadeInTab { from { opacity: 0; } to { opacity: 1; } }
+
+        .data-point-display {
+            background-color: var(--light-color); padding: 8px; border-radius: 4px; margin-bottom: 8px;
+            display: flex; justify-content: space-between; align-items: center; font-size: 0.9em;
+        }
+        .remove-point-btn {
+            background-color: var(--accent-color); color: white; border: none; padding: 4px 8px; border-radius: 4px;
+            cursor: pointer; font-size: 0.8em; width: auto; margin-top: 0;
+        }
+        .new-data-point-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; margin-bottom: 10px; }
+        .new-data-point-inputs input { width: 100%; padding: 6px 8px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.9em; }
+        .full-width-input { grid-column: 1 / -1; }
+
+        #results-table-container { margin-top: 20px; overflow-x: auto; }
+        table {
+            width: 100%; border-collapse: collapse; font-size: 0.85rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-radius: 6px; overflow: hidden;
+        }
+        th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border-color); white-space: nowrap; }
+        td:first-child { white-space: normal; min-width: 150px; }
+        th {
+            background-color: var(--primary-color); color: white; font-weight: 600; position: sticky; top: 0; z-index: 5;
+            cursor: pointer; user-select: none;
+        }
+        th:hover { background-color: #1a6eae; }
+        th .sort-icon { margin-left: 5px; opacity: 0.7; font-size: 0.8em; display: inline-block; width: 10px;}
+        tr:nth-child(even) { background-color: var(--light-color); }
+        tr:hover { background-color: #e9ecef; }
+        .diff-positive { color: #28a745; }
+        .diff-negative { color: var(--accent-color); }
+        
+        .disclaimer {
+            margin-top: 15px; padding: 10px; background-color: var(--light-color);
+            border-left: 3px solid var(--secondary-color); font-size: 0.85rem; color: #555; border-radius: 4px;
+        }
+        .disclaimer strong { color: var(--dark-color); }
+        .profile-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .file-name-display {
+            font-size: 0.8rem;
+            color: #555;
+            margin-top: 5px;
+            text-align: center;
+            word-break: break-all;
+        }
+        .explanation-box {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f1f8ff;
+            border-left: 4px solid var(--primary-color);
+            border-radius: 4px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        .explanation-box h3 {
+            color: var(--primary-color);
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 5px;
+        }
+        .explanation-box ul {
+            padding-left: 20px;
+            margin-top: 10px;
+            margin-bottom: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h1>Etalon Converter</h1>
+
+            <div class="sidebar-tabs">
+                <button class="tab-button active" onclick="openTab(event, 'tabParameters')">Model Parameters</button>
+                <button class="tab-button" onclick="openTab(event, 'tabPerformances')">Performance Data</button>
+            </div>
+
+            <div id="tabParameters" class="tab-content" style="display: block;">
+                 <div class="control-group">
+                     <label for="profile-selector" class="control-label">Load Example Profile:</label>
+                     <select id="profile-selector" class="profile-selector">
+                         <option value="">-- Select Profile --</option>
+                         <option value="pogi">Pogi's 2024 Performances</option>
+                     </select>
+                </div>
+                 <div class="control-group">
+                    <div class="header-section"><h2>Rider & Equipment</h2></div>
+                    <div class="slider-container">
+                        <div class="slider-label"><label for="rider_mass">Rider Mass:</label><span id="rider_mass-value" class="slider-value">60.0 kg</span></div>
+                        <input type="range" id="rider_mass" class="range-slider" min="50" max="90" value="60.0" step="0.1">
+                    </div>
+                    <div class="slider-container">
+                        <div class="slider-label"><label for="bike_mass">Bike & Gear Mass:</label><span id="bike_mass-value" class="slider-value">7.2 kg</span></div>
+                        <input type="range" id="bike_mass" class="range-slider" min="6.8" max="10" value="7.2" step="0.1">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <div class="header-section"><h2>Environmental & Mechanical Factors</h2></div>
+                    <div class="slider-container">
+                        <div class="slider-label"><label for="crr">Rolling Resistance (Crr):</label><div class="tooltip info-icon">ⓘ<span class="tooltiptext">Coefficient of Rolling Resistance. Typical values: 0.0025 (fast track), 0.0035 (good road tire), 0.0050 (average road).</span></div><span id="crr-value" class="slider-value">0.0035</span></div>
+                        <input type="range" id="crr" class="range-slider" min="0.0020" max="0.0060" value="0.0035" step="0.0001">
+                    </div>
+                    <div class="slider-container">
+                        <div class="slider-label"><label for="cda">Aerodynamic Drag (CdA):</label><div class="tooltip info-icon">ⓘ<span class="tooltiptext">Drag Area (m²). Typical values: 0.28 (elite TT position), 0.32 (good road position), 0.40 (upright).</span></div><span id="cda-value" class="slider-value">0.30 m²</span></div>
+                        <input type="range" id="cda" class="range-slider" min="0.25" max="0.45" value="0.30" step="0.01">
+                    </div>
+                    <div class="slider-container">
+                        <div class="slider-label"><label for="rho">Air Density (ρ):</label><div class="tooltip info-icon">ⓘ<span class="tooltiptext">Air Density (kg/m³). Sea level: ~1.225. 1500m altitude: ~1.058.</span></div><span id="rho-value" class="slider-value">1.10 kg/m³</span></div>
+                        <input type="range" id="rho" class="range-slider" min="0.95" max="1.25" value="1.10" step="0.01">
+                    </div>
+                     <div class="slider-container">
+                        <div class="slider-label"><label for="drivetrain_loss">Drivetrain Loss:</label><div class="tooltip info-icon">ⓘ<span class="tooltiptext">Power loss in chain and bearings. 2.0% for a very clean, high-end drivetrain. 3.5% is more typical.</span></div><span id="drivetrain_loss-value" class="slider-value">2.5 %</span></div>
+                        <input type="range" id="drivetrain_loss" class="range-slider" min="1.5" max="5.0" value="2.5" step="0.1">
+                    </div>
+                </div>
+            </div>
+
+            <div id="tabPerformances" class="tab-content">
+                <div class="control-group">
+                    <div class="header-section"><h2>Add & Compare Performance</h2></div>
+                    <div id="performance-data-container"></div>
+                    <div class="new-data-point-inputs">
+                        <input type="text" id="new-point-label" placeholder="Label (e.g., Alpe d'Huez)" class="full-width-input">
+                        <input type="number" id="new-point-length" placeholder="Length (km)" step="0.01">
+                        <input type="number" id="new-point-elevation" placeholder="Elevation (m)" step="1">
+                        <div id="etalon-wkg-input-container" class="full-width-input">
+                            <input type="number" id="new-point-etalon-wkg" placeholder="Etalon W/kg (Benchmark)" step="0.01">
+                        </div>
+                        <div id="time-input-container" style="grid-template-columns: 1fr 1fr; gap: 10px;" class="full-width-input">
+                             <input type="number" id="new-point-duration-min" placeholder="Actual Time (min)" min="0">
+                             <input type="number" id="new-point-duration-sec" placeholder="Actual Time (s)" min="0" max="59">
+                        </div>
+                    </div>
+                    <button id="add-performance-btn">Add & Compare Performance</button>
+                </div>
+                 <div class="explanation-box">
+                    <h3>Effective Wind Factor Explained</h3>
+                    <p>
+                        This tool analyzes the difference between the <strong>actual time</strong> and the time that would be <strong>expected</strong> based on the Etalon W/kg in ideal (windless) conditions. The discrepancy is quantified as an "Effective Wind".
+                    </p>
+                    <ul>
+                        <li><strong>Eff. Wind (m/s):</strong> This is the constant headwind (positive value) or tailwind (negative value) in meters per second that would be required in the model to make the predicted time match the actual time. It represents the net effect of all unmodeled environmental factors (wind, drafting, etc.).</li>
+                        <li><strong>Real Power (W):</strong> This is the recalculated power the rider, with their specific weight from the sliders, had to produce to achieve the actual time, factoring in the calculated effective wind.</li>
+                    </ul>
+                </div>
+                <div class="control-group">
+                    <div class="header-section"><h2>Profile Management</h2></div>
+                    <div class="profile-buttons">
+                        <button id="save-profile-btn">Save Profile</button>
+                        <button id="load-profile-trigger-btn" style="background-color: var(--secondary-color);">Load Profile</button>
+                    </div>
+                    <input type="file" id="load-profile-input" accept=".json" style="display: none;">
+                    <div id="loaded-file-name" class="file-name-display"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <h2>Performance Conversion Results</h2>
+            <div id="results-table-container"></div>
+            <div class="disclaimer">
+                <strong>Model Disclaimer:</strong> The calculations in this model are based on a simplified physics engine. They assume constant conditions and do not account for variable wind, gusts, or the aerodynamic benefit of drafting, all of which can significantly impact real-world power output. Therefore, these results may differ from on-bike power meter data. Similarly, comparisons to other online calculators may vary, as they might use different physical assumptions (e.g., calculating power from VAM and time alone, which ignores rolling and air resistance). This model aims for a comprehensive, physics-based estimation under controlled conditions.
+            </div>
+             <div class="explanation-box">
+                <h3>Understanding "Etalon W/kg"</h3>
+                <p>
+                    <strong>Why simple W/kg isn't enough:</strong> A simple watts-per-kilogram (W/kg) calculation isn't always a fair comparison between riders. Heavier riders often have a physical advantage on climbs because their bike makes up a smaller percentage of their total system weight (rider + bike), and they tend to have better aerodynamic efficiency (a higher watts-to-CdA ratio). This means a heavier rider can often achieve the same speed as a lighter rider while producing a slightly lower W/kg.
+                </p>
+                <p>
+                    <strong>What is 'Etalon'?</strong> To create a true "apples-to-apples" comparison, this tool uses the 'Etalon' (French for 'standard' or 'benchmark') method. All performances are recalculated to determine the equivalent W/kg a standardized <strong>60 kg rider</strong> would need to produce to achieve the <em>exact same time</em> on that climb, under the same conditions.
+                </p>
+                <p>
+                    <strong>The Result:</strong> The `W/kg Etalon` value in the table is therefore not a rider's actual power output, but a standardized metric designed for objective performance evaluation, removing the variable of rider weight.
+                </p>
+            </div>
+        </div>
+    </div>
+
+<script>
+const POGI_PERFORMANCES = [
+    { label: "La Turbie", lengthKm: 8.05, elevationM: 469, etalonWkg: 7.05, durationS: 1018 },
+    { label: "La Couillole", lengthKm: 15.61, elevationM: 1175, etalonWkg: 6.52, durationS: 2357 },
+    { label: "Plateau de Beille", lengthKm: 15.74, elevationM: 1250, etalonWkg: 6.98, durationS: 2390 },
+    { label: "Pla d'Adet", lengthKm: 10.58, elevationM: 845, etalonWkg: 6.85, durationS: 1670 },
+    { label: "Isola 2000", lengthKm: 15.70, elevationM: 1136, etalonWkg: 6.83, durationS: 2264 },
+    { label: "Puy Mary", lengthKm: 2.08, elevationM: 270, etalonWkg: 7.50, durationS: 443 },
+    { label: "Collada de Sant Isidre", lengthKm: 5.00, elevationM: 439, etalonWkg: 7.02, durationS: 824 },
+    { label: "San Luca", lengthKm: 2.10, elevationM: 197, etalonWkg: 7.89, durationS: 327 },
+    { label: "Monte Grappa", lengthKm: 18.10, elevationM: 1482, etalonWkg: 6.19, durationS: 3102 }
+];
+
+const PROFILES = {
+    pogi: {
+        riderMass: 64.5,
+        bikeMass: 7.2,
+        Crr: 0.0035,
+        CdA: 0.30,
+        rho: 1.10,
+        drivetrainLoss: 2.5,
+        performances: POGI_PERFORMANCES
+    }
+};
+
+const createInitialState = () => ({
+    riderMass: 60.0,
+    etalonMass: 60.0,
+    bikeMass: 7.2,
+    Crr: 0.0035,
+    CdA: 0.30,
+    rho: 1.10,
+    drivetrainLoss: 2.5,
+    performances: [],
+    sortColumn: 'etalonWkg',
+    sortDirection: 'desc'
+});
+
+const appState = createInitialState();
+
+const dom = {
+    riderMassSlider: document.getElementById('rider_mass'), riderMassValue: document.getElementById('rider_mass-value'),
+    bikeMassSlider: document.getElementById('bike_mass'), bikeMassValue: document.getElementById('bike_mass-value'),
+    crrSlider: document.getElementById('crr'), crrValue: document.getElementById('crr-value'),
+    cdaSlider: document.getElementById('cda'), cdaValue: document.getElementById('cda-value'),
+    rhoSlider: document.getElementById('rho'), rhoValue: document.getElementById('rho-value'),
+    drivetrainLossSlider: document.getElementById('drivetrain_loss'), drivetrainLossValue: document.getElementById('drivetrain_loss-value'),
+    resultsTableContainer: document.getElementById('results-table-container'),
+    performanceDataContainer: document.getElementById('performance-data-container'),
+    addPerformanceBtn: document.getElementById('add-performance-btn'),
+    newPointLabelInput: document.getElementById('new-point-label'),
+    newPointLengthInput: document.getElementById('new-point-length'),
+    newPointElevationInput: document.getElementById('new-point-elevation'),
+    newPointEtalonWkgInput: document.getElementById('new-point-etalon-wkg'),
+    newPointDurationMinInput: document.getElementById('new-point-duration-min'),
+    newPointDurationSecInput: document.getElementById('new-point-duration-sec'),
+    profileSelector: document.getElementById('profile-selector'),
+    saveProfileBtn: document.getElementById('save-profile-btn'),
+    loadProfileTriggerBtn: document.getElementById('load-profile-trigger-btn'),
+    loadProfileInput: document.getElementById('load-profile-input'),
+    loadedFileName: document.getElementById('loaded-file-name')
+};
+
+function openTab(evt, tabName) {
+    let i, tabcontent, tablinks;
+    tabcontent = document.getElementsByClassName("tab-content");
+    for (i = 0; i < tabcontent.length; i++) { tabcontent[i].style.display = "none"; }
+    tablinks = document.getElementsByClassName("tab-button");
+    for (i = 0; i < tablinks.length; i++) { tablinks[i].className = tablinks[i].className.replace(" active", ""); }
+    document.getElementById(tabName).style.display = "block";
+    evt.currentTarget.className += " active";
+}
+
+function formatDuration(totalSeconds) {
+    if (isNaN(totalSeconds) || totalSeconds < 0) return "N/A";
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = Math.round(totalSeconds % 60);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+}
+
+function calculatePerformance(performance) {
+    const { riderMass, etalonMass, bikeMass, Crr, CdA, rho, drivetrainLoss } = appState;
+    const g = 9.81;
+    const lengthM = performance.lengthKm * 1000;
+
+    const baseReturn = {
+        ...performance,
+        realWkg: NaN, realAbsolutePower: NaN, gradient: NaN, speedKmh: NaN, VAM: NaN,
+        durationS_expected: null, timeDifferenceS: null, effectiveWindMs: null
+    };
+    if (lengthM <= 0) return baseReturn;
+    
+    const gradient = performance.elevationM / lengthM;
+    const etalonWkg = performance.etalonWkg;
+    const actual_durationS = performance.durationS;
+    const actual_speed_ms = lengthM / actual_durationS;
+
+    const solvePowerAtWheel = (v_g, M_sys, v_wind = 0) => {
+        const v_air = v_g + v_wind;
+        const P_gravity = M_sys * g * Math.sin(Math.atan(gradient)) * v_g;
+        const P_rolling = Crr * M_sys * g * Math.cos(Math.atan(gradient)) * v_g;
+        const P_aero = 0.5 * rho * CdA * v_air * v_air * v_g;
+        return P_gravity + P_rolling + P_aero;
+    };
+    
+    // 1. Calculate the expected time for the given Etalon W/kg in ideal (no wind) conditions.
+    const etalonAbsolutePower = etalonWkg * etalonMass;
+    const etalonPowerAtWheel_ideal = etalonAbsolutePower * (1 - drivetrainLoss / 100);
+    let v_expected = 5; // Initial guess for speed
+    for (let i = 0; i < 20; i++) {
+        let p_guess = solvePowerAtWheel(v_expected, etalonMass + bikeMass, 0);
+        if (p_guess > 1e-6) v_expected *= Math.pow(etalonPowerAtWheel_ideal / p_guess, 0.333);
+    }
+    const durationS_expected = lengthM / v_expected;
+
+    // 2. Calculate the effective wind speed (v_wind) that explains the difference.
+    const P_gravity_etalon_actual_speed = (etalonMass + bikeMass) * g * Math.sin(Math.atan(gradient)) * actual_speed_ms;
+    const P_rolling_etalon_actual_speed = Crr * (etalonMass + bikeMass) * g * Math.cos(Math.atan(gradient)) * actual_speed_ms;
+    const P_aero_required = etalonPowerAtWheel_ideal - P_gravity_etalon_actual_speed - P_rolling_etalon_actual_speed;
+
+    let v_wind = 0;
+    const aero_const = 0.5 * rho * CdA * actual_speed_ms;
+    if (aero_const > 1e-9) {
+        const v_air_sq = P_aero_required / aero_const;
+        if (v_air_sq >= 0) {
+            v_wind = Math.sqrt(v_air_sq) - actual_speed_ms;
+        } else {
+             // Tailwind case: v_air_sq is negative.
+             v_wind = -Math.sqrt(-v_air_sq) - actual_speed_ms;
+        }
+    }
+    
+    // 3. Calculate the real power for the *actual rider* using the calculated effective wind.
+    const P_wheel_real_with_wind = solvePowerAtWheel(actual_speed_ms, riderMass + bikeMass, v_wind);
+    const realAbsolutePower = P_wheel_real_with_wind / (1 - drivetrainLoss / 100);
+    const realWkg = (riderMass > 0) ? realAbsolutePower / riderMass : 0;
+    
+    return {
+        ...performance,
+        etalonWkg, realWkg, realAbsolutePower,
+        durationS: actual_durationS,
+        durationS_expected,
+        timeDifferenceS: actual_durationS - durationS_expected,
+        effectiveWindMs: v_wind,
+        gradient, speedKmh: actual_speed_ms * 3.6,
+        VAM: (performance.elevationM / actual_durationS) * 3600
+    };
+}
+
+
+function updateUIFromState() {
+    dom.riderMassSlider.value = appState.riderMass;
+    dom.riderMassValue.textContent = `${appState.riderMass.toFixed(1)} kg`;
+    dom.bikeMassSlider.value = appState.bikeMass;
+    dom.bikeMassValue.textContent = `${appState.bikeMass.toFixed(1)} kg`;
+    dom.crrSlider.value = appState.Crr;
+    dom.crrValue.textContent = appState.Crr.toFixed(4);
+    dom.cdaSlider.value = appState.CdA;
+    dom.cdaValue.textContent = `${appState.CdA.toFixed(2)} m²`;
+    dom.rhoSlider.value = appState.rho;
+    dom.rhoValue.textContent = `${appState.rho.toFixed(2)} kg/m³`;
+    dom.drivetrainLossSlider.value = appState.drivetrainLoss;
+    dom.drivetrainLossValue.textContent = `${appState.drivetrainLoss.toFixed(1)} %`;
+}
+
+function renderPerformancesUI() {
+    dom.performanceDataContainer.innerHTML = '';
+    appState.performances.forEach((perf, index) => {
+        const div = document.createElement('div');
+        div.className = 'data-point-display';
+        div.innerHTML = `<span>${perf.label}</span><button class="remove-point-btn" data-index="${index}">X</button>`;
+        dom.performanceDataContainer.appendChild(div);
+    });
+    dom.performanceDataContainer.querySelectorAll('.remove-point-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => removePerformance(parseInt(e.target.dataset.index, 10)));
+    });
+}
+
+function renderResultsTable() {
+    let calculatedPerformances = appState.performances.map(p => calculatePerformance(p));
+    
+    calculatedPerformances.sort((a, b) => {
+        let valA = a[appState.sortColumn]; let valB = b[appState.sortColumn];
+        if (typeof valA === 'string') return appState.sortDirection === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+        return appState.sortDirection === 'asc' ? valA - valB : valB - valA;
+    });
+
+    let tableHTML = `
+        <table>
+            <thead><tr>
+                ${getHeader('label', 'Label')}
+                ${getHeader('lengthKm', 'Length (km)')}
+                ${getHeader('elevationM', 'Elev. (m)')}
+                ${getHeader('gradient', 'Gradient (%)')}
+                ${getHeader('speedKmh', 'Speed (km/h)')}
+                ${getHeader('VAM', 'VAM')}
+                ${getHeader('durationS', 'Act. Time')}
+                ${getHeader('durationS_expected', 'Exp.Time')}
+                ${getHeader('timeDifferenceS', 'Time Diff.')}
+                ${getHeader('effectiveWindMs', 'Eff. Wind (m/s)')}
+                ${getHeader('etalonWkg', `Etal. W/kg`)}
+                ${getHeader('realWkg', `W/kg (${appState.riderMass.toFixed(1)}kg)`)}
+                ${getHeader('realAbsolutePower', 'Power (W)')}
+            </tr></thead><tbody>`;
+
+    calculatedPerformances.forEach(perf => {
+        if (isNaN(perf.realWkg)) return;
+        
+        const timeDiffClass = perf.timeDifferenceS < 0 ? 'diff-positive' : 'diff-negative';
+        const windClass = perf.effectiveWindMs < 0 ? 'diff-positive' : 'diff-negative'; 
+
+        tableHTML += `
+            <tr>
+                <td>${perf.label}</td>
+                <td>${perf.lengthKm.toFixed(2)}</td>
+                <td>${perf.elevationM.toFixed(0)}</td>
+                <td>${(perf.gradient * 100).toFixed(2)}</td>
+                <td>${perf.speedKmh.toFixed(2)}</td>
+                <td>${perf.VAM.toFixed(0)}</td>
+                <td>${formatDuration(perf.durationS)}</td>
+                <td>${formatDuration(perf.durationS_expected)}</td>
+                <td class="${timeDiffClass}">${perf.timeDifferenceS > 0 ? '+' : ''}${perf.timeDifferenceS.toFixed(1)}s</td>
+                <td class="${windClass}">${perf.effectiveWindMs.toFixed(2)}</td>
+                <td>${perf.etalonWkg.toFixed(2)}</td>
+                <td style="font-weight: bold;">${perf.realWkg.toFixed(2)}</td>
+                <td style="font-weight: bold;">${perf.realAbsolutePower.toFixed(0)}</td>
+            </tr>`;
+    });
+    tableHTML += `</tbody></table>`;
+    dom.resultsTableContainer.innerHTML = tableHTML;
+    document.querySelectorAll('#results-table-container th').forEach(th => {
+        th.addEventListener('click', () => handleSort(th.dataset.column));
+    });
+}
+
+function getHeader(columnKey, title) {
+    let icon = appState.sortColumn === columnKey ? (appState.sortDirection === 'asc' ? '▲' : '▼') : '';
+    let tooltipHTML = '';
+    if (columnKey === 'etalonWkg') {
+        tooltipHTML = `<div class="tooltip info-icon">ⓘ<span class="tooltiptext" style="width: 320px;">'Etalon' (French for 'standard' or 'benchmark') refers to a standardized 60 kg rider. This value is used as the benchmark for the performance.</span></div>`;
+    }
+    return `<th data-column="${columnKey}">${title}${tooltipHTML}<span class="sort-icon">${icon}</span></th>`;
+}
+
+
+function handleSort(columnKey) {
+    if (appState.sortColumn === columnKey) {
+        appState.sortDirection = appState.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+        appState.sortColumn = columnKey;
+        appState.sortDirection = 'desc';
+    }
+    renderResultsTable();
+}
+
+function addPerformance() {
+    const label = dom.newPointLabelInput.value.trim();
+    const lengthKm = parseFloat(dom.newPointLengthInput.value);
+    const elevationM = parseFloat(dom.newPointElevationInput.value);
+    const etalonWkg = parseFloat(dom.newPointEtalonWkgInput.value);
+    const mins = parseInt(dom.newPointDurationMinInput.value) || 0;
+    const secs = parseInt(dom.newPointDurationSecInput.value) || 0;
+    const durationS = mins * 60 + secs;
+
+    if (label === "" || isNaN(lengthKm) || isNaN(elevationM) || lengthKm <= 0 || isNaN(etalonWkg) || durationS <= 0) {
+        alert("Please provide a valid Label, Length, Elevation, Etalon W/kg, and a valid actual Time."); 
+        return;
+    }
+
+    let newPerf = { label, lengthKm, elevationM, etalonWkg, durationS };
+    
+    appState.performances.push(newPerf);
+    updateAndRenderAll();
+    renderPerformancesUI();
+    dom.newPointLabelInput.value = ''; dom.newPointLengthInput.value = '';
+    dom.newPointElevationInput.value = ''; dom.newPointEtalonWkgInput.value = '';
+    dom.newPointDurationMinInput.value = ''; dom.newPointDurationSecInput.value = '';
+}
+
+function removePerformance(index) {
+    if (index >= 0 && index < appState.performances.length) {
+        appState.performances.splice(index, 1);
+        updateAndRenderAll();
+        renderPerformancesUI();
+    }
+}
+
+function saveProfile() {
+    const profileData = {
+        settings: {
+            body_mass: appState.riderMass,
+            bike_mass: appState.bikeMass,
+            Crr: appState.Crr,
+            CdA: appState.CdA,
+            rho: appState.rho,
+            drivetrainLoss: appState.drivetrainLoss
+        },
+        performances: appState.performances
+    };
+    const profileString = JSON.stringify(profileData, null, 2);
+    const blob = new Blob([profileString], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `etalon_profile_${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+function loadProfile(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    dom.loadedFileName.textContent = `Loading: ${file.name}`;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        try {
+            const loadedData = JSON.parse(e.target.result);
+            if (!loadedData.settings || !Array.isArray(loadedData.performances)) {
+                throw new Error("Invalid profile file format.");
+            }
+            const settings = loadedData.settings;
+            appState.riderMass = settings.body_mass || settings.riderMass || appState.riderMass;
+            appState.bikeMass = settings.bike_mass || settings.bikeMass || appState.bikeMass;
+            appState.Crr = settings.Crr || appState.Crr;
+            appState.CdA = settings.CdA || appState.CdA;
+            appState.rho = settings.rho || appState.rho;
+            appState.drivetrainLoss = settings.drivetrainLoss || appState.drivetrainLoss;
+            appState.performances = loadedData.performances;
+            updateAndRenderAll();
+            renderPerformancesUI();
+            dom.loadedFileName.textContent = `Loaded: ${file.name}`;
+        } catch (error) {
+            alert(`Error loading profile: ${error.message}`);
+            dom.loadedFileName.textContent = `Error loading file.`;
+        } finally {
+            dom.loadProfileInput.value = "";
+        }
+    };
+    reader.readAsText(file);
+}
+
+function loadProfileFromDropdown(profileKey) {
+    const profile = PROFILES[profileKey];
+    if (!profile) return;
+    Object.assign(appState, profile);
+    appState.performances = JSON.parse(JSON.stringify(profile.performances)); 
+    updateAndRenderAll();
+    renderPerformancesUI();
+}
+
+function resetToDefault() {
+    const defaultState = createInitialState();
+    Object.assign(appState, defaultState);
+    dom.profileSelector.value = "";
+    updateAndRenderAll();
+    renderPerformancesUI();
+}
+
+function setupEventListeners() {
+    const sliders = [
+        { el: dom.riderMassSlider, stateKey: 'riderMass' }, { el: dom.bikeMassSlider, stateKey: 'bikeMass' },
+        { el: dom.crrSlider, stateKey: 'Crr' }, { el: dom.cdaSlider, stateKey: 'CdA' },
+        { el: dom.rhoSlider, stateKey: 'rho' }, { el: dom.drivetrainLossSlider, stateKey: 'drivetrainLoss' },
+    ];
+    sliders.forEach(s => s.el.addEventListener('input', () => {
+        appState[s.stateKey] = parseFloat(s.el.value);
+        updateAndRenderAll();
+    }));
+
+    dom.addPerformanceBtn.addEventListener('click', addPerformance);
+
+    dom.profileSelector.addEventListener('change', (e) => {
+        const selectedProfile = e.target.value;
+        if (selectedProfile) {
+            loadProfileFromDropdown(selectedProfile);
+        } else {
+            resetToDefault();
+        }
+    });
+
+    dom.saveProfileBtn.addEventListener('click', saveProfile);
+    dom.loadProfileTriggerBtn.addEventListener('click', () => dom.loadProfileInput.click());
+    dom.loadProfileInput.addEventListener('change', loadProfile);
+}
+
+function updateAndRenderAll() {
+    updateUIFromState();
+    renderResultsTable();
+}
+
+function initializeApp() {
+    document.querySelector('.tab-button').click();
+    resetToDefault();
+    setupEventListeners();
+}
+
+document.addEventListener('DOMContentLoaded', initializeApp);
+
+</script>
+</body>
+</html>
