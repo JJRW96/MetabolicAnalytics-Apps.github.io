@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="eng" xml:lang="eng"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.7.32">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Etalon Converter – ShinyApps</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<link href="../../Metabolic_Model_Apps/Metabolic_Profile.html" rel="next">
+<link href="../../Metabolic_Model_Apps/Power_Profile/Power_Profile.html" rel="prev">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-37eea08aefeeee20ff55810ff984fec1.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark-2fef5ea3f8957b3e4ecc936fc74692ca.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-37eea08aefeeee20ff55810ff984fec1.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-c37c20c2d52f32749143e665e697ee81.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-dark-b5dc5b953d67f135e06aa4f51ec7213e.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../site_libs/bootstrap/bootstrap-c37c20c2d52f32749143e665e697ee81.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-sidebar docked fullcontent quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../Metabolic_Model_Apps/index_Metabolic_Model_Apps.html">Metabolic Model Apps</a></li><li class="breadcrumb-item"><a href="../../Metabolic_Model_Apps/Power_Profile/Power_Profile.html">Power Profile</a></li><li class="breadcrumb-item"><a href="../../Metabolic_Model_Apps/Power_Profile/Etalon_Calculator.html">Etalon Converter</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+    <div class="pt-lg-2 mt-2 text-center sidebar-header">
+      <a href="../../index.html" class="sidebar-logo-link">
+      <img src="../../images/Logo_1.png" alt="" class="sidebar-logo py-0 d-lg-inline d-none">
+      </a>
+      <div class="sidebar-tools-main">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../about.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">About</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../Metabolic_Model_Apps/index_Metabolic_Model_Apps.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Metabolic Model Apps</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../Metabolic_Model_Apps/Power_Profile/Power_Profile.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Power Profile</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth2 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../Metabolic_Model_Apps/Power_Profile/Etalon_Calculator.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Etalon Converter</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../Metabolic_Model_Apps/Metabolic_Profile.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Metabolic Profile</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../Metabolic_Model_Apps/Mader_Modell.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Exercise Simulation</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../Cycling_Apps/index_Cycling_Apps.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Cycling Apps</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../Cycling_Apps/Cycling_Forces.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Cycling Forces</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../Cycling_Apps/CdA_App.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">CdA Calculator</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../Cadence_Test.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Cadence Tests</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../Metabolic_Model_Apps/index_Metabolic_Model_Apps.html">Metabolic Model Apps</a></li><li class="breadcrumb-item"><a href="../../Metabolic_Model_Apps/Power_Profile/Power_Profile.html">Power Profile</a></li><li class="breadcrumb-item"><a href="../../Metabolic_Model_Apps/Power_Profile/Etalon_Calculator.html">Etalon Converter</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">Etalon Converter</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div class="cell">
+<style type="text/css">
+p {
+  text-align: justify
+}
+caption, .figure-caption {
+  text-align: left;
+}
+figure.quarto-float-tbl figcaption {
+  text-align: left !important;
+}
+figure figcaption {
+  text-align: justify;
+}
+</style>
+</div>
+<div style="position: relative; width: 100%; height: 800px;">
+<p><iframe src="Etalon_Calculator_App_1.9.html" style="position: absolute; width: 100%; height: 100%; border: none;"></iframe></p>
+</div>
+<p><br></p>
+<p><a href="../../Etalon_Calculator_App_1.9.html">Fullscreen-Link: Etalon W/kg Performance Converter</a></p>
+<section id="advanced-etalon-wkg-performance-converter-a-feature-guide" class="level1">
+<h1>Advanced Etalon W/kg Performance Converter: A Feature Guide</h1>
+<p>The <strong>Advanced Etalon W/kg Performance Converter</strong> is a specialized, web-based physics simulation tool designed to deconstruct and analyze cycling performances with a high degree of precision. It moves beyond simple power-to-weight ratios by employing a robust mathematical model, grounded in the fundamental principles of physics detailed by researchers like <span class="citation" data-cites="Martin1998">Martin et al. (<a href="#ref-Martin1998" role="doc-biblioref">1998</a>)</span>, to account for the multiple forces a cyclist must overcome. The application’s core purpose is to facilitate objective performance comparisons by translating real-world efforts into a standardized benchmark, known as <strong>“Etalon W/kg”</strong>, and vice-versa.</p>
+<p>The app operates in two distinct, powerful modes:</p>
+<ol type="1">
+<li><p><strong>Etalon → Real Power (Standard Mode):</strong> This mode allows users to take a standardized performance benchmark (the Etalon W/kg) and calculate the <em>actual</em> power a specific rider would need to produce to match that benchmark on a given climb, considering their unique physical and equipment characteristics. This is the primary mode for analyzing and comparing performances between different riders or against historical benchmarks. It can also quantify the impact of environmental factors like wind.</p></li>
+<li><p><strong>Real Power → Etalon (Reverse Mode):</strong> This mode takes a known, real-world power output from an athlete and calculates the equivalent Etalon W/kg performance. This is an valuable tool for athletes and coaches who want to standardize their own power meter data, allowing for “apples-to-apples” comparisons of their efforts across different climbs, conditions, and even changes in their own body weight over time.</p></li>
+</ol>
+<p>By providing this bidirectional conversion, the application serves as a comprehensive bridge between standardized performance metrics and the complex reality of individual athletic performance.</p>
+<section id="core-concepts-deconstructing-cycling-power" class="level2">
+<h2 class="anchored" data-anchor-id="core-concepts-deconstructing-cycling-power">Core Concepts: Deconstructing Cycling Power</h2>
+<p>To propel a bicycle, a rider must produce power to overcome a series of opposing physical forces. The application’s calculation engine is a sophisticated physics model that quantifies each of these forces to determine the total power required. This model is built upon the foundational work of researchers like <span class="citation" data-cites="Martin1998">Martin et al. (<a href="#ref-Martin1998" role="doc-biblioref">1998</a>)</span>.</p>
+<p>The primary forces modeled by the app are:</p>
+<ul>
+<li><strong>Gravitational Resistance (<span class="math inline">\(P_{PE}\)</span>):</strong> The power required to lift the total mass of the rider and bike against gravity. This is a function of the system mass, the acceleration due to gravity (g), and the vertical speed, which is determined by the road gradient. It is the dominant force on steep climbs.</li>
+<li><strong>Aerodynamic Drag (<span class="math inline">\(P_{AD}\)</span>):</strong> The power required to push through the air. This force is a function of air density (<span class="math inline">\(\rho\)</span>), the rider’s frontal area and shape (combined into the drag area coefficient, <span class="math inline">\(C_d A\)</span>), and the relative air velocity. It is the dominant force on flat terrain and at high speeds.</li>
+<li><strong>Rolling Resistance (<span class="math inline">\(P_{RR}\)</span>):</strong> The power lost due to the deformation of the tires against the road surface. This is a function of the total system mass, the road gradient (which affects the normal force), and the coefficient of rolling resistance (<span class="math inline">\(C_{rr}\)</span>), which itself depends on tire type, pressure, and road surface.</li>
+<li><strong>Drivetrain Frictional Losses (<span class="math inline">\(P_{F}\)</span>):</strong> The power lost to friction within the chain, cogs, and bearings of the bicycle’s drivetrain. The app models this as a percentage of the total power transmitted.</li>
+</ul>
+<p>The total power (<span class="math inline">\(P_{Total}\)</span>) an athlete must produce at the pedals is the sum of these resistive powers, adjusted for drivetrain efficiency (<span class="math inline">\(E_c\)</span>): <span class="math display">\[ P_{Total} = \frac{P_{PE} + P_{AD} + P_{RR}}{E_c} \]</span> The application uses detailed equations, as described by <span class="citation" data-cites="Martin1998">Martin et al. (<a href="#ref-Martin1998" role="doc-biblioref">1998</a>)</span>, to calculate each of these components precisely.</p>
+<section id="why-etalon-wkg---the-need-for-standardization" class="level3">
+<h3 class="anchored" data-anchor-id="why-etalon-wkg---the-need-for-standardization">Why Etalon W/kg? - The Need for Standardization</h3>
+<p>A simple watts-per-kilogram (W/kg) calculation, derived by dividing a rider’s power output by their body mass, is an incomplete metric for comparison and heavier riders have inherent advantages. For the same speed on a climb, a heavier rider requires a lower W/kg than a lighter rider. This is due to two main factors:</p>
+<ol type="1">
+<li><strong>Bike Weight Ratio:</strong> The UCI-mandated minimum bike weight (6.8 kg) constitutes a smaller percentage of a heavier rider’s total system mass, reducing their “rider + bike” w/kg.</li>
+<li><strong>Aerodynamics:</strong> A heavier rider’s aerodynamic drag does not typically increase in direct proportion to their weight, often resulting in a superior power-to-drag-area ratio, which is beneficial at higher speeds and on shallower gradients.</li>
+</ol>
+<p>To create a true “apples-to-apples” comparison, the application uses the <strong>Etalon</strong> standard. “Etalon” is French for “standard” or “benchmark.” The app standardizes all performances to a <strong>60 kg rider</strong> on a <strong>7.2 kg bike</strong>. The resulting “Etalon W/kg” is not the rider’s actual power output, but a standardized metric representing the performance level required of this benchmark rider to achieve the same speed. This allows for objective evaluation across athletes of all sizes.</p>
+</section>
+</section>
+<section id="the-sidebar-the-control-center" class="level2">
+<h2 class="anchored" data-anchor-id="the-sidebar-the-control-center">The Sidebar: The Control Center</h2>
+<p>The sidebar is the primary interface for setting all model parameters and managing performance data.</p>
+<section id="calculation-mode-tabs" class="level3">
+<h3 class="anchored" data-anchor-id="calculation-mode-tabs">Calculation Mode &amp; Tabs</h3>
+<ul>
+<li><strong>Mode Switcher:</strong> A prominent toggle at the top allows the user to switch between the two primary calculation modes: <strong>Etalon → Real Power</strong> and <strong>Real Power → Etalon</strong>. Switching modes reconfigures the input fields and the results table accordingly.</li>
+<li><strong>Tabs:</strong> The sidebar is organized into two tabs:
+<ul>
+<li><strong>Model Parameters:</strong> For setting all rider, equipment, and environmental variables.</li>
+<li><strong>Performance Data:</strong> For inputting and managing the list of performances to be analyzed.</li>
+</ul></li>
+</ul>
+</section>
+<section id="tab-1-model-parameters" class="level3">
+<h3 class="anchored" data-anchor-id="tab-1-model-parameters">Tab 1: Model Parameters</h3>
+<p>This tab is for defining the physical context of the simulation.</p>
+<section id="load-example-profile" class="level4">
+<h4 class="anchored" data-anchor-id="load-example-profile"><strong>Load Example Profile</strong></h4>
+<ul>
+<li>A dropdown menu allows users to instantly load pre-configured profiles, such as “Pogi’s 2024 Performances”. This populates all rider, equipment, and performance data fields, providing a powerful demonstration and a starting point for analysis.</li>
+</ul>
+</section>
+<section id="rider-equipment" class="level4">
+<h4 class="anchored" data-anchor-id="rider-equipment"><strong>Rider &amp; Equipment</strong></h4>
+<p>These sliders define the physical characteristics of the <em>actual</em> rider being analyzed.</p>
+<ul>
+<li><strong>Rider Mass (kg):</strong> The body mass of the specific athlete whose performance is being calculated or compared.</li>
+<li><strong>Bike &amp; Gear Mass (kg):</strong> The total mass of the bicycle, clothing, helmet, shoes, water bottles, etc. The UCI minimum is 6.8 kg, but a realistic race-ready weight is often closer to 7.2 kg or more.</li>
+</ul>
+</section>
+<section id="environmental-mechanical-factors" class="level4">
+<h4 class="anchored" data-anchor-id="environmental-mechanical-factors"><strong>Environmental &amp; Mechanical Factors</strong></h4>
+<p>These sliders allow for fine-tuning of the physical model to match specific conditions. Each includes an info icon with a tooltip providing typical physiological or real-world values.</p>
+<ul>
+<li><strong>Rolling Resistance (Crr):</strong> The Coefficient of Rolling Resistance. This dimensionless value quantifies the friction from the tires. Typical values range from 0.0025 for a fast track to 0.0050 for average road tires.</li>
+<li><strong>Aerodynamic Drag (CdA):</strong> The drag area (in m²), which is the product of the drag coefficient (<span class="math inline">\(C_d\)</span>) and the frontal area (A). This is a critical determinant of speed on flats and shallow gradients. Typical values range from 0.200 m² for an elite time-trial position to 0.400 m² for an relatively upright, non-aerodynamic position.</li>
+<li><strong>Air Density (<span class="math inline">\(\rho\)</span>):</strong> The density of the air (in kg/m³). This is highly dependent on altitude and temperature. Typically around ~1.225 kg/m³ at sea level, while at 1500m it drops to ~1.058 kg/m³. A lower air density reduces aerodynamic drag.</li>
+<li><strong>Drivetrain Loss (%):</strong> The percentage of power lost to friction in the chain, pulleys, and bearings. Typically ranges from 1.5% for a perfectly maintained, top-tier drivetrain system to 5.0% for a more worn or dirty drivetrain.</li>
+</ul>
+</section>
+</section>
+<section id="tab-2-performance-data" class="level3">
+<h3 class="anchored" data-anchor-id="tab-2-performance-data">Tab 2: Performance Data</h3>
+<p>This tab is for managing the list of climbs or performances to be analyzed.</p>
+<ul>
+<li><strong>Add &amp; Compare Performance:</strong> The main input section for adding new data. The fields displayed here dynamically change based on the selected calculation mode.
+<ul>
+<li><strong>Mode 1 (Etalon → Real):</strong> The user inputs the climb’s <code>Label</code>, <code>Length (km)</code>, <code>Elevation (m)</code>, a benchmark <code>Etalon W/kg</code>, and the <code>Actual Time</code> taken by the real rider.</li>
+<li><strong>Mode 2 (Real → Etalon):</strong> The user inputs the climb’s <code>Label</code>, <code>Length (km)</code>, <code>Elevation (m)</code>, and the rider’s <code>Actual Power (W)</code>. The time is then calculated by the model.</li>
+</ul></li>
+<li><strong>Performance List:</strong> Displays a list of all added performances. Each can be removed individually.</li>
+<li><strong>Profile Management:</strong>
+<ul>
+<li><strong>Save/Load Profile:</strong> Allows the user to save the current set of parameters and performances to a <code>.json</code> file for later use, or to load a previously saved profile.</li>
+</ul></li>
+</ul>
+</section>
+</section>
+<section id="the-main-content-area-results-explanations" class="level2">
+<h2 class="anchored" data-anchor-id="the-main-content-area-results-explanations">The Main Content Area: Results &amp; Explanations</h2>
+<p>This area displays the detailed output of the calculations in a clear, tabular format and provides context for the results.</p>
+<section id="results-table" class="level3">
+<h3 class="anchored" data-anchor-id="results-table">Results Table</h3>
+<p>This is the primary output, presenting a detailed, sortable table with the results for each performance. The columns displayed change dynamically based on the selected calculation mode.</p>
+<p><strong>Mode: Etalon → Real Power</strong> This table is designed to answer: “Given a standard performance level (Etalon W/kg) and an actual time, what power did my rider <em>really</em> produce, and what factors influenced this?”</p>
+<ul>
+<li><strong>Label, Length, Elev., Gradient, Speed, VAM:</strong> Basic characteristics of the climb.</li>
+<li><strong>Act. Time:</strong> The actual time the rider took.</li>
+<li><strong>Exp. Time:</strong> The <em>expected</em> time the Etalon rider would have taken to achieve the benchmark Etalon W/kg in windless conditions.</li>
+<li><strong>Time Diff.:</strong> The difference between actual and expected time. A positive value (red) means the rider was slower than expected (indicating a headwind or other resistive force), while a negative value (green) means they were faster (indicating a tailwind).</li>
+<li><strong>Eff. Wind (m/s):</strong> The key output. This is the calculated constant headwind (positive value) or tailwind (negative value) that would be required in the physics model to account for the observed Time Difference.</li>
+<li><strong>Etalon W/kg:</strong> The benchmark performance input.</li>
+<li><strong>W/kg (rider mass):</strong> The calculated real-world, mass-relative power of the specific rider.</li>
+<li><strong>Power (W):</strong> The calculated absolute power the rider had to produce to achieve their actual time, factoring in their mass, equipment, and the calculated effective wind.</li>
+</ul>
+<p><strong>Mode: Real Power → Etalon</strong> This table is designed to answer: “Given my rider’s actual power output, what is their standardized Etalon W/kg performance?”</p>
+<ul>
+<li><strong>Label, Real Power (W), Real W/kg:</strong> The input data for the actual rider.</li>
+<li><strong>Calc. Duration, Calc. Speed, VAM, Gradient:</strong> The performance characteristics (time, speed) that are <em>calculated</em> to result from the given real power output in windless conditions.</li>
+<li><strong>Etalon W/kg:</strong> The key output. The standardized performance benchmark calculated from the real power input.</li>
+<li><strong>Etalon Power (W):</strong> The absolute power a 60 kg Etalon rider would need to produce to match the real rider’s speed.</li>
+</ul>
+</section>
+<section id="interpreting-the-results-key-concepts-and-model-limitations" class="level3">
+<h3 class="anchored" data-anchor-id="interpreting-the-results-key-concepts-and-model-limitations">Interpreting the Results: Key Concepts and Model Limitations</h3>
+<p>To correctly interpret the outputs of the performance converter, it is essential to recognize the context provided by its underlying physics model and its inherent assumptions.</p>
+<p>As detailed previously, the <strong>‘Etalon W/kg’</strong> metric is the cornerstone of this tool’s comparative power. By standardizing all performances to a 60 kg rider, it provides a unified benchmark for objective evaluation, removing the confounding variables of rider mass and equipment.</p>
+<p>In the “Etalon → Real Power” mode, the <strong>‘Effective Wind’</strong> calculation quantifies the environmental conditions of a performance. It represents the constant headwind or tailwind required to explain the difference between the rider’s actual time and the time predicted by the model in ideal, windless conditions, offering a tangible measure of environmental assistance or resistance.</p>
+<p>It is crucial to acknowledge the model’s limitations. The calculations are based on a simplified physics engine that assumes constant conditions throughout an effort. It does not account for real-world complexities such as:</p>
+<ul>
+<li>Variable wind speeds or gusts.</li>
+<li>The significant aerodynamic benefit of drafting within a group.</li>
+<li>Changes in rider position (e.g., moving from the hoods to the drops), which alter aerodynamic drag.</li>
+</ul>
+<p>Therefore, while the results provide a powerful framework for standardized analysis, they may differ from on-bike power meter data recorded under dynamic conditions.</p>
+
+
+</section>
+</section>
+</section>
+<section id="bibliography" class="level1 unnumbered">
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" data-line-spacing="2" role="list">
+<div id="ref-Brooks2012" class="csl-entry" role="listitem">
+Brooks, G. A. (2012). <span class="nocase">Bioenergetics of exercising humans.</span> <em>Comprehensive Physiology</em>, <em>2</em>(1), 537–562. <a href="https://doi.org/10.1002/cphy.c110007">https://doi.org/10.1002/cphy.c110007</a>
+</div>
+<div id="ref-Brooks2004" class="csl-entry" role="listitem">
+Brooks, G. A., Fahey, T. D., &amp; Baldwin, K. M. (2004). <em><span class="nocase">Exercise Physiology: Human Bioenergetics and Its Applications</span></em> (4. Edition, p. 928). McGraw-Hill Education Ltd.
+</div>
+<div id="ref-Dunst2024" class="csl-entry" role="listitem">
+Dunst, A. K., Hesse, C., &amp; Ueberschär, O. (2024). <span class="nocase">Understanding optimal cadence dynamics: a systematic analysis of the power-velocity relationship in track cyclists with increasing exercise intensity</span>. <em>Frontiers in Physiology</em>, <em>15</em>(April), 1–17. <a href="https://doi.org/10.3389/fphys.2024.1343601">https://doi.org/10.3389/fphys.2024.1343601</a>
+</div>
+<div id="ref-Dunst2025" class="csl-entry" role="listitem">
+Dunst, A. K., Hesse, C., &amp; Ueberschär, O. (2025). <span class="nocase">Enhancing endurance performance predictions: the role of movement velocity in metabolic simulations demonstrated by cycling cadence.</span> <em>European Journal of Applied Physiology</em>. <a href="https://doi.org/10.1007/s00421-024-05663-4">https://doi.org/10.1007/s00421-024-05663-4</a>
+</div>
+<div id="ref-Friedlander1998" class="csl-entry" role="listitem">
+Friedlander, A. L., Casazza, G. A., Horning, M. A., Buddinger, T. F., &amp; Brooks, G. A. (1998). <span class="nocase">Effects of exercise intensity and training on lipid metabolism in young women</span>. <em>American Journal of Physiology - Endocrinology and Metabolism</em>, <em>275</em>(5 38-5), 853–863. <a href="https://doi.org/10.1152/ajpendo.1998.275.5.e853">https://doi.org/10.1152/ajpendo.1998.275.5.e853</a>
+</div>
+<div id="ref-Friedlander1999" class="csl-entry" role="listitem">
+Friedlander, A. L., Casazza, G. A., Horning, M. A., Usaj, A., &amp; Brooks, G. A. (1999). <span class="nocase">Endurance training increases fatty acid turnover, but not fat oxidation, in young men</span>. <em>Journal of Applied Physiology</em>, <em>86</em>(6), 2097–2105. <a href="https://doi.org/10.1152/jappl.1999.86.6.2097">https://doi.org/10.1152/jappl.1999.86.6.2097</a>
+</div>
+<div id="ref-Hauser2014" class="csl-entry" role="listitem">
+Hauser, T., Adam, J., &amp; Schulz, H. (2014). <span class="nocase">Comparison of calculated and experimental power in maximal lactate-steady state during cycling</span>. <em>Theoretical Biology and Medical Modelling</em>, <em>11</em>(1), 1–12. <a href="https://doi.org/10.1186/1742-4682-11-25">https://doi.org/10.1186/1742-4682-11-25</a>
+</div>
+<div id="ref-Hintzy-Cloutier2003" class="csl-entry" role="listitem">
+Hintzy-Cloutier, F., Zameziati, K., &amp; Belli, A. (2003). <a href="https://www.ncbi.nlm.nih.gov/pubmed/12629462"><span class="nocase">Influence of the base-line determination on work efficiency during submaximal cycling</span></a>. <em>Journal of Sports Medicine and Physical Fitness</em>, <em>43</em>(1), 51–56.
+</div>
+<div id="ref-Jeukendrup2005" class="csl-entry" role="listitem">
+Jeukendrup, A. E., &amp; Wallis, G. A. (2005). <em><span class="nocase">Measurement of substrate oxidation during exercise by means of gas exchange measurements</span></em> (No. 1; Vol. 26). <a href="https://doi.org/10.1055/s-2004-830512">https://doi.org/10.1055/s-2004-830512</a>
+</div>
+<div id="ref-Jeukendrup2019" class="csl-entry" role="listitem">
+Jeukendrup, A., &amp; Gleeson, M. (2019). <em><span>Sport Nutrition</span></em> (3. Edition, p. 602). Human Kinetics.
+</div>
+<div id="ref-Ji2021" class="csl-entry" role="listitem">
+Ji, S., Sommer, A., Bloch, W., &amp; Wahl, P. (2021). <span class="nocase">Comparison and performance validation of calculated and established anaerobic lactate thresholds in running</span>. <em>Medicina (Lithuania)</em>, <em>57</em>(10). <a href="https://doi.org/10.3390/medicina57101117">https://doi.org/10.3390/medicina57101117</a>
+</div>
+<div id="ref-Mader1984" class="csl-entry" role="listitem">
+Mader, A. (1984). <em><span class="nocase">Eine Theorie zur Berechnung der Dynamik und des steady state von Phosphorylierungszustand und Stoffwechselaktivit<span class="nocase">ä</span>t der Muskelzelle als Folge des Energeibedarfs</span></em> (p. 264) [PhD thesis]. Deutsche Sporthochschule K<span>ö</span>ln.
+</div>
+<div id="ref-Mader2003" class="csl-entry" role="listitem">
+Mader, A. (2003). <span class="nocase">Glycolysis and oxidative phosphorylation as a function of cytosolic phosphorylation state and power output of the muscle cell</span>. <em>European Journal of Applied Physiology</em>, <em>88</em>(4-5), 317–338. <a href="https://doi.org/10.1007/s00421-002-0676-3">https://doi.org/10.1007/s00421-002-0676-3</a>
+</div>
+<div id="ref-Mader1996" class="csl-entry" role="listitem">
+Mader, A., &amp; Allmer, H. (1996). <em><span class="nocase">Computersimulation: M<span class="nocase">ö</span>glichkeiten zur Theoriebildung und Ergebnisinterpretation</span></em> (p. 170). <a href="http://www.amazon.de/Computersimulation-M�glichkeiten-zur-Theoriebildung-Ergebnisinterpretation/dp/3883457310">http://www.amazon.de/Computersimulation-M�glichkeiten-zur-Theoriebildung-Ergebnisinterpretation/dp/3883457310</a>
+</div>
+<div id="ref-Mader1986" class="csl-entry" role="listitem">
+Mader, A., &amp; Heck, H. (1986). <span class="nocase">A theory of the metabolic origin of anaerobic threshold.</span> <em>International Journal of Sports Medicine</em>, <em>7 (Suppl.</em>, 45–65.
+</div>
+<div id="ref-Martin1998" class="csl-entry" role="listitem">
+Martin, J. C., Milliken, D. L., Cobb, J. E., McFadden, K. L., &amp; Coggan, A. R. (1998). <span class="nocase">Validation of a Mathematical Model for Road Cycling Power</span>. <em>Journal of Applied Biomechanics</em>, <em>14</em>(3), 276–291. <a href="https://doi.org/10.1123/jab.14.3.276">https://doi.org/10.1123/jab.14.3.276</a>
+</div>
+<div id="ref-Nolte2022" class="csl-entry" role="listitem">
+Nolte, S., Quittmann, O. J., &amp; Meden, V. (2022). <span class="nocase">Simulation of Steady-State Energy Metabolism in Cycling and Running</span>. <em>SportR<span class="math inline">\(\chi\)</span>iv</em>.
+</div>
+<div id="ref-Oezyener2001" class="csl-entry" role="listitem">
+Özyener, F., Rossiter, H. B., Ward, S. A., &amp; Whipp, B. J. (2001). <span class="nocase">Influence of exercise intensity on the on- and off-transient kinetics of pulmonary oxygen uptake in humans.</span> <em>The Journal of Physiology</em>, <em>533</em>(Pt 3), 891–902. <a href="https://doi.org/10.1111/j.1469-7793.2001.t01-1-00891.x">https://doi.org/10.1111/j.1469-7793.2001.t01-1-00891.x</a>
+</div>
+<div id="ref-Stegemann1991" class="csl-entry" role="listitem">
+Stegemann, J. (1991). <em><span>Leistungsphysiologie</span></em> (4. Edition, p. 385). Georg Thieme Verlag.
+</div>
+</div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/JJRW96\.github\.io\/MetabolicAnalytics-Apps\.github\.io\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../../Metabolic_Model_Apps/Power_Profile/Power_Profile.html" class="pagination-link" aria-label="Power Profile">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Power Profile</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../../Metabolic_Model_Apps/Metabolic_Profile.html" class="pagination-link" aria-label="Metabolic Profile">
+        <span class="nav-page-text">Metabolic Profile</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>Johannes Will, 2025 | <a href="mailto:JohannesWill96@gmail.com">JohannesWill96@gmail.com</a></p>
+</div>   
+    <div class="nav-footer-center">
+      &nbsp;
+    </div>
+    <div class="nav-footer-right">
+<p><a href="https://quarto.org/">Quarto</a></p>
+</div>
+  </div>
+</footer>
+
+
+
+
+</body></html>

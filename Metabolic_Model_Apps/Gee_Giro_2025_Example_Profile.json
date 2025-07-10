@@ -1,0 +1,74 @@
+{
+  "profileName": "D. Gee - Giro 2025",
+  "gender": "Male",
+  "body_mass": 71,
+  "age": 27,
+  "height": 189,
+  "hr_max": 186,
+  "hr_min": 40,
+  "vLamax": 0.45,
+  "VO2max": 5813,
+  "VO2Base": 339,
+  "curvilinear_ce": false,
+  "CEVO2": 11.5,
+  "CE_range": [
+    11.1,
+    11.9
+  ],
+  "p20sPower": 832,
+  "powerData": [
+    {
+      "absolute_power": 832,
+      "duration": 20,
+      "label": "Effort from Giro_d’Italia_Stage_17 at 20s"
+    },
+    {
+      "absolute_power": 528,
+      "duration": 181,
+      "label": "Effort from Giro_d’Italia_Stage_13 at 3m 01s"
+    },
+    {
+      "absolute_power": 483,
+      "duration": 416,
+      "label": "Effort from Giro_d’Italia_Stage_5 at 6m 56s"
+    },
+    {
+      "absolute_power": 457,
+      "duration": 784,
+      "label": "Effort from Giro_d’Italia_Stage_16 at 13m 04s"
+    },
+    {
+      "absolute_power": 443,
+      "duration": 1201,
+      "label": "Effort from Giro_d’Italia_Stage_16 at 20m 01s"
+    },
+    {
+      "absolute_power": 423,
+      "duration": 2400,
+      "label": "Effort from Giro_d’Italia_Stage_20 at 40m 00s"
+    },
+    {
+      "absolute_power": 408,
+      "duration": 3600,
+      "label": "Effort from Giro_d’Italia_Stage_20 at 1h 0m"
+    }
+  ],
+  "calculatedMetabolicMetrics": {
+    "mlss_power_abs": 397,
+    "mlss_power_wkg": 5.6,
+    "fatmax_power_abs": 286,
+    "fatmax_power_wkg": 4.0,
+    "p_at_vo2max_abs": 476
+  },
+  "fittedPowerModel": {
+    "modelType": "ompd",
+    "parameters": {
+      "CP": 6.12367,
+      "Wprime": 210,
+      "Pmax": 15.07,
+      "A": 0.884,
+      "modelType": "OmPD"
+    },
+    "fittedWithAbsoluteUnits": false
+  }
+}

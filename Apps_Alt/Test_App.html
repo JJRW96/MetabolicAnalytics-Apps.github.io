@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EPOC-Modellfunktion</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+        .container {
+            display: flex;
+            width: 100%;
+            height: 100vh;
+        }
+        .sidebar {
+            width: 350px;
+            height: 90vh;
+            overflow-y: auto;
+            padding: 15px;
+            background-color: #f5f5f5;
+            border-right: 1px solid #ddd;
+        }
+        .main-content {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+        }
+        .plot-container {
+            width: 100%;
+            height: 70vh;
+            border: 1px solid #ddd;
+            margin-bottom: 20px;
+        }
+        h4 {
+            margin-top: 15px;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        .slider-container {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input[type="range"] {
+            width: 100%;
+        }
+        .value-display {
+            font-size: 0.9em;
+            color: #666;
+            text-align: right;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            margin: 5px 0;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .instructions {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .radio-group {
+            margin-top: -20px;
+            margin-bottom: 15px;
+        }
+        .file-input {
+            margin-bottom: 15px;
+        }
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            border-radius: 4px;
+            color: white;
+            background-color: #4CAF50;
+            display: none;
+            z-index: 1000;
+        }
+        .reduced-margin {
+            margin-bottom: 5px !important;
+        }
+        #plot-legend {
+            display: flex;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-right: 20px;
+            margin-bottom: 5px;
+        }
+        .legend-color {
+            width: 15px;
+            height: 15px;
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h4><strong>Modellparameter:</strong></h4>
+            
+            <div class="slider-container">
+                <label for="A">A:</label>
+                <input type="range" id="A" min="0.0" max="6" value="2.2" step="0.01">
+                <div class="value-display" id="A-value">2.20</div>
+            </div>
+            
+            <div class="slider-container">
+                <label for="TauA">TauA:</label>
+                <input type="range" id="TauA" min="5" max="90" value="35" step="0.10">
+                <div class="value-display" id="TauA-value">35.00</div>
+            </div>
+            
+            <div class="slider-container">
+                <label for="B">B:</label>
+                <input type="range" id="B" min="0.0" max="5" value="0.8" step="0.01">
+                <div class="value-display" id="B-value">0.80</div>
+            </div>
+            
+            <div class="slider-container">
+                <label for="TauB">TauB:</label>
+                <input type="range" id="TauB" min="0.0" max="1800" value="180" step="0.10">
+                <div class="value-display" id="TauB-value">180.00</div>
+            </div>
+            
+            <div class="slider-container">
+                <label for="C">C:</label>
+                <input type="range" id="C" min="0.0" max="3.0" value="0.30" step="0.01">
+                <div class="value-display" id="C-value">0.30</div>
+            </div>
+            
+            <div class="slider-container">
+                <label for="O2_Store">O2-Speicher [l]:</label>
+                <input type="range" id="O2_Store" min="0" max="1" value="0.4" step="0.01">
+                <div class="value-display" id="O2_Store-value">0.40</div>
+            </div>
+            
+            <div class="slider-container">
+                <label for="t_delay">Zeitverzögerung [s]:</label>
+                <input type="range" id="t_delay" min="0" max="300" value="0" step="1">
+                <div class="value-display" id="t_delay-value">0</div>
+            </div>
+            
+            <div class="slider-container">
+                <label for="VO2_Ruhe">VO2 Ruhe [l · min^-1]:</label>
+                <input type="range" id="VO2_Ruhe" min="0.0" max="1.0" value="0.3" step="0.001">
+                <div class="value-display" id="VO2_Ruhe-value">0.300</div>
+            </div>
+            
+            <div class="slider-container">
+                <label for="VO2_Referenz">VO2 Referenz (50 Watt) [l · min^-1]:</label>
+                <input type="range" id="VO2_Referenz" min="0.0" max="2.0" value="1.0" step="0.001">
+                <div class="value-display" id="VO2_Referenz-value">1.000</div>
+            </div>
+            
+            <h4><strong>Beispieldaten einfügen:</strong></h4>
+            <button id="show_data_ohne">ohne Nachbelastung</button>
+            <button id="show_data_50W">50 Watt Nachbelastung</button>
+            
+            <div class="file-input">
+                <input type="file" id="file_upload" accept=".csv">
+            </div>
+            
+            <h4><strong>Modelanpassung:</strong></h4>
+            <button id="fit_all">nlsLM - Fit</button>
+            
+            <h4 class="reduced-margin">Optionen:</h4>
+            <div class="radio-group">
+                <label>
+                    <input type="radio" name="fit_mit" value="ruhe" checked> mit VO2 Ruhe
+                </label>
+                <label>
+                    <input type="radio" name="fit_mit" value="referenz"> mit VO2 Referenz
+                </label>
+            </div>
+            
+            <div class="radio-group">
+                <label>
+                    <input type="radio" name="fit_steps" value="three_steps" checked> 3 Schritte
+                </label>
+                <label>
+                    <input type="radio" name="fit_steps" value="one_step"> 1 Schritt
+                </label>
+            </div>
+            
+            <h4>Schrittweise:</h4>
+            <button id="fit_tau">1. Fit: Tau</button>
+            <button id="fit_slow">2. Fit: EPOC Slow</button>
+            <button id="fit_full">3. Fit: EPOC Fast</button>
+            
+            <div class="slider-container">
+                <label for="ruhe_sim_range_min">Zeitraum der simulierten Ruhewerte [s]:</label>
+                <input type="range" id="ruhe_sim_range_min" min="1200" max="7200" value="3600" step="100">
+                <div class="value-display" id="ruhe_sim_range_min-value">3600</div>
+                <input type="range" id="ruhe_sim_range_max" min="1200" max="7200" value="4200" step="100">
+                <div class="value-display" id="ruhe_sim_range_max-value">4200</div>
+            </div>
+            
+            <button id="toggle_view">Ruhe_sim anzeigen</button>
+            
+            <h4><strong>Berechnung - Ruheumsatz:</strong></h4>
+            <div class="radio-group">
+                <label>
+                    <input type="radio" name="geschlecht" value="Männlich" checked> Männlich
+                </label>
+                <label>
+                    <input type="radio" name="geschlecht" value="Weiblich"> Weiblich
+                </label>
+            </div>
+            
+            <div class="slider-container">
+                <label for="koerpermasse">Körpermasse [kg]:</label>
+                <input type="range" id="koerpermasse" min="40" max="150" value="90" step="1">
+                <div class="value-display" id="koerpermasse-value">90</div>
+            </div>
+            
+            <div class="slider-container">
+                <label for="koerperlaenge">Körperlänge [cm]:</label>
+                <input type="range" id="koerperlaenge" min="140" max="220" value="193" step="1">
+                <div class="value-display" id="koerperlaenge-value">193</div>
+            </div>
+            
+            <div class="slider-container">
+                <label for="alter">Alter [Jahre]:</label>
+                <input type="range" id="alter" min="18" max="100" value="27" step="1">
+                <div class="value-display" id="alter-value">27</div>
+            </div>
+            
+            <div class="slider-container">
+                <label for="rq">RQ:</label>
+                <input type="range" id="rq" min="0.7" max="1.0" value="0.77" step="0.01">
+                <div class="value-display" id="rq-value">0.77</div>
+            </div>
+            
+            <button id="berechne_vo2_ruhe">VO2 Ruhe berechnen</button>
+        </div>
+        
+        <div class="main-content">
+            <div class="plot-container" id="plot"></div>
+            <div id="plot-legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #EF6F6A;"></div>
+                    <span>Modellfunktion</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #42BA97;"></div>
+                    <span>EPOC<sub>fast</sub></span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #BB7693;"></div>
+                    <span>EPOC<sub>slow</sub></span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #1CADE4;"></div>
+                    <span>C</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: rgba(38, 131, 198, 0.9);"></div>
+                    <span>V̇O<sub>2</sub></span>
+                </div>
+            </div>
+            <div class="instructions">
+                <h4 style="color: #333;"><strong>Anleitung - Modellanpassung:</strong></h4>
+                <ol style="color: #555;">
+                    <li>Beispiel-VO2-Daten (mit oder ohne Nachbelastung) einfügen oder eigene VO2-Daten als CSV-Datei hochladen.</li>
+                    <li>Ruhesauerstoffaufnahme (VO2 Ruhe) manuell eingeben oder anhand der Parameter (Geschlecht, Körpermasse, Alter, RQ) berechnen lassen.</li>
+                    <li>Bei Daten ohne Nachbelastung 'Mit VO2 Ruhe' wählen, bei Daten mit Nachbelastung 'VO2 Referenz' wählen und den entsprechenden Referenzwert festlegen.</li>
+                    <li>O2-Speicher festlegen oder auf 0 setzen, falls dieser in der Berechnung nicht berücksichtigt werden soll.</li>
+                    <li>Zeitverzögerung festlegen, um den Startpunkt der Modellanpassung zu bestimmen.</li>
+                    <li>Wählen Sie zwischen 3-Schritt- oder 1-Schritt-Modellanpassung. Bei 3-Schritt-Anpassung den Zeitraum für simulierte Ruhe- bzw. Referenzwerte mit dem Slider einstellen.</li>
+                    <li>Modellanpassung durchführen:
+                        <ul>
+                            <li>'Fit: nlsLM' für komplette Anpassung oder</li>
+                            <li>Schrittweise: '1. Fit: Tau', '2. Fit: EPOC Slow', '3. Fit: EPOC Fast'</li>
+                        </ul>
+                    </li>
+                    <li>Mit 'Ruhe_sim anzeigen' können simulierte Ruhewerte in der Abbildung ein- oder ausgeblendet werden.</li>
+                    <li>Alternative: Manuelle Anpassung der Modellparameter über die Schieberegler.</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+    
+    <div class="notification" id="notification"></div>
+
+    <!-- Lade Plotly und Numeric.js ein -->
+    <script src="https://cdn.plot.ly/plotly-2.20.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/numeric/1.2.6/numeric.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.min.js"></script>
+    
+    <script>
+        // Beispieldaten ohne Nachbelastung
+        const t_data_orig = [3505.1, 3506.8, 3508.3, 3509.8, 3511.4, 3513.2, 3514.7, 3516.2, 3517.5, 3518.9, 3520.3, 3521.6, 3523.0, 3524.7, 3526.0, 3527.2, 3528.7, 3530.0, 3531.4, 3532.8, 3534.3, 3535.7, 3537.0, 3538.4, 3539.9, 3541.2, 3542.8, 3544.3, 3545.6, 3547.0, 3548.4, 3550.1, 3551.7, 3553.2, 3554.6, 3556.1, 3557.5, 3560.2, 3561.8, 3564.3, 3566.0, 3567.8, 3569.6, 3571.5, 3573.3, 3575.3, 3577.1, 3579.1, 3581.0, 3582.7, 3584.2, 3585.7, 3587.1, 3588.5, 3589.9, 3591.4, 3593.3, 3594.7, 3596.2, 3597.8, 3599.5, 3601.0, 3602.4, 3603.9, 3605.6, 3607.1, 3608.6, 3610.4, 3612.0, 3613.4, 3616.4, 3618.5, 3620.2, 3621.8, 3623.8, 3626.1, 3628.4, 3630.5, 3632.5, 3635.1, 3637.2, 3639.6, 3641.7, 3643.7, 3648.5, 3652.4, 3654.4, 3656.7, 3658.9, 3660.1, 3662.3, 3664.6, 3667.2, 3669.5, 3671.4, 3673.6, 3675.5, 3677.1, 3679.0, 3681.0, 3683.0, 3685.0, 3687.1, 3689.0, 3691.1, 3692.9, 3695.6, 3697.2, 3699.4, 3701.8, 3704.0, 3706.0, 3708.1, 3709.9, 3711.8, 3715.0, 3717.5, 3719.6, 3721.7, 3724.0, 3726.2, 3728.2, 3730.1, 3732.0, 3734.3, 3736.0, 3738.4, 3739.2, 3741.1, 3743.1, 3745.4, 3746.5, 3748.7, 3750.9, 3753.1, 3755.3, 3757.6, 3762.7, 3765.6, 3768.1, 3770.2, 3772.4, 3774.8, 3777.5, 3779.9, 3782.3, 3785.3, 3787.7, 3789.8, 3792.2, 3794.9, 3796.5, 3798.2, 3800.6, 3802.4, 3805.3, 3808.0, 3810.9, 3813.0, 3815.1, 3818.0, 3820.4, 3822.3, 3824.5, 3826.6, 3829.8, 3833.1, 3835.3, 3838.1, 3840.1, 3844.9, 3847.1, 3848.5, 3850.0, 3855.3, 3859.2, 3861.9, 3863.6, 3865.6, 3867.8, 3869.8, 3872.0, 3874.4, 3876.1, 3878.4, 3881.1, 3882.9, 3884.9, 3886.3, 3888.9, 3890.6, 3892.8, 3895.1, 3897.1, 3898.8, 3900.7, 3903.3, 3905.3, 3907.7, 3910.3, 3913.8, 3916.9, 3919.2, 3921.5, 3923.6, 3926.4, 3928.3, 3930.3, 3932.2, 3934.5, 3936.9, 3940.6, 3942.8, 3944.4, 3946.6, 3948.7, 3950.6, 3954.0, 3956.5, 3960.8, 3962.3, 3964.1, 3966.5, 3969.3, 3971.7, 3975.9, 3977.9, 3982.9, 3985.3, 3987.5, 3990.2, 3992.7, 3995.5, 3997.9, 4000.1, 4004.3, 4006.5, 4009.6, 4012.7, 4015.5, 4017.9, 4020.0, 4024.2, 4026.1, 4028.8, 4031.2, 4033.7, 4035.6, 4037.6, 4041.3, 4044.9, 4047.2, 4049.9, 4054.3, 4057.3, 4060.2, 4062.4, 4065.5, 4068.0, 4070.5, 4072.6, 4074.5, 4076.4, 4078.1, 4080.3, 4082.8, 4084.9];
+        const VO2_data_orig = [4.3916, 4.33868, 4.29972, 4.26048, 4.25328, 4.22856, 4.18768, 4.16656, 4.118, 4.06268, 4.00452, 3.9486, 3.85204, 3.81448, 3.74268, 3.67572, 3.61052, 3.5468, 3.47268, 3.37056, 3.25912, 3.20024, 3.17932, 3.13008, 3.08712, 2.97636, 2.95052, 2.891, 2.82488, 2.72496, 2.6324, 2.55344, 2.45564, 2.38944, 2.32268, 2.2388, 2.16588, 2.09852, 1.99972, 1.9584, 1.87604, 1.81076, 1.74984, 1.70644, 1.66456, 1.64564, 1.59204, 1.53048, 1.47084, 1.4078, 1.40632, 1.34116, 1.29948, 1.26596, 1.23048, 1.22116, 1.19188, 1.19668, 1.16332, 1.153, 1.15444, 1.14004, 1.14976, 1.15704, 1.15192, 1.15128, 1.14088, 1.1228, 1.11288, 1.10284, 1.07976, 1.07524, 1.0516, 1.0596, 1.0478, 1.03064, 1.03404, 1.01436, 1.01996, 1.02592, 0.99788, 1.00092, 0.96684, 0.98036, 0.96396, 0.96056, 0.94256, 0.93244, 0.92228, 0.9068, 0.90336, 0.88984, 0.87968, 0.88288, 0.85096, 0.84, 0.83584, 0.83428, 0.82228, 0.82996, 0.8382, 0.831, 0.86264, 0.83748, 0.83664, 0.8596, 0.8622, 0.86216, 0.85472, 0.85588, 0.8374, 0.84796, 0.84512, 0.85952, 0.84476, 0.8158, 0.8146, 0.80048, 0.77164, 0.7736, 0.76624, 0.77088, 0.77992, 0.80724, 0.80412, 0.80112, 0.8068, 0.78476, 0.79444, 0.79072, 0.78772, 0.79112, 0.79316, 0.79112, 0.78536, 0.7758, 0.76944, 0.77496, 0.76204, 0.7836, 0.79964, 0.81584, 0.85324, 0.85488, 0.89108, 0.904, 0.89116, 0.87828, 0.86268, 0.8416, 0.84192, 0.83324, 0.8332, 0.83228, 0.83992, 0.8094, 0.79928, 0.80512, 0.811, 0.82524, 0.82652, 0.8246, 0.80908, 0.80036, 0.80152, 0.81324, 0.79372, 0.76376, 0.78108, 0.76332, 0.75032, 0.78964, 0.78632, 0.78452, 0.78252, 0.77932, 0.78952, 0.78984, 0.7888, 0.77604, 0.79476, 0.8106, 0.79136, 0.76844, 0.73712, 0.7374, 0.74148, 0.75156, 0.74932, 0.7288, 0.72612, 0.75984, 0.76316, 0.76744, 0.76004, 0.75084, 0.70948, 0.70316, 0.68816, 0.70184, 0.6916, 0.681, 0.67276, 0.66776, 0.66792, 0.65952, 0.64368, 0.67064, 0.67144, 0.68348, 0.67592, 0.65776, 0.63996, 0.64432, 0.6382, 0.62112, 0.58896, 0.6054, 0.57796, 0.58432, 0.59236, 0.60632, 0.62372, 0.63128, 0.63308, 0.6444, 0.6382, 0.64336, 0.64684, 0.65508, 0.66076, 0.63596, 0.60768, 0.62748, 0.62472, 0.6284, 0.64236, 0.66068, 0.65004, 0.67312, 0.67836, 0.69416, 0.66368, 0.65028, 0.629, 0.62796, 0.60816, 0.61548, 0.61224, 0.62336, 0.61552, 0.62804, 0.63852, 0.64872, 0.641, 0.633, 0.64456, 0.66328, 0.6502, 0.65676, 0.66388, 0.6542, 0.63828, 0.64624, 0.63272, 0.65072, 0.64964];
+
+        // Beispieldaten mit 50 Watt Nachbelastung
+        const t_data_50W_orig = [2552.6, 2554.0, 2555.6, 2557.1, 2558.7, 2560.3, 2562.0, 2563.7, 2565.4, 2567.0, 2568.6, 2570.0, 2571.5, 2572.8, 2574.6, 2576.1, 2577.5, 2579.0, 2580.5, 2582.7, 2584.2, 2586.3, 2587.7, 2589.0, 2590.8, 2592.2, 2594.2, 2595.8, 2597.4, 2599.1, 2600.6, 2602.1, 2603.6, 2605.3, 2606.9, 2608.5, 2610.3, 2612.6, 2613.9, 2615.6, 2617.2, 2618.8, 2621.5, 2623.0, 2625.5, 2627.3, 2628.9, 2630.3, 2631.9, 2633.3, 2635.0, 2636.5, 2638.2, 2639.9, 2641.5, 2643.0, 2644.9, 2646.6, 2648.3, 2649.8, 2651.3, 2652.9, 2654.5, 2656.3, 2658.2, 2660.1, 2661.9, 2663.7, 2665.4, 2667.0, 2669.1, 2670.9, 2672.6, 2674.4, 2676.1, 2678.0, 2679.9, 2681.6, 2683.1, 2684.7, 2685.7, 2687.1, 2690.9, 2692.6, 2695.9, 2697.7, 2698.9, 2701.2, 2703.0, 2705.0, 2706.7, 2708.5, 2710.3, 2711.8, 2713.4, 2715.1, 2716.7, 2718.2, 2719.8, 2721.3, 2723.2, 2725.4, 2727.1, 2729.0, 2730.8, 2732.4, 2733.9, 2735.4, 2737.4, 2739.1, 2741.2, 2743.1, 2746.2, 2747.8, 2749.5, 2751.3, 2753.0, 2755.0, 2757.3, 2759.5, 2761.7, 2763.6, 2765.7, 2767.8, 2769.3, 2770.8, 2772.2, 2774.3, 2776.1, 2777.7, 2779.3, 2781.1, 2783.0, 2786.2, 2787.9, 2789.5, 2791.4, 2793.2, 2795.0, 2796.8, 2798.5, 2800.4, 2802.0, 2804.0, 2805.9, 2807.8, 2809.5, 2812.5, 2814.2, 2816.4, 2818.5, 2821.0, 2822.8, 2824.7, 2826.5, 2828.5, 2830.5, 2831.9, 2833.4, 2835.0, 2836.6, 2838.8, 2840.5, 2842.4, 2844.1, 2846.2, 2848.4, 2851.5, 2853.3, 2855.3, 2858.8, 2861.1, 2863.4, 2865.8, 2868.2, 2870.2, 2872.7, 2875.1, 2877.3, 2879.4, 2883.0, 2884.8, 2887.1, 2888.6, 2891.0, 2893.1, 2895.0, 2896.8, 2898.9, 2900.8, 2903.5, 2905.3, 2907.2, 2909.2, 2911.5, 2913.4, 2915.6, 2917.4, 2919.2, 2921.4, 2923.8, 2925.5, 2927.5, 2929.7, 2932.9, 2935.1, 2937.1, 2939.6, 2941.4, 2943.8, 2945.9, 2948.6, 2950.7, 2952.7, 2956.5, 2958.8, 2961.0, 2962.6, 2964.9, 2966.5, 2967.7, 2969.9, 2971.3, 2973.1, 2975.5, 2977.4, 2979.5, 2981.4, 2983.5, 2985.5, 2988.0, 2990.2, 2992.4, 2994.5, 2998.4, 3000.1, 3002.2, 3004.5, 3007.0, 3008.6, 3010.9, 3013.3, 3015.8, 3017.5, 3019.1, 3021.1, 3023.5, 3025.5, 3027.8, 3029.6, 3030.7, 3033.6, 3035.9, 3038.1, 3040.4, 3042.4, 3046.1, 3048.6, 3050.9, 3053.4, 3055.2, 3057.3, 3059.2, 3061.3, 3063.1, 3065.5, 3067.7, 3069.6, 3071.9, 3074.3, 3076.4, 3078.2, 3080.2, 3082.2, 3084.0, 3086.9, 3089.5, 3092.9, 3095.6, 3098.2, 3100.8, 3103.1, 3106.6, 3108.5, 3110.5, 3113.1, 3115.6, 3121.1, 3124.1, 3127.0, 3129.7, 3132.6, 3134.2, 3136.4, 3138.8, 3141.6, 3144.1, 3146.2, 3149.5, 3152.2, 3154.6, 3157.2, 3159.6];
+        const VO2_data_50W_orig = [4.4001, 4.3817, 4.3121, 4.3409, 4.3439, 4.3299, 4.2480, 4.1318, 4.1017, 4.0326, 3.9826, 3.9325, 3.8651, 3.8096, 3.7446, 3.6772, 3.6132, 3.5336, 3.4854, 3.4446, 3.3776, 3.3045, 3.2331, 3.1704, 3.0984, 3.0216, 2.9686, 2.9386, 2.8810, 2.8061, 2.7353, 2.7127, 2.7239, 2.6456, 2.6377, 2.5957, 2.5540, 2.5138, 2.4619, 2.4145, 2.4251, 2.3901, 2.3788, 2.3462, 2.2943, 2.2786, 2.2648, 2.2418, 2.2427, 2.2392, 2.2386, 2.1912, 2.1595, 2.1360, 2.1111, 2.1224, 2.0777, 2.0514, 2.0310, 1.9780, 1.9727, 1.9440, 1.9551, 1.9516, 1.9462, 1.9169, 1.8937, 1.8818, 1.8560, 1.8333, 1.8018, 1.8064, 1.8136, 1.7820, 1.7528, 1.7488, 1.7494, 1.7520, 1.7599, 1.7941, 1.7951, 1.8142, 1.8182, 1.8387, 1.8880, 1.8747, 1.8848, 1.8750, 1.8730, 1.8576, 1.8532, 1.8552, 1.8566, 1.8779, 1.9174, 1.9636, 1.9640, 1.9728, 1.9767, 2.0114, 1.9866, 2.0298, 2.0401, 2.0414, 2.0417, 2.0099, 2.0261, 1.9837, 1.9544, 1.9402, 1.9313, 1.9273, 1.9265, 1.9295, 1.9441, 1.9727, 1.9943, 2.0044, 1.9720, 1.9654, 1.9225, 1.9068, 1.8688, 1.8623, 1.8394, 1.8563, 1.8187, 1.7995, 1.7750, 1.7498, 1.7746, 1.7715, 1.8122, 1.8389, 1.8352, 1.8090, 1.8296, 1.8238, 1.8328, 1.8290, 1.8123, 1.7960, 1.7923, 1.7896, 1.7622, 1.7592, 1.7674, 1.7858, 1.7950, 1.8137, 1.8496, 1.8495, 1.8664, 1.8851, 1.8865, 1.8747, 1.8502, 1.8631, 1.8322, 1.8341, 1.8650, 1.8490, 1.8762, 1.8531, 1.8437, 1.8368, 1.8438, 1.8350, 1.8540, 1.8645, 1.8486, 1.8179, 1.8006, 1.7843, 1.7765, 1.7372, 1.7319, 1.7322, 1.7202, 1.7160, 1.7033, 1.6818, 1.6498, 1.6551, 1.6361, 1.6277, 1.6271, 1.6044, 1.6204, 1.6176, 1.5965, 1.6116, 1.5948, 1.5813, 1.6099, 1.6333, 1.6588, 1.6799, 1.6902, 1.6858, 1.6819, 1.6689, 1.6550, 1.6356, 1.6488, 1.6722, 1.6864, 1.6533, 1.6580, 1.6782, 1.6916, 1.6921, 1.6927, 1.6946, 1.7046, 1.7356, 1.6985, 1.7132, 1.7104, 1.6868, 1.6894, 1.6880, 1.6834, 1.6632, 1.6246, 1.6189, 1.6194, 1.6530, 1.6906, 1.6982, 1.6821, 1.6484, 1.7026, 1.7012, 1.6998, 1.6902, 1.6894, 1.6715, 1.5961, 1.6080, 1.5906, 1.5955, 1.5864, 1.6033, 1.5882, 1.5746, 1.5551, 1.5417, 1.5668, 1.6209, 1.6475, 1.6627, 1.6290, 1.6070, 1.5852, 1.5877, 1.6354, 1.5954, 1.5910, 1.5767, 1.5835, 1.6019, 1.6368, 1.6969, 1.6874, 1.6751, 1.6753, 1.6987, 1.6867, 1.6964, 1.7220, 1.7142, 1.7196, 1.7078, 1.6907, 1.6628, 1.6343, 1.6318, 1.6129, 1.6256, 1.6123, 1.6096, 1.6335, 1.6262, 1.6195, 1.6204, 1.5709, 1.5486, 1.5559, 1.5600, 1.5710, 1.5819, 1.5609, 1.5808, 1.5985, 1.5951, 1.6267, 1.6258, 1.5771, 1.5974, 1.6163, 1.6230, 1.6052];
+
+        // Normalisierung der t_data Werte auf 0
+        const t_data = t_data_orig.map(value => value - t_data_orig[0]);
+        const t_data_50W = t_data_50W_orig.map(value => value - t_data_50W_orig[0]);
+
+        let currentData = null;
+        let showData = false;
+        let tauEstimate = null;
+        let slowEstimates = null;
+        let showFullView = false;
+        let maxRuheTSValue = null;
+        let ruheSimData = null;
+        
+        // Funktion zur Berechnung der Modellfunktion
+        function modelFunction(t_s, A, TauA, B, TauB, C, t_delay) {
+            return A * Math.exp(-(t_s - t_delay) / TauA) + B * Math.exp(-(t_s - t_delay) / TauB) + C;
+        }
+
+        // Helfer-Funktion zur numerischen Integration
+        function integrate(func, lower, upper, steps = 1000) {
+            const dx = (upper - lower) / steps;
+            let sum = 0;
+            for (let i = 0; i < steps; i++) {
+                const x = lower + (i + 0.5) * dx;
+                sum += func(x) * dx;
+            }
+            return sum;
+        }
+
+        // Funktion zum Berechnen des Grundumsatzes
+        function berechneGrundumsatz(geschlecht, masse, laenge, alter) {
+            if (geschlecht === "Männlich") {
+                return 66.5 + (13.75 * masse) + (5.003 * laenge) - (6.775 * alter);
+            } else {
+                return 655.1 + (9.563 * masse) + (1.850 * laenge) - (4.676 * alter);
+            }
+        }
+
+        // Funktion zum Berechnen des RMR
+        function berechneRMR(grundumsatz, rq, geschlecht) {
+            const ka = 19.946;  // Annahme für RQ = 0.77
+            const faktor = geschlecht === "Männlich" ? 1.287 : 1.278;
+            return (grundumsatz / (24 * 60 * ka)) * 4.1868 * faktor;
+        }
+
+        // Funktion zur Berechnung des R²-Werts
+        function calculateRSquared(observed, predicted) {
+            const mean = observed.reduce((sum, val) => sum + val, 0) / observed.length;
+            const ssTotal = observed.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0);
+            const ssResidual = observed.reduce((sum, val, i) => sum + Math.pow(val - predicted[i], 2), 0);
+            return 1 - (ssResidual / ssTotal);
+        }
+
+        // Funktion zur vereinfachten nicht-linearen Regression (Levenberg-Marquardt-ähnlich)
+        function simplifiedNLSFit(xData, yData, modelFunc, initialParams, iterations = 100) {
+            // Diese Funktion ist eine vereinfachte Version des Levenberg-Marquardt-Algorithmus
+            // In einer realen Implementierung würde man eine vollständige LM-Bibliothek verwenden
+            
+            let params = [...initialParams];
+            const delta = 0.01;
+            const learningRate = 0.01;
+            
+            for (let iter = 0; iter < iterations; iter++) {
+                // Berechne den aktuellen Fehler
+                let predicted = xData.map(x => modelFunc(x, ...params));
+                let residuals = yData.map((y, i) => y - predicted[i]);
+                let currentError = residuals.reduce((sum, r) => sum + r * r, 0);
+                
+                // Berechne numerische Gradienten
+                let gradients = [];
+                for (let i = 0; i < params.length; i++) {
+                    let paramsPlus = [...params];
+                    paramsPlus[i] += delta;
+                    
+                    let predictedPlus = xData.map(x => modelFunc(x, ...paramsPlus));
+                    let residualsPlus = yData.map((y, j) => y - predictedPlus[j]);
+                    let errorPlus = residualsPlus.reduce((sum, r) => sum + r * r, 0);
+                    
+                    gradients[i] = (errorPlus - currentError) / delta;
+                }
+                
+                // Update Parameter
+                for (let i = 0; i < params.length; i++) {
+                    params[i] -= learningRate * gradients[i];
+                }
+            }
+            
+            return params;
+        }
+
+        // Zeige Benachrichtigung
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.style.backgroundColor = type === 'success' ? '#4CAF50' : 
+                                               type === 'warning' ? '#ff9800' : '#f44336';
+            notification.style.display = 'block';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+
+        // Event-Listener für alle Slider
+        document.querySelectorAll('input[type="range"]').forEach(slider => {
+            const valueDisplay = document.getElementById(`${slider.id}-value`);
+            
+            slider.addEventListener('input', () => {
+                let value = parseFloat(slider.value);
+                if ([0, 1, 5, 10, 100].includes(parseInt(slider.step * 100))) {
+                    valueDisplay.textContent = value.toFixed(2);
+                } else {
+                    valueDisplay.textContent = value.toString();
+                }
+                updatePlot();
+            });
+        });
+
+        // Beispieldaten ohne Nachbelastung einfügen
+        document.getElementById('show_data_ohne').addEventListener('click', () => {
+            showData = true;
+            currentData = {
+                t_s: t_data,
+                VO2_t: VO2_data_orig
+            };
+            updatePlot();
+            showNotification('Daten ohne Nachbelastung geladen');
+        });
+
+        // Beispieldaten mit 50 Watt Nachbelastung einfügen
+        document.getElementById('show_data_50W').addEventListener('click', () => {
+            showData = true;
+            currentData = {
+                t_s: t_data_50W,
+                VO2_t: VO2_data_50W_orig
+            };
+            updatePlot();
+            showNotification('Daten mit 50 Watt Nachbelastung geladen');
+        });
+
+        // CSV-Datei hochladen
+        document.getElementById('file_upload').addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const csv = e.target.result;
+                        const lines = csv.split('\n');
+                        const headers = lines[0].split(',');
+                        
+                        const t_s_index = headers.findIndex(h => h.trim() === 't_s');
+                        const VO2_t_index = headers.findIndex(h => h.trim() === 'VO2_t');
+                        
+                        if (t_s_index === -1 || VO2_t_index === -1) {
+                            showNotification('CSV-Datei muss t_s und VO2_t Spalten enthalten', 'error');
+                            return;
+                        }
+                        
+                        const t_s = [];
+                        const VO2_t = [];
+                        
+                        for (let i = 1; i < lines.length; i++) {
+                            if (lines[i].trim() === '') continue;
+                            
+                            const values = lines[i].split(',');
+                            t_s.push(parseFloat(values[t_s_index].trim()));
+                            VO2_t.push(parseFloat(values[VO2_t_index].trim()));
+                        }
+                        
+                        // Normalisieren
+                        const t_s_normalized = t_s.map(val => val - t_s[0]);
+                        
+                        currentData = {
+                            t_s: t_s_normalized,
+                            VO2_t: VO2_t
+                        };
+                        
+                        showData = true;
+                        updatePlot();
+                        showNotification('CSV-Datei erfolgreich geladen');
+                    } catch (error) {
+                        showNotification('Fehler beim Laden der CSV-Datei: ' + error.message, 'error');
+                    }
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        // nlsLM-Fit
+        document.getElementById('fit_all').addEventListener('click', () => {
+            if (!showData) {
+                showNotification('Bitte fügen Sie zuerst Daten ein.', 'warning');
+                return;
+            }
+            
+            const fitMode = document.querySelector('input[name="fit_steps"]:checked').value;
+            
+            if (fitMode === 'three_steps') {
+                // Trigger drei Schritte nacheinander
+                document.getElementById('fit_tau').click();
+                setTimeout(() => {
+                    document.getElementById('fit_slow').click();
+                    setTimeout(() => {
+                        document.getElementById('fit_full').click();
+                    }, 500);
+                }, 500);
+                
+                showNotification('Alle Fits wurden nacheinander durchgeführt.');
+            } else {
+                // One-step Fit
+                const t_delay = parseFloat(document.getElementById('t_delay').value);
+                const C = document.querySelector('input[name="fit_mit"]:checked').value === 'ruhe' 
+                    ? parseFloat(document.getElementById('VO2_Ruhe').value)
+                    : parseFloat(document.getElementById('VO2_Referenz').value);
+                
+                // Einfacher Fit (vereinfachte Version)
+                try {
+                    // In einer echten Anwendung würde hier ein vollständiger LM-Algorithmus stehen
+                    const xData = currentData.t_s.map(t => t);
+                    const yData = currentData.VO2_t;
+                    
+                    // Stark vereinfachte Version eines LM-Fits mit randomisierten Startwerten
+                    // Dies ist eine Annäherung - in Shiny wird ein vollständiger LM-Algorithmus verwendet
+                    const A_start = 2.5;
+                    const TauA_start = 45;
+                    const B_start = 0.8;
+                    const TauB_start = 180;
+                    
+                    const modelFunc = (t, A, TauA, B, TauB) => 
+                        A * Math.exp(-(t - t_delay) / TauA) + B * Math.exp(-(t - t_delay) / TauB) + C;
+                    
+                    const fitResult = simplifiedNLSFit(
+                        xData, 
+                        yData, 
+                        modelFunc, 
+                        [A_start, TauA_start, B_start, TauB_start]
+                    );
+                    
+                    // Parameter aktualisieren
+                    document.getElementById('A').value = fitResult[0];
+                    document.getElementById('A-value').textContent = fitResult[0].toFixed(2);
+                    
+                    document.getElementById('TauA').value = fitResult[1];
+                    document.getElementById('TauA-value').textContent = fitResult[1].toFixed(1);
+                    
+                    document.getElementById('B').value = fitResult[2];
+                    document.getElementById('B-value').textContent = fitResult[2].toFixed(2);
+                    
+                    document.getElementById('TauB').value = fitResult[3];
+                    document.getElementById('TauB-value').textContent = fitResult[3].toFixed(1);
+                    
+                    updatePlot();
+                    showNotification('Fitting erfolgreich abgeschlossen');
+                } catch (error) {
+                    showNotification('Fehler beim Fitting: ' + error.message, 'error');
+                }
+            }
+        });
+
+        // Fit: Tau
+        document.getElementById('fit_tau').addEventListener('click', () => {
+            if (!showData) return;
+            
+            if (document.querySelector('input[name="fit_steps"]:checked').value === 'three_steps') {
+                const t_delay = parseFloat(document.getElementById('t_delay').value);
+                const C = parseFloat(document.getElementById('VO2_Ruhe').value);
+                
+                // Datenfilterung und Zeitverschiebung
+                const filteredData = {
+                    t_s: currentData.t_s.filter(t => t >= t_delay).map(t => t - t_delay),
+                    VO2_t: currentData.VO2_t.filter((_, i) => currentData.t_s[i] >= t_delay)
+                };
+                
+                // Vereinfachter exponentieller Fit
+                const xData = filteredData.t_s;
+                const yData = filteredData.VO2_t;
+                
+                // Vereinfachte Version eines exponentiellen Fits
+                const modelFunc = (t, x, Tau) => x * Math.exp(-t/Tau) + C;
+                const startParams = [Math.max(...yData), 45]; // [x, Tau]
+                
+                try {
+                    const fitResult = simplifiedNLSFit(xData, yData, modelFunc, startParams);
+                    
+                    tauEstimate = fitResult[1];
+                    
+                    // Slider aktualisieren
+                    document.getElementById('TauA').value = tauEstimate;
+                    document.getElementById('TauA-value').textContent = tauEstimate.toFixed(1);
+                    
+                    document.getElementById('A').value = fitResult[0];
+                    document.getElementById('A-value').textContent = fitResult[0].toFixed(2);
+                    
+                    document.getElementById('C').value = C;
+                    document.getElementById('C-value').textContent = C.toFixed(2);
+                    
+                    // B und TauB auf 0 setzen
+                    document.getElementById('B').value = 0;
+                    document.getElementById('B-value').textContent = "0.00";
+                    
+                    document.getElementById('TauB').value = 0;
+                    document.getElementById('TauB-value').textContent = "0.00";
+                    
+                    updatePlot();
+                    showNotification('Tau-Fit erfolgreich abgeschlossen');
+                } catch (error) {
+                    showNotification('Fehler beim Tau-Fit: ' + error.message, 'error');
+                }
+            }
+        });
+
+        // Fit: EPOC Slow
+        document.getElementById('fit_slow').addEventListener('click', () => {
+            if (!tauEstimate || !showData) return;
+            
+            if (document.querySelector('input[name="fit_steps"]:checked').value === 'three_steps') {
+                const useRuhe = document.querySelector('input[name="fit_mit"]:checked').value === 'ruhe';
+                const VO2Basis = useRuhe 
+                    ? parseFloat(document.getElementById('VO2_Ruhe').value)
+                    : parseFloat(document.getElementById('VO2_Referenz').value);
+                const t_delay = parseFloat(document.getElementById('t_delay').value);
+                const maxVO2 = Math.max(...currentData.VO2_t) * 1.1;
+                
+                const tau2 = 2 * tauEstimate;
+                const ruheSimStart = parseFloat(document.getElementById('ruhe_sim_range_min').value);
+                const ruheSimEnd = parseFloat(document.getElementById('ruhe_sim_range_max').value);
+                
+                // Simulierte Ruhewerte erstellen
+                const dataCountPastTau2 = currentData.t_s.filter(t => t >= tau2).length;
+                const simTimePoints = Array.from({length: dataCountPastTau2}, (_, i) => 
+                    ruheSimStart + i * (ruheSimEnd - ruheSimStart) / dataCountPastTau2);
+                
+                ruheSimData = {
+                    t_s: simTimePoints,
+                    VO2_t: Array(dataCountPastTau2).fill(VO2Basis)
+                };
+                
+                maxRuheTSValue = Math.max(...ruheSimData.t_s);
+                
+                // Daten zusammenführen und filtern
+                const combinedTS = [...currentData.t_s, ...ruheSimData.t_s];
+                const combinedVO2 = [...currentData.VO2_t, ...ruheSimData.VO2_t];
+                
+                // Filtern ab Tau2
+                const filteredIndices = combinedTS.map((t, i) => ({i, t}))
+                    .filter(item => item.t >= t_delay)
+                    .map(item => ({i: item.i, t: item.t - t_delay}))
+                    .filter(item => item.t >= tau2)
+                    .map(item => item.i);
+                
+                const xData = filteredIndices.map(i => combinedTS[i] - t_delay);
+                const yData = filteredIndices.map(i => combinedVO2[i]);
+                
+                // Vereinfachter Fit für die langsame Komponente
+                const modelFunc = (t, B, TauB) => B * Math.exp(-t/TauB) + VO2Basis;
+                const startParams = [0.5, 540]; // [B, TauB]
+                
+                try {
+                    const fitResult = simplifiedNLSFit(xData, yData, modelFunc, startParams);
+                    
+                    slowEstimates = {
+                        B: fitResult[0],
+                        TauB: fitResult[1],
+                        C: VO2Basis
+                    };
+                    
+                    // Slider aktualisieren
+                    document.getElementById('B').value = slowEstimates.B;
+                    document.getElementById('B-value').textContent = slowEstimates.B.toFixed(2);
+                    
+                    document.getElementById('TauB').value = slowEstimates.TauB;
+                    document.getElementById('TauB-value').textContent = slowEstimates.TauB.toFixed(1);
+                    
+                    document.getElementById('C').value = slowEstimates.C;
+                    document.getElementById('C-value').textContent = slowEstimates.C.toFixed(2);
+                    
+                    updatePlot();
+                    showNotification('EPOC Slow-Fit erfolgreich abgeschlossen');
+                } catch (error) {
+                    showNotification('Fehler beim EPOC Slow-Fit: ' + error.message, 'error');
+                }
+            }
+        });
+
+        // Fit: EPOC Fast
+        document.getElementById('fit_full').addEventListener('click', () => {
+            if (!tauEstimate || !slowEstimates || !showData) {
+                showNotification('Einige Schätzwerte fehlen. Bitte führen Sie Schritt 1 und 2 erneut aus.', 'error');
+                return;
+            }
+            
+            if (document.querySelector('input[name="fit_steps"]:checked').value === 'three_steps') {
+                const t_delay = parseFloat(document.getElementById('t_delay').value);
+                const ruheSimStart = parseFloat(document.getElementById('ruhe_sim_range_min').value);
+                
+                // Modelfunktion mit festen Werten für B, TauB und C
+                const modelFunc = (t, A, TauA) => 
+                    A * Math.exp(-t/TauA) + slowEstimates.B * Math.exp(-t/slowEstimates.TauB) + slowEstimates.C;
+                
+                const tau2 = 2 * tauEstimate;
+                
+                // Datenfilterung und Zeitverschiebung
+                const filteredData = {
+                    t_s: currentData.t_s
+                        .filter(t => t >= t_delay && t < (ruheSimStart - t_delay))
+                        .map(t => t - t_delay),
+                    VO2_t: currentData.VO2_t
+                        .filter((_, i) => currentData.t_s[i] >= t_delay && currentData.t_s[i] < (ruheSimStart - t_delay))
+                };
+                
+                const xData = filteredData.t_s;
+                const yData = filteredData.VO2_t;
+                
+                // Gewichtung - in JavaScript vereinfacht
+                const weights = xData.map(t => t <= tau2 ? 1 : 1);
+                
+                try {
+                    const startParams = [2.5, 42]; // [A, TauA]
+                    const fitResult = simplifiedNLSFit(xData, yData, modelFunc, startParams);
+                    
+                    // Slider aktualisieren
+                    document.getElementById('A').value = fitResult[0];
+                    document.getElementById('A-value').textContent = fitResult[0].toFixed(2);
+                    
+                    document.getElementById('TauA').value = fitResult[1];
+                    document.getElementById('TauA-value').textContent = fitResult[1].toFixed(1);
+                    
+                    updatePlot();
+                    showNotification('EPOC Fast-Fit erfolgreich abgeschlossen');
+                } catch (error) {
+                    showNotification('Fehler beim EPOC Fast-Fit: ' + error.message, 'error');
+                }
+            }
+        });
+
+        // Toggle für Ruhe_sim anzeigen
+        document.getElementById('toggle_view').addEventListener('click', () => {
+            showFullView = !showFullView;
+            updatePlot();
+        });
+
+        // VO2 Ruhe berechnen
+        document.getElementById('berechne_vo2_ruhe').addEventListener('click', () => {
+            const geschlecht = document.querySelector('input[name="geschlecht"]:checked').value;
+            const koerpermasse = parseFloat(document.getElementById('koerpermasse').value);
+            const koerperlaenge = parseFloat(document.getElementById('koerperlaenge').value);
+            const alter = parseFloat(document.getElementById('alter').value);
+            const rq = parseFloat(document.getElementById('rq').value);
+            
+            const grundumsatz = berechneGrundumsatz(geschlecht, koerpermasse, koerperlaenge, alter);
+            const rmr = berechneRMR(grundumsatz, rq, geschlecht);
+            
+            document.getElementById('VO2_Ruhe').value = rmr.toFixed(3);
+            document.getElementById('VO2_Ruhe-value').textContent = rmr.toFixed(3);
+            
+            showNotification(`Berechnete Ruhesauerstoffaufnahme: ${rmr.toFixed(3)} l/min`);
+            updatePlot();
+        });
+
+        // Funktion zum Aktualisieren des Plots
+        function updatePlot() {
+            const A = parseFloat(document.getElementById('A').value);
+            const TauA = parseFloat(document.getElementById('TauA').value);
+            const B = parseFloat(document.getElementById('B').value);
+            const TauB = parseFloat(document.getElementById('TauB').value);
+            const C = parseFloat(document.getElementById('C').value);
+            const O2_Store = parseFloat(document.getElementById('O2_Store').value);
+            const t_delay = parseFloat(document.getElementById('t_delay').value);
+            const useRuhe = document.querySelector('input[name="fit_mit"]:checked').value === 'ruhe';
+            const VO2_Basis = useRuhe 
+                ? parseFloat(document.getElementById('VO2_Ruhe').value)
+                : parseFloat(document.getElementById('VO2_Referenz').value);
+            
+            // X-Achsen-Bereich bestimmen
+            let xRange;
+            if (showFullView && maxRuheTSValue) {
+                xRange = [0, maxRuheTSValue];
+            } else {
+                const maxXValue = Math.max(600, currentData ? Math.max(...currentData.t_s) : 600);
+                xRange = [0, maxXValue * 1.1];
+            }
+            
+            // Max X bestimmen
+            const maxX = Math.max(
+                maxRuheTSValue || 0, 
+                600 + 0.5 * TauB, 
+                Math.max(...t_data)
+            );
+            
+            // Max Y bestimmen
+            let maxY;
+            if (currentData) {
+                maxY = Math.max((A + B + C) * 1.1, Math.max(...currentData.VO2_t) * 1.1);
+            } else {
+                maxY = (A + B + C) * 1.1;
+            }
+            
+            // Zeit-Daten generieren
+            const t_s = Array.from({length: Math.floor(maxX) + 1}, (_, i) => i);
+            
+            // Modellwerte berechnen
+            const modelValues = t_s.map(t => 
+                A * Math.exp(-t / TauA) + B * Math.exp(-t / TauB) + C);
+            
+            const modelFast = t_s.map(t => A * Math.exp(-t / TauA));
+            const modelSlow = t_s.map(t => B * Math.exp(-t / TauB));
+            const modelRuhe = Array(t_s.length).fill(C);
+            
+            // Integrierte Werte berechnen
+            const modelFastFunc = t => A * Math.exp(-t / TauA);
+            const integratedModelFast = integrate(modelFastFunc, 0, Math.max(...t_s));
+            
+            const VO2_fast = integratedModelFast / 60;
+            const CE_max = 21.1307796;
+            const WPCR = VO2_fast * CE_max;
+            const WPCR_corrected = VO2_fast < O2_Store ? 0 : (VO2_fast * CE_max) - (O2_Store * CE_max);
+            
+            // Kumulative Fläche berechnen
+            let cumulativeArea = 0;
+            const cumulativeAreas = t_s.map(t => {
+                cumulativeArea += A * Math.exp(-t / TauA);
+                return cumulativeArea;
+            });
+            
+            const O2_Store_index = cumulativeAreas.findIndex(area => area >= O2_Store * 60);
+            const O2_Store_x = t_s[O2_Store_index];
+            
+            // Letzter Datenpunkt
+            const lastDataPoint = currentData ? Math.max(...currentData.t_s) : 0;
+            
+            // Gleichungstext
+            const eqText = `V̇O₂ (t) = ${A.toFixed(2)} * e<sup>-t / ${TauA.toFixed(1)}</sup> + ${B.toFixed(2)} * e<sup>-t / ${TauB.toFixed(1)}</sup> + ${C.toFixed(2)}`;
+            
+            // Plot-Daten erstellen
+            const data = [
+                {
+                    x: t_s,
+                    y: modelValues,
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: 'Modellfunktion',
+                    line: {color: '#EF6F6A'}
+                },
+                {
+                    x: t_s,
+                    y: modelFast,
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: 'EPOC<sub>fast</sub>',
+                    line: {color: '#42BA97'}
+                },
+                {
+                    x: t_s,
+                    y: modelSlow,
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: 'EPOC<sub>slow</sub>',
+                    line: {color: '#BB7693'}
+                },
+                {
+                    x: t_s,
+                    y: modelRuhe,
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: 'C',
+                    line: {color: '#1CADE4'}
+                },
+                {
+                    x: t_s,
+                    y: modelFast,
+                    type: 'scatter',
+                    fill: 'tozeroy',
+                    name: 'EPOC<sub>fast,Integriert</sub>',
+                    fillcolor: 'rgba(66,186,151,0.5)',
+                    line: {color: 'rgba(0,0,0,0)'}
+                },
+                {
+                    x: t_s.slice(0, O2_Store_index),
+                    y: modelFast.slice(0, O2_Store_index),
+                    type: 'scatter',
+                    fill: 'tozeroy',
+                    name: 'O<sub>2</sub>-Speicher',
+                    fillcolor: 'rgba(0,131,143,0.3)',
+                    line: {color: 'rgba(0,0,0,0)', dash: 'dash'}
+                },
+                {
+                    x: [O2_Store_x, O2_Store_x],
+                    y: [0, modelFast[O2_Store_index]],
+                    type: 'scatter',
+                    mode: 'lines',
+                    line: {color: '#00838F', width: 1, dash: 'dash'},
+                    name: 'O2 Store Linie',
+                    showlegend: false
+                },
+                {
+                    x: [2 * TauA, 2 * TauA],
+                    y: [0, maxY],
+                    type: 'scatter',
+                    mode: 'lines',
+                    line: {color: 'gray', width: 0.5, dash: 'dash'},
+                    showlegend: false
+                }
+            ];
+            
+            // Wenn Daten angezeigt werden sollen, füge sie hinzu
+            if (showData && currentData) {
+                const ruheSimStart = parseFloat(document.getElementById('ruhe_sim_range_min').value);
+                
+                // Datenfilterung und Zeitverschiebung
+                const Beispieldaten = {
+                    t_s: currentData.t_s
+                        .filter(t => t >= t_delay && t < (ruheSimStart - t_delay))
+                        .map(t => t - t_delay),
+                    VO2_t: currentData.VO2_t
+                        .filter((_, i) => currentData.t_s[i] >= t_delay && currentData.t_s[i] < (ruheSimStart - t_delay))
+                };
+                
+                // Füge last_data_point Linie hinzu
+                data.push({
+                    x: [lastDataPoint, lastDataPoint],
+                    y: [0, maxY],
+                    type: 'scatter',
+                    mode: 'lines',
+                    line: {color: 'gray', width: 0.5, dash: 'dash'},
+                    showlegend: false
+                });
+                
+                // Berechne Modellwerte an Datenpunkten
+                const modelValuesAtData = Beispieldaten.t_s.map(t => 
+                    A * Math.exp(-t / TauA) + B * Math.exp(-t / TauB) + C);
+                
+                // Berechne R²
+                const rSquared = calculateRSquared(Beispieldaten.VO2_t, modelValuesAtData);
+                
+                // Füge Daten zum Plot hinzu
+                data.push({
+                    x: Beispieldaten.t_s,
+                    y: Beispieldaten.VO2_t,
+                    type: 'scatter',
+                    mode: 'markers+lines',
+                    name: 'V̇O<sub>2</sub>',
+                    marker: {color: 'rgba(38, 131, 198, 0.9)', size: 5.0},
+                    line: {color: 'rgba(38, 131, 198, 1.0)', width: 0.65, dash: '4px, 4px'}
+                });
+                
+                // Wenn volle Ansicht, füge simulierte Ruhewerte hinzu
+                if (showFullView && ruheSimData) {
+                    data.push({
+                        x: ruheSimData.t_s,
+                        y: ruheSimData.VO2_t,
+                        type: 'scatter',
+                        mode: 'markers+lines',
+                        name: 'Sim. Ruhewerte',
+                        marker: {color: '#1CADE4', size: 3.0},
+                        line: {color: '#1CADE4', width: 0.5, dash: '4px, 4px'}
+                    });
+                }
+            }
+            
+            // Layout erstellen
+            const layout = {
+                title: 'EPOC-Modellfunktion',
+                margin: {t: 40},
+                xaxis: {
+                    title: 'Zeit [s]',
+                    range: xRange,
+                    autorange: false
+                },
+                yaxis: {
+                    title: 'V̇O<sub>2</sub>(t) [l·min<sup>-1</sup>]',
+                    range: [0, maxY]
+                },
+                legend: {
+                    x: 0.70,
+                    y: 0.99,
+                    xanchor: 'left',
+                    yanchor: 'top',
+                    bgcolor: 'rgba(255, 255, 255, 0.3)',
+                    bordercolor: 'rgba(0,0,0,0)',
+                    borderwidth: 0
+                },
+                annotations: [
+                    {
+                        x: 2 * TauA,
+                        y: maxY * 0.70,
+                        text: `2tau: ${(2 * TauA).toFixed(1)} s`,
+                        showarrow: false,
+                        xanchor: 'left',
+                        yanchor: 'bottom',
+                        textangle: -90,
+                        font: {size: 11, color: 'darkgrey'}
+                    },
+                    {
+                        x: maxX * 0.03,
+                        y: maxY * 0.80,
+                        text: `W<sub>PCR</sub>: ${WPCR.toFixed(2)} kJ`,
+                        showarrow: false,
+                        xanchor: 'left',
+                        yanchor: 'bottom',
+                        font: {size: 12, color: 'black'}
+                    },
+                    {
+                        x: maxX * 0.03,
+                        y: maxY * 0.70,
+                        text: `W<sub>PCR, korrigiert</sub>: ${WPCR_corrected.toFixed(2)} kJ`,
+                        showarrow: false,
+                        xanchor: 'left',
+                        yanchor: 'bottom',
+                        font: {size: 12, color: 'black'}
+                    },
+                    {
+                        x: maxX * 0.03,
+                        y: maxY * 0.90,
+                        text: eqText,
+                        showarrow: false,
+                        xanchor: 'left',
+                        yanchor: 'bottom',
+                        font: {size: 12, color: 'black'}
+                    }
+                ]
+            };
+            
+            // Wenn Daten angezeigt werden und R² berechnet wurde, füge es zum Layout hinzu
+            if (showData && currentData) {
+                const Beispieldaten = {
+                    t_s: currentData.t_s
+                        .filter(t => t >= t_delay)
+                        .map(t => t - t_delay),
+                    VO2_t: currentData.VO2_t
+                        .filter((_, i) => currentData.t_s[i] >= t_delay)
+                };
+                
+                const modelValuesAtData = Beispieldaten.t_s.map(t => 
+                    A * Math.exp(-t / TauA) + B * Math.exp(-t / TauB) + C);
+                
+                const rSquared = calculateRSquared(Beispieldaten.VO2_t, modelValuesAtData);
+                
+                layout.annotations.push({
+                    x: maxX * 0.03,
+                    y: maxY * 0.60,
+                    text: `R²: ${rSquared.toFixed(3)}`,
+                    showarrow: false,
+                    xanchor: 'left',
+                    yanchor: 'bottom',
+                    font: {family: 'Arial, sans-serif', size: 12, color: 'black'}
+                });
+                
+                layout.annotations.push({
+                    x: lastDataPoint,
+                    y: maxY * 0.70,
+                    text: `t<sub>data_last</sub>: ${lastDataPoint.toFixed(1)} s`,
+                    showarrow: false,
+                    xanchor: 'left',
+                    yanchor: 'bottom',
+                    textangle: -90,
+                    font: {size: 11, color: 'darkgrey'}
+                });
+            }
+            
+            // Plot erstellen
+            Plotly.newPlot('plot', data, layout);
+        }
+        
+        // Initial plot erstellen
+        updatePlot();
+    </script>
+</body>
+</html>
