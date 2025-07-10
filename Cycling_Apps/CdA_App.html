@@ -367,7 +367,7 @@ window.Quarto = {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../Metabolic_Model_Apps/Mader_Modell.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Exercise Simulation</span></a>
+ <span class="menu-text">Metabolic Simulation</span></a>
   </div>
 </li>
       </ul>
@@ -451,13 +451,29 @@ figure figcaption {
 </div>
 <p><br></p>
 <p><a href="../CdA_App_1.5.html">Fullscreen-Link: CdA Calculator</a></p>
-<section id="cda-calculator-app---feature-guide" class="level1">
-<h1>CdA Calculator App - Feature Guide”</h1>
 <section id="introduction" class="level2">
 <h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
-<p>The <strong>CdA Calculator</strong> is designed to perform aerodynamic analysis on ride data. Its primary purpose is to calculate a rider’s coefficient of aerodynamic drag area (<span class="math inline">\(C_d A\)</span>) using a GPX file containing power, GPS, and elevation data. The application enriches this data with meteorological information such as wind and temperature.</p>
-<p>The tool operates in three distinct, sequential steps: 1. <strong>Parameter Input:</strong> The user provides a GPX file and sets key physical parameters like rider/bike mass and rolling resistance. 2. <strong>CdA Analysis:</strong> The application processes the entire ride, filters for segments with stable conditions, calculates the instantaneous <span class="math inline">\(C_d A\)</span> for each, and presents the average value along with detailed charts and a map visualization. 3. <strong>Performance Simulation:</strong> Using the average <span class="math inline">\(C_d A\)</span> derived from the analysis, the tool simulates the power required for the <em>entire</em> ride, providing a model-vs-actual comparison to validate the results.</p>
+<p>The <strong>CdA Calculator</strong> is designed to perform aerodynamic analysis on ride data. Its primary purpose is to calculate a rider’s coefficient of aerodynamic drag area (<span class="math inline">\(C_d A\)</span>) using a GPX file containing power, GPS, and elevation data. The application enriches this data with meteorological information such as wind and temperature. Most calculations are based on the established physics model described by <span class="citation" data-cites="Martin1998">Martin et al. (<a href="#ref-Martin1998" role="doc-biblioref">1998</a>)</span>.</p>
+<p>The tool operates in three distinct, sequential steps:</p>
+<ol type="1">
+<li><strong>Parameter Input:</strong> The user provides a GPX file and sets key physical parameters like rider/bike mass and rolling resistance.</li>
+<li><strong>CdA Analysis:</strong> The application processes the entire ride, filters for segments with stable conditions, calculates the instantaneous <span class="math inline">\(C_d A\)</span> for each, and presents the average value along with detailed charts and a map visualization.</li>
+<li><strong>Performance Simulation:</strong> Using the average <span class="math inline">\(C_d A\)</span> derived from the analysis, the tool simulates the power required for the <em>entire</em> ride, providing a model-vs-actual comparison to validate the results.</li>
+</ol>
 <p>This process allows an athlete to get a robust, data-driven estimate of their aerodynamic profile from a real-world ride, bypassing the need for expensive wind tunnel or velodrome testing.</p>
+<div class="callout callout-style-default callout-warning callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Disclaimer
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>This application was developed primarily as an educational exercise to understand the methodology behind aerodynamic field testing. Given its quick and simple development in an attempt to mimic the functionality of its far more sophisticated namesake, it was therefore named ‘Shit’-myWindsock. It is a simplified implementation and is <strong>not a validated analysis tool</strong>. The results are highly sensitive to data quality and environmental conditions and should not be considered a substitute for, or directly comparable to, results from “myWindsock” or from wind tunnel testing.</p>
+</div>
+</div>
 </section>
 <section id="the-main-interface" class="level2">
 <h2 class="anchored" data-anchor-id="the-main-interface">The Main Interface</h2>
@@ -615,66 +631,14 @@ figure figcaption {
 
 
 </section>
-</section>
 <section id="bibliography" class="level1 unnumbered">
 
 
 </section>
 
 <div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" data-line-spacing="2" role="list">
-<div id="ref-Brooks2012" class="csl-entry" role="listitem">
-Brooks, G. A. (2012). <span class="nocase">Bioenergetics of exercising humans.</span> <em>Comprehensive Physiology</em>, <em>2</em>(1), 537–562. <a href="https://doi.org/10.1002/cphy.c110007">https://doi.org/10.1002/cphy.c110007</a>
-</div>
-<div id="ref-Brooks2004" class="csl-entry" role="listitem">
-Brooks, G. A., Fahey, T. D., &amp; Baldwin, K. M. (2004). <em><span class="nocase">Exercise Physiology: Human Bioenergetics and Its Applications</span></em> (4. Edition, p. 928). McGraw-Hill Education Ltd.
-</div>
-<div id="ref-Dunst2024" class="csl-entry" role="listitem">
-Dunst, A. K., Hesse, C., &amp; Ueberschär, O. (2024). <span class="nocase">Understanding optimal cadence dynamics: a systematic analysis of the power-velocity relationship in track cyclists with increasing exercise intensity</span>. <em>Frontiers in Physiology</em>, <em>15</em>(April), 1–17. <a href="https://doi.org/10.3389/fphys.2024.1343601">https://doi.org/10.3389/fphys.2024.1343601</a>
-</div>
-<div id="ref-Dunst2025" class="csl-entry" role="listitem">
-Dunst, A. K., Hesse, C., &amp; Ueberschär, O. (2025). <span class="nocase">Enhancing endurance performance predictions: the role of movement velocity in metabolic simulations demonstrated by cycling cadence.</span> <em>European Journal of Applied Physiology</em>. <a href="https://doi.org/10.1007/s00421-024-05663-4">https://doi.org/10.1007/s00421-024-05663-4</a>
-</div>
-<div id="ref-Friedlander1998" class="csl-entry" role="listitem">
-Friedlander, A. L., Casazza, G. A., Horning, M. A., Buddinger, T. F., &amp; Brooks, G. A. (1998). <span class="nocase">Effects of exercise intensity and training on lipid metabolism in young women</span>. <em>American Journal of Physiology - Endocrinology and Metabolism</em>, <em>275</em>(5 38-5), 853–863. <a href="https://doi.org/10.1152/ajpendo.1998.275.5.e853">https://doi.org/10.1152/ajpendo.1998.275.5.e853</a>
-</div>
-<div id="ref-Friedlander1999" class="csl-entry" role="listitem">
-Friedlander, A. L., Casazza, G. A., Horning, M. A., Usaj, A., &amp; Brooks, G. A. (1999). <span class="nocase">Endurance training increases fatty acid turnover, but not fat oxidation, in young men</span>. <em>Journal of Applied Physiology</em>, <em>86</em>(6), 2097–2105. <a href="https://doi.org/10.1152/jappl.1999.86.6.2097">https://doi.org/10.1152/jappl.1999.86.6.2097</a>
-</div>
-<div id="ref-Hauser2014" class="csl-entry" role="listitem">
-Hauser, T., Adam, J., &amp; Schulz, H. (2014). <span class="nocase">Comparison of calculated and experimental power in maximal lactate-steady state during cycling</span>. <em>Theoretical Biology and Medical Modelling</em>, <em>11</em>(1), 1–12. <a href="https://doi.org/10.1186/1742-4682-11-25">https://doi.org/10.1186/1742-4682-11-25</a>
-</div>
-<div id="ref-Hintzy-Cloutier2003" class="csl-entry" role="listitem">
-Hintzy-Cloutier, F., Zameziati, K., &amp; Belli, A. (2003). <a href="https://www.ncbi.nlm.nih.gov/pubmed/12629462"><span class="nocase">Influence of the base-line determination on work efficiency during submaximal cycling</span></a>. <em>Journal of Sports Medicine and Physical Fitness</em>, <em>43</em>(1), 51–56.
-</div>
-<div id="ref-Jeukendrup2005" class="csl-entry" role="listitem">
-Jeukendrup, A. E., &amp; Wallis, G. A. (2005). <em><span class="nocase">Measurement of substrate oxidation during exercise by means of gas exchange measurements</span></em> (No. 1; Vol. 26). <a href="https://doi.org/10.1055/s-2004-830512">https://doi.org/10.1055/s-2004-830512</a>
-</div>
-<div id="ref-Jeukendrup2019" class="csl-entry" role="listitem">
-Jeukendrup, A., &amp; Gleeson, M. (2019). <em><span>Sport Nutrition</span></em> (3. Edition, p. 602). Human Kinetics.
-</div>
-<div id="ref-Ji2021" class="csl-entry" role="listitem">
-Ji, S., Sommer, A., Bloch, W., &amp; Wahl, P. (2021). <span class="nocase">Comparison and performance validation of calculated and established anaerobic lactate thresholds in running</span>. <em>Medicina (Lithuania)</em>, <em>57</em>(10). <a href="https://doi.org/10.3390/medicina57101117">https://doi.org/10.3390/medicina57101117</a>
-</div>
-<div id="ref-Mader1984" class="csl-entry" role="listitem">
-Mader, A. (1984). <em><span class="nocase">Eine Theorie zur Berechnung der Dynamik und des steady state von Phosphorylierungszustand und Stoffwechselaktivit<span class="nocase">ä</span>t der Muskelzelle als Folge des Energeibedarfs</span></em> (p. 264) [PhD thesis]. Deutsche Sporthochschule K<span>ö</span>ln.
-</div>
-<div id="ref-Mader2003" class="csl-entry" role="listitem">
-Mader, A. (2003). <span class="nocase">Glycolysis and oxidative phosphorylation as a function of cytosolic phosphorylation state and power output of the muscle cell</span>. <em>European Journal of Applied Physiology</em>, <em>88</em>(4-5), 317–338. <a href="https://doi.org/10.1007/s00421-002-0676-3">https://doi.org/10.1007/s00421-002-0676-3</a>
-</div>
-<div id="ref-Mader1996" class="csl-entry" role="listitem">
-Mader, A., &amp; Allmer, H. (1996). <em><span class="nocase">Computersimulation: M<span class="nocase">ö</span>glichkeiten zur Theoriebildung und Ergebnisinterpretation</span></em> (p. 170). <a href="http://www.amazon.de/Computersimulation-M�glichkeiten-zur-Theoriebildung-Ergebnisinterpretation/dp/3883457310">http://www.amazon.de/Computersimulation-M�glichkeiten-zur-Theoriebildung-Ergebnisinterpretation/dp/3883457310</a>
-</div>
-<div id="ref-Mader1986" class="csl-entry" role="listitem">
-Mader, A., &amp; Heck, H. (1986). <span class="nocase">A theory of the metabolic origin of anaerobic threshold.</span> <em>International Journal of Sports Medicine</em>, <em>7 (Suppl.</em>, 45–65.
-</div>
-<div id="ref-Nolte2022" class="csl-entry" role="listitem">
-Nolte, S., Quittmann, O. J., &amp; Meden, V. (2022). <span class="nocase">Simulation of Steady-State Energy Metabolism in Cycling and Running</span>. <em>SportR<span class="math inline">\(\chi\)</span>iv</em>.
-</div>
-<div id="ref-Oezyener2001" class="csl-entry" role="listitem">
-Özyener, F., Rossiter, H. B., Ward, S. A., &amp; Whipp, B. J. (2001). <span class="nocase">Influence of exercise intensity on the on- and off-transient kinetics of pulmonary oxygen uptake in humans.</span> <em>The Journal of Physiology</em>, <em>533</em>(Pt 3), 891–902. <a href="https://doi.org/10.1111/j.1469-7793.2001.t01-1-00891.x">https://doi.org/10.1111/j.1469-7793.2001.t01-1-00891.x</a>
-</div>
-<div id="ref-Stegemann1991" class="csl-entry" role="listitem">
-Stegemann, J. (1991). <em><span>Leistungsphysiologie</span></em> (4. Edition, p. 385). Georg Thieme Verlag.
+<div id="ref-Martin1998" class="csl-entry" role="listitem">
+Martin, J. C., Milliken, D. L., Cobb, J. E., McFadden, K. L., &amp; Coggan, A. R. (1998). <span class="nocase">Validation of a Mathematical Model for Road Cycling Power</span>. <em>Journal of Applied Biomechanics</em>, <em>14</em>(3), 276–291. <a href="https://doi.org/10.1123/jab.14.3.276">https://doi.org/10.1123/jab.14.3.276</a>
 </div>
 </div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">

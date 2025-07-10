@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Exercise Simulation – ShinyApps</title>
+<title>Metabolic Simulation – ShinyApps</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -298,7 +298,7 @@ window.Quarto = {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../Metabolic_Model_Apps/index_Metabolic_Model_Apps.html">Metabolic Model Apps</a></li><li class="breadcrumb-item"><a href="../Metabolic_Model_Apps/Mader_Modell.html">Exercise Simulation</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../Metabolic_Model_Apps/index_Metabolic_Model_Apps.html">Metabolic Model Apps</a></li><li class="breadcrumb-item"><a href="../Metabolic_Model_Apps/Mader_Modell.html">Metabolic Simulation</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -367,7 +367,7 @@ window.Quarto = {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../Metabolic_Model_Apps/Mader_Modell.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text">Exercise Simulation</span></a>
+ <span class="menu-text">Metabolic Simulation</span></a>
   </div>
 </li>
       </ul>
@@ -411,9 +411,9 @@ window.Quarto = {
 <main class="content" id="quarto-document-content">
 
 
-<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../Metabolic_Model_Apps/index_Metabolic_Model_Apps.html">Metabolic Model Apps</a></li><li class="breadcrumb-item"><a href="../Metabolic_Model_Apps/Mader_Modell.html">Exercise Simulation</a></li></ol></nav>
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../Metabolic_Model_Apps/index_Metabolic_Model_Apps.html">Metabolic Model Apps</a></li><li class="breadcrumb-item"><a href="../Metabolic_Model_Apps/Mader_Modell.html">Metabolic Simulation</a></li></ol></nav>
 <div class="quarto-title">
-<h1 class="title">Exercise Simulation</h1>
+<h1 class="title">Metabolic Simulation</h1>
 </div>
 
 
@@ -447,7 +447,7 @@ figure figcaption {
 </style>
 </div>
 <p><strong>Please note: This website is currently under construction.</strong> I’m gradually adding more detailed explanations of the applications and developing additional models. Consequently, some features may not yet be fully implemented or might not always function as expected. Furthermore, please be aware that the models presented here (specifically in Tab 2) are currently primarily for illustrative purposes and may not be exclusively based on strictly scientifically validated physiological and metabolic factors at this stage.<strong>The model underlying Tab 2 has also not yet been tested or validated using real-world data.</strong> The content will continue to expand over time, and the scientific basis and functionality will be successively improved.</p>
-<p>With this <strong><a href="../File_Converter.html">File Converter App</a></strong>, you can <strong>convert and download .tcx files or .csv files</strong> to use them in the “Exercise Simulation” tab of the “Mader Simulation App”. Fit-files must first be converted to .csv format using <strong><a href="https://gotoes.org/strava/Combine_GPX_TCX_FIT_Files.php">GOTOES File Converter</a></strong> before you can use the File Converter to transform them into a format compatible with the Mader App.</p>
+<p>With this <strong><a href="../File_Converter.html">File Converter App</a></strong>, you can <strong>convert and download .tcx files or .csv files</strong> to use them in the “Exercise Simulation” tab of the “Metabolic Simulation App”. Fit-files must first be converted to .csv format using <strong><a href="https://gotoes.org/strava/Combine_GPX_TCX_FIT_Files.php">GOTOES File Converter</a></strong> before you can use the File Converter to transform them into a format compatible with the Mader App.</p>
 <div style="position: relative; width: 100%; height: 800px;">
 <p><iframe src="Mader_App_9.3.8.3.html" style="position: absolute; width: 100%; height: 100%; border: none;"></iframe></p>
 </div>
@@ -773,7 +773,7 @@ figure figcaption {
 <li>This parameter defines the characteristic speed of the exponential rise of <span class="math inline">\(\dot{V}O_2\)</span> towards its new, higher target (steady-state) value whenever exercise intensity increases or exercise begins from a lower baseline. A smaller τ<sub>on</sub> value indicates faster “on” kinetics, meaning <span class="math inline">\(\dot{V}O_2\)</span> reaches its target more quickly. Typical values for τ<sub>on</sub> in healthy individuals during moderate intensity exercise range from about 20 seconds in highly trained athletes to 40 seconds or more in less trained or older individuals <span class="citation" data-cites="Whipp1972 Barstow1991">(<a href="#ref-Barstow1991" role="doc-biblioref">Barstow &amp; Mole, 1991</a>; <a href="#ref-Whipp1972" role="doc-biblioref">Whipp &amp; Wasserman, 1972</a>)</span>. The fundamental equation describing an exponential rise to a new steady state is often given as: <span class="math display">\[ \dot{V}O_2(t) = \dot{V}O_{2,initial} + (\dot{V}O_{2,target} - \dot{V}O_{2,initial}) \cdot (1 - e^{-(t - t_{delay})/\tau_{on}}) \]</span> Where <span class="math inline">\(t_{delay}\)</span> is the initial time delay (see below). The app implements this step-wise.</li>
 <li><strong>Intensity-Dependent τ<sub>on</sub> (Checkbox):</strong>
 <ul>
-<li>If this option is checked, τ<sub>on</sub> is not a single fixed value for all upward transitions. Instead, it is dynamically calculated for each second of the simulation based on the <span class="math inline">\(\dot{V}O_2\)</span> (expressed as a percentage of the current <span class="math inline">\(\dot{V}O_{2,max}\)</span>) of the <em>immediately preceding</em> time step. The underlying base formula is <span class="math inline">\(\tau_{on\_base} = 0.38 \cdot \text{PreviousIntensity%} + 6\)</span> seconds. The slider value for τ<sub>on</sub> then acts as the specific τ<sub>on</sub> that would occur if the preceding intensity was exactly 50% of <span class="math inline">\(\dot{V}O_{2,max}\)</span>. This means the slider effectively sets an offset to this formula, allowing the user to shift the entire linear τ<sub>on</sub>-intensity relationship. This feature aims to simulate the physiological observation that <span class="math inline">\(\dot{V}O_2\)</span> on-kinetics can be slower if an exercise bout is initiated from an already elevated metabolic rate (e.g., due to prior high-intensity work or insufficient recovery).</li>
+<li>If this option is checked, τ<sub>on</sub> is not a single fixed value for all upward transitions. Instead, it is dynamically calculated for each second of the simulation based on the <span class="math inline">\(\dot{V}O_2\)</span> (expressed as a percentage of the current <span class="math inline">\(\dot{V}O_{2,max}\)</span>) of the <em>immediately preceding</em> time step. The slider value for τ<sub>on</sub> then acts as the specific τ<sub>on</sub> that would occur if the preceding intensity was exactly 50% of <span class="math inline">\(\dot{V}O_{2,max}\)</span>. This means the slider effectively sets an offset to the underlying formula, allowing the user to shift the entire linear τ<sub>on</sub>-intensity relationship. This feature aims to simulate the physiological observation that <span class="math inline">\(\dot{V}O_2\)</span> on-kinetics can be slower if an exercise bout is initiated from an already elevated metabolic rate.</li>
 </ul></li>
 </ul></li>
 <li><strong><span class="math inline">\(\dot{V}O_{2,off}\)</span> time constant (τ<sub>off</sub>) (s):</strong>
@@ -781,7 +781,7 @@ figure figcaption {
 <li>This parameter defines the characteristic speed of the exponential fall of <span class="math inline">\(\dot{V}O_2\)</span> towards its new, lower target value when exercise intensity decreases or during recovery periods. Off-kinetics can be similar to, or often slightly slower than, on-kinetics, particularly following high-intensity or prolonged exercise, due to factors like elevated body temperature, hormone levels, and the metabolic cost of recovery processes <span class="citation" data-cites="Oezyener2001">(<a href="#ref-Oezyener2001" role="doc-biblioref">Özyener et al., 2001</a>)</span>.</li>
 <li><strong>Intensity-Dependent τ<sub>off</sub> (Checkbox):</strong>
 <ul>
-<li>If checked, τ<sub>off</sub> is also dynamically calculated. Its value depends on the maximum <span class="math inline">\(\dot{V}O_2\)</span> (as % of current <span class="math inline">\(\dot{V}O_{2,max}\)</span>) achieved within a recent lookback window (typically defined as twice the duration of the <em>previous</em> step’s τ<sub>off</sub> value). The base formula used is <span class="math inline">\(\tau_{off\_base} = 0.45 \cdot \text{Intensity%} + 10\)</span> seconds. Similar to the dynamic τ<sub>on</sub>, the slider value for τ<sub>off</sub> sets the τ<sub>off</sub> for a reference 50% intensity, thereby shifting this relationship. This models the physiological reality that recovery of <span class="math inline">\(\dot{V}O_2\)</span> might be faster after lower intensity efforts and slower after higher intensity efforts which cause greater metabolic disturbance and a larger oxygen debt.</li>
+<li>If checked, τ<sub>off</sub> is also dynamically calculated. Its value depends on the maximum <span class="math inline">\(\dot{V}O_2\)</span> (as % of current <span class="math inline">\(\dot{V}O_{2,max}\)</span>) achieved within a recent lookback window (typically defined as twice the duration of the <em>previous</em> step’s τ<sub>off</sub> value). The base formula used is <span class="math inline">\(\tau_{off\_base} = 0.45 \cdot \text{Intensity%} + 10\)</span> seconds. Similar to the dynamic τ<sub>on</sub>, the slider value for τ<sub>off</sub> sets the τ<sub>off</sub> for a reference 50% intensity, thereby shifting this relationship. This models the physiological reality that recovery of <span class="math inline">\(\dot{V}O_2\)</span> might be faster after lower intensity efforts and slower after higher intensity efforts which cause greater metabolic disturbance.</li>
 </ul></li>
 </ul></li>
 <li><strong><span class="math inline">\(\dot{V}O_2\)</span> Response Delay (s):</strong>
@@ -811,7 +811,11 @@ figure figcaption {
 </ul></li>
 <li><strong>Cap vLass by <span class="math inline">\(\dot{V}O_2\)</span> Deficit (Checkbox):</strong>
 <ul>
-<li>An optional, advanced physiological constraint. If this box is checked, the actual lactate production rate (<span class="math inline">\(vLa_{SS}\)</span>) at any given time point during the simulation is capped. The cap is determined such that the <em>net</em> anaerobic energy supply (which is derived from the energy equivalent of lactate production <em>minus</em> the energy equivalent of concurrent lactate oxidation) does not exceed the current calculated oxygen deficit (which, in turn, is <span class="math inline">\(\dot{V}O_2 \text{ Demand} - \dot{V}O_2 \text{ Actual}\)</span>). The purpose of this option is to enhance physiological plausibility by preventing an unrealistic “overshoot” of anaerobic energy production, especially during transitions where aerobic energy supply is still ramping up or is limited. When unchecked (default), <span class="math inline">\(vLa_{SS}\)</span> is determined purely by its own kinetic parameters without this specific energy balance cap.</li>
+<li>An optional, advanced physiological constraint. If this box is checked, the actual lactate production rate (<span class="math inline">\(vLa_{SS}\)</span>) at any given time point during the simulation is capped. The cap is determined such that the <em>net</em> anaerobic energy supply (which is derived from the energy equivalent of lactate production <em>minus</em> the energy equivalent of concurrent lactate oxidation) does not exceed the current calculated oxygen deficit (which, in turn, is <span class="math inline">\(\dot{V}O_2 \text{ Demand} - \dot{V}O_2 \text{ Actual}\)</span>). The purpose of this option is to enhance physiological plausibility by preventing an unrealistic “overshoot” of anaerobic energy production, especially during transitions where aerobic energy supply is still ramping up or is limited.</li>
+</ul></li>
+<li><strong>Boost vLass by <span class="math inline">\(\dot{V}O_2\)</span> Deficit (Checkbox):</strong>
+<ul>
+<li>Another optional feature that simulates a more aggressive glycolytic response when the aerobic energy supply significantly lags behind demand. If checked, the target lactate production rate (<span class="math inline">\(vLa_{SS}\)</span>) is additionally increased based on the current magnitude of the <span class="math inline">\(\dot{V}O_2\)</span> deficit. A fraction (controlled by the “vLa<sub>SS</sub> Deficit Boost Factor” slider) of the energy equivalent of the O₂ deficit is converted into an additional target <span class="math inline">\(vLa_{SS}\)</span>. This simulates a compensatory upregulation of glycolysis when aerobic ATP production is insufficient.</li>
 </ul></li>
 <li><strong>Muscle pH (pH<sub>m</sub>) Simulation (Informational text &amp; underlying mechanism):</strong>
 <ul>
@@ -830,9 +834,15 @@ figure figcaption {
 <h4 class="anchored" data-anchor-id="glycogen-storage-parameters"><strong>Glycogen Storage Parameters</strong></h4>
 <p>This section of the control panel models the dynamics of muscle glycogen stores, a critical fuel source for prolonged and high-intensity exercise. The model simulates depletion due to carbohydrate oxidation and potential repletion from exogenous carbohydrate intake.</p>
 <ul>
+<li><strong>Assumed CHO Availability (Dropdown):</strong> This dropdown allows the user to select the assumed baseline carbohydrate status of the athlete, which directly influences the auto-calculation of glycogen stores. The options are:
+<ul>
+<li><code>Normal CHO</code>: Represents a typical, well-fed state.</li>
+<li><code>High CHO (Loaded)</code>: Represents a state of carbohydrate supercompensation, as achieved through specific nutritional strategies.</li>
+<li><code>Low CHO (Depleted)</code>: Represents a state of glycogen depletion, for instance after prolonged exercise or during low-carbohydrate dieting.</li>
+</ul></li>
 <li><strong>Auto-calculate glycogen values based on muscle mass (Checkbox):</strong>
 <ul>
-<li>If this box is checked, the “Initial Glycogen Storage” and “Maximum Glycogen Storage” slider values are automatically populated. This calculation is based on the “Active Muscle Mass” value (derived from the PCr model settings) or, if that’s not explicitly set, an estimation from total body mass. The calculation assumes typical physiological glycogen concentrations in muscle tissue, for instance, around 15 grams of glycogen per kilogram of active muscle for normal, fed states, and perhaps up to 20-25 g/kg for carbohydrate-loaded (“supercompensated”) states.</li>
+<li>If this box is checked, the “Initial Glycogen Storage” and “Maximum Glycogen Storage” slider values are automatically populated. The calculation is based on the “Active Muscle Mass” value, the selected “Assumed CHO Availability” status, and the athlete’s aerobic fitness (<span class="math inline">\(\dot{V}O_{2,max}\)</span>). The underlying model uses research-based data (e.g., from <span class="citation" data-cites="Areta2018">Areta &amp; Hopkins (<a href="#ref-Areta2018" role="doc-biblioref">2018</a>)</span>) to estimate glycogen concentrations (in g/kg muscle), which are then multiplied by the active muscle mass to yield the total glycogen store in grams. This allows for a more physiologically nuanced estimation of glycogen availability.</li>
 </ul></li>
 <li><strong>Initial Glycogen Storage (g) (Slider):</strong>
 <ul>
@@ -867,7 +877,7 @@ figure figcaption {
 </ul></li>
 <li><strong>Use MLSS from Tab 1 as CP (Checkbox):</strong>
 <ul>
-<li>If checked (this is the default state), the CP value for the Tab 2 simulation is automatically set to be equal to the Maximal Lactate Steady State (MLSS) power output calculated in Tab 1. The CP slider below then becomes disabled, but will display this MLSS value. This option provides a physiologically grounded and individually determined estimate for CP, as MLSS and CP are often found to be closely related, though not always identical <span class="citation" data-cites="Poole2016">(<a href="#ref-Poole2016" role="doc-biblioref">Poole et al., 2016</a>)</span>.</li>
+<li>If checked (this is the default state), the CP value for the Tab 2 simulation is automatically derived from the Maximal Lactate Steady State (MLSS) power output calculated in Tab 1. The app uses the approximation <span class="math inline">\(CP \approx MLSS / 0.95\)</span>, which accounts for the common observation that CP is often slightly higher than MLSS. The CP slider below then becomes disabled but will display this calculated CP value. This option provides a physiologically grounded and individually determined estimate for CP, as MLSS and CP are often found to be closely related, though not always identical <span class="citation" data-cites="Poole2016">(<a href="#ref-Poole2016" role="doc-biblioref">Poole et al., 2016</a>)</span>.</li>
 </ul></li>
 <li><strong>W’ Balance Minimum (kJ) (Slider):</strong>
 <ul>
@@ -916,10 +926,10 @@ figure figcaption {
 <li>If checked, the simulation plot will include an additional trace representing the theoretical, instantaneous <span class="math inline">\(\dot{V}O_2\)</span> demand required to meet the energy cost of the current power output if metabolism could respond infinitely fast. The area between this demand curve and the actual (kinetically-limited) <span class="math inline">\(\dot{V}O_2\)</span> curve visually represents the accumulated oxygen deficit (when demand &gt; uptake) or oxygen surplus (during recovery when uptake &gt; demand).</li>
 </ul></li>
 </ul>
-<p><strong>PCr Model Dynamics:</strong> The simulation models changes in the PCr store based on the dynamic balance between O₂ demand and actual O₂ uptake:</p>
+<p><strong>PCr Model Dynamics:</strong> The simulation models changes in the PCr store based on the dynamic balance between O₂ demand and actual O₂ uptake, incorporating a sophisticated partitioning of the O₂ deficit.</p>
 <ul>
-<li><strong>PCr Depletion:</strong> When <span class="math inline">\(\dot{V}O_2\)</span> demand (calculated from the current power output using the steady-state P-<span class="math inline">\(\dot{V}O_2\)</span> relationship) exceeds the actual <span class="math inline">\(\dot{V}O_2\)</span> uptake (which is kinetically limited), an oxygen deficit occurs. A portion of the energy required to cover this deficit is supplied by the net breakdown of PCr to rapidly resynthesize ATP (PCr + ADP + H⁺ ↔︎ ATP + Cr). The amount of PCr consumed is proportional to this O₂ deficit portion that is not covered by immediate glycolysis, scaled by the P/O₂ ratio (which converts O₂ deficit to ATP equivalents).<span class="math display">\[ \Delta PCr_{consumed} \propto (\text{O2\_deficit\_allocated\_to\_PCr}) \cdot (P/O_2 \text{ ratio}) \]</span></li>
-<li><strong>PCr Resynthesis:</strong> When actual <span class="math inline">\(\dot{V}O_2\)</span> uptake exceeds the current <span class="math inline">\(\dot{V}O_2\)</span> demand (creating an O₂ surplus, e.g., during recovery periods or when exercise intensity decreases significantly), PCr is resynthesized from creatine and ATP produced by oxidative phosphorylation. This process itself consumes ATP (and thus oxygen) and is modeled as being proportional to the O₂ surplus available for PCr resynthesis, again scaled by the P/O₂ ratio. The app’s code includes a <code>pcrResynthesisFactor</code> (set to 0.5), implying that only a portion of the O₂ surplus is directed towards PCr resynthesis, with the rest potentially contributing to other recovery processes. <span class="math display">\[ \Delta PCr_{resynthesized} \propto (\text{O2\_surplus} \cdot \text{pcrResynthesisFactor}) \cdot (P/O_2 \text{ ratio}) \]</span> The <strong>accumulated O₂ deficit</strong> represents the total integrated difference between oxygen demand and oxygen uptake from the start of exercise. It reflects the cumulative reliance on anaerobic energy sources (PCr hydrolysis and anaerobic glycolysis leading to lactate production) to meet the energy demands not immediately covered by aerobic metabolism. The kinetics of PCr are often faster than those of <span class="math inline">\(\dot{V}O_2\)</span> <span class="citation" data-cites="McCann1995">(<a href="#ref-McCann1995" role="doc-biblioref">McCann et al., 1995</a>)</span>.</li>
+<li><strong>PCr Depletion:</strong> When <span class="math inline">\(\dot{V}O_2\)</span> demand exceeds actual <span class="math inline">\(\dot{V}O_2\)</span> uptake, an O₂ deficit occurs. The model first calculates the portion of this deficit that is covered by the energy equivalent of <em>gross</em> lactate production (derived from <span class="math inline">\(vLa_{SS}\)</span>). The <em>remaining</em> O₂ deficit is then attributed to the alactic system and is covered by the net breakdown of PCr to rapidly resynthesize ATP. The amount of PCr consumed is thus proportional to this residual deficit, scaled by the P/O₂ ratio. <span class="math display">\[ \Delta PCr_{consumed} \propto (\text{Total O2 Deficit} - \text{O2 Equiv. of Gross Lactate Production}) \cdot (P/O_2 \text{ ratio}) \]</span></li>
+<li><strong>PCr Resynthesis:</strong> When actual <span class="math inline">\(\dot{V}O_2\)</span> uptake exceeds demand (creating an O₂ surplus), PCr is resynthesized. The efficiency of this process is not constant. The app implements a dynamic resynthesis factor that depends on the recovery intensity. If the recovery power is above MLSS, no PCr is resynthesized. If it is below MLSS, the resynthesis efficiency increases as the recovery power drops further towards resting levels. This reflects the physiological principle that PCr resynthesis is more effective during very low-intensity or passive recovery. The amount of PCr resynthesized is then proportional to the O₂ surplus, scaled by this dynamic factor and the P/O₂ ratio. <span class="math display">\[ \Delta PCr_{resynthesized} \propto (\text{O2 Surplus} \cdot \text{Dynamic Resynthesis Factor}) \cdot (P/O_2 \text{ ratio}) \]</span> The <strong>accumulated O₂ deficit</strong> represents the total integrated difference between oxygen demand and oxygen uptake from the start of exercise. It reflects the cumulative reliance on anaerobic energy sources (PCr hydrolysis and anaerobic glycolysis leading to lactate production) to meet the energy demands not immediately covered by aerobic metabolism. The kinetics of PCr are often faster than those of <span class="math inline">\(\dot{V}O_2\)</span> <span class="citation" data-cites="McCann1995">(<a href="#ref-McCann1995" role="doc-biblioref">McCann et al., 1995</a>)</span>.</li>
 </ul>
 </section>
 <section id="model-parameters-for-tab-2-simulation" class="level4">
@@ -971,7 +981,7 @@ figure figcaption {
 <li><strong>PCr Store (mM/kg) (Yellow Dotted Line):</strong> Modeled phosphocreatine concentration in the active muscle.</li>
 <li><strong>pH<sub>m</sub> (Unitless) (Orange Dotted Line):</strong> Modeled intramuscular pH.</li>
 <li><strong>RQ<sub>predicted</sub> ⋅ 10 (Unitless) (Yellow-Orange Dashed Line):</strong> The kinetically-smoothed predicted Respiratory Quotient, scaled by a factor of 10 for better visibility on this shared axis (actual RQ values typically range from 0.7 to 1.0, potentially slightly higher during very intense exercise).</li>
-<li><strong>Heart Rate ⋅ 10⁻¹ (bpm) (Dark Red Dotted Line):</strong> The simulated heart rate, scaled by a factor of 0.1 for plotting convenience (e.g., a heart rate of 150 bpm would be plotted at a Y-value of 15).</li>
+<li><strong>Heart Rate ⋅ 10⁻¹ (bpm) (Dark Green Dotted Line):</strong> The simulated heart rate, scaled by a factor of 0.1 for plotting convenience (e.g., a heart rate of 150 bpm would be plotted at a Y-value of 15).</li>
 <li><strong>Zero Line (Thin Grey Dotted Line):</strong> A horizontal reference line at y=0 for this axis, useful for interpreting parameters like PD or W’ balance relative to baseline.</li>
 </ul></li>
 <li><strong>Tertiary Y-Axis (Right side, typically positioned further out - <code>y3</code>):</strong> This axis is dedicated to displaying oxygen uptake parameters.
@@ -1027,6 +1037,9 @@ figure figcaption {
 <div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" data-line-spacing="2" role="list">
 <div id="ref-Achten2004" class="csl-entry" role="listitem">
 Achten, J., &amp; Jeukendrup, A. E. (2004). <span class="nocase">Optimizing fat oxidation through exercise and diet</span>. <em>Nutrition</em>, <em>20</em>(7-8), 716–727. <a href="https://doi.org/10.1016/j.nut.2004.04.005">https://doi.org/10.1016/j.nut.2004.04.005</a>
+</div>
+<div id="ref-Areta2018" class="csl-entry" role="listitem">
+Areta, J. L., &amp; Hopkins, W. G. (2018). <span class="nocase">Skeletal Muscle Glycogen Content at Rest and During Endurance Exercise in Humans: A Meta-Analysis.</span> <em>Sports Medicine (Auckland, N.Z.)</em>, <em>48</em>(9), 2091–2102. <a href="https://doi.org/10.1007/s40279-018-0941-1">https://doi.org/10.1007/s40279-018-0941-1</a>
 </div>
 <div id="ref-Astrand2003" class="csl-entry" role="listitem">
 Åstrand, P.-. O., Rodahl, K., Stromme, S. B., &amp; Dahl, H. A. (2003). <em><span class="nocase">Textbook of work physiology. Physiological bases of excercise</span></em> (4. Edition, p. 649). Human Kinetics.

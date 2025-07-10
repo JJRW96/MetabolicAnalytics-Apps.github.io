@@ -24,6 +24,7 @@ ul.task-list li input[type="checkbox"] {
 div.csl-bib-body { }
 div.csl-entry {
   clear: both;
+  margin-bottom: 0em;
 }
 .hanging-indent div.csl-entry {
   margin-left:2em;
@@ -337,7 +338,7 @@ div.csl-indent {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../Metabolic_Model_Apps/Mader_Modell.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Exercise Simulation</span></a>
+ <span class="menu-text">Metabolic Simulation</span></a>
   </div>
 </li>
       </ul>
@@ -416,14 +417,40 @@ figure figcaption {
 }
 </style>
 </div>
-<p>….</p>
-<div id="refs" role="list">
-
+<p>This section contains a pair of standalone applications focused on the fundamental physics of cycling. Unlike the interconnected metabolic modeling suite, these tools are designed for specific, isolated analyses of the forces a cyclist must overcome. Both apps are based on the established physics model described by <span class="citation" data-cites="Martin1998">Martin et al. (<a href="#ref-Martin1998" role="doc-biblioref">1998</a>)</span> but are applied to answer different questions.</p>
+<section id="the-cycling-forces-calculator" class="level3">
+<h3 class="anchored" data-anchor-id="the-cycling-forces-calculator">The Cycling Forces Calculator</h3>
+<p>The <strong>Cycling Forces Calculator</strong> is an interactive educational tool designed to visualize and quantify the primary resistive forces in cycling. It allows users to manipulate key variables—such as speed, gradient, rider mass, and aerodynamic drag—and immediately see the impact on the required power output. The app provides a clear breakdown of how total power is distributed to overcome aerodynamic drag (P<sub>AT</sub>), rolling resistance (P<sub>RR</sub>), and changes in potential energy due to gravity (P<sub>PE</sub>), making it an excellent tool for exploring “what-if” scenarios.</p>
+</section>
+<section id="the-cda-calculator" class="level3">
+<h3 class="anchored" data-anchor-id="the-cda-calculator">The CdA Calculator</h3>
+<div class="callout callout-style-default callout-warning callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
 </div>
+<div class="callout-title-container flex-fill">
+Disclaimer for the CdA Calculator
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>This application was developed primarily as an educational exercise to understand the methodology behind aerodynamic field testing. Given its quick and simple development in an attempt to mimic the functionality of its far more sophisticated namesake, it was therefore named ‘Shit’-myWindsock. It is a simplified implementation and is <strong>not a validated analysis tool</strong>. The results are highly sensitive to data quality and environmental conditions and should not be considered a substitute for, or directly comparable to, results from “myWindsock” or from wind tunnel testing.</p>
+</div>
+</div>
+<p>This application is an experimental tool that attempts to estimate a cyclist’s aerodynamic drag area (C<sub>d</sub>A) from a GPS activity file. By uploading a <code>.gpx</code> file containing power data, the app analyzes segments of the ride where conditions are relatively stable. It uses the ride data along with fetched historical weather data (wind and temperature) to reverse-engineer the C<sub>d</sub>A value that would best explain the recorded power output. The results provide an <em>estimate</em> of the user’s aerodynamic profile under real-world conditions.</p>
 
 
+</section>
+<section id="bibliography" class="level1 unnumbered">
 
-</main> <!-- /main -->
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" data-line-spacing="2" role="list">
+<div id="ref-Martin1998" class="csl-entry" role="listitem">
+Martin, J. C., Milliken, D. L., Cobb, J. E., McFadden, K. L., &amp; Coggan, A. R. (1998). <span class="nocase">Validation of a Mathematical Model for Road Cycling Power</span>. <em>Journal of Applied Biomechanics</em>, <em>14</em>(3), 276–291. <a href="https://doi.org/10.1123/jab.14.3.276">https://doi.org/10.1123/jab.14.3.276</a>
+</div>
+</div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
     // Ensure there is a toggle, if there isn't float one in the top right
@@ -777,8 +804,8 @@ figure figcaption {
   </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="../Metabolic_Model_Apps/Mader_Modell.html" class="pagination-link" aria-label="Exercise Simulation">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Exercise Simulation</span>
+      <a href="../Metabolic_Model_Apps/Mader_Modell.html" class="pagination-link" aria-label="Metabolic Simulation">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Metabolic Simulation</span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">

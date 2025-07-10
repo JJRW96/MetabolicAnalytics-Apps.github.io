@@ -20,26 +20,7 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
-/* CSS for citations */
-div.csl-bib-body { }
-div.csl-entry {
-  clear: both;
-}
-.hanging-indent div.csl-entry {
-  margin-left:2em;
-  text-indent:-2em;
-}
-div.csl-left-margin {
-  min-width:2em;
-  float:left;
-}
-div.csl-right-inline {
-  margin-left:2em;
-  padding-left:1em;
-}
-div.csl-indent {
-  margin-left: 2em;
-}</style>
+</style>
 
 
 <script src="../site_libs/quarto-nav/quarto-nav.js"></script>
@@ -337,7 +318,7 @@ div.csl-indent {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../Metabolic_Model_Apps/Mader_Modell.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Exercise Simulation</span></a>
+ <span class="menu-text">Metabolic Simulation</span></a>
   </div>
 </li>
       </ul>
@@ -416,12 +397,132 @@ figure figcaption {
 }
 </style>
 </div>
-<p>….</p>
-<div id="refs" role="list">
-
+<section id="the-metabolic-modeling-suite---from-raw-data-to-physiological-simulation" class="level1">
+<h1>The Metabolic Modeling Suite - From Raw Data to Physiological Simulation</h1>
+<p>The Metabolic Modeling Suite is a collection of interconnected web applications designed to guide a user through the complete journey from performance analysis to physiological simulation. It bridges the gap between analyzing past performances and predicting future metabolic responses. The apps follow a logical progression, allowing a user to start with their own workout data, build an accurate model of their physiological capabilities, and then use that model to see how their body might respond to specific training sessions or race efforts.</p>
+<p>The workflow is designed to be modular, so users can engage with the tools that best suit their immediate needs. The true power, however, lies in using the apps together. The core philosophy moves from a <strong>“top-down” analysis</strong> of real-world performance data to a <strong>“bottom-up” simulation</strong> of physiological dynamics.</p>
+<p>The apps comprise three main functional components, each with a dedicated application:</p>
+<ol type="1">
+<li><strong>Performance Data Aggregation &amp; Profiling:</strong> The <strong>Composite Power Profile Analyzer</strong> and the <strong>Etalon W/kg Performance Converter</strong> are used to collect, standardize, and refine performance data into a validated power-duration profile.</li>
+<li><strong>Integrated Physiological Modeling:</strong> The <strong>Integrated Metabolic &amp; Power Profile</strong> app serves as the central hub where the power-duration profile is combined with a physiological model to create a complete picture of an athlete’s metabolic engine.</li>
+<li><strong>Dynamic Exercise Simulation:</strong> The <strong>Metabolic Simulation</strong> app uses the integrated profile from the previous step to run a second-by-second simulation of the body’s metabolic response to any given workout.</li>
+</ol>
+<p>This page provides an overview of this workflow, explaining how to leverage the suite to move from a collection of workout files to a detailed, predictive model of athletic performance. While the first three applications (Power Profile, Etalon Converter, Metabolic Profile) are built on robust models, the final <strong>Metabolic Simulation</strong> app should be considered more experimental. It attempts to model highly complex, dynamic interactions and is continuously being improved.</p>
+<section id="the-core-workflow-a-step-by-step-guide" class="level2">
+<h2 class="anchored" data-anchor-id="the-core-workflow-a-step-by-step-guide">The Core Workflow: A Step-by-Step Guide</h2>
+<p>The intended workflow follows a logical progression, leveraging the specialized function of each application.</p>
+<section id="step-1-building-the-power-profile-power-profile-analyzer" class="level3">
+<h3 class="anchored" data-anchor-id="step-1-building-the-power-profile-power-profile-analyzer">Step 1: Building the Power Profile (Power Profile Analyzer)</h3>
+<p>The first step is to establish an accurate representation of an athlete’s maximal power-duration capabilities. This is the primary function of the <strong>Composite Power Profile Analyzer</strong>.</p>
+<ul>
+<li><strong>Input:</strong> The process begins by uploading one or more raw activity files (e.g., <code>.tcx</code>, <code>.gpx</code>). The app is designed to handle a large number of files, aggregating data from weeks or even months of training and racing.</li>
+<li><strong>Process:</strong>
+<ol type="1">
+<li><strong>Parsing &amp; Interpolation:</strong> The app reads each file to extract the fundamental time-stamped power data and interpolates it to a consistent 1-second resolution.</li>
+<li><strong>MMP Curve Generation:</strong> For each individual activity, it calculates the Mean Maximal Power (MMP) curve—the highest average power achieved for every possible duration within that single ride.</li>
+<li><strong>Composite Synthesis:</strong> The app’s key function is to then create a single, “best-ever” composite power curve. For every second of duration, it compares the MMP value from all individual files and retains only the single highest value. The result is a curve representing the athlete’s absolute best performance across all provided activities.</li>
+</ol></li>
+<li><strong>Modeling &amp; Refinement:</strong>
+<ul>
+<li>This composite curve is fitted with a mathematical model (e.g., OmPD, 2-P CP) to smooth the data and derive key parameters like Critical Power (CP).</li>
+<li>An algorithm then identifies “Key Efforts”—breakthrough performances that are most representative of the athlete’s maximal capabilities, typically points that lie significantly above the fitted model. The user can further refine this list using a “Clean Up” function that removes redundant points, ensuring the final set is well-distributed and ideal for subsequent modeling.</li>
+</ul></li>
+<li><strong>Output:</strong> The final, curated list of key efforts is exported as a <code>.json</code> file. This file contains a lean, high-quality set of maximal power-duration data points, ready for the next stage of analysis.</li>
+</ul>
+</section>
+<section id="step-2-generating-or-standardizing-data-etalon-wkg-converter" class="level3">
+<h3 class="anchored" data-anchor-id="step-2-generating-or-standardizing-data-etalon-wkg-converter">Step 2: Generating or Standardizing Data (Etalon W/kg Converter)</h3>
+<p>This step provides an alternative or supplementary method for generating performance data points, particularly when raw activity files are not available (e.g., analyzing a professional rider’s published performance). The <strong>Etalon W/kg Performance Converter</strong> is a specialized physics-based calculator.</p>
+<ul>
+<li><strong>Use Case 1 (Etalon → Real Power):</strong> If a performance is reported in “Etalon W/kg” (a standardized metric for a 60 kg rider), this tool can convert it back into a real-world absolute power value for a specific rider and climb. For example, if it’s known that a pro rider achieved 7.0 Etalon W/kg for 20 minutes, the user can input the rider’s body mass, bike weight, and the climb’s characteristics to calculate the actual absolute power (in Watts) they would have produced. This <code>(Power, Duration)</code> pair becomes a data point for the next step.</li>
+<li><strong>Use Case 2 (Real Power → Etalon):</strong> Conversely, if an athlete knows their own absolute power for a climb, they can use this tool to convert it into the standardized Etalon W/kg metric for comparison against benchmarks.</li>
+</ul>
+</section>
+<section id="step-3-creating-the-integrated-profile-integrated-metabolic-power-profile-app" class="level3">
+<h3 class="anchored" data-anchor-id="step-3-creating-the-integrated-profile-integrated-metabolic-power-profile-app">Step 3: Creating the Integrated Profile (Integrated Metabolic &amp; Power Profile App)</h3>
+<p>This is the core modeling stage where the athlete’s power capabilities are integrated with their unique physiology. The <strong>Integrated Metabolic &amp; Power Profile</strong> app is the central hub for this process.</p>
+<ul>
+<li><strong>Input:</strong> The user either manually enters power-duration data points or, ideally, imports the <code>.json</code> file of “Key Efforts” exported from the <strong>Power Profile Analyzer</strong> in Step 1. They also input key physiological parameters, such as their VO<sub>2,max</sub>, vLa<sub>max</sub>, body mass, and Cost of Exercise (CE).</li>
+<li><strong>The Dual Model:</strong> This app uniquely runs two models in parallel:
+<ol type="1">
+<li>A <strong>Power-Duration Model</strong> is fitted to the imported power data points to calculate parameters like Critical Power (CP) and W’.</li>
+<li>A <strong>Metabolic Model</strong> (based on the work of Mader) uses the physiological inputs (VO<sub>2,max</sub>, vLa<sub>max</sub>, CE) to calculate the body’s steady-state metabolic response to exercise, determining thresholds like the Maximal Lactate Steady State (MLSS) and Fat<sub>max</sub>.</li>
+</ol></li>
+<li><strong>Linking the Models (The Key Feature):</strong> The app provides a powerful “Fit Metabolic Parameter” tool. This feature creates a physiologically plausible link between the two models by assuming that an athlete’s MLSS is tightly correlated with their CP (e.g., MLSS ≈ 93-100% of CP). The user can select a metabolic parameter they are unsure of (e.g., vLa<sub>max</sub>) and the app will iteratively adjust its value until the MLSS calculated by the metabolic model matches the target percentage of the CP calculated from the power profile. This process harmonizes the two profiles, resulting in a single, cohesive physiological model that is anchored to real-world performance data.</li>
+<li><strong>Output:</strong> The app produces a comprehensive set of visualizations, including the P-VO<sub>2</sub>-La dynamics plot, training zones, a power profile radar chart, and detailed metabolic values. This entire integrated profile, including the refined physiological parameters and the power data, can be saved and exported as a <code>.json</code> file for the final simulation stage. The app also features a “Comparison Mode” to analyze and contrast the metrics of multiple saved athlete profiles.</li>
+</ul>
+</section>
+<section id="step-4-simulating-dynamic-exercise-metabolic-simulation-app" class="level3">
+<h3 class="anchored" data-anchor-id="step-4-simulating-dynamic-exercise-metabolic-simulation-app">Step 4: Simulating Dynamic Exercise (Metabolic Simulation App)</h3>
+<p>This final, “bottom-up” step takes the profile data from Step 3 and uses it to predict and visualize the second-by-second physiological response to a specific workout.</p>
+<ul>
+<li><strong>Input:</strong>
+<ol type="1">
+<li><strong>The Profile:</strong> The user loads the comprehensive <code>.json</code> profile saved from the <strong>Integrated Profile App</strong> or manually enters the same set of validated physiological parameters.</li>
+<li><strong>The Stimulus:</strong> The user provides a power-time series to simulate. This can be a built-in step-test, a manually created interval session, or an uploaded <code>.tcx</code> file from a target race or training session.</li>
+</ol></li>
+<li><strong>The Simulation:</strong> The app runs a complex, second-by-second simulation that models:
+<ul>
+<li><strong>VO<sub>2</sub> Kinetics:</strong> The exponential rise and fall of oxygen uptake (τ<sub>on</sub>/τ<sub>off</sub>), including the VO<sub>2</sub> slow component.</li>
+<li><strong>Lactate Dynamics:</strong> The rates of lactate production (vLa<sub>SS</sub>), oxidation (vLa<sub>ox</sub>), and the resulting net accumulation in muscle and blood compartments.</li>
+<li><strong>High-Energy Phosphates:</strong> The depletion and resynthesis of phosphocreatine (PCr) based on the O<sub>2</sub> deficit and surplus.</li>
+<li><strong>Muscle Homeostasis:</strong> The dynamic changes in intramuscular pH based on lactate, PCr, and CO<sub>2</sub> production.</li>
+<li><strong>Substrate Utilization:</strong> The depletion of glycogen stores based on CHO oxidation rates and any carbohydrate intake.</li>
+<li><strong>Fatigue Metrics:</strong> The change in W’ Balance and advanced fatigue metrics like Strain Score.</li>
+</ul></li>
+<li><strong>Output:</strong> The result is a detailed plot showing the dynamic interplay of these metabolic systems over the course of the entire workout. The summary statistics provide a quantitative breakdown of the metabolic cost, substrate usage, and strain of the session, offering powerful insights for pacing strategies, nutritional planning, and training prescription.</li>
+</ul>
+<div class="callout callout-style-default callout-warning callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
 </div>
+<div class="callout-title-container flex-fill">
+Disclaimer for the Metabolic Simulation App
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Please note that this simulation attempts to model highly complex and interactive physiological processes. It is a work in progress and does not claim to perfectly represent in-vivo metabolism. While a great deal of effort has gone into the model, the simulation of lactate dynamics in response to certain load profiles is not yet as robust as the other models in this workflow. The app is under continuous development with the goal of improving its accuracy and predictive power.</p>
+</div>
+</div>
+</section>
+</section>
+<section id="how-the-apps-interconnect" class="level2">
+<h2 class="anchored" data-anchor-id="how-the-apps-interconnect">How the Apps Interconnect</h2>
+<p>The workflow is designed for a seamless flow of data from one stage to the next, primarily through the use of <code>.json</code> profile files. The intended data flow is as follows:</p>
+<ol type="1">
+<li><strong>Input Data</strong>
+<ul>
+<li>Start with raw <strong>Workout Files</strong> (<code>.gpx</code>, <code>.tcx</code>, etc.) OR a <strong>Known Performance</strong> (e.g., from race results).</li>
+</ul></li>
+<li><strong>Data Processing &amp; Profiling</strong>
+<ul>
+<li><strong>Workout Files</strong> are fed into the <code>Power Profile App</code>.
+<ul>
+<li><strong>Output:</strong> A <code>Key Efforts Profile (.json)</code> file.</li>
+</ul></li>
+<li>A <strong>Known Performance</strong> is processed by the <code>Etalon Converter</code>.
+<ul>
+<li><strong>Output:</strong> A single <code>Manual Data Point (Power, Duration)</code>.</li>
+</ul></li>
+</ul></li>
+<li><strong>Integrated Modeling</strong>
+<ul>
+<li>The <code>Key Efforts Profile (.json)</code> or <code>Manual Data Point</code> is loaded into the <code>Integrated Profile App</code>.</li>
+<li>The app combines this performance data with physiological parameters.</li>
+<li><strong>Output:</strong> A <code>Full Metabolic Profile (.json)</code> containing validated power and physiological data.</li>
+</ul></li>
+<li><strong>Dynamic Simulation</strong>
+<ul>
+<li>The <code>Full Metabolic Profile (.json)</code> is loaded into the <code>Metabolic Simulation App</code>.</li>
+<li>A <strong>Target Workout File</strong> (<code>.tcx</code>) is also loaded to provide the power stimulus.</li>
+<li><strong>Final Output:</strong> A <code>Dynamic Simulation Plot</code> and <code>Metabolic Summary</code> detailing the predicted physiological response.</li>
+</ul></li>
+</ol>
 
 
+</section>
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">

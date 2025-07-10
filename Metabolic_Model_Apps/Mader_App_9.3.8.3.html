@@ -9111,12 +9111,12 @@ function processFileData(rows, delimiter, fileName) {
         } else {
             showNotification("No valid data found in the file", 'warning');
         }
-    } catch (error) {
-        console.error("Error processing file:", error);
-        showNotification("Error processing the file: " + error.message, 'warning');
-    }
-}
-    
+        } catch (error) {
+                    console.error("Error processing file:", error);
+                    showNotification("Error processing the file: " + error.message, 'warning');
+                }
+            } // <-- KORREKT HINZUGEFÜGTE KLAMMER
+        
     // Initialize with default values
     // Update controls with initial values
     elements.CEVO2Value.textContent = appState.CEVO2.toFixed(1);

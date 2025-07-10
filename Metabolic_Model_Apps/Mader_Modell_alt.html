@@ -1,0 +1,1546 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="eng" xml:lang="eng"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.7.32">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Metabolic Simulation – ShinyApps</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-37eea08aefeeee20ff55810ff984fec1.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-2fef5ea3f8957b3e4ecc936fc74692ca.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-37eea08aefeeee20ff55810ff984fec1.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-c37c20c2d52f32749143e665e697ee81.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-b5dc5b953d67f135e06aa4f51ec7213e.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-c37c20c2d52f32749143e665e697ee81.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../styles.css">
+</head>
+
+<body class="nav-sidebar docked fullcontent quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item">Metabolic Simulation</li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+    <div class="pt-lg-2 mt-2 text-center sidebar-header">
+      <a href="../index.html" class="sidebar-logo-link">
+      <img src="../images/Logo_1.png" alt="" class="sidebar-logo py-0 d-lg-inline d-none">
+      </a>
+      <div class="sidebar-tools-main">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../about.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">About</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../Metabolic_Model_Apps/index_Metabolic_Model_Apps.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Metabolic Model Apps</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../Metabolic_Model_Apps/Power_Profile/Power_Profile.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Power Profile</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth2 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../Metabolic_Model_Apps/Power_Profile/Etalon_Calculator.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Etalon Converter</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../Metabolic_Model_Apps/Metabolic_Profile.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Metabolic Profile</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../Metabolic_Model_Apps/Mader_Modell.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Metabolic Simulation</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../Cycling_Apps/index_Cycling_Apps.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Cycling Apps</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../Cycling_Apps/Cycling_Forces.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Cycling Forces</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../Cycling_Apps/CdA_App.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">CdA Calculator</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../Cadence_Test.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Cadence Tests</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Metabolic Simulation</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div class="cell">
+<style type="text/css">
+p {
+  text-align: justify
+}
+caption, .figure-caption {
+  text-align: left;
+}
+figure.quarto-float-tbl figcaption {
+  text-align: left !important;
+}
+figure figcaption {
+  text-align: justify;
+}
+</style>
+</div>
+<p><strong>Please note: This website is currently under construction.</strong> I’m gradually adding more detailed explanations of the applications and developing additional models. Consequently, some features may not yet be fully implemented or might not always function as expected. Furthermore, please be aware that the models presented here (specifically in Tab 2) are currently primarily for illustrative purposes and may not be exclusively based on strictly scientifically validated physiological and metabolic factors at this stage.<strong>The model underlying Tab 2 has also not yet been tested or validated using real-world data.</strong> The content will continue to expand over time, and the scientific basis and functionality will be successively improved.</p>
+<p>With this <strong><a href="../File_Converter.html">File Converter App</a></strong>, you can <strong>convert and download .tcx files or .csv files</strong> to use them in the “Exercise Simulation” tab of the “Metabolic Simulation App”. Fit-files must first be converted to .csv format using <strong><a href="https://gotoes.org/strava/Combine_GPX_TCX_FIT_Files.php">GOTOES File Converter</a></strong> before you can use the File Converter to transform them into a format compatible with the Mader App.</p>
+<div style="position: relative; width: 100%; height: 800px;">
+<p><iframe src="Mader_App_9.3.8.3.html" style="position: absolute; width: 100%; height: 100%; border: none;"></iframe></p>
+</div>
+<p><br></p>
+<p><a href="../Mader_App_9.3.8.3.html">Fullscreen-Link: Mader App</a></p>
+<p><a href="Example_Race_Data.csv" download="" class="btn btn-primary"> <i class="bi bi-download"></i> Download Example_Race_Data.csv </a></p>
+<p><a href="Giro_d’Italia_Stage_20.csv" download="" class="btn btn-primary"> <i class="bi bi-download"></i> Download Giro_d’Italia_Stage_20.csv </a></p>
+<p><a href="Gee_Giro_2025_Example_Profile.json" download="" class="btn btn-primary"> <i class="bi bi-download"></i> Download Gee_Giro_2025_Example_Profile.json </a></p>
+<section id="maders-metabolic-simulation-app-a-feature-guide" class="level1">
+<h1>Mader’s Metabolic Simulation App: A Feature Guide</h1>
+<p>The Mader’s Metabolic Simulation App is an interactive, web-based tool designed to model, simulate, and visualize multifaceted aspects of human exercise metabolism. The application’s core framework is rooted in the established metabolic principles and sophisticated mathematical models developed by Dr.&nbsp;Alois Mader and his collaborators (e.g., <span class="citation" data-cites="Mader1984">Mader (<a href="#ref-Mader1984" role="doc-biblioref">1984</a>)</span>; <span class="citation" data-cites="Mader1986">Mader &amp; Heck (<a href="#ref-Mader1986" role="doc-biblioref">1986</a>)</span>; <span class="citation" data-cites="Mader1996">Mader &amp; Allmer (<a href="#ref-Mader1996" role="doc-biblioref">1996</a>)</span>; <span class="citation" data-cites="Mader2003">Mader (<a href="#ref-Mader2003" role="doc-biblioref">2003</a>)</span>). This tool can be used to explore complex physiological interactions in two primary modes:</p>
+<ol type="1">
+<li><strong>Steady-state metabolic responses</strong> to a spectrum of power outputs. This mode allows for detailed examination of the intricate relationships between mechanical power, oxygen uptake (<span class="math inline">\(\dot{V}O_2\)</span>), the kinetics of lactate production (<span class="math inline">\(vLa_{SS}\)</span>) and lactate oxidation (<span class="math inline">\(vLa_{ox}\)</span>), the resulting pyruvate deficit (PD), and the theoretical lactate accumulation. This is accessible via the “P-V̇O₂-La Dynamics” tab.</li>
+<li><strong>Dynamic metabolic changes</strong> as they unfold during exercise. This mode facilitates the simulation of physiological responses to predefined exercise protocols, such as incremental step tests, or to custom-loaded power data from actual training sessions or laboratory tests. This is found in the “Exercise Simulation” tab.</li>
+</ol>
+<section id="main-application-tabs" class="level2">
+<h2 class="anchored" data-anchor-id="main-application-tabs">Main Application Tabs</h2>
+<p>The application is structured into two primary tabs, each dedicated to a distinct yet complementary approach to metabolic modeling:</p>
+<ol type="1">
+<li><strong>P-V̇O₂-La Dynamics:</strong> This tab is foundational for understanding the metabolic system under conditions of equilibrium. It models physiological responses assuming that, at each discrete power output level, the body has achieved a stable metabolic state. This mode can be used for dissecting fundamental physiological relationships, identifying critical metabolic thresholds (like MLSS and Fat<sub>max</sub>), and understanding how individual physiological parameters shape an athlete’s steady-state performance capacity.</li>
+<li><strong>Exercise Simulation:</strong> This tab transitions from steady-state assumptions to the simulation of dynamic, time-dependent metabolic responses. It allows users to model how physiological variables change during continuous or intermittent exercise protocols, where steady states may not be achieved or are constantly being perturbed. This is particularly useful for analyzing the demands of specific training sessions, predicting metabolic responses to race scenarios, understanding the impact of <span class="math inline">\(\dot{V}O_2\)</span> kinetics, and exploring the interplay of energy systems over time.</li>
+</ol>
+</section>
+<section id="tab-1-p-vo₂-la-dynamics-steady-state-model" class="level2">
+<h2 class="anchored" data-anchor-id="tab-1-p-vo₂-la-dynamics-steady-state-model">Tab 1: P-V̇O₂-La Dynamics (Steady-State Model)</h2>
+<p>This section of the application is dedicated to exploring the metabolic responses of the human body under the assumption that a physiological steady state has been reached for each given power output. The calculations are primarily based on Prof.&nbsp;Mader’s comprehensive metabolic model, which intricately links aerobic energy production with anaerobic glycolysis and lactate metabolism.</p>
+<section id="control-panel-p-vo₂-la-dynamics" class="level3">
+<h3 class="anchored" data-anchor-id="control-panel-p-vo₂-la-dynamics">Control Panel: P-V̇O₂-La Dynamics</h3>
+<p>Located in the sidebar, this panel contains several control groups that allow the user to precisely adjust the model parameters for the steady-state analysis. Each parameter influences the shape and characteristics of the P-<span class="math inline">\(\dot{V}O_2\)</span>-La curves.</p>
+<section id="oxygen-demand-settings" class="level4">
+<h4 class="anchored" data-anchor-id="oxygen-demand-settings"><strong>Oxygen Demand Settings</strong></h4>
+<p>This section defines the fundamental relationship between mechanical power output (P, typically in Watts) and the corresponding steady-state oxygen uptake (<span class="math inline">\(\dot{V}O_{2,SS}\)</span>, typically in ml·min⁻¹). This P-<span class="math inline">\(\dot{V}O_2\)</span> relationship is a cornerstone of exercise physiology, as its slope and intercept reflect the overall efficiency of converting metabolic energy into external mechanical work.</p>
+<ul>
+<li><strong>Curvilinear CE relationship (Checkbox):</strong> This toggle allows the user to select between two distinct mathematical models for describing the P-<span class="math inline">\(\dot{V}O_2\)</span> relationship:
+<ul>
+<li><strong>Linear Model (Unchecked - Default):</strong> This model assumes a constant oxygen cost per unit of work performed above the baseline oxygen uptake (<span class="math inline">\(\dot{V}O_{2,Base}\)</span>). The relationship is mathematically defined as: <span class="math display">\[ \dot{V}O_{2,SS} = CE \cdot P + \dot{V}O_{2,Base} \]</span> In this equation, <span class="math inline">\(CE\)</span> (Cost of Exercise) represents the slope of the line (<span class="math inline">\(\Delta\dot{V}O_2 / \Delta P\)</span>), indicating the volume of oxygen (in ml/min) required for each additional Watt of power output. <span class="math inline">\(\dot{V}O_{2,Base}\)</span> is the y-intercept, representing the oxygen uptake during rest + oxygen uptake of unloaded cycling (i.e., the metabolic cost associated with moving the limbs against minimal internal resistance without performing significant external work on the ergometer).</li>
+<li><strong>Curvilinear Model (Checked):</strong> This model implements a quadratic (second-order polynomial) relationship. It acknowledges the widely observed physiological phenomenon that mechanical efficiency often decreases at higher exercise intensities, particularly above the lactate threshold or critical power. This leads to a disproportionally greater increase in <span class="math inline">\(\dot{V}O_2\)</span> for a given increment in power output. This upward deviation from linearity is related to the “<span class="math inline">\(\dot{V}O_2\)</span> slow component” observed during prolonged constant-load exercise <span class="citation" data-cites="Zoladz1995 Barstow1994 Hintzy-Cloutier2003">(<a href="#ref-Barstow1994" role="doc-biblioref">Barstow, 1994</a>; <a href="#ref-Hintzy-Cloutier2003" role="doc-biblioref">Hintzy-Cloutier et al., 2003</a>; <a href="#ref-Zoladz1995" role="doc-biblioref">Zoladz et al., 1995</a>)</span>, but here it’s applied to describe the steady-state <span class="math inline">\(\dot{V}O_2\)</span> across different intensities. The formula used is: <span class="math display">\[ \dot{V}O_{2,SS} = a \cdot P^2 + CE_{Start} \cdot P + \dot{V}O_{2,Base} \]</span> <span class="math inline">\(CE_{Start}\)</span> represents the initial slope (and thus initial efficiency) at very low power outputs. The coefficient <span class="math inline">\(a\)</span> determines the degree of curvature of the P-<span class="math inline">\(\dot{V}O_2\)</span> relationship. Within the app, this coefficient <span class="math inline">\(a\)</span> is automatically calculated. This calculation is designed such that the slope of this curvilinear P-<span class="math inline">\(\dot{V}O_2\)</span> relationship, specifically at the power output where <span class="math inline">\(\dot{V}O_{2,SS}\)</span> would theoretically intersect <span class="math inline">\(\dot{V}O_{2,max}\)</span>, matches the user-defined <span class="math inline">\(CE_{Target}\)</span> value. This sophisticated approach allows for a more nuanced representation of how efficiency changes across the intensity spectrum.</li>
+</ul></li>
+<li><strong>CE (ml·min⁻¹·W⁻¹):</strong>
+<ul>
+<li><p>This slider sets the constant Cost of Exercise (<span class="math inline">\(CE\)</span>). While the app’s slider offers a broad range (8 to 15 ml·min⁻¹·W⁻¹), typical physiological values for well-trained cyclists often fall within a narrower band, generally between 10.0 and 12.0 ml·min⁻¹·W⁻¹ <span class="citation" data-cites="Astrand2003 Rassouli2015">(<a href="#ref-Astrand2003" role="doc-biblioref">Åstrand et al., 2003</a>; <a href="#ref-Rassouli2015" role="doc-biblioref">Rassouli &amp; Thurnheer, 2015</a>)</span>. Values outside this range can certainly occur, depending on factors like training status (untrained individuals may have higher CEs), muscle fiber type composition, pedaling technique, and even equipment (e.g., aerodynamic drag at higher speeds, though this model primarily focuses on ergometer cycling). Lower CE values inherently indicate higher gross mechanical efficiency for the external work performed.</p></li>
+<li><p><strong>Delta Efficiency (Δη):</strong> This derived metric quantifies the efficiency of converting metabolic energy into additional mechanical work, specifically the efficiency of the work performed <em>above</em> the <span class="math inline">\(\dot{V}O_{2,Base}\)</span> level. It is calculated from the <span class="math inline">\(CE\)</span> value and the caloric equivalent of oxygen (energy yield per liter of O₂ consumed). A critical point is that the caloric equivalent of oxygen is not constant; it varies depending on the substrate mixture being oxidized, which is reflected by the Respiratory Quotient (RQ). RQ values typically range from approximately 0.70 (pure fat oxidation) to 1.00 (pure carbohydrate oxidation), corresponding to caloric equivalents from approximately 19.6 kJ·L O₂⁻¹ to 21.1 kJ·L O₂⁻¹ <span class="citation" data-cites="Stegemann1991">(<a href="#ref-Stegemann1991" role="doc-biblioref">Stegemann, 1991</a>)</span>. Because the app dynamically calculates a predicted RQ based on the modeled substrate utilization, Δη is presented as a range (e.g., 24.7-26.5%) to account for this RQ variability across intensities. Conceptually, Δη can be thought of as: <span class="math display">\[ \Delta\eta = \frac{\text{Change in Work Rate}}{\text{Change in Energy Expenditure Rate above } \dot{V}O_{2,Base}} \]</span> A more direct calculation based on CE is: <span class="math display">\[ \Delta\eta = \frac{1}{\left( \frac{CE \cdot \text{Caloric Equivalent per L O}_2}{60} \right)} \]</span> where CE is in ml O₂·min⁻¹·W⁻¹, Caloric Equivalent per L O₂ is in kJ·L O₂⁻¹, and the division by 60 converts the denominator (which represents oxygen cost in kJ per kJ of work) from a per Watt basis to a per kJ/min basis to match the numerator (implicitly 1 kJ/min of work for 1 kJ/min of energy expenditure if efficiency were 100%). Note: 1 W = 1 J·s⁻¹ = 0.06 kJ·min⁻¹.</p></li>
+<li><p><strong>η<sub>gross</sub> (Fat<sub>max</sub> | MLSS):</strong> Gross efficiency (η<sub>gross</sub>) is a fundamental measure of whole-body mechanical efficiency. It is calculated as the ratio of the mechanical work performed (Power output, converted from Watts to kJ/min) to the total aerobic energy expenditure (also in kJ/min, derived from <span class="math inline">\(\dot{V}O_{2,SS}\)</span> and its caloric equivalent): <span class="math display">\[ \eta_{\text{gross}} = \frac{\text{Power output [kJ/min]}}{\text{Total Aerobic Energy Expenditure [kJ/min]}} \times 100\% \]</span> The Mader App calculates and displays η<sub>gross</sub> at two physiologically significant power outputs:</p>
+<ol type="1">
+<li><strong>Fat<sub>max</sub>:</strong> The power output at which the rate of fat oxidation is maximal. This intensity is often targeted in training for enhancing fat metabolism.</li>
+<li><strong>MLSS (Maximal Lactate Steady State):</strong> The highest power output that can theoretically be sustained for a prolonged period (e.g., 30-60 minutes) without a continual rise in blood lactate concentration. This is a critical marker of endurance performance. The app uses its internal model to predict the RQ at these specific intensities (Fat<sub>max</sub> and MLSS) to determine the most accurate caloric equivalent for oxygen for these η<sub>gross</sub> calculations. Typical gross efficiencies observed in cycling are in the range of 19-22% <span class="citation" data-cites="Coyle1991 Faria2005">(<a href="#ref-Coyle1991" role="doc-biblioref">Coyle et al., 1991</a>; <a href="#ref-Faria2005" role="doc-biblioref">Faria et al., 2005</a>)</span>.</li>
+</ol></li>
+<li><p><strong>η<sub>net</sub> (Fat<sub>max</sub> | MLSS):</strong> Net efficiency (η<sub>net</sub>) is conceptually similar to gross efficiency but aims to isolate the efficiency of the muscular work itself by subtracting the energy expenditure at rest (<span class="math inline">\(\dot{V}O_{2,Base}\)</span>). The formula is: <span class="math display">\[ \eta_{\text{net}} = \frac{\text{Power output [kJ/min]}}{(\text{Total Aerobic Energy Expenditure [kJ/min]}) - (\text{Energy Expenditure at } \dot{V}O_{2,Base} \text{ [kJ/min]})} \times 100\% \]</span> Net efficiency values are typically higher than gross efficiency values because the “baseline” metabolic cost is excluded from the denominator. In cycling, η<sub>net</sub> values often range from 19-24%, although precise values depend heavily on how the baseline energy expenditure is defined and measured <span class="citation" data-cites="DiPrampero1979b Stainbsy1980">(<a href="#ref-DiPrampero1979b" role="doc-biblioref">Di Prampero et al., 1979</a>; <a href="#ref-Stainbsy1980" role="doc-biblioref">Stainbsy et al., 1980</a>)</span>. The app calculates η<sub>net</sub> at both Fat<sub>max</sub> and MLSS, again using predicted RQs for caloric equivalents.</p></li>
+</ul></li>
+<li><strong>CE<sub>Start</sub> (ml·min⁻¹·W⁻¹):</strong> (Visible and active only when the Curvilinear model is selected)
+<ul>
+<li>This slider sets the initial slope of the <span class="math inline">\(\dot{V}O_2\)</span>-P curve, representing the oxygen cost (and thus efficiency) at very low power outputs, near the <span class="math inline">\(\dot{V}O_{2,Base}\)</span>.</li>
+</ul></li>
+<li><strong>CE<sub>Target</sub> (ml·min⁻¹·W⁻¹):</strong> (Visible and active only when the Curvilinear model is selected)
+<ul>
+<li>This slider sets the target slope of the <span class="math inline">\(\dot{V}O_2\)</span>-P curve specifically at the power output corresponding to <span class="math inline">\(\dot{V}O_{2,max}\)</span>. This parameter is crucial for defining the extent of the “tail-up” or steepening of the curvilinear P-<span class="math inline">\(\dot{V}O_2\)</span> relationship at high exercise intensities.</li>
+</ul></li>
+</ul>
+</section>
+<section id="cadence-dependency" class="level4">
+<h4 class="anchored" data-anchor-id="cadence-dependency"><strong>Cadence Dependency</strong></h4>
+<p>This section introduces an feature allowing users to incorporate the effects of pedaling rate on metabolic parameters. The underlying model for these adjustments is primarily based on the research and formulas published by <span class="citation" data-cites="Dunst2025">Dunst et al. (<a href="#ref-Dunst2025" role="doc-biblioref">2025</a>)</span>. The general physiological principle is that there’s an optimal cadence range where mechanical and metabolic efficiency are maximized. Deviating from this optimal range, either by pedaling too slowly or too quickly, typically increases the oxygen cost for a given power output due to factors such as increased internal work (cost of limb movement), less favorable muscle force-velocity characteristics, or altered muscle recruitment patterns <span class="citation" data-cites="Foss2005 Chavarren1999">(<a href="#ref-Chavarren1999" role="doc-biblioref">Chavarren &amp; Calbet, 1999</a>; <a href="#ref-Foss2005" role="doc-biblioref">Foss &amp; Hallén, 2005</a>)</span>.</p>
+<ul>
+<li><strong>Enable U-Shaped Cadence Dependency (Checkbox):</strong>
+<ul>
+<li>When this box is checked, the app dynamically adjusts key metabolic parameters (<span class="math inline">\(CE\)</span>, <span class="math inline">\(\dot{V}O_{2,Base}\)</span>, and optionally <span class="math inline">\(\dot{V}O_{2,max}\)</span> and <span class="math inline">\(vLa_{max}\)</span>) based on the cadence value selected by the user.</li>
+</ul></li>
+<li><strong>Cadence (rpm) (Slider):</strong>
+<ul>
+<li>Allows the user to set the cycling cadence in revolutions per minute (rpm). The default value is 80 rpm, but the slider typically covers a wide physiological range (e.g., 20-200 rpm). While preferred cadences in trained cyclists often hover around 80-100 rpm during submaximal, steady-state cycling <span class="citation" data-cites="Lucia2001a">(<a href="#ref-Lucia2001a" role="doc-biblioref">Lucía et al., 2001</a>)</span>, optimal cadences can vary with intensity and individual characteristics.</li>
+</ul></li>
+<li><strong>CE-Dependency (Informational - automatically applied if cadence dependency is enabled):</strong>
+<ul>
+<li>Indicates that the Cost of Exercise (<span class="math inline">\(CE\)</span>) is no longer a fixed input (if the linear model was active) but becomes a dynamic function of the selected cadence. The app uses the quadratic formula derived by <span class="citation" data-cites="Dunst2025">Dunst et al. (<a href="#ref-Dunst2025" role="doc-biblioref">2025</a>)</span>: <span class="math inline">\(CE(rpm) = 0.0004 \cdot rpm^2 - 0.094 \cdot rpm + 16.857\)</span>. This U-shaped function implies a minimum CE (highest efficiency) at a certain cadence, with CE increasing at lower and higher cadences.</li>
+</ul></li>
+<li><strong><span class="math inline">\(\dot{V}O_{2,Base}\)</span> Dependency (Informational - automatically applied if cadence dependency is enabled):</strong>
+<ul>
+<li>Similarly, the baseline oxygen uptake (<span class="math inline">\(\dot{V}O_{2,Base}\)</span>) also becomes cadence-dependent, reflecting the metabolic cost of <span class="math inline">\(\dot{V}O_{2}\)</span> at Rest + additional <span class="math inline">\(\dot{V}O_{2}\)</span> for unloaded pedaling at different speeds. The formula from <span class="citation" data-cites="Dunst2025">Dunst et al. (<a href="#ref-Dunst2025" role="doc-biblioref">2025</a>)</span> is: <span class="math inline">\(\dot{V}O_{2,Base}(rpm) = 0.172 \cdot rpm^2 - 14.460 \cdot rpm + 548.039\)</span>. This also typically describes a U-shaped relationship.</li>
+</ul></li>
+<li><strong>Include <span class="math inline">\(\dot{V}O_{2,max}\)</span> Dependency (Checkbox):</strong>
+<ul>
+<li>If this option is checked, the individual’s <span class="math inline">\(\dot{V}O_{2,max}\)</span> is also modeled as being influenced by cadence. This is presented as an experimental feature, qualitatively based on figures in <span class="citation" data-cites="Dunst2025">Dunst et al. (<a href="#ref-Dunst2025" role="doc-biblioref">2025</a>)</span> which suggest that <span class="math inline">\(\dot{V}O_{2,max}\)</span> might be slightly lower at very low or very high cadences, with an optimal range typically around 80-90 rpm. The physiological basis could relate to optimal muscle recruitment and force-velocity characteristics for achieving maximal aerobic power.</li>
+</ul></li>
+<li><strong>Include vLa<sub>max</sub> Dependency (Checkbox):</strong>
+<ul>
+<li>If this option is checked, the maximal rate of lactate production (vLa<sub>max</sub>) is adjusted based on the selected cadence, using the formula proposed by <span class="citation" data-cites="Dunst2025">Dunst et al. (<a href="#ref-Dunst2025" role="doc-biblioref">2025</a>)</span>: <span class="math inline">\(vLa_{max}(rpm) = -0.0002 \cdot rpm^2 + 0.00931 \cdot rpm\)</span>. It is important to note, as highlighted in the app’s tooltip and by <span class="citation" data-cites="Dunst2025">Dunst et al. (<a href="#ref-Dunst2025" role="doc-biblioref">2025</a>)</span>, that this observed cadence-dependency of vLa<sub>max</sub> (often showing higher vLa<sub>max</sub> at higher cadences) might be partly or wholly an artifact of common sprint testing methodologies (e.g., isokinetic sprints where higher cadences might facilitate greater recruitment of fast-twitch fibers or alter torque production) rather than a true change in the intrinsic maximal glycolytic capacity of the muscle.</li>
+</ul></li>
+</ul>
+</section>
+<section id="physiological-input-parameters" class="level4">
+<h4 class="anchored" data-anchor-id="physiological-input-parameters"><strong>Physiological Input-Parameters</strong></h4>
+<p>These sliders allow the user to define the core physiological characteristics of the simulated individual. These parameters are fundamental to Mader’s metabolic model and significantly influence all calculated outputs.</p>
+<ul>
+<li><strong><span class="math inline">\(\dot{V}O_{2,max}\)</span> (ml·min⁻¹):</strong>
+<ul>
+<li>Maximal oxygen uptake. This is a cornerstone of aerobic fitness assessment, representing the highest rate at which an individual can take up, transport, and utilize oxygen during maximal, dynamic exercise <span class="citation" data-cites="Astrand2003 Levine2008">(<a href="#ref-Astrand2003" role="doc-biblioref">Åstrand et al., 2003</a>; <a href="#ref-Levine2008" role="doc-biblioref">Levine, 2008</a>)</span>. It sets the upper limit for aerobic ATP resynthesis.</li>
+</ul></li>
+<li><strong><span class="math inline">\(\dot{V}O_{2,max}\)</span> (ml·min⁻¹·kg⁻¹):</strong>
+<ul>
+<li>Maximal oxygen uptake expressed relative to body mass (in kilograms). This normalized value allows for comparisons of aerobic fitness between individuals of different body sizes. This slider is dynamically linked to the absolute <span class="math inline">\(\dot{V}O_{2,max}\)</span> slider and the Body Mass slider; changing any one of these three will automatically update the others to maintain consistency.</li>
+</ul></li>
+<li><strong><span class="math inline">\(\dot{V}O_{2,Base}\)</span> (ml·min⁻¹):</strong>
+<ul>
+<li>Oxygen uptake at Rest as well as oxygen uptake for unloaded cycling (i.e., cycling at zero external power output on the ergometer, but still involving the metabolic cost of limb movement, postural support, and elevated cardiorespiratory activity compared to true rest). This value is critical as it forms the y-intercept of the P-<span class="math inline">\(\dot{V}O_2\)</span> relationship. It can be estimated using the “<span class="math inline">\(\dot{V}O_{2,Base}\)</span> Calculation” utility (see below) which estimates true resting <span class="math inline">\(\dot{V}O_2\)</span>, or it can be set manually based on typical values or direct measurements from unloaded cycling.</li>
+</ul></li>
+<li><strong>vLa<sub>max</sub> (mmol·l⁻¹·s⁻¹):</strong>
+<ul>
+<li>Maximal rate of lactate production. This parameter reflects the peak enzymatic capacity of the anaerobic glycolytic pathway to produce lactate (and ATP) per unit of time and per liter of blood/distribution volume <span class="citation" data-cites="Mader1984 Mader1996">(<a href="#ref-Mader1984" role="doc-biblioref">Mader, 1984</a>; <a href="#ref-Mader1996" role="doc-biblioref">Mader &amp; Allmer, 1996</a>)</span>. It is a crucial determinant of an individual’s anaerobic capacity and significantly influences lactate accumulation kinetics and substrate utilization patterns. Typical values can range widely, from approximately 0.3 mmol·l⁻¹·s⁻¹ in highly trained endurance athletes to over 1.0 mmol·l⁻¹·s⁻¹ in elite sprint athletes.</li>
+</ul></li>
+<li><strong>HR<sub>max</sub> (bpm):</strong>
+<ul>
+<li>Maximal heart rate achievable by the individual during exhaustive exercise. Commonly estimated by formulas like “220 - age”, but this has large individual variability. Direct measurement is preferred for accuracy.</li>
+</ul></li>
+<li><strong>HR<sub>Base</sub> (bpm):</strong>
+<ul>
+<li>Baseline heart rate at rest.</li>
+</ul></li>
+<li><strong>CE<sub>HR</sub> (bpm·W⁻¹):</strong>
+<ul>
+<li>Heart Rate Efficiency, also commonly referred to as the HR-Power slope. It describes the increment in heart rate (in beats per minute) for each Watt increase in external power output during steady-state incremental exercise. Typical values in cyclists range from 0.25 to 0.45 bpm·W⁻¹. Lower values are generally indicative of better cardiovascular efficiency, often reflecting a larger stroke volume response to increasing exercise intensity.</li>
+</ul></li>
+<li><strong>Weight-based values (Checkbox):</strong>
+<ul>
+<li>If checked, the x-axis of the main P-<span class="math inline">\(\dot{V}O_2\)</span>-La plot and several displayed output values (e.g., power, <span class="math inline">\(\dot{V}O_2\)</span>) will be normalized to the individual’s body mass. This is useful for comparing individuals of different sizes, as many physiological parameters scale with body mass. Power would be displayed in W·kg⁻¹ and <span class="math inline">\(\dot{V}O_2\)</span> in ml·min⁻¹·kg⁻¹.</li>
+</ul></li>
+</ul>
+</section>
+<section id="dotvo_2base-calculation" class="level4">
+<h4 class="anchored" data-anchor-id="dotvo_2base-calculation"><strong><span class="math inline">\(\dot{V}O_{2,Base}\)</span> Calculation</strong></h4>
+<p>This utility provides a method to estimate an individual’s true basal metabolic rate (BMR) using the widely recognized Harris-Benedict equation <span class="citation" data-cites="Harris1918">(<a href="#ref-Harris1918" role="doc-biblioref">J. A. Harris &amp; Benedict, 1918</a>)</span>. This BMR is then converted into an equivalent resting oxygen uptake. While this calculated resting <span class="math inline">\(\dot{V}O_2\)</span> is not always directly the <span class="math inline">\(\dot{V}O_{2,Base}\)</span> used in this model, it can serve as a physiologically grounded reference point for setting or evaluating the <span class="math inline">\(\dot{V}O_{2,Base}\)</span> parameter without the additional oxygen cost of unloaded cycling.</p>
+<ul>
+<li><strong>Gender (Radio buttons: Male/Female):</strong> Selects the appropriate gender-specific version of the Harris-Benedict formula, as metabolic rates differ between sexes.</li>
+<li><strong>Body Mass (kg) (Slider):</strong> Input for the Harris-Benedict formula. Also used for weight-based normalizations throughout the app if the “Weight-based values” checkbox is active.</li>
+<li><strong>Age (years) (Slider):</strong> Input for the Harris-Benedict formula, as BMR typically declines with age.</li>
+<li><strong>Height (cm) (Slider):</strong> Input for the Harris-Benedict formula.</li>
+<li><strong>Calculate <span class="math inline">\(\dot{V}O_{2,Base}\)</span> Button:</strong>
+<ul>
+<li>When clicked, the app calculates BMR in kilocalories per day (kcal/day) using the selected inputs and the Harris-Benedict equations:
+<ul>
+<li>Men: BMR = 66.5 + (13.75 × weight in kg) + (5.003 × height in cm) – (6.775 × age in years)</li>
+<li>Women: BMR = 655.1 + (9.563 × weight in kg) + (1.850 × height in cm) – (4.676 × age in years)</li>
+</ul></li>
+<li>This BMR (kcal/day) is then converted to a resting <span class="math inline">\(\dot{V}O_2\)</span> value (in ml/min) using standard caloric equivalents for oxygen (approximately 4.825 kcal per liter of O₂ consumed at a typical resting RQ of 0.82-0.85, or a more generic ~5 kcal/L O₂).</li>
+<li>The <span class="math inline">\(\dot{V}O_{2,Base}\)</span> slider in the “Physiological Input-Parameters” section is automatically updated with this calculated resting <span class="math inline">\(\dot{V}O_2\)</span> value.</li>
+<li><strong>Important Distinction:</strong> It’s crucial to remember that the <span class="math inline">\(\dot{V}O_{2,Base}\)</span> parameter in Mader’s model represents oxygen uptake during <em>unloaded cycling</em>. This value is inherently higher than the true basal resting <span class="math inline">\(\dot{V}O_2\)</span> (as estimated by Harris-Benedict) because it includes the metabolic cost of limb movement, maintaining posture on the bike, and slightly elevated cardiorespiratory activity. The Harris-Benedict calculation here provides a physiological baseline for resting energy expenditure.</li>
+</ul></li>
+</ul>
+</section>
+<section id="substrate-utilization" class="level4">
+<h4 class="anchored" data-anchor-id="substrate-utilization"><strong>Substrate Utilization</strong></h4>
+<p>This section enables the modeling and visualization of how the body utilizes carbohydrates (CHO) and fats for aerobic energy production across different exercise intensities. The model’s approach is rooted in the lactate balance concept from Mader’s framework <span class="citation" data-cites="Mader2003">(<a href="#ref-Mader2003" role="doc-biblioref">Mader, 2003</a>)</span>, where the interplay between lactate production and oxidation serves as an indicator of the relative reliance on CHO versus fat metabolism.</p>
+<ul>
+<li><strong>Show Substrate Utilization (Checkbox):</strong>
+<ul>
+<li>If this box is checked:
+<ol type="1">
+<li>A dedicated <strong>Substrate Utilization Plot</strong> appears below the main P-V̇O₂-La plot. This plot displays the <em>percentage</em> contribution of CHO and Fat to total aerobic energy expenditure across the range of power outputs.</li>
+<li>Traces representing the <em>absolute</em> rates of CHO and Fat oxidation (in the units selected via the “Energy Unit” dropdown) are added to the main P-V̇O₂-La plot. These are typically plotted on a third y-axis (yaxis3) to accommodate their different scale compared to <span class="math inline">\(\dot{V}O_2\)</span> or lactate rates.</li>
+</ol></li>
+</ul></li>
+<li><strong>Energy Unit (Dropdown menu):</strong> (Visible only if “Show Substrate Utilization” is checked)
+<ul>
+<li>Allows the user to select the preferred units for displaying the absolute substrate oxidation rates. Options are:
+<ul>
+<li><code>g/h</code> (grams per hour): Useful for nutritional planning and understanding fuel mass turnover.</li>
+<li><code>kcal/h</code> (kilocalories per hour): A common unit for energy expenditure.</li>
+<li><code>kJ/h</code> (kilojoules per hour): The SI unit for energy expenditure.</li>
+</ul></li>
+</ul></li>
+<li><strong>Adjust CHO utilization at rest (Checkbox):</strong> (Visible only if “Show Substrate Utilization” is checked)
+<ul>
+<li>If checked, this feature allows the user to manually influence the modeled CHO utilization percentage specifically at rest (0 Watts power output). The Mader model, by default, calculates CHO utilization based purely on its internal lactate kinetics (<span class="math inline">\(vLa_{SS}/vLa_{ox}\)</span> ratio). However, empirical studies often show that at true rest, particularly in a post-absorptive state, fat oxidation predominates, and CHO contribution might be around 35-40% <span class="citation" data-cites="Brooks2012 Friedlander1998 Friedlander1999">(<a href="#ref-Brooks2012" role="doc-biblioref">Brooks, 2012</a>; <a href="#ref-Friedlander1998" role="doc-biblioref">Friedlander et al., 1998</a>, <a href="#ref-Friedlander1999" role="doc-biblioref">1999</a>)</span>. This option allows users to align the model’s resting substrate use more closely with such empirical observations or specific dietary conditions if desired.</li>
+</ul></li>
+<li><strong>Resting CHO percentage (%) (Slider):</strong> (Visible only if “Adjust CHO utilization at rest” is checked)
+<ul>
+<li>A slider (0-100%) to set the target CHO utilization percentage at rest (0 Watts). The application will then adjust the entire CHO utilization curve proportionally to pass through (or near) this user-defined resting value, while still adhering to the model’s logic at higher intensities (e.g., approaching 100% CHO at MLSS).</li>
+</ul></li>
+</ul>
+<p><strong>Model Basis for Substrate Utilization:</strong> The Mader model posits a strong link between lactate metabolism and substrate choice. The fundamental idea is that increased glycolytic flux (leading to lactate production, <span class="math inline">\(vLa_{SS}\)</span>) signifies a shift towards carbohydrate utilization. Conversely, conditions favoring lactate clearance and oxidation (<span class="math inline">\(vLa_{ox}\)</span>) are associated with a greater capacity for, and reliance on, fat oxidation. The model calculates the percentage CHO contribution based on the ratio of <span class="math inline">\(vLa_{SS}\)</span> to <span class="math inline">\(vLa_{ox}\)</span>. As exercise intensity increases and <span class="math inline">\(vLa_{SS}\)</span> rises (potentially exceeding <span class="math inline">\(vLa_{ox}\)</span>), CHO% increases, approaching 100% at or above MLSS (where PD ≤ 0). Fat oxidation percentage is calculated as (100 - CHO%). The absolute rates of CHO and fat oxidation (in g/h, kcal/h, or kJ/h) are then derived from the total aerobic energy expenditure (calculated from <span class="math inline">\(\dot{V}O_{2,SS}\)</span> and its caloric equivalent) and these percentages. Standard energy yields (e.g., ~4.1 kcal/g for CHO, ~9.45 kcal/g for fat) are used for these conversions. Crucially, the predicted Respiratory Quotient (RQ = <span class="math inline">\(\dot{V}CO_2 / \dot{V}O_2\)</span>) is calculated from this modeled substrate mix (RQ ≈ 0.70 for 100% fat, RQ ≈ 1.00 for 100% CHO). This dynamically predicted RQ is then used in conjunction with established tables (similar to those by <span class="citation" data-cites="Stegemann1991">Stegemann (<a href="#ref-Stegemann1991" role="doc-biblioref">1991</a>)</span>) to determine the precise caloric equivalent of oxygen (e.g., kJ·l O₂⁻¹ or kcal·l O₂⁻¹) at each power output. This RQ-dependent caloric equivalent is then used for the accurate calculation of all efficiency metrics (Δη, η<sub>gross</sub>, η<sub>net</sub>). This creates a physiologically consistent loop where substrate use influences RQ, which influences caloric equivalent, which influences efficiency calculations. The intensity at which fat oxidation is maximal (Fat<sub>max</sub>) typically occurs where the Pyruvate Deficit is highest. For a detailed understanding of factors influencing fat oxidation, refer to reviews like <span class="citation" data-cites="Achten2004">Achten &amp; Jeukendrup (<a href="#ref-Achten2004" role="doc-biblioref">2004</a>)</span>.</p>
+</section>
+<section id="plot-settings" class="level4">
+<h4 class="anchored" data-anchor-id="plot-settings"><strong>Plot Settings</strong></h4>
+<ul>
+<li><strong>Lock Y-Axis / Lock X-Axis (Checkboxes):</strong>
+<ul>
+<li>When checked (default state), the respective axis range on the main P-V̇O₂-La plot remains fixed, regardless of changes to input parameters. This is highly beneficial for visual comparison, as it allows the user to clearly see how alterations in (for example) <span class="math inline">\(\dot{V}O_{2,max}\)</span> or <span class="math inline">\(CE\)</span> shift the curves relative to a constant scale.</li>
+<li>If unchecked, the axis will auto-scale to optimally fit the currently plotted data. This can be useful for initial exploration if the parameter changes result in data that goes off the fixed scale, but makes direct comparison of curve shifts more difficult.</li>
+</ul></li>
+</ul>
+</section>
+</section>
+<section id="main-plot-p-vo₂-la-dynamics" class="level3">
+<h3 class="anchored" data-anchor-id="main-plot-p-vo₂-la-dynamics">Main Plot: P-V̇O₂-La Dynamics</h3>
+<p>This central graphical output is the primary visualization for the steady-state model, displaying the complex interrelationships between power output and key metabolic variables.</p>
+<ul>
+<li><strong>X-Axis:</strong> Power output (P). Units are Watts (W) by default, or Watts per kilogram body mass (W·kg⁻¹) if the “Weight-based values” option is selected in the sidebar.</li>
+<li><strong>Primary Y-Axis (Left side of plot):</strong> Oxygen Uptake (<span class="math inline">\(\dot{V}O_2\)</span>). Units are milliliters per minute (ml·min⁻¹) or ml·min⁻¹·kg⁻¹ if weight-based.
+<ul>
+<li><strong><span class="math inline">\(\dot{V}O_{2,SS}\)</span> (Solid Blue Line):</strong> This trace represents the calculated steady-state oxygen uptake at each power output, up to the individual’s defined <span class="math inline">\(\dot{V}O_{2,max}\)</span>. The shape of this curve is determined by whether the linear or curvilinear CE model is selected, and by the specific CE parameters.</li>
+<li><strong><span class="math inline">\(\dot{V}O_{2,SS,extrapolated}\)</span> (Dashed Blue Line):</strong> This line shows the theoretical <span class="math inline">\(\dot{V}O_2\)</span> demand if it were not physiologically constrained by the individual’s <span class="math inline">\(\dot{V}O_{2,max}\)</span>. It essentially continues the P-<span class="math inline">\(\dot{V}O_2\)</span> relationship defined by the CE model beyond the point where <span class="math inline">\(\dot{V}O_{2,max}\)</span> is reached.</li>
+<li><strong><span class="math inline">\(\dot{V}O_{2,max}\)</span> Line (Dotted Grey Horizontal Line):</strong> A clear visual representation of the individual’s maximal oxygen uptake, serving as the ceiling for the <span class="math inline">\(\dot{V}O_{2,SS}\)</span> curve.</li>
+</ul></li>
+<li><strong>Secondary Y-Axis (Right side of plot - typically labeled <code>yaxis2</code>):</strong> This axis displays variables related to lactate kinetics. Rates are typically in mmol·l⁻¹·min⁻¹, and accumulation in mmol·l⁻¹.
+<ul>
+<li><strong>vLa<sub>SS</sub> (Dashed Red Line):</strong> The steady-state rate of lactate production into the blood/distribution volume. In Mader’s model, <span class="math inline">\(vLa_{SS}\)</span> is a function of the relative exercise intensity (related to the difference between <span class="math inline">\(\dot{V}O_{2,max}\)</span> and current <span class="math inline">\(\dot{V}O_{2,SS}\)</span>), the individual’s maximal glycolytic capacity (vLa<sub>max</sub>), and constants reflecting enzyme kinetics and substrate availability.</li>
+<li><strong>vLa<sub>ox</sub> (Dashed Light Blue Line):</strong> The steady-state rate of lactate oxidation or clearance from the blood/distribution volume. This is primarily dependent on the aerobic metabolic rate (<span class="math inline">\(\dot{V}O_{2,SS}\)</span>), as lactate is oxidized in various tissues (muscle, heart, liver) or converted to glucose (gluconeogenesis), both processes requiring oxygen directly or indirectly.</li>
+<li><strong>PD (Pyruvate Deficit) (Solid Purple Line):</strong> Calculated as the difference: <span class="math inline">\(vLa_{ox} - vLa_{SS}\)</span>.
+<ul>
+<li>A <strong>positive PD</strong> indicates that the capacity for lactate elimination (<span class="math inline">\(vLa_{ox}\)</span>) exceeds the rate of lactate production (<span class="math inline">\(vLa_{SS}\)</span>). This state is typically associated with lower to moderate exercise intensities and often correlates with a higher proportion of fat oxidation.</li>
+<li>A <strong>negative PD</strong> indicates that lactate production (<span class="math inline">\(vLa_{SS}\)</span>) exceeds the elimination capacity (<span class="math inline">\(vLa_{ox}\)</span>), leading to a net accumulation of lactate if the exercise were sustained.</li>
+<li><strong>FAT<sub>max</sub> (Vertical Dotted Grey Line Annotation):</strong> This line is drawn at the power output where the Pyruvate Deficit (PD) reaches its maximum positive value. This intensity is often considered to approximate the point of maximal fat oxidation, as a large PD implies a metabolic environment conducive to fat metabolism (lower glycolytic flux relative to oxidative capacity).</li>
+<li><strong>MLSS (Maximal Lactate Steady State) (Vertical Dotted Grey Line Annotation):</strong> This line is drawn at the power output where PD is theoretically zero (i.e., <span class="math inline">\(vLa_{SS} = vLa_{ox}\)</span>). This represents the highest exercise intensity at which lactate production and elimination are balanced, allowing for a stable (though elevated) blood lactate concentration during prolonged, constant-load exercise. MLSS is a critical determinant of endurance performance <span class="citation" data-cites="Heck2022">(<a href="#ref-Heck2022" role="doc-biblioref">Heck et al., 2022</a>)</span>.</li>
+</ul></li>
+<li><strong>La<sub>Accumulation</sub> (Solid Dark Red Line):</strong> This trace represents the <em>theoretical</em> steady-state blood lactate concentration that would result if exercise at that specific power output were maintained indefinitely. It is derived from the net balance of lactate production and elimination (i.e., the integral of -PD over time, assuming a starting lactate concentration). It’s important to note that this is a <em>modeled steady-state prediction</em> and not a dynamic simulation of blood lactate changes over a fixed exercise duration.</li>
+</ul></li>
+<li><strong>Tertiary Y-Axis (Right side, typically further out - <code>yaxis3</code>, visible only if “Show Substrate Utilization” is checked):</strong> This axis is dedicated to displaying the absolute rates of substrate utilization, in the units selected by the user (g/h, kcal/h, or kJ/h).
+<ul>
+<li><strong>CHO (Unit) (Dotted Pink Line):</strong> Shows the absolute rate of carbohydrate oxidation at each power output.</li>
+<li><strong>Fat (Unit) (Dotted Green Line):</strong> Shows the absolute rate of fat oxidation at each power output.</li>
+</ul></li>
+</ul>
+<p>The plot is richly annotated, providing values for FAT<sub>max</sub> power, MLSS power, and the absolute <span class="math inline">\(\dot{V}O_{2,max}\)</span> value. Additionally, the specific mathematical formula currently being used to define the <span class="math inline">\(\dot{V}O_2\)</span>-P relationship (linear or curvilinear, and reflecting any cadence-dependent adjustments to CE and <span class="math inline">\(\dot{V}O_{2,Base}\)</span>) is displayed directly on the plot for clarity.</p>
+</section>
+<section id="substrate-utilization-plot" class="level3">
+<h3 class="anchored" data-anchor-id="substrate-utilization-plot">Substrate Utilization Plot</h3>
+<p>This second plot appears below the main P-V̇O₂-La plot <em>only if</em> the “Show Substrate Utilization” option is enabled in the control panel. It provides a percentage-based view of fuel use.</p>
+<ul>
+<li><strong>X-Axis:</strong> Power output (P), consistent with the main plot’s x-axis (W or W·kg⁻¹).</li>
+<li><strong>Y-Axis:</strong> Percentage of Total Aerobic Energy Expenditure (%), ranging from 0 to 100%.
+<ul>
+<li><strong>CHO-Utilization (%) (Dotted Pink Line):</strong> Illustrates the relative contribution of carbohydrate oxidation to the total aerobic energy production at each power output. This typically increases with intensity.</li>
+<li><strong>Fat-Utilization (%) (Dotted Dark Green Line):</strong> Shows the relative contribution of fat oxidation. This typically decreases with increasing intensity, especially above Fat<sub>max</sub>. This plot effectively visualizes the “substrate crossover” concept, which describes the shift from predominantly fat utilization at lower intensities to predominantly carbohydrate utilization at higher intensities <span class="citation" data-cites="Brooks2004">(<a href="#ref-Brooks2004" role="doc-biblioref">Brooks et al., 2004</a>)</span>. The intersection of these two curves (if it occurs) roughly indicates the intensity where CHO and fat contribute equally to aerobic energy supply.</li>
+</ul></li>
+</ul>
+</section>
+<section id="values-display-area" class="level3">
+<h3 class="anchored" data-anchor-id="values-display-area">Values Display Area</h3>
+<p>Located directly below the plot(s), this dynamic text area provides a numerical summary of key metabolic parameters calculated at two physiologically significant anchor points: <strong>FAT<sub>max</sub></strong> and <strong>MLSS</strong>. For each of these intensity points, the following information is typically displayed:</p>
+<ul>
+<li><strong>Power output</strong> (in W or W·kg⁻¹, matching the plot setting).</li>
+<li><strong>Steady-state <span class="math inline">\(\dot{V}O_{2,SS}\)</span></strong> (absolute in ml·min⁻¹ or relative in ml·min⁻¹·kg⁻¹) and also expressed as a percentage of the individual’s <span class="math inline">\(\dot{V}O_{2,max}\)</span> (e.g., “MLSS at 75% <span class="math inline">\(\dot{V}O_{2,max}\)</span>”).</li>
+<li><strong>Rate of lactate production (<span class="math inline">\(vLa_{SS}\)</span></strong> in mmol·l⁻¹·min⁻¹).</li>
+<li><strong>Rate of lactate oxidation (<span class="math inline">\(vLa_{ox}\)</span></strong> in mmol·l⁻¹·min⁻¹).</li>
+<li><strong>Pyruvate Deficit (PD)</strong> in mmol·l⁻¹·min⁻¹.</li>
+<li><strong>Theoretical Lactate Accumulation (La<sub>Accumulation</sub>)</strong> in mmol·l⁻¹.</li>
+<li><strong>If substrate utilization is shown:</strong>
+<ul>
+<li>Absolute carbohydrate oxidation rate (in the units selected by the user: g/h, kcal/h, or kJ/h) and its percentage contribution to total aerobic energy.</li>
+<li>Absolute fat oxidation rate (in selected units) and its percentage contribution.</li>
+<li>Predicted Respiratory Quotient (RQ) at that specific intensity.</li>
+</ul></li>
+<li><strong>Calculated gross efficiency (η<sub>gross</sub>)</strong> in %.</li>
+<li><strong>Calculated net efficiency (η<sub>net</sub>)</strong> in %.</li>
+</ul>
+<p>Additionally, if cadence dependency is active, this display area will also show the <em>effective</em> <span class="math inline">\(CE\)</span>, <span class="math inline">\(\dot{V}O_{2,Base}\)</span>, and, if their respective dependencies are enabled, the <em>effective</em> <span class="math inline">\(\dot{V}O_{2,max}\)</span> and <span class="math inline">\(vLa_{max}\)</span> values that correspond to the user-selected cadence. This provides full transparency on how cadence adjustments are impacting the core model parameters.</p>
+</section>
+</section>
+<section id="tab-2-exercise-simulation-dynamic-model" class="level2">
+<h2 class="anchored" data-anchor-id="tab-2-exercise-simulation-dynamic-model">Tab 2: Exercise Simulation (Dynamic Model)</h2>
+<p>This tab allows users to move beyond steady-state assumptions and simulate the dynamic, time-dependent metabolic responses of an individual to a defined exercise protocol. This is invaluable for understanding how various physiological systems adapt and interact during non-steady-state conditions, such as those encountered in interval training, races with variable pacing, or ramp tests.</p>
+<section id="control-panel-exercise-simulation" class="level3">
+<h3 class="anchored" data-anchor-id="control-panel-exercise-simulation">Control Panel: Exercise Simulation</h3>
+<section id="step-test-exercise-simulation-parameters" class="level4">
+<h4 class="anchored" data-anchor-id="step-test-exercise-simulation-parameters"><strong>Step Test / Exercise Simulation Parameters</strong></h4>
+<p>These controls are used to define the exercise protocol for the simulation, either by generating a standard step test or by loading power data from an external file.</p>
+<ul>
+<li><strong>Step Increment (Watts):</strong> If generating an incremental step test, this parameter sets the magnitude of the power increase for each successive step (e.g., an increment of 20 Watts).</li>
+<li><strong>Step Duration (s):</strong> For a generated step test, this defines the duration (in seconds) of each constant-power stage (e.g., 180 seconds for 3-minute stages).</li>
+<li><strong>Maximum Power (Watts):</strong> This sets the highest power output that will be targeted in a <em>generated</em> incremental step test. The simulation will incrementally increase power up to this level, or until an abort criterion is met.</li>
+<li><strong>Power Adjustment (%):</strong> A global scaling factor (ranging from 0% to 200%) that is applied to <em>all</em> power values in the current workout, regardless of whether the workout was generated by the app or loaded from an external file. This allows users to easily scale a given workout to simulate higher or lower absolute intensities, for instance, to match different fitness levels or to explore the effects of relative intensity changes.</li>
+<li><strong>Load Example Exercise Data Button:</strong> Loads a pre-defined sample interval workout directly into the simulation. This sample dataset typically includes time, power, and often cadence values, providing a quick way to see the dynamic simulation in action.</li>
+<li><strong>Insert workout file / File Upload:</strong>
+<ul>
+<li>This feature allows users to upload their own workout data from external files. Supported file formats include <code>.csv</code> (comma-separated values), <code>.txt</code> (often tab-separated, but other delimiters may be auto-detected), <code>.xlsx</code> (modern Excel format), and <code>.xls</code> (older Excel format).</li>
+<li>The app expects the file to contain columns for time (or timestamp), power, and optionally, cadence. The data will be parsed and interpolated to a 1-second resolution for the simulation.</li>
+<li><strong>File has headers (Checkbox):</strong> This should be checked (it is by default) if the first row of the uploaded file contains descriptive column names (e.g., “Time”, “Power_Watts”, “Cadence_rpm”). If unchecked, the app will assume the data begins from the very first row and will attempt to use a default column order (typically Time, Power, then Cadence if present).</li>
+<li><strong>Uploaded workout data gap processing (Radio buttons):</strong> This option determines how the app handles missing data points or time gaps when it interpolates the uploaded data to a 1-second resolution:
+<ul>
+<li><strong>Maintain last values (Default):</strong> If there is a gap in the recorded data (e.g., a recording device missed a few seconds), the power output (and cadence, if available) from the <em>last valid preceding data point</em> will be carried forward to fill the missing seconds. This method is often preferred for visualizing structured interval training where power is intended to be constant during an interval, and brief recording dropouts should not appear as zero power.</li>
+<li><strong>Insert zero values:</strong> If there is a gap, the power (and cadence) for the missing seconds will be set to zero. This method is more appropriate for analyzing training sessions that include distinct rest periods where the actual power output is indeed zero, and these rests should be accurately reflected in the simulation.</li>
+</ul></li>
+</ul></li>
+<li><strong>Smooth Power Curve (5-point window) Button:</strong> When clicked, this applies a 5-point moving average filter to the currently loaded or generated power data. This can be useful for reducing noise or very rapid, short-lived fluctuations in recorded power data, providing a smoother and potentially more physiologically representative input for the metabolic simulation. Cadence data, if present, is typically smoothed with a slightly wider window (e.g., 10-point).</li>
+<li><strong>Display Window Settings:</strong> These controls allow users to customize the visible range of the plot axes for the simulation plot <em>without</em> altering the underlying simulation data or the calculations themselves. This is purely a visualization tool to help focus on specific portions or aspects of the simulation.
+<ul>
+<li><strong>Adjust X-Axis range (Checkbox):</strong> When checked, enables manual adjustment of the time (horizontal) axis.
+<ul>
+<li><strong>Start Time (s) / End Time (s) (Sliders):</strong> These sliders allow the user to define the visible start and end times on the x-axis of the simulation plot. This is useful for zooming into specific phases of a long workout.</li>
+</ul></li>
+<li><strong>Adjust Y-Axis ranges (Checkbox):</strong> When checked, enables manual adjustment of the various y-axes on the simulation plot.
+<ul>
+<li><strong>Power Y-Axis Maximum (Slider):</strong> Sets the maximum displayed value for the primary Y-axis (which typically shows Power, Cadence, MPA, Strain Score, and Glycogen).</li>
+<li><strong><span class="math inline">\(\dot{V}O_2\)</span> Y-Axis Maximum (Slider):</strong> Sets the maximum displayed value for the tertiary Y-axis (which typically shows <span class="math inline">\(\dot{V}O_2\)</span> and O₂ Deficit related variables).</li>
+<li><strong>Lactate Y-Axis Minimum / Maximum (Sliders):</strong> Sets the minimum and maximum displayed values for the secondary Y-axis (which typically shows Lactate, W’ Balance, PCr, pH, various rates, RQ, and HR).</li>
+</ul></li>
+</ul></li>
+</ul>
+</section>
+<section id="cadence-dependency-1" class="level4">
+<h4 class="anchored" data-anchor-id="cadence-dependency-1"><strong>Cadence Dependency</strong></h4>
+<p>This section mirrors the functionality of Tab 1 but applies the cadence-dependent metabolic adjustments dynamically throughout the exercise simulation, based on the work of <span class="citation" data-cites="Dunst2025">Dunst et al. (<a href="#ref-Dunst2025" role="doc-biblioref">2025</a>)</span>.</p>
+<ul>
+<li><strong>Enable U-Shaped Cadence Dependency (Checkbox):</strong> If checked, metabolic parameters such as <span class="math inline">\(CE\)</span> and <span class="math inline">\(\dot{V}O_{2,Base}\)</span> (and optionally <span class="math inline">\(\dot{V}O_{2,max}\)</span> and <span class="math inline">\(vLa_{max}\)</span>) will be adjusted at each time step of the simulation based on the cadence at that specific moment.</li>
+<li><strong>Fixed Cadence (rpm) (Slider):</strong> This value is used if “Use cadence from file” is unchecked, or if an uploaded file lacks cadence data, but cadence dependency is enabled. It sets a constant cadence that will be assumed for the entire simulation for the purpose of parameter adjustments.</li>
+<li><strong>Use cadence from file (if available) (Checkbox):</strong>
+<ul>
+<li>If this box is checked, AND cadence data is present in an uploaded workout file, AND “Enable U-Shaped Cadence Dependency” is active, the simulation will use the time-varying cadence values directly from the file to modulate the metabolic parameters at each second.</li>
+<li>If no cadence data is found in the file, or if this option is unchecked, the “Fixed Cadence” value will be used for cadence-dependent calculations if the main cadence dependency is enabled.</li>
+</ul></li>
+<li>The specific dependencies for <strong>CE (<span class="math inline">\(\text{CEV̇O}_2\)</span>) Dependency</strong>, <strong><span class="math inline">\(\dot{V}O_{2,Base}\)</span> Dependency</strong>, <strong>Include <span class="math inline">\(\dot{V}O_{2,max}\)</span> Dependency</strong>, and <strong>Include vLa<sub>max</sub> Dependency</strong> can be individually toggled on or off, functioning identically to their counterparts in Tab 1, but their effects are applied dynamically based on the instantaneous cadence during the simulation.</li>
+</ul>
+</section>
+<section id="physiological-parameters-dynamic-simulation" class="level4">
+<h4 class="anchored" data-anchor-id="physiological-parameters-dynamic-simulation"><strong>Physiological Parameters (Dynamic Simulation)</strong></h4>
+<p>These parameters are crucial for governing the kinetic (time-dependent) responses of the various metabolic and physiological systems modeled in the simulation.</p>
+<ul>
+<li><strong><span class="math inline">\(\dot{V}O_2\)</span> Start (ml·min⁻¹):</strong>
+<ul>
+<li>This sets the initial oxygen uptake value (<span class="math inline">\(\dot{V}O_2\)</span>) at the very beginning (time = 0 seconds) of the simulation. The slider for this parameter is dynamically constrained to be between the current effective <span class="math inline">\(\dot{V}O_{2,Base}\)</span> (which can vary if cadence dependency is active) and the current effective <span class="math inline">\(\dot{V}O_{2,max}\)</span>. The default starting value is often set to approximate the <span class="math inline">\(\dot{V}O_2\)</span> that would be observed at the Fat<sub>max</sub> intensity (as determined in Tab 1). This assumes the exercise often starts from a low-intensity active baseline rather than complete, supine rest. This initial <span class="math inline">\(\dot{V}O_2\)</span> value significantly influences the calculation of the initial oxygen deficit.</li>
+</ul></li>
+<li><strong><span class="math inline">\(\dot{V}O_{2,on}\)</span> time constant (τ<sub>on</sub>) (s):</strong>
+<ul>
+<li>This parameter defines the characteristic speed of the exponential rise of <span class="math inline">\(\dot{V}O_2\)</span> towards its new, higher target (steady-state) value whenever exercise intensity increases or exercise begins from a lower baseline. A smaller τ<sub>on</sub> value indicates faster “on” kinetics, meaning <span class="math inline">\(\dot{V}O_2\)</span> reaches its target more quickly. Typical values for τ<sub>on</sub> in healthy individuals during moderate intensity exercise range from about 20 seconds in highly trained athletes to 40 seconds or more in less trained or older individuals <span class="citation" data-cites="Whipp1972 Barstow1991">(<a href="#ref-Barstow1991" role="doc-biblioref">Barstow &amp; Mole, 1991</a>; <a href="#ref-Whipp1972" role="doc-biblioref">Whipp &amp; Wasserman, 1972</a>)</span>. The fundamental equation describing an exponential rise to a new steady state is often given as: <span class="math display">\[ \dot{V}O_2(t) = \dot{V}O_{2,initial} + (\dot{V}O_{2,target} - \dot{V}O_{2,initial}) \cdot (1 - e^{-(t - t_{delay})/\tau_{on}}) \]</span> Where <span class="math inline">\(t_{delay}\)</span> is the initial time delay (see below). The app implements this step-wise.</li>
+<li><strong>Intensity-Dependent τ<sub>on</sub> (Checkbox):</strong>
+<ul>
+<li>If this option is checked, τ<sub>on</sub> is not a single fixed value for all upward transitions. Instead, it is dynamically calculated for each second of the simulation based on the <span class="math inline">\(\dot{V}O_2\)</span> (expressed as a percentage of the current <span class="math inline">\(\dot{V}O_{2,max}\)</span>) of the <em>immediately preceding</em> time step. The underlying base formula is <span class="math inline">\(\tau_{on\_base} = 0.38 \cdot \text{PreviousIntensity%} + 6\)</span> seconds. The slider value for τ<sub>on</sub> then acts as the specific τ<sub>on</sub> that would occur if the preceding intensity was exactly 50% of <span class="math inline">\(\dot{V}O_{2,max}\)</span>. This means the slider effectively sets an offset to this formula, allowing the user to shift the entire linear τ<sub>on</sub>-intensity relationship. This feature aims to simulate the physiological observation that <span class="math inline">\(\dot{V}O_2\)</span> on-kinetics can be slower if an exercise bout is initiated from an already elevated metabolic rate (e.g., due to prior high-intensity work or insufficient recovery).</li>
+</ul></li>
+</ul></li>
+<li><strong><span class="math inline">\(\dot{V}O_{2,off}\)</span> time constant (τ<sub>off</sub>) (s):</strong>
+<ul>
+<li>This parameter defines the characteristic speed of the exponential fall of <span class="math inline">\(\dot{V}O_2\)</span> towards its new, lower target value when exercise intensity decreases or during recovery periods. Off-kinetics can be similar to, or often slightly slower than, on-kinetics, particularly following high-intensity or prolonged exercise, due to factors like elevated body temperature, hormone levels, and the metabolic cost of recovery processes <span class="citation" data-cites="Oezyener2001">(<a href="#ref-Oezyener2001" role="doc-biblioref">Özyener et al., 2001</a>)</span>.</li>
+<li><strong>Intensity-Dependent τ<sub>off</sub> (Checkbox):</strong>
+<ul>
+<li>If checked, τ<sub>off</sub> is also dynamically calculated. Its value depends on the maximum <span class="math inline">\(\dot{V}O_2\)</span> (as % of current <span class="math inline">\(\dot{V}O_{2,max}\)</span>) achieved within a recent lookback window (typically defined as twice the duration of the <em>previous</em> step’s τ<sub>off</sub> value). The base formula used is <span class="math inline">\(\tau_{off\_base} = 0.45 \cdot \text{Intensity%} + 10\)</span> seconds. Similar to the dynamic τ<sub>on</sub>, the slider value for τ<sub>off</sub> sets the τ<sub>off</sub> for a reference 50% intensity, thereby shifting this relationship. This models the physiological reality that recovery of <span class="math inline">\(\dot{V}O_2\)</span> might be faster after lower intensity efforts and slower after higher intensity efforts which cause greater metabolic disturbance and a larger oxygen debt.</li>
+</ul></li>
+</ul></li>
+<li><strong><span class="math inline">\(\dot{V}O_2\)</span> Response Delay (s):</strong>
+<ul>
+<li>This represents a pure time delay (in seconds) before the exponential <span class="math inline">\(\dot{V}O_2\)</span> response (either “on” or “off” kinetics) actually begins following a change in power output. This delay accounts for physiological lags such as the circulatory transit time of blood from the lungs to the exercising muscles (for O₂ delivery) and from muscles to lungs (for CO₂ feedback influencing ventilation), as well as any initial inertia in muscular metabolic pathway activation <span class="citation" data-cites="Lamarra1987">(<a href="#ref-Lamarra1987" role="doc-biblioref">Lamarra et al., 1987</a>)</span>. The default is 2 seconds, with a typical physiological range considered to be 0-10 seconds. This delay directly affects the timing of the actual <span class="math inline">\(\dot{V}O_2\)</span> change, the calculation of O₂ deficit/surplus, and subsequently the modeled rate of lactate oxidation (<span class="math inline">\(vLa_{ox}\)</span>).</li>
+</ul></li>
+<li><strong>Lactate exercise termination value (mmol·l⁻¹):</strong>
+<ul>
+<li>If the “Terminate simulation when lactate exceeds max value” checkbox (see below) is active, the simulation will automatically stop if the modeled blood lactate concentration reaches this specified threshold. Values around 20 mmol/l represent very high, often exhaustive, levels of lactate accumulation.</li>
+</ul></li>
+<li><strong>Terminate simulation when lactate exceeds max value (Checkbox):</strong> Enables or disables the lactate-based abortion criterion for the simulation.</li>
+<li><strong>Resting Lactate-value (mmol·l⁻¹):</strong>
+<ul>
+<li>The initial blood lactate concentration assumed at the start (time = 0s) of the simulation. Typical resting values in healthy individuals are around 0.5 to 1.5 mmol/l.</li>
+</ul></li>
+<li><strong>vLa<sub>SS,on</sub> Time Constant (τ<sub>vLaSS,on</sub>) (s):</strong>
+<ul>
+<li>The time constant governing the exponential rise of the actual lactate production rate (<span class="math inline">\(vLa_{SS}\)</span>) towards its new, higher target value when exercise intensity increases. This parameter reflects how quickly the glycolytic flux adapts upwards in response to increased energy demand.</li>
+</ul></li>
+<li><strong>vLa<sub>SS,off</sub> Time Constant (τ<sub>vLaSS,off</sub>) (s):</strong>
+<ul>
+<li>The time constant governing the exponential fall of <span class="math inline">\(vLa_{SS}\)</span> towards its new, lower target value when exercise intensity decreases or during recovery periods. This reflects the downregulation of glycolysis.</li>
+</ul></li>
+<li><strong>vLa<sub>SS</sub> Response Delay (s):</strong>
+<ul>
+<li>A pure time delay (in seconds) before the lactate production rate (<span class="math inline">\(vLa_{SS}\)</span>) begins its exponential kinetic response (either upwards or downwards) to a change in exercise intensity. This simulates inherent biochemical delays in the activation or deactivation of the complex glycolytic pathway.</li>
+</ul></li>
+<li><strong>Cap vLass by <span class="math inline">\(\dot{V}O_2\)</span> Deficit (Checkbox):</strong>
+<ul>
+<li>An optional, advanced physiological constraint. If this box is checked, the actual lactate production rate (<span class="math inline">\(vLa_{SS}\)</span>) at any given time point during the simulation is capped. The cap is determined such that the <em>net</em> anaerobic energy supply (which is derived from the energy equivalent of lactate production <em>minus</em> the energy equivalent of concurrent lactate oxidation) does not exceed the current calculated oxygen deficit (which, in turn, is <span class="math inline">\(\dot{V}O_2 \text{ Demand} - \dot{V}O_2 \text{ Actual}\)</span>). The purpose of this option is to enhance physiological plausibility by preventing an unrealistic “overshoot” of anaerobic energy production, especially during transitions where aerobic energy supply is still ramping up or is limited. When unchecked (default), <span class="math inline">\(vLa_{SS}\)</span> is determined purely by its own kinetic parameters without this specific energy balance cap.</li>
+</ul></li>
+<li><strong>Muscle pH (pH<sub>m</sub>) Simulation (Informational text &amp; underlying mechanism):</strong>
+<ul>
+<li>This feature simulates changes in intramuscular pH (pH<sub>m</sub>), a critical factor in muscle function and fatigue. The calculation of pH<sub>m</sub> is based on established physiological principles, drawing from the work of <span class="citation" data-cites="Mader2003">Mader (<a href="#ref-Mader2003" role="doc-biblioref">2003</a>)</span> and further elaborated in texts such as <span class="citation" data-cites="Heck2022">Heck et al. (<a href="#ref-Heck2022" role="doc-biblioref">2022</a>)</span>. The model considers several key intracellular factors that influence pH<sub>m</sub>:
+<ol type="1">
+<li><strong>Estimated inorganic phosphate concentration ([Pi]):</strong> [Pi] increases as phosphocreatine ([PCr]) is broken down, and high [Pi] can contribute to acidosis. The model estimates [Pi] inversely based on the current [PCr].</li>
+<li><strong>Intramuscular lactate concentration ([La]<sub>m</sub>):</strong> The accumulation of lactate is stoichiometrically linked with the production of H⁺ ions, thus directly impacting pH<sub>m</sub>. The model uses its dynamically calculated intramuscular lactate.</li>
+<li><strong>Estimated arterial partial pressure of CO₂ (pCO₂):</strong> pCO₂ influences the carbonic acid-bicarbonate buffer system within the muscle. The model estimates pCO₂ as increasing with relative exercise intensity (i.e., %<span class="math inline">\(\dot{V}O_{2,max}\)</span>), reflecting increased metabolic CO₂ production and ventilatory responses.</li>
+</ol></li>
+<li>The critical aspect of this feature is the feedback loop: the pH<sub>m</sub> calculated from the <em>previous</em> time step is then used to modulate the <em>effective</em> maximal lactate production rate (<span class="math inline">\(vLa_{max,eff}\)</span>) for the <em>current</em> time step. This modulation simulates the well-known inhibitory effect of falling (more acidic) pH on key glycolytic enzymes, particularly phosphofructokinase (PFK), which is a major rate-limiting step in glycolysis <span class="citation" data-cites="Danforth1965">(<a href="#ref-Danforth1965" role="doc-biblioref">Danforth, 1965</a>)</span>. The relationship is typically sigmoidal, represented in the app as:<span class="math display">\[vLa_{max,eff} = vLa_{max,base} \cdot \text{PFK Activity Factor}(pH_m)\]</span> Where <code>PFK_Activity_Factor(pHm)</code> is a term that decreases (from a maximum of ~1.0 down to near 0) as pH<sub>m</sub> drops significantly below physiological resting levels (e.g., below pH ~7.0 down towards pH 6.0).</li>
+<li>This pH-modulated <span class="math inline">\(vLa_{max,eff}\)</span> then becomes the new input for determining the target <span class="math inline">\(vLa_{SS}\)</span> for the current time step. This creates a physiologically relevant negative feedback loop: high rates of lactate production can lead to a drop in pH<sub>m</sub>, which in turn can reduce further lactate production by inhibiting PFK, thus helping to limit excessive acidosis.</li>
+</ul></li>
+</ul>
+</section>
+<section id="glycogen-storage-parameters" class="level4">
+<h4 class="anchored" data-anchor-id="glycogen-storage-parameters"><strong>Glycogen Storage Parameters</strong></h4>
+<p>This section of the control panel models the dynamics of muscle glycogen stores, a critical fuel source for prolonged and high-intensity exercise. The model simulates depletion due to carbohydrate oxidation and potential repletion from exogenous carbohydrate intake.</p>
+<ul>
+<li><strong>Auto-calculate glycogen values based on muscle mass (Checkbox):</strong>
+<ul>
+<li>If this box is checked, the “Initial Glycogen Storage” and “Maximum Glycogen Storage” slider values are automatically populated. This calculation is based on the “Active Muscle Mass” value (derived from the PCr model settings) or, if that’s not explicitly set, an estimation from total body mass. The calculation assumes typical physiological glycogen concentrations in muscle tissue, for instance, around 15 grams of glycogen per kilogram of active muscle for normal, fed states, and perhaps up to 20-25 g/kg for carbohydrate-loaded (“supercompensated”) states.</li>
+</ul></li>
+<li><strong>Initial Glycogen Storage (g) (Slider):</strong>
+<ul>
+<li>Sets the amount of glycogen (in grams) assumed to be available in the active muscle mass at the very beginning of the simulation. Typical values for well-nourished and trained athletes range from 350-500g, but can be higher with specific carbohydrate loading strategies <span class="citation" data-cites="Astrand2003 Bergstrom1967a Murray2018">(<a href="#ref-Astrand2003" role="doc-biblioref">Åstrand et al., 2003</a>; <a href="#ref-Bergstrom1967a" role="doc-biblioref">Bergström et al., 1967</a>; <a href="#ref-Murray2018" role="doc-biblioref">Murray &amp; Rosenbloom, 2018</a>)</span>.</li>
+</ul></li>
+<li><strong>Maximum Glycogen Storage (g) (Slider):</strong>
+<ul>
+<li>Defines the physiological upper limit for glycogen storage within the active muscle mass. Even with carbohydrate intake during exercise, the glycogen stores will not replete beyond this set maximum.</li>
+</ul></li>
+<li><strong>Carbohydrate Intake Rate (g·h⁻¹):</strong>
+<ul>
+<li>Sets the rate (in grams per hour) at which exogenous carbohydrates (e.g., from sports drinks or gels) are ingested and become available for either direct oxidation by the muscles or for glycogen synthesis (if stores are depleted and conditions allow). Typical maximal exogenous CHO oxidation rates are often cited in the range of 60-90 g/h for single-source carbohydrates like glucose or maltodextrin <span class="citation" data-cites="Jeukendrup2005 Jeukendrup2019">(<a href="#ref-Jeukendrup2005" role="doc-biblioref">Jeukendrup &amp; Wallis, 2005</a>; <a href="#ref-Jeukendrup2019" role="doc-biblioref">A. Jeukendrup &amp; Gleeson, 2019</a>)</span>. Combinations of multiple transportable carbohydrates (e.g., glucose and fructose) can increase this to 120g/h or even slightly more <span class="citation" data-cites="Jeukendrup2010">(<a href="#ref-Jeukendrup2010" role="doc-biblioref">Jeukendrup, 2010</a>)</span>.</li>
+</ul></li>
+</ul>
+<p>The model calculates glycogen depletion based on the instantaneous rate of carbohydrate oxidation. The CHO oxidation rate itself is derived dynamically at each time step from the balance of <span class="math inline">\(vLa_{SS}\)</span> and <span class="math inline">\(vLa_{ox}\)</span> (as in Tab 1), but applied kinetically over time. If the modeled glycogen stores reach zero, this can trigger a simulation abortion if that termination criterion is implicitly or explicitly active (e.g., inability to maintain power due to substrate depletion).</p>
+</section>
+<section id="w-balance-parameters" class="level4">
+<h4 class="anchored" data-anchor-id="w-balance-parameters"><strong>W’ Balance Parameters</strong></h4>
+<p>This section implements a model for W’ (pronounced “W prime”), a concept central to understanding exercise tolerance above a certain metabolic threshold known as Critical Power (CP). W’ represents a finite amount of work that can be performed when exercising at intensities greater than CP <span class="citation" data-cites="Monod1965 Skiba2012 Poole2016">(<a href="#ref-Monod1965" role="doc-biblioref">Monod &amp; Scherrer, 1965</a>; <a href="#ref-Poole2016" role="doc-biblioref">Poole et al., 2016</a>; <a href="#ref-Skiba2012" role="doc-biblioref">Skiba et al., 2012</a>)</span>. Depletion of W’ is closely associated with the onset of severe fatigue and task failure.</p>
+<ul>
+<li><strong>Critical Power (CP) (W) (Slider):</strong>
+<ul>
+<li>Defines the Critical Power, which is, in theory, the highest power output that can be sustained for a very long time without a progressive loss of homeostasis or depletion of W’. It represents a critical metabolic threshold demarcating sustainable from unsustainable exercise intensities.</li>
+</ul></li>
+<li><strong>W’ (kJ) (Slider):</strong>
+<ul>
+<li>Represents the total amount of work (expressed in kilojoules) that can be performed <em>above</em> CP before W’ is considered fully depleted. It reflects a combination of anaerobic energy capacity and tolerance for the accumulation of fatigue-related metabolites. Typical W’ values range from 10 to 30 kJ, depending on the individual’s training status and physiological profile.</li>
+</ul></li>
+<li><strong>P<sub>max</sub> (W) (Slider):</strong>
+<ul>
+<li>Represents the maximum instantaneous power an athlete can produce, typically observed during very short, all-out sprints (e.g., lasting a few seconds). This parameter is integral to the 3-parameter critical power model (which includes Pmax, CP, and W’) and is specifically used in this app for calculating MPA (Maximum Power Available) and the Strain Score (SS). These metrics draw on concepts from researchers like <span class="citation" data-cites="Hauser2014">Hauser et al. (<a href="#ref-Hauser2014" role="doc-biblioref">2014</a>)</span> and potentially more recent work like Kontro et al.&nbsp;(2025, though not in the provided citation list, the formulas in the HTML align with this type of model). P<sub>max</sub> is considered to represent the power capacity of the alactic (phosphagen/immediate) energy system.</li>
+</ul></li>
+<li><strong>Use MLSS from Tab 1 as CP (Checkbox):</strong>
+<ul>
+<li>If checked (this is the default state), the CP value for the Tab 2 simulation is automatically set to be equal to the Maximal Lactate Steady State (MLSS) power output calculated in Tab 1. The CP slider below then becomes disabled, but will display this MLSS value. This option provides a physiologically grounded and individually determined estimate for CP, as MLSS and CP are often found to be closely related, though not always identical <span class="citation" data-cites="Poole2016">(<a href="#ref-Poole2016" role="doc-biblioref">Poole et al., 2016</a>)</span>.</li>
+</ul></li>
+<li><strong>W’ Balance Minimum (kJ) (Slider):</strong>
+<ul>
+<li>Allows the user to define a lower threshold for W’ balance. This can be set to zero (meaning exhaustion occurs when W’ is fully depleted) or even to a negative value, which some models propose might represent a “digging deeper” capacity, though this is less common. The default in the app is -10 kJ.</li>
+</ul></li>
+<li><strong>Abort simulation when W’ Balance falls below slider minimum (Checkbox):</strong>
+<ul>
+<li>If checked (default state), the simulation will automatically terminate if the calculated W’<sub>BAL</sub> (W’ balance) drops below the value specified by the “W’ Balance Minimum” slider.</li>
+</ul></li>
+</ul>
+<p><strong>W’ Balance Model Dynamics:</strong> The app models W’ balance dynamics based on established principles (<span class="citation" data-cites="Skiba2012 Morton2008">(<a href="#ref-Morton2008" role="doc-biblioref">Morton, 2008</a>; <a href="#ref-Skiba2012" role="doc-biblioref">Skiba et al., 2012</a>)</span> for general energy system concepts):</p>
+<ul>
+<li><strong>During exercise at power outputs (P) greater than CP (P &gt; CP), W’ depletes linearly with the work done above CP:</strong> <span class="math display">\[ W'_{BAL}(t) = W'_{BAL}(previous\_t) - (P - CP) \cdot \Delta t \]</span> where <span class="math inline">\(W'_{BAL}(t)\)</span> is W’ balance at current time <span class="math inline">\(t\)</span>, <span class="math inline">\(W'_{BAL}(previous\_t)\)</span> is W’ balance at the previous time step, and <span class="math inline">\(\Delta t\)</span> is the time interval (1 second in this app).</li>
+<li><strong>During exercise at power outputs (P) less than CP (P &lt; CP), W’ recovers exponentially:</strong> The rate and extent of W’ recovery depend on the magnitude of the difference between CP and the recovery power (<span class="math inline">\(D_{CP} = CP - P_{recovery}\)</span>) and the total W’ capacity. A common formulation for W’ recovery is: <span class="math display">\[ W'_{BAL}(t) = W'_0 - (W'_0 - W'_{BAL}(previous\_t)) \cdot e^{-(D_{CP}/W'_0) \cdot \Delta t} \]</span> where <span class="math inline">\(W'_0\)</span> is the initial (full) W’ capacity.</li>
+</ul>
+<p>The <strong>MPA &amp; Strain Score (SS) model</strong>, which is also displayed in the plot and summary, uses P<sub>max</sub> and the current W’ balance to provide novel metrics of fatigue and available power. The formulas used in the app’s HTML for MPA and SS are consistent with recent research by <span class="citation" data-cites="Kontro2025">Kontro et al. (<a href="#ref-Kontro2025" role="doc-biblioref">2025</a>)</span>.</p>
+<ul>
+<li><strong>MPA (Maximum Power Available):</strong> The highest power output theoretically achievable at any given moment, considering the current W’ depletion. <span class="math display">\[ MPA = P_{max} - (P_{max} - CP) \cdot (W'_{EXP}/W')^2 \]</span> where <span class="math inline">\(W'_{EXP}\)</span> is the amount of W’ expended (<span class="math inline">\(W'_0 - W'_{BAL}\)</span>).</li>
+<li><strong>k<sub>strain</sub> (Strain Coefficient):</strong> A factor that modulates the perceived or physiological strain based on the current power output relative to MPA and CP. <span class="math display">\[ k_{strain} = (P_{max} - MPA + CP)/(P_{max} - P + CP) \]</span></li>
+<li><strong>SR (Strain Rate):</strong> The instantaneous rate at which strain is accumulating. <span class="math display">\[ SR = k_{strain} \cdot P \]</span></li>
+<li><strong>SS (Strain Score):</strong> The cumulative strain experienced over the exercise bout. <span class="math display">\[ SS = \sum(SR \cdot \Delta t) \cdot (\text{NormalizationFactor}) \]</span> The Normalization Factor, which appears to be <span class="math inline">\((P_{max}/CP^2) \cdot (100/3600)\)</span> in the app, scales the score. For instance, a common scaling aims for 1 hour of exercise at CP to yield an SS of 100.</li>
+</ul>
+</section>
+<section id="pcr-and-o₂-deficit-model" class="level4">
+<h4 class="anchored" data-anchor-id="pcr-and-o₂-deficit-model"><strong>PCr and O₂ Deficit Model</strong></h4>
+<p>This section of the control panel enables the simulation of phosphocreatine (PCr) dynamics within the active muscle and the associated oxygen deficit that is incurred at the onset of exercise or during transitions to higher exercise intensities. PCr is a crucial high-energy phosphate compound that provides ATP rapidly at the start of muscle contraction before oxidative phosphorylation can fully activate.</p>
+<ul>
+<li><strong>Resting PCr (mmol·kg⁻¹ wet muscle weight) (Slider):</strong>
+<ul>
+<li>Sets the initial concentration of PCr in the active muscle tissue at the beginning of the simulation. Typical physiological values in healthy, rested human skeletal muscle range from about 15 to 38 mmol·kg⁻¹ wet weight <span class="citation" data-cites="Harris1976 Karlsson1971">(<a href="#ref-Harris1976" role="doc-biblioref">R. C. Harris et al., 1976</a>; <a href="#ref-Karlsson1971" role="doc-biblioref">Karlsson, 1971</a>)</span>. Training status and muscle fiber type can influence this.</li>
+</ul></li>
+<li><strong>P/O₂ (mol ATP · mol O₂⁻¹) (Slider):</strong>
+<ul>
+<li>Represents the P/O₂ ratio, which is the stoichiometry of oxidative phosphorylation: the number of moles of ATP synthesized per mole of diatomic oxygen (O₂) reduced in the mitochondria. This value is not absolutely constant but depends on the substrate being oxidized (e.g., carbohydrates vs.&nbsp;fats) and the coupling efficiency of the electron transport chain. It is generally accepted to be around 2.3-2.5 (or 4.6-5.0 if O refers to O₂, not O atom) when considering NADH and FADH₂ contributions. The app’s range (4.61 for pure fat to 5.0 for pure CHO) reflects O₂ (diatomic oxygen).</li>
+</ul></li>
+<li><strong>Active Muscle Mass (kg) (Slider):</strong>
+<ul>
+<li>Sets the estimated mass (in kilograms) of the skeletal muscle actively involved in performing the cycling exercise. This is a critical parameter because PCr concentrations are typically expressed per kg of muscle mass, and the total PCr pool available is thus dependent on this value. The tooltip in the app provides research-based estimates for active muscle mass in cyclists (e.g., for male cyclists, ~27% of total body weight for seated cycling, potentially increasing to ~31.5% for standing cycling, drawing from MRI data like <span class="citation" data-cites="Janssen2000">Janssen et al. (<a href="#ref-Janssen2000" role="doc-biblioref">2000</a>)</span> and general exercise physiology considerations).</li>
+</ul></li>
+<li><strong>O₂-Lactate Equiv. (β) (Informational Display Only):</strong>
+<ul>
+<li>This is displayed as a constant value of approximately 3.0 ml O₂·kg⁻¹ body mass·mM⁻¹ blood lactate. This represents the “oxygen equivalent of lactate accumulation,” signifying the amount of O₂ (in ml per kg of body mass) that would have been required aerobically to produce the energy equivalent to accumulating 1 mM of lactate in the blood. This concept, extensively detailed by <span class="citation" data-cites="DiPrampero1981">Di Prampero (<a href="#ref-DiPrampero1981" role="doc-biblioref">1981</a>)</span>, is used in the model to help partition the overall O₂ deficit into components covered by PCr breakdown and by net lactate production.</li>
+</ul></li>
+<li><strong>Show <span class="math inline">\(\dot{V}O_2\)</span> Demand Curve (Checkbox):</strong>
+<ul>
+<li>If checked, the simulation plot will include an additional trace representing the theoretical, instantaneous <span class="math inline">\(\dot{V}O_2\)</span> demand required to meet the energy cost of the current power output if metabolism could respond infinitely fast. The area between this demand curve and the actual (kinetically-limited) <span class="math inline">\(\dot{V}O_2\)</span> curve visually represents the accumulated oxygen deficit (when demand &gt; uptake) or oxygen surplus (during recovery when uptake &gt; demand).</li>
+</ul></li>
+</ul>
+<p><strong>PCr Model Dynamics:</strong> The simulation models changes in the PCr store based on the dynamic balance between O₂ demand and actual O₂ uptake:</p>
+<ul>
+<li><strong>PCr Depletion:</strong> When <span class="math inline">\(\dot{V}O_2\)</span> demand (calculated from the current power output using the steady-state P-<span class="math inline">\(\dot{V}O_2\)</span> relationship) exceeds the actual <span class="math inline">\(\dot{V}O_2\)</span> uptake (which is kinetically limited), an oxygen deficit occurs. A portion of the energy required to cover this deficit is supplied by the net breakdown of PCr to rapidly resynthesize ATP (PCr + ADP + H⁺ ↔︎ ATP + Cr). The amount of PCr consumed is proportional to this O₂ deficit portion that is not covered by immediate glycolysis, scaled by the P/O₂ ratio (which converts O₂ deficit to ATP equivalents).<span class="math display">\[ \Delta PCr_{consumed} \propto (\text{O2\_deficit\_allocated\_to\_PCr}) \cdot (P/O_2 \text{ ratio}) \]</span></li>
+<li><strong>PCr Resynthesis:</strong> When actual <span class="math inline">\(\dot{V}O_2\)</span> uptake exceeds the current <span class="math inline">\(\dot{V}O_2\)</span> demand (creating an O₂ surplus, e.g., during recovery periods or when exercise intensity decreases significantly), PCr is resynthesized from creatine and ATP produced by oxidative phosphorylation. This process itself consumes ATP (and thus oxygen) and is modeled as being proportional to the O₂ surplus available for PCr resynthesis, again scaled by the P/O₂ ratio. The app’s code includes a <code>pcrResynthesisFactor</code> (set to 0.5), implying that only a portion of the O₂ surplus is directed towards PCr resynthesis, with the rest potentially contributing to other recovery processes. <span class="math display">\[ \Delta PCr_{resynthesized} \propto (\text{O2\_surplus} \cdot \text{pcrResynthesisFactor}) \cdot (P/O_2 \text{ ratio}) \]</span> The <strong>accumulated O₂ deficit</strong> represents the total integrated difference between oxygen demand and oxygen uptake from the start of exercise. It reflects the cumulative reliance on anaerobic energy sources (PCr hydrolysis and anaerobic glycolysis leading to lactate production) to meet the energy demands not immediately covered by aerobic metabolism. The kinetics of PCr are often faster than those of <span class="math inline">\(\dot{V}O_2\)</span> <span class="citation" data-cites="McCann1995">(<a href="#ref-McCann1995" role="doc-biblioref">McCann et al., 1995</a>)</span>.</li>
+</ul>
+</section>
+<section id="model-parameters-for-tab-2-simulation" class="level4">
+<h4 class="anchored" data-anchor-id="model-parameters-for-tab-2-simulation"><strong>Model Parameters (for Tab 2 Simulation)</strong></h4>
+<p>This section provides the user with flexibility in defining the core physiological parameters for the dynamic simulation. The user can either link these parameters directly to those defined in Tab 1 (P-V̇O₂-La Dynamics) or set them independently for the simulation.</p>
+<ul>
+<li><strong>Use model parameters from Tab 1 (Checkbox):</strong>
+<ul>
+<li><strong>Checked (Default State):</strong> When this box is checked, the fundamental physiological parameters for the Tab 2 simulation—including <span class="math inline">\(CE\)</span> (or <span class="math inline">\(CE_{Start}\)</span>/<span class="math inline">\(CE_{Target}\)</span> if curvilinear), <span class="math inline">\(\dot{V}O_{2,max}\)</span>, <span class="math inline">\(\dot{V}O_{2,Base}\)</span>, <span class="math inline">\(vLa_{max}\)</span>, Body Mass, and all HR-related parameters (HR<sub>max</sub>, HR<sub>Base</sub>, CE<sub>HR</sub>), as well as the curvilinear CE setting—are directly mirrored from their current values in Tab 1. The individual parameter sliders located below this checkbox in the “Individual Parameters” section will then become disabled (greyed out) but will visually reflect the values being imported from Tab 1. This is the recommended approach if the user wants to simulate the dynamic responses of an individual whose steady-state profile has already been established or explored in Tab 1. Any subsequent changes made to these parameters in Tab 1 will automatically propagate to these linked parameters in Tab 2, ensuring consistency.</li>
+<li><strong>Unchecked:</strong> If this box is unchecked, the linkage to Tab 1 is broken. The individual parameter sliders in the “Individual Parameters” section (detailed below) become active, allowing the user to define a completely independent set of physiological parameters specifically for the Tab 2 simulation. This is useful if one wants to explore hypothetical scenarios or simulate an individual with a different profile without altering the settings in Tab 1.</li>
+</ul></li>
+<li><strong>Individual Parameter Sliders (within the “Individual Parameters” collapsible section):</strong> These sliders are active only if “Use model parameters from Tab 1” is unchecked. They allow for independent setting of:
+<ul>
+<li><strong>Curvilinear CE relationship (Checkbox):</strong> Toggles between linear and curvilinear P-<span class="math inline">\(\dot{V}O_2\)</span> models for the simulation.</li>
+<li><strong>CE (ml·min⁻¹·W⁻¹) (Slider):</strong> For the linear CE model.</li>
+<li><strong>CE<sub>Start</sub> / CE<sub>Target</sub> (ml·min⁻¹·W⁻¹) (Sliders):</strong> For the curvilinear CE model.</li>
+<li><strong><span class="math inline">\(\dot{V}O_{2,max}\)</span> (ml·min⁻¹) (Slider)</strong></li>
+<li><strong><span class="math inline">\(\dot{V}O_{2,Base}\)</span> (ml·min⁻¹) (Slider)</strong></li>
+<li><strong>vLa<sub>max</sub> (mmol·l⁻¹·s⁻¹) (Slider)</strong></li>
+<li><strong>Body Mass (kg) (Slider)</strong></li>
+<li><strong>HR<sub>max</sub> (bpm) (Slider)</strong></li>
+<li><strong>HR<sub>Base</sub> (bpm) (Slider)</strong></li>
+<li><strong>CE<sub>HR</sub> (bpm·W⁻¹) (Slider)</strong> These function identically to their counterparts in Tab 1 but only affect the Tab 2 simulation when the link to Tab 1 is disabled.</li>
+</ul></li>
+</ul>
+</section>
+</section>
+<section id="exercise-simulation-plot-tab-2" class="level3">
+<h3 class="anchored" data-anchor-id="exercise-simulation-plot-tab-2">Exercise Simulation Plot (Tab 2)</h3>
+<p>This is a dynamic, multi-trace plot that visualizes various simulated physiological and performance parameters over the time course of the defined exercise protocol. It allows for a comprehensive view of how different systems respond and interact.</p>
+<ul>
+<li><strong>X-Axis:</strong> Time (in seconds). The range of this axis can be manually adjusted using the “Display Window Settings” in the sidebar to focus on specific periods of the simulation.</li>
+<li><strong>Primary Y-Axis (Left side of plot - typically denoted as <code>y</code>):</strong> This axis displays parameters primarily related to power output, mechanical aspects of movement, and some physiological stores.
+<ul>
+<li><strong>Power (W) (Dark Grey Line):</strong> The instantaneous power output of the simulated exercise protocol at each second.</li>
+<li><strong>Cadence (rpm) (Light Grey Dashed Line):</strong> Displayed if cadence data is available (either from a loaded file when “Use cadence from file” is active, or the fixed cadence value if cadence dependency is enabled without file data).</li>
+<li><strong>MPA (W) (Dark Grey-Blue Dashed Line):</strong> Maximum Power Available, a dynamic value calculated from the W’ balance model and P<sub>max</sub>, representing the highest power output theoretically achievable at that moment.</li>
+<li><strong>Strain Score (Unitless) (Pink Line):</strong> The cumulative Strain Score, reflecting the integrated physiological strain based on the MPA model.</li>
+<li><strong>Glycogen Stores (g) (Dark Pink Dotted Line):</strong> The modeled content of glycogen in the active muscle mass, showing depletion during exercise and potential repletion if carbohydrate intake is simulated.</li>
+</ul></li>
+<li><strong>Secondary Y-Axis (Right side of plot - typically <code>y2</code>):</strong> This axis is designed to display a variety of scaled parameters, often with different units, requiring careful interpretation of their respective scales. It commonly includes:
+<ul>
+<li><strong>W’ Balance (kJ) (Green Line):</strong> The current remaining W’ balance.</li>
+<li><strong>Lactate (Muscle) (mM) (Dark Red Line):</strong> Modeled intramuscular lactate concentration.</li>
+<li><strong>Lactate (Blood) (mM) (Dark Red Dotted Line):</strong> Modeled blood lactate concentration, typically from a two-compartment model (muscle and blood/other tissues).</li>
+<li><strong>vLa<sub>SS</sub> (mM/min) (Red Dashed Line):</strong> The instantaneous rate of lactate production (converted from mmol·l⁻¹·s⁻¹).</li>
+<li><strong>vLa<sub>ox</sub> (mM/min) (Light Blue Dashed Line):</strong> The instantaneous rate of lactate oxidation/elimination.</li>
+<li><strong>PD (Pyruvate Deficit) (mM/min) (Purple Line):</strong> The dynamic difference <span class="math inline">\(vLa_{ox} - vLa_{SS}\)</span>.</li>
+<li><strong>PCr Store (mM/kg) (Yellow Dotted Line):</strong> Modeled phosphocreatine concentration in the active muscle.</li>
+<li><strong>pH<sub>m</sub> (Unitless) (Orange Dotted Line):</strong> Modeled intramuscular pH.</li>
+<li><strong>RQ<sub>predicted</sub> ⋅ 10 (Unitless) (Yellow-Orange Dashed Line):</strong> The kinetically-smoothed predicted Respiratory Quotient, scaled by a factor of 10 for better visibility on this shared axis (actual RQ values typically range from 0.7 to 1.0, potentially slightly higher during very intense exercise).</li>
+<li><strong>Heart Rate ⋅ 10⁻¹ (bpm) (Dark Red Dotted Line):</strong> The simulated heart rate, scaled by a factor of 0.1 for plotting convenience (e.g., a heart rate of 150 bpm would be plotted at a Y-value of 15).</li>
+<li><strong>Zero Line (Thin Grey Dotted Line):</strong> A horizontal reference line at y=0 for this axis, useful for interpreting parameters like PD or W’ balance relative to baseline.</li>
+</ul></li>
+<li><strong>Tertiary Y-Axis (Right side, typically positioned further out - <code>y3</code>):</strong> This axis is dedicated to displaying oxygen uptake parameters.
+<ul>
+<li><strong><span class="math inline">\(\dot{V}O_2\)</span> (ml/min) (Blue Line):</strong> The actual, kinetically-determined oxygen uptake at each second of the simulation.</li>
+<li><strong><span class="math inline">\(\dot{V}O_2\)</span> Demand (ml/min) (Blue Dotted Line):</strong> (Visible if “Show <span class="math inline">\(\dot{V}O_2\)</span> Demand Curve” is checked in the PCr model settings) The theoretical instantaneous <span class="math inline">\(\dot{V}O_2\)</span> that would be required to meet the energy cost of the current power output if metabolic processes could respond infinitely fast.</li>
+<li><strong>O₂ Deficit Area (Light Blue Filled Area):</strong> (Visible if the <span class="math inline">\(\dot{V}O_2\)</span> Demand curve is shown) The shaded area between the <span class="math inline">\(\dot{V}O_2\)</span> Demand curve and the actual <span class="math inline">\(\dot{V}O_2\)</span> curve. This visually represents the accumulated oxygen deficit (when demand &gt; uptake) or oxygen surplus (during recovery phases when uptake &gt; demand).</li>
+<li><strong>Acc. O₂ Deficit (ml) (Cyan Dotted Line):</strong> The cumulative net oxygen deficit (Total O2 Demand - Total O2 Uptake) over time.</li>
+</ul></li>
+</ul>
+<p>Users can interact with the plot legend by clicking on trace names. This action toggles the visibility of the corresponding trace on the plot, allowing users to focus on specific parameters of interest or to declutter the view. If the simulation is terminated prematurely due to one of the set abort conditions (e.g., lactate exceeding threshold, W’ balance dropping below minimum, glycogen depletion, or complete PCr depletion), an annotation will typically appear on the plot marking the point and reason for termination.</p>
+</section>
+<section id="exercise-summary-statistics-tab-2" class="level3">
+<h3 class="anchored" data-anchor-id="exercise-summary-statistics-tab-2">Exercise Summary Statistics (Tab 2)</h3>
+<p>Located below the simulation plot, this section provides a detailed quantitative summary of the entire simulated exercise session, offering insights into overall workload, energy expenditure, fuel utilization, and various performance metrics.</p>
+<ul>
+<li><strong>Average mechanical Power (W):</strong> The time-weighted average of the power output over the duration of the simulation.</li>
+<li><strong>Normalized mechanical Power (W):</strong> A power averaging method designed to provide a more physiologically relevant measure of training stress than simple average power, especially for workouts with variable intensity. It typically involves calculating a 30-second rolling average of power, raising these values to the 4th power, averaging these transformed values, and then taking the 4th root of that average. This gives more weight to higher intensity portions.</li>
+<li><strong>Total Aerobic Energy Expenditure (kcal):</strong> The gross (total) energy expended via aerobic pathways throughout the entire simulation. This is calculated from the integral of the <span class="math inline">\(\dot{V}O_2\)</span> curve over time, converted to energy units using an average caloric equivalent for oxygen (derived from the average predicted RQ over the session).</li>
+<li><strong>Total mechanical Work (kJ):</strong> The sum of (Power × time_interval) for all 1-second intervals of the simulation, converted to kilojoules. This represents the total external work performed.</li>
+<li><strong>Total metabolic Work (kJ):</strong> The sum of the net energy contributions from the three major energy systems: net aerobic metabolism, anaerobic-lactic metabolism, and anaerobic-alactic metabolism. This represents the total energy turnover <em>above resting levels</em> required to perform the exercise.
+<ul>
+<li><strong>Aerobic contribution (kJ | %):</strong> The energy derived from net aerobic metabolism. This is calculated by integrating the actual <span class="math inline">\(\dot{V}O_2\)</span> curve, subtracting the integrated energy cost equivalent to maintaining <span class="math inline">\(\dot{V}O_{2,Base}\)</span> for the duration, and converting the net O₂ consumed to kJ. The percentage is relative to the Total Metabolic Work.</li>
+<li><strong>Anaerobic-lactic contribution (kJ | %):</strong> The energy derived from net lactate production. This is estimated from the O₂ equivalent of <em>gross</em> lactate production (calculated from the integrated <span class="math inline">\(vLa_{SS}\)</span> kinetics), using factors like the β-coefficient (O₂-Lactate Equiv.) to convert lactate changes into energy equivalents.</li>
+<li><strong>Anaerobic-alactic contribution (kJ | %):</strong> The energy derived from the net breakdown of phosphocreatine (PCr). This is estimated from the O₂ equivalent of the total PCr utilized during the exercise bout, based on the P/O₂ ratio.</li>
+</ul></li>
+<li><strong>η<sub>gross</sub> (%):</strong> Overall gross efficiency for the entire session, calculated as: <span class="math display">\[ \eta_{gross} = (\text{Total Mechanical Work [kJ]}) / (\text{Total Gross Aerobic Energy Expenditure [kJ]}) \times 100\% \]</span></li>
+<li><strong>η<sub>net</sub> (%):</strong> Overall net efficiency for the entire session, calculated as: <span class="math display">\[ \eta_{net} = (\text{Total Mechanical Work [kJ]}) / (\text{Net Aerobic Energy Expenditure [kJ]}) \times 100\% \]</span> Where net aerobic energy expenditure excludes the energy cost associated with maintaining <span class="math inline">\(\dot{V}O_{2,Base}\)</span>.</li>
+<li><strong>η<sub>total</sub> (%):</strong> Overall total efficiency, considering all energy pathways in the denominator: <span class="math display">\[ \eta_{total} = (\text{Total Mechanical Work [kJ]}) / (\text{Total Metabolic Work [kJ]}) \times 100\% \]</span></li>
+<li><strong>Work &gt; CP (mechanical) (kJ):</strong> The total amount of mechanical work (in kJ) performed during periods where the instantaneous power output was above the set Critical Power (CP).</li>
+<li><strong>W’ Balance Drop (kJ):</strong> The difference between the initial W’ value (at the start of the simulation) and the minimum W’ balance reached at any point during the exercise.</li>
+<li><strong>Total Carbohydrate Utilization (g):</strong> The total mass of carbohydrates (in grams) estimated to have been oxidized during the simulation, based on the integrated CHO oxidation rate.</li>
+<li><strong>Total Fat Utilization (g):</strong> The total mass of fats (in grams) estimated to have been oxidized during the simulation.</li>
+<li><strong>Training Stress Score (TSS):</strong> An estimation of the overall training load or stress imposed by the simulated workout. It is typically calculated using Normalized Power, the duration of the exercise, and the individual’s Functional Threshold Power (FTP), for which the app uses the set Critical Power (CP) as a proxy. A common formula is: <span class="math display">\[ TSS = (\text{Duration in seconds} \cdot \text{Normalized Power} \cdot \text{Intensity Factor}) / (\text{FTP} \cdot 3600) \cdot 100 \]</span> Where Intensity Factor (IF) = Normalized Power / FTP.</li>
+<li><strong>Strain Score (SS):</strong> The total cumulative Strain Score accumulated during the simulation, based on the model by <span class="citation" data-cites="Hauser2014">Hauser et al. (<a href="#ref-Hauser2014" role="doc-biblioref">2014</a>)</span> and Kontro et al.&nbsp;(as per HTML formulas), which considers P<sub>max</sub>, CP, and W’ dynamics.
+<ul>
+<li><strong>SS<sub>CP</sub>:</strong> The component of the total Strain Score attributed to work performed at or below CP.</li>
+<li><strong>SS<sub>W’</sub>:</strong> The component of the total Strain Score attributed to the utilization of W’ (work above CP).</li>
+<li><strong>SS<sub>Pmax</sub>:</strong> The component of the total Strain Score attributed to very high power outputs that draw upon the P<sub>max</sub> capacity.</li>
+</ul></li>
+</ul>
+<p>This comprehensive suite of tools, visualizations, and summary statistics offers a powerful platform for students, coaches, athletes, and researchers to explore, understand, and quantify the complex interplay of metabolic processes during various forms of exercise.</p>
+
+
+</section>
+</section>
+</section>
+<section id="bibliography" class="level1 unnumbered">
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" data-line-spacing="2" role="list">
+<div id="ref-Achten2004" class="csl-entry" role="listitem">
+Achten, J., &amp; Jeukendrup, A. E. (2004). <span class="nocase">Optimizing fat oxidation through exercise and diet</span>. <em>Nutrition</em>, <em>20</em>(7-8), 716–727. <a href="https://doi.org/10.1016/j.nut.2004.04.005">https://doi.org/10.1016/j.nut.2004.04.005</a>
+</div>
+<div id="ref-Astrand2003" class="csl-entry" role="listitem">
+Åstrand, P.-. O., Rodahl, K., Stromme, S. B., &amp; Dahl, H. A. (2003). <em><span class="nocase">Textbook of work physiology. Physiological bases of excercise</span></em> (4. Edition, p. 649). Human Kinetics.
+</div>
+<div id="ref-Barstow1994" class="csl-entry" role="listitem">
+Barstow, T. J. (1994). <a href="https://www.ncbi.nlm.nih.gov/pubmed/7837952"><span class="nocase">Characterization of VO2 kinetics during heavy exercise.</span></a> <em>Medicine and Science in Sports and Exercise</em>, <em>26</em>(11), 1327–1334.
+</div>
+<div id="ref-Barstow1991" class="csl-entry" role="listitem">
+Barstow, T. J., &amp; Mole, P. A. (1991). <span class="nocase">Linear and nonlinear characteristics of oxygen uptake kinetics during heavy exercise</span>. <em>Journal of Applied Physiology</em>, <em>71</em>(6), 2099–2106. <a href="https://doi.org/10.1152/jappl.1991.71.6.2099">https://doi.org/10.1152/jappl.1991.71.6.2099</a>
+</div>
+<div id="ref-Bergstrom1967a" class="csl-entry" role="listitem">
+Bergström, J., Hermansen, L., Hultman, E., &amp; Saltin, B. (1967). <span class="nocase">Diet, Muscle Glycogen and Physical Performance</span>. <em>Acta Physiologica Scandinavica</em>, <em>71</em>(2-3), 140–150. https://doi.org/<a href="https://doi.org/10.1111/j.1748-1716.1967.tb03720.x">https://doi.org/10.1111/j.1748-1716.1967.tb03720.x</a>
+</div>
+<div id="ref-Brooks2012" class="csl-entry" role="listitem">
+Brooks, G. A. (2012). <span class="nocase">Bioenergetics of exercising humans.</span> <em>Comprehensive Physiology</em>, <em>2</em>(1), 537–562. <a href="https://doi.org/10.1002/cphy.c110007">https://doi.org/10.1002/cphy.c110007</a>
+</div>
+<div id="ref-Brooks2004" class="csl-entry" role="listitem">
+Brooks, G. A., Fahey, T. D., &amp; Baldwin, K. M. (2004). <em><span class="nocase">Exercise Physiology: Human Bioenergetics and Its Applications</span></em> (4. Edition, p. 928). McGraw-Hill Education Ltd.
+</div>
+<div id="ref-Chavarren1999" class="csl-entry" role="listitem">
+Chavarren, J., &amp; Calbet, J. A. L. (1999). <span class="nocase">Cycling efficiency and pedalling frequency in road cyclists</span>. <em>European Journal of Applied Physiology and Occupational Physiology</em>, <em>80</em>(6), 555–563. <a href="https://doi.org/10.1007/s004210050634">https://doi.org/10.1007/s004210050634</a>
+</div>
+<div id="ref-Coyle1991" class="csl-entry" role="listitem">
+Coyle, E. F., Feltner, M. E., Kautz, S. A., Hamilton, M. T., Montain, S. J., Baylor, A. M., Abraham, L. D., &amp; Petrek, G. W. (1991). <span class="nocase">Physiological and biomechanical factors associated with elite endurance cycling performance</span>. <em>Medicine and Science in Sports and Exercise</em>, <em>23</em>(1), 93–107. <a href="https://doi.org/10.1249/00005768-199101000-00015">https://doi.org/10.1249/00005768-199101000-00015</a>
+</div>
+<div id="ref-Danforth1965" class="csl-entry" role="listitem">
+Danforth, W. H. (1965). <em><span>ACTIVATION OF GLYCOLYTIC PATHWAY IN MUSCLE</span></em> (pp. 287–297). ACADEMIC PRESS INC. <a href="https://doi.org/10.1016/b978-1-4832-3161-7.50039-2">https://doi.org/10.1016/b978-1-4832-3161-7.50039-2</a>
+</div>
+<div id="ref-DiPrampero1981" class="csl-entry" role="listitem">
+Di Prampero, P. E. (1981). <span class="nocase">Energetics of Muscular Exercise</span>. <em>Review of Physiology, Biochemistry and Pharmacology</em>, <em>89</em>, 143–222.
+</div>
+<div id="ref-DiPrampero1979b" class="csl-entry" role="listitem">
+Di Prampero, P. E., Cortili, G., Mognoni, P., &amp; Saibene, F. (1979). <span class="nocase">Equation of motion of a cyclist.</span> <em>Journal of Applied Physiology: Respiratory, Environmental and Exercise Physiology</em>, <em>47</em>(1), 201–206. <a href="https://doi.org/10.1152/jappl.1979.47.1.201">https://doi.org/10.1152/jappl.1979.47.1.201</a>
+</div>
+<div id="ref-Dunst2024" class="csl-entry" role="listitem">
+Dunst, A. K., Hesse, C., &amp; Ueberschär, O. (2024). <span class="nocase">Understanding optimal cadence dynamics: a systematic analysis of the power-velocity relationship in track cyclists with increasing exercise intensity</span>. <em>Frontiers in Physiology</em>, <em>15</em>(April), 1–17. <a href="https://doi.org/10.3389/fphys.2024.1343601">https://doi.org/10.3389/fphys.2024.1343601</a>
+</div>
+<div id="ref-Dunst2025" class="csl-entry" role="listitem">
+Dunst, A. K., Hesse, C., &amp; Ueberschär, O. (2025). <span class="nocase">Enhancing endurance performance predictions: the role of movement velocity in metabolic simulations demonstrated by cycling cadence.</span> <em>European Journal of Applied Physiology</em>. <a href="https://doi.org/10.1007/s00421-024-05663-4">https://doi.org/10.1007/s00421-024-05663-4</a>
+</div>
+<div id="ref-Faria2005" class="csl-entry" role="listitem">
+Faria, E. W., Parker, D. L., &amp; Faria, I. E. (2005). <span class="nocase">The science of cycling: Factors affecting performance – Part 2</span>. <em>Sports Medicine</em>, <em>35</em>(4), 313–337. <a href="papers2://publication/uuid/6BE396C1-7B05-4F23-8C0C-BCC06AD9A061">papers2://publication/uuid/6BE396C1-7B05-4F23-8C0C-BCC06AD9A061</a>
+</div>
+<div id="ref-Foss2005" class="csl-entry" role="listitem">
+Foss, Ø., &amp; Hallén, J. (2005). <span class="nocase">Cadence and performance in elite cyclists</span>. <em>European Journal of Applied Physiology</em>, <em>93</em>(4), 453–462. <a href="https://doi.org/10.1007/s00421-004-1226-y">https://doi.org/10.1007/s00421-004-1226-y</a>
+</div>
+<div id="ref-Friedlander1998" class="csl-entry" role="listitem">
+Friedlander, A. L., Casazza, G. A., Horning, M. A., Buddinger, T. F., &amp; Brooks, G. A. (1998). <span class="nocase">Effects of exercise intensity and training on lipid metabolism in young women</span>. <em>American Journal of Physiology - Endocrinology and Metabolism</em>, <em>275</em>(5 38-5), 853–863. <a href="https://doi.org/10.1152/ajpendo.1998.275.5.e853">https://doi.org/10.1152/ajpendo.1998.275.5.e853</a>
+</div>
+<div id="ref-Friedlander1999" class="csl-entry" role="listitem">
+Friedlander, A. L., Casazza, G. A., Horning, M. A., Usaj, A., &amp; Brooks, G. A. (1999). <span class="nocase">Endurance training increases fatty acid turnover, but not fat oxidation, in young men</span>. <em>Journal of Applied Physiology</em>, <em>86</em>(6), 2097–2105. <a href="https://doi.org/10.1152/jappl.1999.86.6.2097">https://doi.org/10.1152/jappl.1999.86.6.2097</a>
+</div>
+<div id="ref-Harris1918" class="csl-entry" role="listitem">
+Harris, J. A., &amp; Benedict, F. G. (1918). <span class="nocase">A Biometric Study of Human Basal Metabolism</span>. <em>Proceedings of the National Academy of Sciences of the United States of America</em>, <em>4</em>(12), 370–373. <a href="https://doi.org/10.1073/pnas.4.12.370">https://doi.org/10.1073/pnas.4.12.370</a>
+</div>
+<div id="ref-Harris1976" class="csl-entry" role="listitem">
+Harris, R. C., Edwards, R. H. T., Hultman, E., Nordesjö, L. O., Nylind, B., &amp; Sahlin, K. (1976). <span class="nocase">The time course of phosphorylcreatine resynthesis during recovery of the quadriceps muscle in man</span>. <em>Pfl<span>ü</span>gers Archiv European Journal of Physiology</em>, <em>367</em>(2), 137–142. <a href="https://doi.org/10.1007/BF00585149">https://doi.org/10.1007/BF00585149</a>
+</div>
+<div id="ref-Hauser2014" class="csl-entry" role="listitem">
+Hauser, T., Adam, J., &amp; Schulz, H. (2014). <span class="nocase">Comparison of calculated and experimental power in maximal lactate-steady state during cycling</span>. <em>Theoretical Biology and Medical Modelling</em>, <em>11</em>(1), 1–12. <a href="https://doi.org/10.1186/1742-4682-11-25">https://doi.org/10.1186/1742-4682-11-25</a>
+</div>
+<div id="ref-Heck2022" class="csl-entry" role="listitem">
+Heck, H., Bartmus, U., &amp; Grabow, V. (2022). <em><span>Laktat</span></em> (1st ed., p. 662). Springer Berlin Heidelberg.
+</div>
+<div id="ref-Hintzy-Cloutier2003" class="csl-entry" role="listitem">
+Hintzy-Cloutier, F., Zameziati, K., &amp; Belli, A. (2003). <a href="https://www.ncbi.nlm.nih.gov/pubmed/12629462"><span class="nocase">Influence of the base-line determination on work efficiency during submaximal cycling</span></a>. <em>Journal of Sports Medicine and Physical Fitness</em>, <em>43</em>(1), 51–56.
+</div>
+<div id="ref-Janssen2000" class="csl-entry" role="listitem">
+Janssen, I., Heymsfield, S. B., Wang, Z. M., &amp; Ross, R. (2000). <span class="nocase">Skeletal muscle mass and distribution in 468 men and women aged 18-88 yr</span>. <em>Journal of Applied Physiology</em>, <em>89</em>(1), 81–88. <a href="https://doi.org/10.1152/jappl.2000.89.1.81">https://doi.org/10.1152/jappl.2000.89.1.81</a>
+</div>
+<div id="ref-Jeukendrup2010" class="csl-entry" role="listitem">
+Jeukendrup, A. E. (2010). <span class="nocase">Carbohydrate and exercise performance: The role of multiple transportable carbohydrates</span>. <em>Current Opinion in Clinical Nutrition and Metabolic Care</em>, <em>13</em>(4), 452–457. <a href="https://doi.org/10.1097/MCO.0b013e328339de9f">https://doi.org/10.1097/MCO.0b013e328339de9f</a>
+</div>
+<div id="ref-Jeukendrup2005" class="csl-entry" role="listitem">
+Jeukendrup, A. E., &amp; Wallis, G. A. (2005). <em><span class="nocase">Measurement of substrate oxidation during exercise by means of gas exchange measurements</span></em> (No. 1; Vol. 26). <a href="https://doi.org/10.1055/s-2004-830512">https://doi.org/10.1055/s-2004-830512</a>
+</div>
+<div id="ref-Jeukendrup2019" class="csl-entry" role="listitem">
+Jeukendrup, A., &amp; Gleeson, M. (2019). <em><span>Sport Nutrition</span></em> (3. Edition, p. 602). Human Kinetics.
+</div>
+<div id="ref-Ji2021" class="csl-entry" role="listitem">
+Ji, S., Sommer, A., Bloch, W., &amp; Wahl, P. (2021). <span class="nocase">Comparison and performance validation of calculated and established anaerobic lactate thresholds in running</span>. <em>Medicina (Lithuania)</em>, <em>57</em>(10). <a href="https://doi.org/10.3390/medicina57101117">https://doi.org/10.3390/medicina57101117</a>
+</div>
+<div id="ref-Karlsson1971" class="csl-entry" role="listitem">
+Karlsson, J. (1971). <a href="https://www.ncbi.nlm.nih.gov/pubmed/5549478"><span class="nocase">Lactate and phosphagen concentrations in working muscle of man with special reference to oxygen deficit at the onset of work.</span></a> <em>Acta Physiologica Scandinavica. Supplementum</em>, <em>358</em>, 1–72.
+</div>
+<div id="ref-Kontro2025" class="csl-entry" role="listitem">
+Kontro, H., Mastracci, A., Cheung, S., &amp; MacInnis, M. (2025). <em><span class="nocase">The three-dimensional impulse-response model: Modeling the training process in accordance with energy system-specific adaptation</span></em> (Vol. 1). <a href="https://doi.org/10.48550/arXiv.2503.14841">https://doi.org/10.48550/arXiv.2503.14841</a>
+</div>
+<div id="ref-Lamarra1987" class="csl-entry" role="listitem">
+Lamarra, N., Whipp, B. J., Ward, S. A., &amp; Wasserman, K. (1987). <span class="nocase">Effect of interbreath fluctuations on characterizing exercise gas exchange kinetics</span>. <em>Journal of Applied Physiology</em>, <em>62</em>(5), 2003–2012. <a href="https://doi.org/10.1152/jappl.1987.62.5.2003">https://doi.org/10.1152/jappl.1987.62.5.2003</a>
+</div>
+<div id="ref-Levine2008" class="csl-entry" role="listitem">
+Levine, B. D. (2008). <span class="nocase">V̇O2: What do we know, and what do we still need to know?</span> <em>Journal of Physiology</em>, <em>586</em>(1), 25–34. <a href="https://doi.org/10.1113/jphysiol.2007.147629">https://doi.org/10.1113/jphysiol.2007.147629</a>
+</div>
+<div id="ref-Lucia2001a" class="csl-entry" role="listitem">
+Lucía, A., Hoyos, J., &amp; Chicharro, J. L. (2001). <span class="nocase">Preferred pedalling cadence in professional cycling</span>. <em>Medicine and Science in Sports and Exercise</em>, <em>33</em>(8), 1361–1366. <a href="https://doi.org/10.1097/00005768-200108000-00018">https://doi.org/10.1097/00005768-200108000-00018</a>
+</div>
+<div id="ref-Mader1984" class="csl-entry" role="listitem">
+Mader, A. (1984). <em><span class="nocase">Eine Theorie zur Berechnung der Dynamik und des steady state von Phosphorylierungszustand und Stoffwechselaktivit<span class="nocase">ä</span>t der Muskelzelle als Folge des Energeibedarfs</span></em> (p. 264) [PhD thesis]. Deutsche Sporthochschule K<span>ö</span>ln.
+</div>
+<div id="ref-Mader2003" class="csl-entry" role="listitem">
+Mader, A. (2003). <span class="nocase">Glycolysis and oxidative phosphorylation as a function of cytosolic phosphorylation state and power output of the muscle cell</span>. <em>European Journal of Applied Physiology</em>, <em>88</em>(4-5), 317–338. <a href="https://doi.org/10.1007/s00421-002-0676-3">https://doi.org/10.1007/s00421-002-0676-3</a>
+</div>
+<div id="ref-Mader1996" class="csl-entry" role="listitem">
+Mader, A., &amp; Allmer, H. (1996). <em><span class="nocase">Computersimulation: M<span class="nocase">ö</span>glichkeiten zur Theoriebildung und Ergebnisinterpretation</span></em> (p. 170). <a href="http://www.amazon.de/Computersimulation-M�glichkeiten-zur-Theoriebildung-Ergebnisinterpretation/dp/3883457310">http://www.amazon.de/Computersimulation-M�glichkeiten-zur-Theoriebildung-Ergebnisinterpretation/dp/3883457310</a>
+</div>
+<div id="ref-Mader1986" class="csl-entry" role="listitem">
+Mader, A., &amp; Heck, H. (1986). <span class="nocase">A theory of the metabolic origin of anaerobic threshold.</span> <em>International Journal of Sports Medicine</em>, <em>7 (Suppl.</em>, 45–65.
+</div>
+<div id="ref-McCann1995" class="csl-entry" role="listitem">
+McCann, D. J., Molé, P. A., &amp; Caton, J. R. (1995). <span class="nocase">Phosphocreatine kinetics in humans during exercise and recovery.</span> <em>Medicine and Science in Sports and Exercise</em>, <em>27</em>(3), 378–389. <a href="http://scioteca.caf.com/bitstream/handle/123456789/1091/RED2017-Eng-8ene.pdf?sequence=12&amp;isAllowed=y%0Ahttp://dx.doi.org/10.1016/j.regsciurbeco.2008.06.005%0Ahttps://www.researchgate.net/publication/305320484_SISTEM_PEMBETUNGAN_TERPUSAT_STRATEGI_MELESTARI">http://scioteca.caf.com/bitstream/handle/123456789/1091/RED2017-Eng-8ene.pdf?sequence=12&amp;isAllowed=y%0Ahttp://dx.doi.org/10.1016/j.regsciurbeco.2008.06.005%0Ahttps://www.researchgate.net/publication/305320484_SISTEM_PEMBETUNGAN_TERPUSAT_STRATEGI_MELESTARI</a>
+</div>
+<div id="ref-Monod1965" class="csl-entry" role="listitem">
+Monod, H., &amp; Scherrer, J. (1965). <span class="nocase">The work capacity of a synergic muscular group</span>. <em>Ergonomics</em>, <em>8</em>(3), 329–338. <a href="https://doi.org/10.1080/00140136508930810">https://doi.org/10.1080/00140136508930810</a>
+</div>
+<div id="ref-Morton2008" class="csl-entry" role="listitem">
+Morton, A. R. (2008). <span>Exercise Physiology</span>. In <em>Pediatric respiratory medicine</em> (Second Edi, pp. 89–99). Elsevier Inc. <a href="https://doi.org/10.1016/B978-0-323-04048-8.50012-8">https://doi.org/10.1016/B978-0-323-04048-8.50012-8</a>
+</div>
+<div id="ref-Murray2018" class="csl-entry" role="listitem">
+Murray, B., &amp; Rosenbloom, C. (2018). <span class="nocase">Fundamentals of glycogen metabolism for coaches and athletes</span>. <em>Nutrition Reviews</em>, <em>76</em>(4), 243–259. <a href="https://doi.org/10.1093/NUTRIT/NUY001">https://doi.org/10.1093/NUTRIT/NUY001</a>
+</div>
+<div id="ref-Nolte2022" class="csl-entry" role="listitem">
+Nolte, S., Quittmann, O. J., &amp; Meden, V. (2022). <span class="nocase">Simulation of Steady-State Energy Metabolism in Cycling and Running</span>. <em>SportR<span class="math inline">\(\chi\)</span>iv</em>.
+</div>
+<div id="ref-Oezyener2001" class="csl-entry" role="listitem">
+Özyener, F., Rossiter, H. B., Ward, S. A., &amp; Whipp, B. J. (2001). <span class="nocase">Influence of exercise intensity on the on- and off-transient kinetics of pulmonary oxygen uptake in humans.</span> <em>The Journal of Physiology</em>, <em>533</em>(Pt 3), 891–902. <a href="https://doi.org/10.1111/j.1469-7793.2001.t01-1-00891.x">https://doi.org/10.1111/j.1469-7793.2001.t01-1-00891.x</a>
+</div>
+<div id="ref-Poole2016" class="csl-entry" role="listitem">
+Poole, D. C., Burnley, M., Vanhatalo, A., Rossiter, H. B., &amp; Jones, A. M. (2016). <span class="nocase">Critical Power: An Important Fatigue Threshold in Exercise Physiology.</span> <em>Medicine and Science in Sports and Exercise</em>, <em>48</em>(11), 2320–2334. <a href="https://doi.org/10.1249/MSS.0000000000000939">https://doi.org/10.1249/MSS.0000000000000939</a>
+</div>
+<div id="ref-Rassouli2015" class="csl-entry" role="listitem">
+Rassouli, F., &amp; Thurnheer, R. (2015). <span class="nocase">Spiroergometrie – Indikation, Durchf<span class="nocase">ü</span>hrung und Interpretation</span>. <em>Swiss Medical Forum ‒ Schweizerisches Medizin-Forum</em>, <em>15</em>(1415), 315–321. <a href="https://doi.org/10.4414/smf.2015.02227">https://doi.org/10.4414/smf.2015.02227</a>
+</div>
+<div id="ref-Skiba2012" class="csl-entry" role="listitem">
+Skiba, P. F., Chidnok, W., Vanhatalo, A., &amp; Jones, A. M. (2012). <span class="nocase">Modeling the expenditure and reconstitution of work capacity above critical power</span>. <em>Medicine and Science in Sports and Exercise</em>, <em>44</em>(8), 1526–1532. <a href="https://doi.org/10.1249/MSS.0b013e3182517a80">https://doi.org/10.1249/MSS.0b013e3182517a80</a>
+</div>
+<div id="ref-Stainbsy1980" class="csl-entry" role="listitem">
+Stainbsy, W. N., Gladden, L. B., Barclay, J. K., &amp; Wilson, B. A. (1980). <span class="nocase">Exercise efficiency: validity of base-line subtractions.</span> <em>Journal of Applied Physiology: Respiratory, Environmental and Exercise Physiology</em>, <em>48</em>(3), 518–522. <a href="https://doi.org/10.1152/jappl.1980.48.3.518">https://doi.org/10.1152/jappl.1980.48.3.518</a>
+</div>
+<div id="ref-Stegemann1991" class="csl-entry" role="listitem">
+Stegemann, J. (1991). <em><span>Leistungsphysiologie</span></em> (4. Edition, p. 385). Georg Thieme Verlag.
+</div>
+<div id="ref-Whipp1972" class="csl-entry" role="listitem">
+Whipp, B. J., &amp; Wasserman, K. (1972). <span class="nocase">Oxygen uptake kinetics for various intensities of constant-load work.</span> <em>Journal of Applied Physiology</em>, <em>33</em>(3), 351–356. <a href="https://doi.org/10.1152/jappl.1972.33.3.351">https://doi.org/10.1152/jappl.1972.33.3.351</a>
+</div>
+<div id="ref-Zoladz1995" class="csl-entry" role="listitem">
+Zoladz, J. A., Rademaker, A. C., &amp; Sargeant, A. J. (1995). <span class="nocase">Non‐linear relationship between O2 uptake and power output at high intensities of exercise in humans.</span> <em>The Journal of Physiology</em>, <em>488</em>(1), 211–217. <a href="https://doi.org/10.1113/jphysiol.1995.sp020959">https://doi.org/10.1113/jphysiol.1995.sp020959</a>
+</div>
+</div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/JJRW96\.github\.io\/MetabolicAnalytics-Apps\.github\.io\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>Johannes Will, 2025 | <a href="mailto:JohannesWill96@gmail.com">JohannesWill96@gmail.com</a></p>
+</div>   
+    <div class="nav-footer-center">
+      &nbsp;
+    </div>
+    <div class="nav-footer-right">
+<p><a href="https://quarto.org/">Quarto</a></p>
+</div>
+  </div>
+</footer>
+
+
+
+
+</body></html>

@@ -367,7 +367,7 @@ window.Quarto = {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../Metabolic_Model_Apps/Mader_Modell.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Exercise Simulation</span></a>
+ <span class="menu-text">Metabolic Simulation</span></a>
   </div>
 </li>
       </ul>
@@ -451,15 +451,14 @@ figure figcaption {
 </div>
 <p><br></p>
 <p><a href="../../Etalon_Calculator_App_1.9.html">Fullscreen-Link: Etalon W/kg Performance Converter</a></p>
-<section id="advanced-etalon-wkg-performance-converter-a-feature-guide" class="level1">
-<h1>Advanced Etalon W/kg Performance Converter: A Feature Guide</h1>
+<section id="advanced-etalon-wkg-performance-converter" class="level1">
+<h1>Advanced Etalon W/kg Performance Converter</h1>
 <p>The <strong>Advanced Etalon W/kg Performance Converter</strong> is a specialized, web-based physics simulation tool designed to deconstruct and analyze cycling performances with a high degree of precision. It moves beyond simple power-to-weight ratios by employing a robust mathematical model, grounded in the fundamental principles of physics detailed by researchers like <span class="citation" data-cites="Martin1998">Martin et al. (<a href="#ref-Martin1998" role="doc-biblioref">1998</a>)</span>, to account for the multiple forces a cyclist must overcome. The application’s core purpose is to facilitate objective performance comparisons by translating real-world efforts into a standardized benchmark, known as <strong>“Etalon W/kg”</strong>, and vice-versa.</p>
 <p>The app operates in two distinct, powerful modes:</p>
 <ol type="1">
 <li><p><strong>Etalon → Real Power (Standard Mode):</strong> This mode allows users to take a standardized performance benchmark (the Etalon W/kg) and calculate the <em>actual</em> power a specific rider would need to produce to match that benchmark on a given climb, considering their unique physical and equipment characteristics. This is the primary mode for analyzing and comparing performances between different riders or against historical benchmarks. It can also quantify the impact of environmental factors like wind.</p></li>
 <li><p><strong>Real Power → Etalon (Reverse Mode):</strong> This mode takes a known, real-world power output from an athlete and calculates the equivalent Etalon W/kg performance. This is an valuable tool for athletes and coaches who want to standardize their own power meter data, allowing for “apples-to-apples” comparisons of their efforts across different climbs, conditions, and even changes in their own body weight over time.</p></li>
 </ol>
-<p>By providing this bidirectional conversion, the application serves as a comprehensive bridge between standardized performance metrics and the complex reality of individual athletic performance.</p>
 <section id="core-concepts-deconstructing-cycling-power" class="level2">
 <h2 class="anchored" data-anchor-id="core-concepts-deconstructing-cycling-power">Core Concepts: Deconstructing Cycling Power</h2>
 <p>To propel a bicycle, a rider must produce power to overcome a series of opposing physical forces. The application’s calculation engine is a sophisticated physics model that quantifies each of these forces to determine the total power required. This model is built upon the foundational work of researchers like <span class="citation" data-cites="Martin1998">Martin et al. (<a href="#ref-Martin1998" role="doc-biblioref">1998</a>)</span>.</p>
@@ -552,7 +551,7 @@ figure figcaption {
 <li><strong>Act. Time:</strong> The actual time the rider took.</li>
 <li><strong>Exp. Time:</strong> The <em>expected</em> time the Etalon rider would have taken to achieve the benchmark Etalon W/kg in windless conditions.</li>
 <li><strong>Time Diff.:</strong> The difference between actual and expected time. A positive value (red) means the rider was slower than expected (indicating a headwind or other resistive force), while a negative value (green) means they were faster (indicating a tailwind).</li>
-<li><strong>Eff. Wind (m/s):</strong> The key output. This is the calculated constant headwind (positive value) or tailwind (negative value) that would be required in the physics model to account for the observed Time Difference.</li>
+<li><strong>Eff. Wind (m/s):</strong> This is the calculated constant headwind (positive value) or tailwind (negative value) that would be required in the physics model to account for the observed Time Difference.</li>
 <li><strong>Etalon W/kg:</strong> The benchmark performance input.</li>
 <li><strong>W/kg (rider mass):</strong> The calculated real-world, mass-relative power of the specific rider.</li>
 <li><strong>Power (W):</strong> The calculated absolute power the rider had to produce to achieve their actual time, factoring in their mass, equipment, and the calculated effective wind.</li>
@@ -588,62 +587,8 @@ figure figcaption {
 </section>
 
 <div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" data-line-spacing="2" role="list">
-<div id="ref-Brooks2012" class="csl-entry" role="listitem">
-Brooks, G. A. (2012). <span class="nocase">Bioenergetics of exercising humans.</span> <em>Comprehensive Physiology</em>, <em>2</em>(1), 537–562. <a href="https://doi.org/10.1002/cphy.c110007">https://doi.org/10.1002/cphy.c110007</a>
-</div>
-<div id="ref-Brooks2004" class="csl-entry" role="listitem">
-Brooks, G. A., Fahey, T. D., &amp; Baldwin, K. M. (2004). <em><span class="nocase">Exercise Physiology: Human Bioenergetics and Its Applications</span></em> (4. Edition, p. 928). McGraw-Hill Education Ltd.
-</div>
-<div id="ref-Dunst2024" class="csl-entry" role="listitem">
-Dunst, A. K., Hesse, C., &amp; Ueberschär, O. (2024). <span class="nocase">Understanding optimal cadence dynamics: a systematic analysis of the power-velocity relationship in track cyclists with increasing exercise intensity</span>. <em>Frontiers in Physiology</em>, <em>15</em>(April), 1–17. <a href="https://doi.org/10.3389/fphys.2024.1343601">https://doi.org/10.3389/fphys.2024.1343601</a>
-</div>
-<div id="ref-Dunst2025" class="csl-entry" role="listitem">
-Dunst, A. K., Hesse, C., &amp; Ueberschär, O. (2025). <span class="nocase">Enhancing endurance performance predictions: the role of movement velocity in metabolic simulations demonstrated by cycling cadence.</span> <em>European Journal of Applied Physiology</em>. <a href="https://doi.org/10.1007/s00421-024-05663-4">https://doi.org/10.1007/s00421-024-05663-4</a>
-</div>
-<div id="ref-Friedlander1998" class="csl-entry" role="listitem">
-Friedlander, A. L., Casazza, G. A., Horning, M. A., Buddinger, T. F., &amp; Brooks, G. A. (1998). <span class="nocase">Effects of exercise intensity and training on lipid metabolism in young women</span>. <em>American Journal of Physiology - Endocrinology and Metabolism</em>, <em>275</em>(5 38-5), 853–863. <a href="https://doi.org/10.1152/ajpendo.1998.275.5.e853">https://doi.org/10.1152/ajpendo.1998.275.5.e853</a>
-</div>
-<div id="ref-Friedlander1999" class="csl-entry" role="listitem">
-Friedlander, A. L., Casazza, G. A., Horning, M. A., Usaj, A., &amp; Brooks, G. A. (1999). <span class="nocase">Endurance training increases fatty acid turnover, but not fat oxidation, in young men</span>. <em>Journal of Applied Physiology</em>, <em>86</em>(6), 2097–2105. <a href="https://doi.org/10.1152/jappl.1999.86.6.2097">https://doi.org/10.1152/jappl.1999.86.6.2097</a>
-</div>
-<div id="ref-Hauser2014" class="csl-entry" role="listitem">
-Hauser, T., Adam, J., &amp; Schulz, H. (2014). <span class="nocase">Comparison of calculated and experimental power in maximal lactate-steady state during cycling</span>. <em>Theoretical Biology and Medical Modelling</em>, <em>11</em>(1), 1–12. <a href="https://doi.org/10.1186/1742-4682-11-25">https://doi.org/10.1186/1742-4682-11-25</a>
-</div>
-<div id="ref-Hintzy-Cloutier2003" class="csl-entry" role="listitem">
-Hintzy-Cloutier, F., Zameziati, K., &amp; Belli, A. (2003). <a href="https://www.ncbi.nlm.nih.gov/pubmed/12629462"><span class="nocase">Influence of the base-line determination on work efficiency during submaximal cycling</span></a>. <em>Journal of Sports Medicine and Physical Fitness</em>, <em>43</em>(1), 51–56.
-</div>
-<div id="ref-Jeukendrup2005" class="csl-entry" role="listitem">
-Jeukendrup, A. E., &amp; Wallis, G. A. (2005). <em><span class="nocase">Measurement of substrate oxidation during exercise by means of gas exchange measurements</span></em> (No. 1; Vol. 26). <a href="https://doi.org/10.1055/s-2004-830512">https://doi.org/10.1055/s-2004-830512</a>
-</div>
-<div id="ref-Jeukendrup2019" class="csl-entry" role="listitem">
-Jeukendrup, A., &amp; Gleeson, M. (2019). <em><span>Sport Nutrition</span></em> (3. Edition, p. 602). Human Kinetics.
-</div>
-<div id="ref-Ji2021" class="csl-entry" role="listitem">
-Ji, S., Sommer, A., Bloch, W., &amp; Wahl, P. (2021). <span class="nocase">Comparison and performance validation of calculated and established anaerobic lactate thresholds in running</span>. <em>Medicina (Lithuania)</em>, <em>57</em>(10). <a href="https://doi.org/10.3390/medicina57101117">https://doi.org/10.3390/medicina57101117</a>
-</div>
-<div id="ref-Mader1984" class="csl-entry" role="listitem">
-Mader, A. (1984). <em><span class="nocase">Eine Theorie zur Berechnung der Dynamik und des steady state von Phosphorylierungszustand und Stoffwechselaktivit<span class="nocase">ä</span>t der Muskelzelle als Folge des Energeibedarfs</span></em> (p. 264) [PhD thesis]. Deutsche Sporthochschule K<span>ö</span>ln.
-</div>
-<div id="ref-Mader2003" class="csl-entry" role="listitem">
-Mader, A. (2003). <span class="nocase">Glycolysis and oxidative phosphorylation as a function of cytosolic phosphorylation state and power output of the muscle cell</span>. <em>European Journal of Applied Physiology</em>, <em>88</em>(4-5), 317–338. <a href="https://doi.org/10.1007/s00421-002-0676-3">https://doi.org/10.1007/s00421-002-0676-3</a>
-</div>
-<div id="ref-Mader1996" class="csl-entry" role="listitem">
-Mader, A., &amp; Allmer, H. (1996). <em><span class="nocase">Computersimulation: M<span class="nocase">ö</span>glichkeiten zur Theoriebildung und Ergebnisinterpretation</span></em> (p. 170). <a href="http://www.amazon.de/Computersimulation-M�glichkeiten-zur-Theoriebildung-Ergebnisinterpretation/dp/3883457310">http://www.amazon.de/Computersimulation-M�glichkeiten-zur-Theoriebildung-Ergebnisinterpretation/dp/3883457310</a>
-</div>
-<div id="ref-Mader1986" class="csl-entry" role="listitem">
-Mader, A., &amp; Heck, H. (1986). <span class="nocase">A theory of the metabolic origin of anaerobic threshold.</span> <em>International Journal of Sports Medicine</em>, <em>7 (Suppl.</em>, 45–65.
-</div>
 <div id="ref-Martin1998" class="csl-entry" role="listitem">
 Martin, J. C., Milliken, D. L., Cobb, J. E., McFadden, K. L., &amp; Coggan, A. R. (1998). <span class="nocase">Validation of a Mathematical Model for Road Cycling Power</span>. <em>Journal of Applied Biomechanics</em>, <em>14</em>(3), 276–291. <a href="https://doi.org/10.1123/jab.14.3.276">https://doi.org/10.1123/jab.14.3.276</a>
-</div>
-<div id="ref-Nolte2022" class="csl-entry" role="listitem">
-Nolte, S., Quittmann, O. J., &amp; Meden, V. (2022). <span class="nocase">Simulation of Steady-State Energy Metabolism in Cycling and Running</span>. <em>SportR<span class="math inline">\(\chi\)</span>iv</em>.
-</div>
-<div id="ref-Oezyener2001" class="csl-entry" role="listitem">
-Özyener, F., Rossiter, H. B., Ward, S. A., &amp; Whipp, B. J. (2001). <span class="nocase">Influence of exercise intensity on the on- and off-transient kinetics of pulmonary oxygen uptake in humans.</span> <em>The Journal of Physiology</em>, <em>533</em>(Pt 3), 891–902. <a href="https://doi.org/10.1111/j.1469-7793.2001.t01-1-00891.x">https://doi.org/10.1111/j.1469-7793.2001.t01-1-00891.x</a>
-</div>
-<div id="ref-Stegemann1991" class="csl-entry" role="listitem">
-Stegemann, J. (1991). <em><span>Leistungsphysiologie</span></em> (4. Edition, p. 385). Georg Thieme Verlag.
 </div>
 </div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
