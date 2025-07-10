@@ -21,9 +21,6 @@ editor:
   markdown: 
     wrap: 72
     
-nocite: |
-  @Hintzy-Cloutier2003, @Dunst2025, @Dunst2024; @Mader2003; @Hauser2014; @Ji2021; @Nolte2022; @Mader1984; @Mader1986; @Mader1996; @Oezyener2001; @Jeukendrup2005; @Brooks2004; @Brooks2012; @Jeukendrup2019; @Stegemann1991; @Friedlander1998; @Friedlander1999
-    
 ---
 
 ```{css}
@@ -51,7 +48,7 @@ figure figcaption {
 
 [Fullscreen-Link: Etalon W/kg Performance Converter](/Etalon_Calculator_App_1.9.html)
 
-# Advanced Etalon W/kg Performance Converter: A Feature Guide
+# Advanced Etalon W/kg Performance Converter
 
 The **Advanced Etalon W/kg Performance Converter** is a specialized, web-based physics simulation tool designed to deconstruct and analyze cycling performances with a high degree of precision. It moves beyond simple power-to-weight ratios by employing a robust mathematical model, grounded in the fundamental principles of physics detailed by researchers like @Martin1998, to account for the multiple forces a cyclist must overcome. The application's core purpose is to facilitate objective performance comparisons by translating real-world efforts into a standardized benchmark, known as **"Etalon W/kg"**, and vice-versa.
 
@@ -61,7 +58,6 @@ The app operates in two distinct, powerful modes:
 
 2.  **Real Power → Etalon (Reverse Mode):** This mode takes a known, real-world power output from an athlete and calculates the equivalent Etalon W/kg performance. This is an valuable tool for athletes and coaches who want to standardize their own power meter data, allowing for "apples-to-apples" comparisons of their efforts across different climbs, conditions, and even changes in their own body weight over time.
 
-By providing this bidirectional conversion, the application serves as a comprehensive bridge between standardized performance metrics and the complex reality of individual athletic performance.
 
 ## Core Concepts: Deconstructing Cycling Power
 
@@ -148,7 +144,7 @@ This table is designed to answer: "Given a standard performance level (Etalon W/
 *   **Act. Time:** The actual time the rider took.
 *   **Exp. Time:** The *expected* time the Etalon rider would have taken to achieve the benchmark Etalon W/kg in windless conditions.
 *   **Time Diff.:** The difference between actual and expected time. A positive value (red) means the rider was slower than expected (indicating a headwind or other resistive force), while a negative value (green) means they were faster (indicating a tailwind).
-*   **Eff. Wind (m/s):** The key output. This is the calculated constant headwind (positive value) or tailwind (negative value) that would be required in the physics model to account for the observed Time Difference.
+*   **Eff. Wind (m/s):** This is the calculated constant headwind (positive value) or tailwind (negative value) that would be required in the physics model to account for the observed Time Difference.
 *   **Etalon W/kg:** The benchmark performance input.
 *   **W/kg (rider mass):** The calculated real-world, mass-relative power of the specific rider.
 *   **Power (W):** The calculated absolute power the rider had to produce to achieve their actual time, factoring in their mass, equipment, and the calculated effective wind.

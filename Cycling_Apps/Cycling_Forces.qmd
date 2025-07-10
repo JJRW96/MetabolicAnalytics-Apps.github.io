@@ -24,22 +24,19 @@ editor:
     wrap: 72
 ---
 
-**Please note: This website is currently under construction.** I'm gradually adding more detailed explanations of the applications and developing additional models. The content will continue to expand over time.
-
-
 <div style="position: relative; width: 100%; height: 800px;">
   <iframe src="Cycling_Forces_1.4.html" style="position: absolute; width: 100%; height: 100%; border: none;"></iframe>
 </div>
 
 <br>
 
-[Link: Cycling Power Calculator](/Cycling_Forces_1.4.html)
+[Fullscreen Link: Cycling Power Calculator](/Cycling_Forces_1.4.html)
 
 # Cycling Power & Forces Calculator: Technical Documentation
 
 ## 1. Introduction
 
-The **Cycling Power & Forces Calculator** is an interactive, web-based educational and planning tool designed for cyclists, coaches, and sports scientists. It provides a real-time, physics-based simulation of the power required to cycle under a wide variety of conditions. The application's core is a detailed physics model based on the well-established research paper by Martin et al. (1998), "Validation of a mathematical model for road cycling power."
+The **Cycling Power & Forces Calculator** is an interactive, web-based educational and planning tool designed for cyclists, coaches, and sports scientists. It provides a real-time, physics-based simulation of the power required to cycle under a wide variety of conditions. The application's core is a detailed physics model based on the well-established research paper by @Martin1998, "Validation of a mathematical model for road cycling power."
 
 The primary functions of the application are:
 
@@ -107,7 +104,7 @@ Two distinct calculator modules allow for more advanced analysis:
 
 ## 3. Core Logic & Physics Model
 
-The application's calculations are based on the model presented by Martin et al. (1998). The central function, `calculatePowerComponents()`, computes the various resistive forces and the power required to overcome them.
+The application's calculations are based on the model presented by @Martin1998. The central function, `calculatePowerComponents()`, computes the various resistive forces and the power required to overcome them.
 
 The total power required at the pedals ($P_{TOT}$) is the sum of the powers needed to overcome all resistive forces, divided by the efficiency of the drivetrain ($E_c$).
 $$ P_{TOT} = \frac{P_{NET}}{E_c} = \frac{P_{AT} + P_{RR} + P_{PE} + P_{WB}}{E_c} $$

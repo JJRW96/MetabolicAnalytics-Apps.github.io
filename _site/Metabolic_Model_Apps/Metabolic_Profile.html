@@ -202,7 +202,7 @@ window.Quarto = {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../Metabolic_Model_Apps/Mader_Modell.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Exercise Simulation</span></a>
+ <span class="menu-text">Metabolic Simulation</span></a>
   </div>
 </li>
       </ul>
@@ -287,7 +287,7 @@ figure figcaption {
 <p><a href="..\Metabolic_Profile_App_3.7.6.html">Fullscreen-Link: Metabolic Profile App</a></p>
 <section id="metabolic-profile-app-a-feature-guide" class="level1">
 <h1>Metabolic Profile App: A Feature Guide</h1>
-<p>The <strong>Integrated Metabolic &amp; Power Profile</strong> application is an advanced, web-based tool designed to unify two critical domains of performance physiology: the underlying metabolic framework of an athlete and their maximal power-duration capabilities. It achieves this by synergistically combining a sophisticated metabolic model, based on the principles established by Dr.&nbsp;Alois Mader <span class="citation" data-cites="Mader2003">(<a href="#ref-Mader2003" role="doc-biblioref">Mader, 2003</a>)</span>, with a suite of established power-duration models. This integration allows for a comprehensive, multi-faceted analysis of an athlete’s physiological profile, providing insights that extend far beyond what either model could offer in isolation.</p>
+<p>The <strong>Integrated Metabolic &amp; Power Profile</strong> application is an advanced, web-based tool designed to unify two critical domains of performance physiology: the underlying metabolic framework of an athlete and their maximal power-duration capabilities. It achieves this by synergistically combining a metabolic model, based on the principles established by Alois Mader <span class="citation" data-cites="Mader2003">(<a href="#ref-Mader2003" role="doc-biblioref">Mader, 2003</a>)</span>, with a suite of established power-duration models. This integration allows for a comprehensive, multi-faceted analysis of an athlete’s physiological profile, providing insights that extend far beyond what either model could offer in isolation.</p>
 <p>The application operates through an interactive interface, allowing users to:</p>
 <ol type="1">
 <li><strong>Define a detailed physiological profile:</strong> Users can input or estimate fundamental metabolic parameters like maximal oxygen uptake (<span class="math inline">\(\dot{V}O_{2,max}\)</span>), maximal glycolytic rate (<span class="math inline">\(vLa_{max}\)</span>), and exercise efficiency (CE).</li>
@@ -299,10 +299,10 @@ figure figcaption {
 <h2 class="anchored" data-anchor-id="core-concepts-the-union-of-two-model-worlds">Core Concepts: The Union of Two Model Worlds</h2>
 <p>The application’s strength lies in its ability to bridge the gap between two complementary modeling approaches:</p>
 <ul>
-<li><p><strong>The Mader Metabolic Model:</strong> This “bottom-up” model simulates an athlete’s physiological state based on fundamental parameters. It calculates steady-state oxygen uptake, lactate production and clearance rates, and substrate utilization to predict key metabolic thresholds like the <strong>Maximal Lactate Steady State (MLSS)</strong> and the point of maximal fat oxidation (<strong>FAT<sub>max</sub></strong>). This model answers the question: “Given this athlete’s specific engine characteristics, what are their metabolic responses at various intensities?”</p></li>
+<li><p><strong>The Metabolic Model:</strong> This “bottom-up” model simulates an athlete’s physiological state based on fundamental parameters. It calculates steady-state oxygen uptake, lactate production and clearance rates, and substrate utilization to predict key metabolic thresholds like the <strong>Maximal Lactate Steady State (MLSS)</strong> and the point of maximal fat oxidation (<strong>FAT<sub>max</sub></strong>). This model answers the question: “Given this athlete’s specific engine characteristics, what are their metabolic responses at various intensities?”</p></li>
 <li><p><strong>The Power-Duration (PD) Model:</strong> This “top-down” approach characterizes an athlete’s performance capabilities based on their actual maximal efforts. By fitting a mathematical curve to these data points, it can interpolate or extrapolate the maximal sustainable power for any duration and derive parameters like <strong>Critical Power (CP)</strong> and <strong>W’</strong> (anaerobic work capacity). This model answers the question: “Based on their performances, what are this athlete’s functional threshold and anaerobic capacity?”</p></li>
 </ul>
-<p>The app not only presents these models side-by-side but also provides tools to link them—for instance, by estimating <span class="math inline">\(\dot{V}O_{2,max}\)</span> from the PD model or by fitting a metabolic parameter (like <span class="math inline">\(vLa_{max}\)</span>) to align the Mader-predicted MLSS with the PD-derived Critical Power.</p>
+<p>The app not only presents these models side-by-side but also provides tools to link them—for instance, by estimating <span class="math inline">\(\dot{V}O_{2,max}\)</span> from the PD model or by fitting a metabolic parameter (like <span class="math inline">\(vLa_{max}\)</span>) to align the predicted MLSS with the PD-derived Critical Power.</p>
 </section>
 <section id="the-sidebar-the-control-center" class="level2">
 <h2 class="anchored" data-anchor-id="the-sidebar-the-control-center">The Sidebar: The Control Center</h2>
@@ -314,7 +314,7 @@ figure figcaption {
 <h4 class="anchored" data-anchor-id="athlete-profile-management"><strong>Athlete &amp; Profile Management</strong></h4>
 <p>This section allows for the creation, selection, and management of athlete profiles.</p>
 <ul>
-<li><strong>Athlete Profile Dropdown:</strong> Select from a list of pre-defined example profiles (e.g., “T. Pogačar”, “Heavy ♂”) or custom profiles that have been added or imported. Selecting a profile loads all its associated physiological parameters and power data.</li>
+<li><strong>Athlete Profile Dropdown:</strong> Select from a list of pre-defined example profiles (e.g., “T. Pogačar”, …) or custom profiles that have been added or imported. Selecting a profile loads all its associated physiological parameters and power data.</li>
 <li><strong>Import/Export/Add Profile:</strong>
 <ul>
 <li><strong>Import Profile:</strong> Loads a complete athlete profile from a local <code>.json</code> file. The app intelligently handles missing data by applying sensible defaults or calculating parameters where possible (e.g., calculating <span class="math inline">\(\dot{V}O_{2,Base}\)</span> from anthropometrics if it’s not in the file).</li>
@@ -395,11 +395,11 @@ figure figcaption {
 <ul>
 <li><p><strong><span class="math inline">\(\dot{V}O_{2,max}\)</span> (Slider &amp; Auto-Calculation):</strong> Maximal oxygen uptake. Can be set manually or automatically calculated from the power profile using one of three methods:</p>
 <ol type="1">
-<li><strong>Sitko et al.&nbsp;(2022) formula:</strong> A regression equation based on 5-minute maximal power. <span class="math display">\[ \dot{V}O_{2,max,rel} = 16.6 + (8.87 \cdot P_{max,5min,rel}) \]</span></li>
+<li><strong><span class="citation" data-cites="Sitko2022">Sitko et al. (<a href="#ref-Sitko2022" role="doc-biblioref">2022</a>)</span> formula:</strong> A regression equation based on 5-minute maximal power. <span class="math display">\[ \dot{V}O_{2,max,rel} = 16.6 + (8.87 \cdot P_{max,5min,rel}) \]</span></li>
 <li><strong>CE-based formula:</strong> Estimates <span class="math inline">\(\dot{V}O_{2,max}\)</span> from the oxygen demand of a maximal effort of a user-defined duration (set via the “Duration for <span class="math inline">\(\dot{V}O_{2,max}\)</span> Calc” slider). <span class="math display">\[ \dot{V}O_{2,max,abs} = (P_{max,duration,abs} \cdot CE) + \dot{V}O_{2,Base} \]</span></li>
-<li><strong>Average:</strong> Averages the results of the Sitko and CE-based methods.</li>
+<li><strong>Average:</strong> Averages the results of the <span class="citation" data-cites="Sitko2022">Sitko et al. (<a href="#ref-Sitko2022" role="doc-biblioref">2022</a>)</span> and CE-based methods.</li>
 </ol></li>
-<li><p><strong>vLa<sub>max</sub> (Slider &amp; Auto-Calculation):</strong> This parameter represents the maximal rate of lactate production, a key indicator of an athlete’s maximal glycolytic capacity. It can be set manually via the slider or automatically estimated using the <strong>“Estimate vLa<sub>max</sub> from 20s Power”</strong> feature. This estimation tool leverages a 20-second maximal sprint power value, a practical field-based proxy for assessing glycolytically dominant power output. The app implements regression equations adapted from research by <span class="citation" data-cites="Clark2025">(<a href="#ref-Clark2025" role="doc-biblioref"><strong>Clark2025?</strong></a>)</span> to derive <span class="math inline">\(vLa_{max}\)</span> from this power input. Users can choose from three estimation methods via a dropdown menu:</p>
+<li><p><strong>vLa<sub>max</sub> (Slider &amp; Auto-Calculation):</strong> This parameter represents the maximal rate of lactate production, a key indicator of an athlete’s maximal glycolytic capacity. It can be set manually via the slider or automatically estimated using the <strong>“Estimate vLa<sub>max</sub> from 20s Power”</strong> feature. This estimation tool leverages a 20-second maximal sprint power value, a practical field-based proxy for assessing glycolytically dominant power output. The app implements regression equations adapted from research by Clark and Macdermid to derive <span class="math inline">\(vLa_{max}\)</span> from this power input <span class="citation" data-cites="Clark2021 Clark2025">(<a href="#ref-Clark2021" role="doc-biblioref">B. J. R. Clark, 2021</a>; <a href="#ref-Clark2025" role="doc-biblioref">B. Clark &amp; Macdermid, 2025</a>)</span>. Users can choose from three estimation methods via a dropdown menu:</p>
 <ol type="1">
 <li><strong>Method: Absolute (W only):</strong> This method uses the absolute 20-second average power (<span class="math inline">\(P_{20s, abs}\)</span> in Watts) as the sole predictor. The formula implemented is: <span class="math display">\[ vLa_{max} = 0.062773 + (0.000483 \cdot P_{20s, abs}) \]</span> This approach is useful when comparing athletes or tests where absolute power output is the primary metric of interest, independent of body mass.</li>
 </ol></li>
@@ -465,7 +465,7 @@ figure figcaption {
 <p>This section in the bottom row provides a summary and a powerful comparative visualization.</p>
 <ul>
 <li><strong>Values Container:</strong> A numerical summary of the key metabolic parameters (Power, <span class="math inline">\(\dot{V}O_2\)</span>, Substrate Use, Efficiency) at the FAT<sub>max</sub> and MLSS intensities.</li>
-<li><strong>Radar Chart:</strong> A heptagonal plot comparing the athlete’s modeled power at seven key durations (5s, 30s, 1m, 3m, 5m, 20m, 60m) against normative data. The outer ring (100%) represents the 90th percentile of professional cyclists <span class="citation" data-cites="Mateo-March2022">(<a href="#ref-Mateo-March2022" role="doc-biblioref"><strong>Mateo-March2022?</strong></a>)</span>, while the center (0%) represents an untrained individual <span class="citation" data-cites="Allen2010">(<a href="#ref-Allen2010" role="doc-biblioref"><strong>Allen2010?</strong></a>)</span>. This provides an at-a-glance view of the athlete’s strengths and weaknesses relative to established benchmarks.</li>
+<li><strong>Radar Chart:</strong> A heptagonal plot comparing the athlete’s modeled power at seven key durations (5s, 30s, 1m, 3m, 5m, 20m, 60m) against normative data. The outer ring (100%) represents the 90th percentile of professional cyclists <span class="citation" data-cites="Mateo-March2022">(<a href="#ref-Mateo-March2022" role="doc-biblioref">Mateo-March et al., 2022</a>)</span>, while the center (0%) represents an untrained individual <span class="citation" data-cites="Allen2010">(<a href="#ref-Allen2010" role="doc-biblioref"><strong>Allen2010?</strong></a>)</span>. This provides an at-a-glance view of the athlete’s strengths and weaknesses relative to established benchmarks.</li>
 </ul>
 </section>
 <section id="training-zones-tables" class="level4">
@@ -495,68 +495,29 @@ figure figcaption {
 </section>
 
 <div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" data-line-spacing="2" role="list">
-<div id="ref-Brooks2012" class="csl-entry" role="listitem">
-Brooks, G. A. (2012). <span class="nocase">Bioenergetics of exercising humans.</span> <em>Comprehensive Physiology</em>, <em>2</em>(1), 537–562. <a href="https://doi.org/10.1002/cphy.c110007">https://doi.org/10.1002/cphy.c110007</a>
+<div id="ref-Clark2021" class="csl-entry" role="listitem">
+Clark, B. J. R. (2021). <em><span class="nocase">Investigating the bioenergetic and mathematical determinants of the Critical Power model in elite cyclists</span></em> (pp. 1–66) [PhD thesis].
 </div>
-<div id="ref-Brooks2004" class="csl-entry" role="listitem">
-Brooks, G. A., Fahey, T. D., &amp; Baldwin, K. M. (2004). <em><span class="nocase">Exercise Physiology: Human Bioenergetics and Its Applications</span></em> (4. Edition, p. 928). McGraw-Hill Education Ltd.
-</div>
-<div id="ref-Dunst2024" class="csl-entry" role="listitem">
-Dunst, A. K., Hesse, C., &amp; Ueberschär, O. (2024). <span class="nocase">Understanding optimal cadence dynamics: a systematic analysis of the power-velocity relationship in track cyclists with increasing exercise intensity</span>. <em>Frontiers in Physiology</em>, <em>15</em>(April), 1–17. <a href="https://doi.org/10.3389/fphys.2024.1343601">https://doi.org/10.3389/fphys.2024.1343601</a>
-</div>
-<div id="ref-Dunst2025" class="csl-entry" role="listitem">
-Dunst, A. K., Hesse, C., &amp; Ueberschär, O. (2025). <span class="nocase">Enhancing endurance performance predictions: the role of movement velocity in metabolic simulations demonstrated by cycling cadence.</span> <em>European Journal of Applied Physiology</em>. <a href="https://doi.org/10.1007/s00421-024-05663-4">https://doi.org/10.1007/s00421-024-05663-4</a>
-</div>
-<div id="ref-Friedlander1998" class="csl-entry" role="listitem">
-Friedlander, A. L., Casazza, G. A., Horning, M. A., Buddinger, T. F., &amp; Brooks, G. A. (1998). <span class="nocase">Effects of exercise intensity and training on lipid metabolism in young women</span>. <em>American Journal of Physiology - Endocrinology and Metabolism</em>, <em>275</em>(5 38-5), 853–863. <a href="https://doi.org/10.1152/ajpendo.1998.275.5.e853">https://doi.org/10.1152/ajpendo.1998.275.5.e853</a>
-</div>
-<div id="ref-Friedlander1999" class="csl-entry" role="listitem">
-Friedlander, A. L., Casazza, G. A., Horning, M. A., Usaj, A., &amp; Brooks, G. A. (1999). <span class="nocase">Endurance training increases fatty acid turnover, but not fat oxidation, in young men</span>. <em>Journal of Applied Physiology</em>, <em>86</em>(6), 2097–2105. <a href="https://doi.org/10.1152/jappl.1999.86.6.2097">https://doi.org/10.1152/jappl.1999.86.6.2097</a>
-</div>
-<div id="ref-Hauser2014" class="csl-entry" role="listitem">
-Hauser, T., Adam, J., &amp; Schulz, H. (2014). <span class="nocase">Comparison of calculated and experimental power in maximal lactate-steady state during cycling</span>. <em>Theoretical Biology and Medical Modelling</em>, <em>11</em>(1), 1–12. <a href="https://doi.org/10.1186/1742-4682-11-25">https://doi.org/10.1186/1742-4682-11-25</a>
-</div>
-<div id="ref-Hintzy-Cloutier2003" class="csl-entry" role="listitem">
-Hintzy-Cloutier, F., Zameziati, K., &amp; Belli, A. (2003). <a href="https://www.ncbi.nlm.nih.gov/pubmed/12629462"><span class="nocase">Influence of the base-line determination on work efficiency during submaximal cycling</span></a>. <em>Journal of Sports Medicine and Physical Fitness</em>, <em>43</em>(1), 51–56.
-</div>
-<div id="ref-Jeukendrup2005" class="csl-entry" role="listitem">
-Jeukendrup, A. E., &amp; Wallis, G. A. (2005). <em><span class="nocase">Measurement of substrate oxidation during exercise by means of gas exchange measurements</span></em> (No. 1; Vol. 26). <a href="https://doi.org/10.1055/s-2004-830512">https://doi.org/10.1055/s-2004-830512</a>
-</div>
-<div id="ref-Jeukendrup2019" class="csl-entry" role="listitem">
-Jeukendrup, A., &amp; Gleeson, M. (2019). <em><span>Sport Nutrition</span></em> (3. Edition, p. 602). Human Kinetics.
-</div>
-<div id="ref-Ji2021" class="csl-entry" role="listitem">
-Ji, S., Sommer, A., Bloch, W., &amp; Wahl, P. (2021). <span class="nocase">Comparison and performance validation of calculated and established anaerobic lactate thresholds in running</span>. <em>Medicina (Lithuania)</em>, <em>57</em>(10). <a href="https://doi.org/10.3390/medicina57101117">https://doi.org/10.3390/medicina57101117</a>
+<div id="ref-Clark2025" class="csl-entry" role="listitem">
+Clark, B., &amp; Macdermid, P. W. (2025). <span>VLamax Correlates Strongly With Glycolytic Performance</span>. <em>Research Quarterly for Exercise and Sport</em>, <em>00</em>(00), 1–8. <a href="https://doi.org/10.1080/02701367.2025.2481176">https://doi.org/10.1080/02701367.2025.2481176</a>
 </div>
 <div id="ref-Leo2022" class="csl-entry" role="listitem">
 Leo, P., Spragg, J., Wakefield, J., &amp; Swart, J. (2022). <span class="nocase">The Compound Score in elite road cycling</span>. <em>Conference Paper</em>, 1–5.
 </div>
-<div id="ref-Mader1984" class="csl-entry" role="listitem">
-Mader, A. (1984). <em><span class="nocase">Eine Theorie zur Berechnung der Dynamik und des steady state von Phosphorylierungszustand und Stoffwechselaktivit<span class="nocase">ä</span>t der Muskelzelle als Folge des Energeibedarfs</span></em> (p. 264) [PhD thesis]. Deutsche Sporthochschule K<span>ö</span>ln.
-</div>
 <div id="ref-Mader2003" class="csl-entry" role="listitem">
 Mader, A. (2003). <span class="nocase">Glycolysis and oxidative phosphorylation as a function of cytosolic phosphorylation state and power output of the muscle cell</span>. <em>European Journal of Applied Physiology</em>, <em>88</em>(4-5), 317–338. <a href="https://doi.org/10.1007/s00421-002-0676-3">https://doi.org/10.1007/s00421-002-0676-3</a>
 </div>
-<div id="ref-Mader1996" class="csl-entry" role="listitem">
-Mader, A., &amp; Allmer, H. (1996). <em><span class="nocase">Computersimulation: M<span class="nocase">ö</span>glichkeiten zur Theoriebildung und Ergebnisinterpretation</span></em> (p. 170). <a href="http://www.amazon.de/Computersimulation-M�glichkeiten-zur-Theoriebildung-Ergebnisinterpretation/dp/3883457310">http://www.amazon.de/Computersimulation-M�glichkeiten-zur-Theoriebildung-Ergebnisinterpretation/dp/3883457310</a>
-</div>
-<div id="ref-Mader1986" class="csl-entry" role="listitem">
-Mader, A., &amp; Heck, H. (1986). <span class="nocase">A theory of the metabolic origin of anaerobic threshold.</span> <em>International Journal of Sports Medicine</em>, <em>7 (Suppl.</em>, 45–65.
+<div id="ref-Mateo-March2022" class="csl-entry" role="listitem">
+Mateo-March, M., Valenzuela, P. L., Muriel, X., Gandia-Soriano, A., Zabala, M., Lucia, A., Pallares, J. G., &amp; Barranco-Gil, D. (2022). <span class="nocase">The Record Power Profile of Male Professional Cyclists: Fatigue Matters</span>. <em>International Journal of Sports Physiology and Performance</em>, <em>17</em>(6), 926–931. <a href="https://doi.org/10.1123/ijspp.2021-0403">https://doi.org/10.1123/ijspp.2021-0403</a>
 </div>
 <div id="ref-Monod1965" class="csl-entry" role="listitem">
 Monod, H., &amp; Scherrer, J. (1965). <span class="nocase">The work capacity of a synergic muscular group</span>. <em>Ergonomics</em>, <em>8</em>(3), 329–338. <a href="https://doi.org/10.1080/00140136508930810">https://doi.org/10.1080/00140136508930810</a>
 </div>
-<div id="ref-Nolte2022" class="csl-entry" role="listitem">
-Nolte, S., Quittmann, O. J., &amp; Meden, V. (2022). <span class="nocase">Simulation of Steady-State Energy Metabolism in Cycling and Running</span>. <em>SportR<span class="math inline">\(\chi\)</span>iv</em>.
-</div>
-<div id="ref-Oezyener2001" class="csl-entry" role="listitem">
-Özyener, F., Rossiter, H. B., Ward, S. A., &amp; Whipp, B. J. (2001). <span class="nocase">Influence of exercise intensity on the on- and off-transient kinetics of pulmonary oxygen uptake in humans.</span> <em>The Journal of Physiology</em>, <em>533</em>(Pt 3), 891–902. <a href="https://doi.org/10.1111/j.1469-7793.2001.t01-1-00891.x">https://doi.org/10.1111/j.1469-7793.2001.t01-1-00891.x</a>
-</div>
 <div id="ref-Puchowicz2020" class="csl-entry" role="listitem">
 Puchowicz, M. J., Baker, J., &amp; Clarke, D. C. (2020). <span class="nocase">Development and field validation of an omni-domain power-duration model</span>. <em>Journal of Sports Sciences</em>, <em>38</em>(7), 801–813. <a href="https://doi.org/10.1080/02640414.2020.1735609">https://doi.org/10.1080/02640414.2020.1735609</a>
 </div>
-<div id="ref-Stegemann1991" class="csl-entry" role="listitem">
-Stegemann, J. (1991). <em><span>Leistungsphysiologie</span></em> (4. Edition, p. 385). Georg Thieme Verlag.
+<div id="ref-Sitko2022" class="csl-entry" role="listitem">
+Sitko, S., Cirer-Sastre, R., Corbi, F., &amp; López-Laval, I. (2022). <span class="nocase">Five-Minute Power-Based Test to Predict Maximal Oxygen Consumption in Road Cycling</span>. <em>International Journal of Sports Physiology and Performance</em>, <em>17</em>(1), 9–15. <a href="https://doi.org/10.1123/ijspp.2020-0923">https://doi.org/10.1123/ijspp.2020-0923</a>
 </div>
 </div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
@@ -1067,8 +1028,8 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="../Metabolic_Model_Apps/Mader_Modell.html" class="pagination-link" aria-label="Exercise Simulation">
-        <span class="nav-page-text">Exercise Simulation</span> <i class="bi bi-arrow-right-short"></i>
+      <a href="../Metabolic_Model_Apps/Mader_Modell.html" class="pagination-link" aria-label="Metabolic Simulation">
+        <span class="nav-page-text">Metabolic Simulation</span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>

@@ -21,9 +21,6 @@ editor:
   markdown: 
     wrap: 72
     
-nocite: |
-  @Hintzy-Cloutier2003, @Dunst2025, @Dunst2024; @Mader2003; @Hauser2014; @Ji2021; @Nolte2022; @Mader1984; @Mader1986; @Mader1996; @Oezyener2001; @Jeukendrup2005; @Brooks2004; @Brooks2012; @Jeukendrup2019; @Stegemann1991; @Friedlander1998; @Friedlander1999
-    
 ---
 
 ```{css}
@@ -53,7 +50,7 @@ figure figcaption {
 
 # Power Profile Analyzer: A Detailed Feature Guide
 
-The **Composite Power Profile Analyzer** is a sophisticated, web-based tool designed for the in-depth analysis of cycling performance data. Its primary function is to process raw activity files (from sources like FIT, TCX, or GPX) and transform them into a comprehensive and actionable power profile. The application serves as a crucial "top-down" analytical engine, starting with an athlete's real-world performance data to model their maximal power-duration capabilities.
+The **Composite Power Profile Analyzer** is an web-based tool designed for the in-depth analysis of cycling performance data. Its primary function is to process raw activity files (from sources like TCX, or GPX) and transform them into a comprehensive and actionable power profile. The application serves as a crucial "top-down" analytical engine, starting with an athlete's real-world performance data to model their maximal power-duration capabilities.
 
 The core workflow of the application can be broken down into several key stages:
 
@@ -63,8 +60,6 @@ The core workflow of the application can be broken down into several key stages:
 4.  **Power-Duration Modeling:** The composite curve is then fitted with a selection of established mathematical models (e.g., 2-Parameter Critical Power, OmPD, Power-Law) to derive key performance parameters like Critical Power (CP) and W'.
 5.  **Key Effort Identification and Refinement:** A powerful algorithm automatically identifies "breakthrough" performances—points on the curve that significantly exceed the model's prediction. This curated list can be further refined by the user.
 6.  **Profile Export:** The final, refined profile (either the full composite curve or just the key efforts) can be exported as a `.json` file, specifically formatted for seamless import into metabolic modeling applications, such as the *Integrated Metabolic & Power Profile* app.
-
-This tool is invaluable for athletes and coaches who wish to build a robust and accurate picture of their power profile from a wealth of training data, moving beyond the limitations of single-session analysis.
 
 ## The Sidebar: The Control Center
 
@@ -78,8 +73,7 @@ This is the main control panel for data input, athlete configuration, and model 
 
 This section handles the initial data ingestion.
 
-*   **File Drop Area:** Users can drag and drop multiple activity files or click to open a file selection dialog. The app supports three common formats:
-    *   **`.fit` (Flexible and Interoperable Data Transfer):** The standard format for modern Garmin devices and many other GPS computers. It is a binary format that the app parses using the `fit-file-parser.js` library.
+*   **File Drop Area:** Users can drag and drop multiple activity files or click to open a file selection dialog. The app supports two common formats:
     *   **`.tcx` (Training Center XML):** An XML-based format that also contains detailed workout data, including power.
     *   **`.gpx` (GPS Exchange Format):** An XML-based format primarily for GPS tracks, but it can contain power data within its `<extensions>` tags, which the app is equipped to parse.
 *   **Analysis Process:** Once files are uploaded, the app performs a multi-step analysis "under the hood":

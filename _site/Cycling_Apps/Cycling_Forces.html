@@ -20,7 +20,27 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
-</style>
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
 
 
 <script src="../site_libs/quarto-nav/quarto-nav.js"></script>
@@ -244,17 +264,16 @@ window.Quarto = {
 </header>
 
 
-<p><strong>Please note: This website is currently under construction.</strong> I’m gradually adding more detailed explanations of the applications and developing additional models. The content will continue to expand over time.</p>
 <div style="position: relative; width: 100%; height: 800px;">
 <p><iframe src="Cycling_Forces_1.4.html" style="position: absolute; width: 100%; height: 100%; border: none;"></iframe></p>
 </div>
 <p><br></p>
-<p><a href="..\Cycling_Forces_1.4.html">Link: Cycling Power Calculator</a></p>
+<p><a href="..\Cycling_Forces_1.4.html">Fullscreen Link: Cycling Power Calculator</a></p>
 <section id="cycling-power-forces-calculator-technical-documentation" class="level1">
 <h1>Cycling Power &amp; Forces Calculator: Technical Documentation</h1>
 <section id="introduction" class="level2">
 <h2 class="anchored" data-anchor-id="introduction">1. Introduction</h2>
-<p>The <strong>Cycling Power &amp; Forces Calculator</strong> is an interactive, web-based educational and planning tool designed for cyclists, coaches, and sports scientists. It provides a real-time, physics-based simulation of the power required to cycle under a wide variety of conditions. The application’s core is a detailed physics model based on the well-established research paper by Martin et al.&nbsp;(1998), “Validation of a mathematical model for road cycling power.”</p>
+<p>The <strong>Cycling Power &amp; Forces Calculator</strong> is an interactive, web-based educational and planning tool designed for cyclists, coaches, and sports scientists. It provides a real-time, physics-based simulation of the power required to cycle under a wide variety of conditions. The application’s core is a detailed physics model based on the well-established research paper by <span class="citation" data-cites="Martin1998">Martin et al. (<a href="#ref-Martin1998" role="doc-biblioref">1998</a>)</span>, “Validation of a mathematical model for road cycling power.”</p>
 <p>The primary functions of the application are:</p>
 <ul>
 <li><strong>Interactive Exploration:</strong> Users can manipulate variables such as speed, gradient, mass, and aerodynamic profile to instantly see the effect on required power and its constituent components (aerodynamic drag, rolling resistance, gravity).</li>
@@ -334,7 +353,7 @@ window.Quarto = {
 </section>
 <section id="core-logic-physics-model" class="level2">
 <h2 class="anchored" data-anchor-id="core-logic-physics-model">3. Core Logic &amp; Physics Model</h2>
-<p>The application’s calculations are based on the model presented by Martin et al.&nbsp;(1998). The central function, <code>calculatePowerComponents()</code>, computes the various resistive forces and the power required to overcome them.</p>
+<p>The application’s calculations are based on the model presented by <span class="citation" data-cites="Martin1998">Martin et al. (<a href="#ref-Martin1998" role="doc-biblioref">1998</a>)</span>. The central function, <code>calculatePowerComponents()</code>, computes the various resistive forces and the power required to overcome them.</p>
 <p>The total power required at the pedals (<span class="math inline">\(P_{TOT}\)</span>) is the sum of the powers needed to overcome all resistive forces, divided by the efficiency of the drivetrain (<span class="math inline">\(E_c\)</span>). <span class="math display">\[ P_{TOT} = \frac{P_{NET}}{E_c} = \frac{P_{AT} + P_{RR} + P_{PE} + P_{WB}}{E_c} \]</span> Where:</p>
 <ul>
 <li><span class="math inline">\(P_{NET}\)</span> is the net power required at the wheel-road interface.</li>
@@ -433,8 +452,16 @@ window.Quarto = {
 </section>
 </section>
 </section>
+<section id="bibliography" class="level1 unnumbered">
 
-</main> <!-- /main -->
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" data-line-spacing="2" role="list">
+<div id="ref-Martin1998" class="csl-entry" role="listitem">
+Martin, J. C., Milliken, D. L., Cobb, J. E., McFadden, K. L., &amp; Coggan, A. R. (1998). <span class="nocase">Validation of a Mathematical Model for Road Cycling Power</span>. <em>Journal of Applied Biomechanics</em>, <em>14</em>(3), 276–291. <a href="https://doi.org/10.1123/jab.14.3.276">https://doi.org/10.1123/jab.14.3.276</a>
+</div>
+</div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {

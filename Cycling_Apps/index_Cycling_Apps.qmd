@@ -40,8 +40,19 @@ figure figcaption {
 }
 ```
 
-....
 
+This section contains a pair of standalone applications focused on the fundamental physics of cycling. Unlike the interconnected metabolic modeling suite, these tools are designed for specific, isolated analyses of the forces a cyclist must overcome. Both apps are based on the established physics model described by @Martin1998 but are applied to answer different questions.
 
-::: {#refs}
+### The Cycling Forces Calculator
+
+The **Cycling Forces Calculator** is an interactive educational tool designed to visualize and quantify the primary resistive forces in cycling. It allows users to manipulate key variables—such as speed, gradient, rider mass, and aerodynamic drag—and immediately see the impact on the required power output. The app provides a clear breakdown of how total power is distributed to overcome aerodynamic drag (P~AT~), rolling resistance (P~RR~), and changes in potential energy due to gravity (P~PE~), making it an excellent tool for exploring "what-if" scenarios.
+
+### The CdA Calculator
+
+::: {.callout-warning}
+## Disclaimer for the CdA Calculator
+
+This application was developed primarily as an educational exercise to understand the methodology behind aerodynamic field testing. Given its quick and simple development in an attempt to mimic the functionality of its far more sophisticated namesake, it was therefore named 'Shit'-myWindsock. It is a simplified implementation and is **not a validated analysis tool**. The results are highly sensitive to data quality and environmental conditions and should not be considered a substitute for, or directly comparable to, results from "myWindsock" or from wind tunnel testing.
 :::
+
+This application is an experimental tool that attempts to estimate a cyclist's aerodynamic drag area (C~d~A) from a GPS activity file. By uploading a `.gpx` file containing power data, the app analyzes segments of the ride where conditions are relatively stable. It uses the ride data along with fetched historical weather data (wind and temperature) to reverse-engineer the C~d~A value that would best explain the recorded power output. The results provide an *estimate* of the user's aerodynamic profile under real-world conditions.

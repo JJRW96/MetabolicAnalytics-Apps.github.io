@@ -21,9 +21,6 @@ editor:
   markdown: 
     wrap: 72
     
-nocite: |
-  @Hintzy-Cloutier2003, @Dunst2025, @Dunst2024; @Mader2003; @Hauser2014; @Ji2021; @Nolte2022; @Mader1984; @Mader1986; @Mader1996; @Oezyener2001; @Jeukendrup2005; @Brooks2004; @Brooks2012; @Jeukendrup2019; @Stegemann1991; @Friedlander1998; @Friedlander1999
-    
 ---
 
 ```{css}
@@ -51,17 +48,23 @@ figure figcaption {
 
 [Fullscreen-Link: CdA Calculator  ](/CdA_App_1.5.html)
 
-# CdA Calculator App - Feature Guide"
 ## Introduction
 
-The **CdA Calculator** is designed to perform aerodynamic analysis on ride data. Its primary purpose is to calculate a rider's coefficient of aerodynamic drag area ($C_d A$) using a GPX file containing power, GPS, and elevation data. The application enriches this data with meteorological information such as wind and temperature.
+The **CdA Calculator** is designed to perform aerodynamic analysis on ride data. Its primary purpose is to calculate a rider's coefficient of aerodynamic drag area ($C_d A$) using a GPX file containing power, GPS, and elevation data. The application enriches this data with meteorological information such as wind and temperature. Most calculations are based on the established physics model described by @Martin1998.
 
 The tool operates in three distinct, sequential steps:
+
 1.  **Parameter Input:** The user provides a GPX file and sets key physical parameters like rider/bike mass and rolling resistance.
 2.  **CdA Analysis:** The application processes the entire ride, filters for segments with stable conditions, calculates the instantaneous $C_d A$ for each, and presents the average value along with detailed charts and a map visualization.
 3.  **Performance Simulation:** Using the average $C_d A$ derived from the analysis, the tool simulates the power required for the *entire* ride, providing a model-vs-actual comparison to validate the results.
 
 This process allows an athlete to get a robust, data-driven estimate of their aerodynamic profile from a real-world ride, bypassing the need for expensive wind tunnel or velodrome testing.
+
+::: {.callout-warning}
+## Disclaimer
+
+This application was developed primarily as an educational exercise to understand the methodology behind aerodynamic field testing. Given its quick and simple development in an attempt to mimic the functionality of its far more sophisticated namesake, it was therefore named 'Shit'-myWindsock. It is a simplified implementation and is **not a validated analysis tool**. The results are highly sensitive to data quality and environmental conditions and should not be considered a substitute for, or directly comparable to, results from "myWindsock" or from wind tunnel testing.
+:::
 
 ## The Main Interface
 

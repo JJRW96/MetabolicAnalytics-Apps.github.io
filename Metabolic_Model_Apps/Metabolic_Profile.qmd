@@ -21,10 +21,7 @@ number-sections: false
 editor: 
   markdown: 
     wrap: 72
-    
-nocite: |
-  @Hintzy-Cloutier2003, @Dunst2025, @Dunst2024; @Mader2003; @Hauser2014; @Ji2021; @Nolte2022; @Mader1984; @Mader1986; @Mader1996; @Oezyener2001; @Jeukendrup2005; @Brooks2004; @Brooks2012; @Jeukendrup2019; @Stegemann1991; @Friedlander1998; @Friedlander1999
-    
+
 ---
 
 ```{css}
@@ -55,7 +52,7 @@ figure figcaption {
 
 # Metabolic Profile App: A Feature Guide
 
-The **Integrated Metabolic & Power Profile** application is an advanced, web-based tool designed to unify two critical domains of performance physiology: the underlying metabolic framework of an athlete and their maximal power-duration capabilities. It achieves this by synergistically combining a sophisticated metabolic model, based on the principles established by Dr. Alois Mader [@Mader2003], with a suite of established power-duration models. This integration allows for a comprehensive, multi-faceted analysis of an athlete's physiological profile, providing insights that extend far beyond what either model could offer in isolation.
+The **Integrated Metabolic & Power Profile** application is an advanced, web-based tool designed to unify two critical domains of performance physiology: the underlying metabolic framework of an athlete and their maximal power-duration capabilities. It achieves this by synergistically combining a metabolic model, based on the principles established by Alois Mader [@Mader2003], with a suite of established power-duration models. This integration allows for a comprehensive, multi-faceted analysis of an athlete's physiological profile, providing insights that extend far beyond what either model could offer in isolation.
 
 The application operates through an interactive interface, allowing users to:
 
@@ -68,11 +65,11 @@ The application operates through an interactive interface, allowing users to:
 
 The application's strength lies in its ability to bridge the gap between two complementary modeling approaches:
 
-*   **The Mader Metabolic Model:** This "bottom-up" model simulates an athlete's physiological state based on fundamental parameters. It calculates steady-state oxygen uptake, lactate production and clearance rates, and substrate utilization to predict key metabolic thresholds like the **Maximal Lactate Steady State (MLSS)** and the point of maximal fat oxidation (**FAT~max~**). This model answers the question: "Given this athlete's specific engine characteristics, what are their metabolic responses at various intensities?"
+*   **The Metabolic Model:** This "bottom-up" model simulates an athlete's physiological state based on fundamental parameters. It calculates steady-state oxygen uptake, lactate production and clearance rates, and substrate utilization to predict key metabolic thresholds like the **Maximal Lactate Steady State (MLSS)** and the point of maximal fat oxidation (**FAT~max~**). This model answers the question: "Given this athlete's specific engine characteristics, what are their metabolic responses at various intensities?"
 
 *   **The Power-Duration (PD) Model:** This "top-down" approach characterizes an athlete's performance capabilities based on their actual maximal efforts. By fitting a mathematical curve to these data points, it can interpolate or extrapolate the maximal sustainable power for any duration and derive parameters like **Critical Power (CP)** and **W'** (anaerobic work capacity). This model answers the question: "Based on their performances, what are this athlete's functional threshold and anaerobic capacity?"
 
-The app not only presents these models side-by-side but also provides tools to link them—for instance, by estimating $\dot{V}O_{2,max}$ from the PD model or by fitting a metabolic parameter (like $vLa_{max}$) to align the Mader-predicted MLSS with the PD-derived Critical Power.
+The app not only presents these models side-by-side but also provides tools to link them—for instance, by estimating $\dot{V}O_{2,max}$ from the PD model or by fitting a metabolic parameter (like $vLa_{max}$) to align the predicted MLSS with the PD-derived Critical Power.
 
 ## The Sidebar: The Control Center
 
@@ -86,7 +83,7 @@ This is the main tab for defining the athlete's profile and configuring the unde
 
 This section allows for the creation, selection, and management of athlete profiles.
 
-*   **Athlete Profile Dropdown:** Select from a list of pre-defined example profiles (e.g., "T. Pogačar", "Heavy ♂") or custom profiles that have been added or imported. Selecting a profile loads all its associated physiological parameters and power data.
+*   **Athlete Profile Dropdown:** Select from a list of pre-defined example profiles (e.g., "T. Pogačar", ...) or custom profiles that have been added or imported. Selecting a profile loads all its associated physiological parameters and power data.
 *   **Import/Export/Add Profile:**
     *   **Import Profile:** Loads a complete athlete profile from a local `.json` file. The app intelligently handles missing data by applying sensible defaults or calculating parameters where possible (e.g., calculating $\dot{V}O_{2,Base}$ from anthropometrics if it's not in the file).
     *   **Export Profile:** Saves the *currently displayed custom profile* to a `.json` file. This includes all settings, physiological parameters, and power data points. Note: Pre-defined athlete profiles are protected and cannot be exported.
@@ -150,12 +147,12 @@ This is the core of the metabolic modeling, where the athlete's "engine" is defi
 
 *   **Physiological Inputs:** The sliders for setting the athlete's core parameters.
     *   **$\dot{V}O_{2,max}$ (Slider & Auto-Calculation):** Maximal oxygen uptake. Can be set manually or automatically calculated from the power profile using one of three methods:
-        1.  **Sitko et al. (2022) formula:** A regression equation based on 5-minute maximal power.
+        1.  **@Sitko2022 formula:** A regression equation based on 5-minute maximal power.
             $$ \dot{V}O_{2,max,rel} = 16.6 + (8.87 \cdot P_{max,5min,rel}) $$
         2.  **CE-based formula:** Estimates $\dot{V}O_{2,max}$ from the oxygen demand of a maximal effort of a user-defined duration (set via the "Duration for $\dot{V}O_{2,max}$ Calc" slider).
             $$ \dot{V}O_{2,max,abs} = (P_{max,duration,abs} \cdot CE) + \dot{V}O_{2,Base} $$
-        3.  **Average:** Averages the results of the Sitko and CE-based methods.
-    *   **vLa<sub>max</sub> (Slider & Auto-Calculation):** This parameter represents the maximal rate of lactate production, a key indicator of an athlete's maximal glycolytic capacity. It can be set manually via the slider or automatically estimated using the **"Estimate vLa<sub>max</sub> from 20s Power"** feature. This estimation tool leverages a 20-second maximal sprint power value, a practical field-based proxy for assessing glycolytically dominant power output. The app implements regression equations adapted from research by [@Clark2025] to derive $vLa_{max}$ from this power input. Users can choose from three estimation methods via a dropdown menu:
+        3.  **Average:** Averages the results of the @Sitko2022 and CE-based methods.
+    *   **vLa<sub>max</sub> (Slider & Auto-Calculation):** This parameter represents the maximal rate of lactate production, a key indicator of an athlete's maximal glycolytic capacity. It can be set manually via the slider or automatically estimated using the **"Estimate vLa<sub>max</sub> from 20s Power"** feature. This estimation tool leverages a 20-second maximal sprint power value, a practical field-based proxy for assessing glycolytically dominant power output. The app implements regression equations adapted from research by Clark and Macdermid to derive $vLa_{max}$ from this power input [@Clark2021; @Clark2025]. Users can choose from three estimation methods via a dropdown menu:
 
         1.  **Method: Absolute (W only):** This method uses the absolute 20-second average power ($P_{20s, abs}$ in Watts) as the sole predictor. The formula implemented is:
         $$ vLa_{max} = 0.062773 + (0.000483 \cdot P_{20s, abs}) $$
