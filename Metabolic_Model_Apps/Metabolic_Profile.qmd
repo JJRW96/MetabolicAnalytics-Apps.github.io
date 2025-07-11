@@ -43,12 +43,16 @@ figure figcaption {
 
 
 <div style="position: relative; width: 100%; height: 800px;">
-  <iframe src="Metabolic_Profile_App_3.7.6.html" style="position: absolute; width: 100%; height: 100%; border: none;"></iframe>
+  <iframe src="Metabolic_Profile_App_3.7.7.html" style="position: absolute; width: 100%; height: 100%; border: none;"></iframe>
 </div>
 
 <br>
 
-[Fullscreen-Link: Metabolic Profile App](/Metabolic_Profile_App_3.7.6.html)
+[Fullscreen-Link: Metabolic Profile App](/Metabolic_Profile_App_3.7.7.html)
+
+<a href="Gee_Giro_2025_Example_Full_Profile.json" download class="btn btn-primary">
+  <i class="bi bi-download"></i> Download Derek Gee's Full Giro 2025 Power Profile and upload it directly into the app for analysis
+</a>
 
 # Metabolic Profile App: A Feature Guide
 
@@ -211,7 +215,7 @@ This plot, visible when enabled, shows the relative contribution of carbohydrate
 This section in the bottom row provides a summary and a powerful comparative visualization.
 
 *   **Values Container:** A numerical summary of the key metabolic parameters (Power, $\dot{V}O_2$, Substrate Use, Efficiency) at the FAT<sub>max</sub> and MLSS intensities.
-*   **Radar Chart:** A heptagonal plot comparing the athlete's modeled power at seven key durations (5s, 30s, 1m, 3m, 5m, 20m, 60m) against normative data. The outer ring (100%) represents the 90th percentile of professional cyclists [@Mateo-March2022], while the center (0%) represents an untrained individual [@Allen2010]. This provides an at-a-glance view of the athlete's strengths and weaknesses relative to established benchmarks.
+*   **Radar Chart:** A heptagonal plot comparing the athlete's modeled power at seven key durations (5s, 30s, 1m, 3m, 5m, 20m, 60m) against normative data. The outer ring (100%) represents the 90th percentile of professional cyclists [@Mateo-March2022], while the center (0%) represents an untrained individual (Allen & Coggan, 2010). This provides an at-a-glance view of the athlete's strengths and weaknesses relative to established benchmarks.
 
 #### **Training Zones Tables**
 The app generates two detailed tables to guide training prescription.

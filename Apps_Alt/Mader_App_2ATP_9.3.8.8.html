@@ -385,6 +385,13 @@ Hinzufügen:
         pointer-events: none; /* Verhindert, dass der Tooltip Mausklicks blockiert */
     }
 
+    /* Special case modifier class to make a tooltip open to the left */
+    .tooltip.tooltip-opens-left .tooltiptext {
+            left: auto;
+            right: 0;
+        }
+
+
     /* Stelle sicher, dass der Tooltip nicht über die Sidebar hinausragt */
     .sidebar .tooltip .tooltiptext {
         max-width: 280px; /* Etwas weniger als die Sidebar-Breite (350px) */
@@ -780,6 +787,30 @@ Hinzufügen:
           
           <!-- Tab 1: Power Diagram Controls -->
           <div class="tab-content active" id="leistungsdiagramm-content">
+                      <!-- Profile Management Section -->
+          <div class="control-group" id="profile-management-controls">
+              <div class="header-section">
+                  <div class="control-label">Athlete Profile Management</div>
+                  <div class="tooltip info-icon">ⓘ
+                      <span class="tooltiptext">Load predefined athlete profiles or save/load your custom configurations.</span>
+                  </div>
+              </div>
+
+              <div class="dropdown-container" style="margin-bottom: 10px;">
+                  <label for="athlete_profile_select" class="dropdown-label">Select Predefined Profile:</label>
+                  <select id="athlete_profile_select" class="dropdown-select">
+                      <option value="">-- Select a Profile --</option>
+                      <!-- Profiles will be populated by JavaScript -->
+                  </select>
+              </div>
+              
+              <button id="save_profile_button" type="button" style="margin-right: 10px;">Save/Download Profile</button>
+              
+              <button id="load_profile_trigger_button" type="button" style="background-color: var(--secondary-color);">Load Profile from File</button>
+              <input type="file" id="load_profile_input" accept=".json" style="display: none;">
+              <div id="loaded_profile_name" class="file-name" style="font-size: 0.85em; margin-top: 5px;"></div>
+          </div>
+          <!-- End Profile Management Section -->
               <div class="control-group" id="ce-controls">
                   <div class="header-section">
                       <div class="control-label">Oxygen Demand Settings</div>
@@ -1019,9 +1050,9 @@ Hinzufügen:
                       <div class="slider-container">
                         <div class="slider-label">
                             <label for="HR_max">HR<sub>max</sub> (bpm):</label>
-                            <span id="HR_max-value" class="slider-value">186</span>
+                            <span id="HR_max-value" class="slider-value">190</span>
                         </div>
-                        <input type="range" id="HR_max" class="range-slider" min="120" max="230" value="186" step="1">
+                        <input type="range" id="HR_max" class="range-slider" min="120" max="230" value="190" step="1">
                     </div>
         
                     <div class="slider-container">
@@ -1129,31 +1160,6 @@ Hinzufügen:
                   
                   <div class="small-text">Uses the Harris-Benedict equation to estimate basal metabolic rate, which is then converted to oxygen consumption.</div>
               </div>
-
-              <!-- Profile Management Section -->
-              <div class="control-group" id="profile-management-controls">
-                  <div class="header-section">
-                      <div class="control-label">Athlete Profile Management</div>
-                      <div class="tooltip info-icon">ⓘ
-                          <span class="tooltiptext">Load predefined athlete profiles or save/load your custom configurations.</span>
-                      </div>
-                  </div>
-
-                  <div class="dropdown-container" style="margin-bottom: 10px;">
-                      <label for="athlete_profile_select" class="dropdown-label">Select Predefined Profile:</label>
-                      <select id="athlete_profile_select" class="dropdown-select">
-                          <option value="">-- Select a Profile --</option>
-                          <!-- Profiles will be populated by JavaScript -->
-                      </select>
-                  </div>
-                  
-                  <button id="save_profile_button" type="button" style="margin-right: 10px;">Save/Download Profile</button>
-                  
-                  <button id="load_profile_trigger_button" type="button" style="background-color: var(--secondary-color);">Load Profile from File</button>
-                  <input type="file" id="load_profile_input" accept=".json" style="display: none;">
-                  <div id="loaded_profile_name" class="file-name" style="font-size: 0.85em; margin-top: 5px;"></div>
-              </div>
-              <!-- End Profile Management Section -->
               
               <!-- Substrate utilization section -->
               <div class="control-group">
@@ -1319,14 +1325,14 @@ Hinzufügen:
                     <div class="radio-option">
                       <input type="radio" id="gap_handling_last" name="gap_handling" value="last" checked>
                       <label for="gap_handling_last">Maintain last values</label>
-                      <div class="tooltip info-icon" style="margin-left: 5px;">ⓘ
+                      <div class="tooltip tooltip-opens-left info-icon" style="margin-left: 80px;">ⓘ
                         <span class="tooltiptext">When processing your uploaded workout file, time gaps will be filled with the last recorded power value. This displays intervals without drops in power visualization, ideal to construct interval training data.</span>
                       </div>
                     </div>
                     <div class="radio-option">
                       <input type="radio" id="gap_handling_zero" name="gap_handling" value="zero"> 
                       <label for="gap_handling_zero">Insert zero values</label>
-                      <div class="tooltip info-icon" style="margin-left: 5px;">ⓘ
+                      <div class="tooltip tooltip-opens-left info-icon" style="margin-left: 95px;">ⓘ
                         <span class="tooltiptext">When processing your uploaded workout file, all time gaps will be filled with zero power values. This creates clear visual breaks in your power data, suitable for analyzing training sessions with rest periods.</span>
                       </div>
                     </div>
@@ -1533,7 +1539,7 @@ Hinzufügen:
                         <input type="checkbox" id="dynamic_tau_on" name="dynamic_tau_on" checked="checked">
                         <span class="checkmark"></span>
                         Intensity-Dependent τ<sub>on</sub>
-                        <div class="tooltip info-icon" style="margin-left: 5px;">ⓘ
+                        <div class="tooltip info-icon" style="margin-left: 60px;">ⓘ
                             <span class="tooltiptext" style="width: 260px; left: auto; right: 0;">
                                 <p><strong>Dynamic τ<sub>on</sub>:</strong> Adjusts V̇O₂ uptake time (τ<sub>on</sub>) based on the previous step's intensity.</p>
                                 <p><strong>How:</strong> Uses V̇O₂ (% of V̇O₂<sub>max</sub>) from the *immediately preceding* time step.</p>
@@ -1566,7 +1572,7 @@ Hinzufügen:
         <input type="checkbox" id="dynamic_tau_off" name="dynamic_tau_off">
         <span class="checkmark"></span>
         Intensity-Dependent τ<sub>off</sub>
-        <div class="tooltip info-icon" style="margin-left: 5px;">ⓘ
+        <div class="tooltip info-icon" style="margin-left: 60px;">ⓘ
             <span class="tooltiptext" style="width: 260px; left: auto; right: 0;"> <!-- Adjusted width slightly -->
                 <p><strong>Dynamic τ<sub>off</sub>:</strong> Adjusts V̇O₂ recovery time (τ<sub>off</sub>) based on recent intensity.</p>
                 <p><strong>How:</strong> Finds max V̇O₂ (% of V̇O₂<sub>max</sub>) in the last <strong>2 * previous τ<sub>off</sub></strong> seconds.</p>
@@ -1601,9 +1607,9 @@ Hinzufügen:
                     <div class="slider-container">
                         <div class="slider-label">
                             <label for="la_max">Lactate exercise termination value (mmol·l<sup>-1</sup>):</label>
-                            <span id="la_max-value" class="slider-value">20.0</span>
+                            <span id="la_max-value" class="slider-value">25.0</span>
                         </div>
-                        <input type="range" id="la_max" class="range-slider" min="4" max="30" value="20" step="0.5">
+                        <input type="range" id="la_max" class="range-slider" min="4" max="35" value="25" step="0.5">
                     </div>
                     
                     <div class="checkbox-container">
@@ -1675,7 +1681,7 @@ Hinzufügen:
                             <input type="checkbox" id="cap_vlass_by_o2_deficit" name="cap_vlass_by_o2_deficit" checked="checked">
                             <span class="checkmark"></span>
                             Cap vLa<sub>SS</sub> by V̇O₂ Deficit
-                            <div class="tooltip info-icon" style="margin-left: 5px;">ⓘ
+                            <div class="tooltip info-icon" style="margin-left: 65px;">ⓘ
                                 <span class="tooltiptext" style="width: 270px; left: auto; right: 0;">
                                     <p><strong>Optional Cap on vLa<sub>SS</sub>:</strong></p>
                                     <p>If checked, the actual lactate production rate (vLa<sub>SS</sub>) will be capped.</p>
@@ -1692,7 +1698,7 @@ Hinzufügen:
                             <input type="checkbox" id="boost_vlass_by_deficit" name="boost_vlass_by_deficit" checked="checked">
                             <span class="checkmark"></span>
                             Boost vLa<sub>SS</sub> by V̇O₂ Deficit
-                            <div class="tooltip info-icon" style="margin-left: 5px;">ⓘ
+                            <div class="tooltip info-icon" style="margin-left: 52px;">ⓘ
                                 <span class="tooltiptext" style="width: 270px; left: auto; right: 0;">
                                     <p><strong>Optional vLa<sub>SS</sub> Boost:</strong></p>
                                     <p>If checked, the target lactate production rate (vLa<sub>SS</sub>) will be additionally increased based on the current V̇O₂ deficit (V̇O₂ Demand - V̇O₂ Actual).</p>
@@ -1770,8 +1776,19 @@ Hinzufügen:
                         <input type="checkbox" id="auto_glycogen" name="auto_glycogen">
                         <span class="checkmark"></span>
                         Auto-calculate glycogen values based on muscle mass
-                        <div class="tooltip info-icon" style="margin-left: 5px;">ⓘ
-                            <span class="tooltiptext">Calculate glycogen-store values based on active muscle mass.</span>
+                        <div class="tooltip tooltip-opens-left info-icon" style="margin-left: 115px;">ⓘ
+                            <span class="tooltiptext" style="width: 280px; text-align: left;">
+                                <p><strong>Automatic Glycogen Calculation Model:</strong></p>
+                                <p>This feature estimates initial and maximum glycogen stores based on the meta-analysis by <strong>Areta et al. (2018), <em>Sports Med</em></strong>.</p>
+                                <hr style="border-color: #777; margin: 5px 0;">
+                                <p><strong>Methodology:</strong></p>
+                                <ol style="padding-left: 20px; margin: 5px 0;">
+                                    <li style="margin-bottom: 5px;"><strong>Baseline:</strong> Starts with a baseline glycogen concentration (g/kg of muscle) that depends on the selected CHO availability (Low, Normal, or Loaded).</li>
+                                    <li style="margin-bottom: 5px;"><strong>Fitness Adjustment:</strong> This baseline is then adjusted based on the athlete's V̇O₂max relative to a reference value (53 ml·kg⁻¹·min⁻¹ from the study). Higher fitness is associated with greater storage capacity.</li>
+                                    <li><strong>Total Stores:</strong> The final fitness-adjusted concentration (g/kg) is multiplied by the Active Muscle Mass (kg) to yield the total glycogen store in grams.</li>
+                                </ol>
+                                <p>This provides a research-based estimate for typical glycogen levels.</p>
+                            </span>
                         </div>
                     </label>
                 </div>
@@ -1831,7 +1848,7 @@ Hinzufügen:
                         <div class="slider-label" style="margin-right: 5px;">
                             <label for="pmax">P<sub>max</sub> (W):</label>
                         </div>
-                        <div class="tooltip info-icon" style="margin-right: 5px;">ⓘ
+                        <div class="tooltip tooltip-opens-left info-icon" style="margin-right: 5px;">ⓘ
                             <span class="tooltiptext">Maximum instantaneous power an athlete can produce, representing the third parameter in the 3-parameter critical power model. This represents the capacity of the alactic (PCr/immediate) energy system.</span>
                         </div>
                         <span id="pmax-value" class="slider-value">1400</span>
@@ -1854,7 +1871,7 @@ Hinzufügen:
                     <div class="slider-container">
                         <div class="slider-label">
                             <label for="w_prime_balance_min">W' Balance Minimum (kJ):</label>
-                            <span id="w_prime_balance_min-value" class="slider-value">-20.0</span>
+                            <span id="w_prime_balance_min-value" class="slider-value">-5.0</span>
                         </div>
                         <input type="range" id="w_prime_balance_min" class="range-slider" min="-20" max="10" value="0" step="0.5">
                     </div>
@@ -1881,7 +1898,7 @@ Hinzufügen:
                 </div>
 
                 MAP & Strain Score (SS) model :
-                <div class="tooltip info-icon" style="margin-left: 5px;">ⓘ
+                <div class="tooltip tooltip-opens-left info-icon" style="margin-left: 20px;">ⓘ
                     <span class="tooltiptext">Maximum instantaneous power an athlete can produce, representing the third parameter in the 3-parameter critical power model. Based on Kontro et al. (2025), this is used to calculate MPA (Maximum Power Available) and the Strain Score (SS), which are novel metrics for fatigue quantification. P<sub>max</sub> represents the capacity of the alactic (PCr/immediate) energy system.</span>
                 </div>
                 <div class="model-info advanced-option">
@@ -1952,14 +1969,29 @@ Hinzufügen:
                       </div>
                       <input type="range" id="active_muscle_mass" class="range-slider" min="5" max="40" value="25" step="0.5">
                   </div>
+              
+              <!-- START: New auto-calculate muscle mass checkbox -->
+              <div class="checkbox-container">
+                  <label class="fancy-checkbox">
+                      <input type="checkbox" id="auto_calc_muscle_mass" name="auto_calc_muscle_mass" checked>
+                      <span class="checkmark"></span>
+                      Auto-calculate act. muscle mass
+                      <div class="tooltip info-icon" style="margin-left: 5px;">ⓘ
+                          <span class="tooltiptext">
+                              When checked, active muscle mass is automatically estimated based on body mass and gender (for seated cycling). Uncheck to set the value manually.
+                          </span>
+                      </div>
+                  </label>
+              </div>
+              <!-- END: New auto-calculate muscle mass checkbox -->
 
-                  <div class="parameter-row" style="margin-top: 10px;">
-                    <div class="parameter-label">O<sub>2</sub>-Lactate Equiv. (β):</div>
-                    <div class="tooltip info-icon" style="margin-left: 5px;">ⓘ
-                        <span class="tooltiptext">Oxygen equivalent of lactate accumulation in blood (β). Represents the amount of O₂ (ml/kg) required aerobically to produce the energy equivalent to accumulating 1 mM of lactate in the blood. Value ≈ 3.0 ml O₂·kg⁻¹·mM⁻¹. Used here to estimate the O₂ deficit covered by net lactate production. (di Prampero, P. E. (1981). Energetics of muscular exercise. *Rev Physiol Biochem Pharmacol*, 89, 143-222. See Sect. 6.4).</span>
-                    </div>
-                    <span class="slider-value">≈ 3.0 ml·kg⁻¹·mM⁻¹</span>
-                  </div>
+              <div class="parameter-row" style="margin-top: 10px; display: flex; align-items: center;">
+                <div class="parameter-label">O<sub>2</sub>-Lactate Equiv.:</div>
+                <span class="slider-value" style="margin-left: 5px;">≈ 3 ml·kg⁻¹·mM⁻¹</span>
+                <div class="tooltip info-icon" style="margin-left: 5px;">ⓘ
+                    <span class="tooltiptext">Oxygen equivalent of lactate accumulation in blood (β). Represents the amount of O₂ (ml/kg) required aerobically to produce the energy equivalent to accumulating 1 mM of lactate in the blood. Value ≈ 3.0 ml O₂·kg⁻¹·mM⁻¹. Used here to estimate the O₂ deficit covered by net lactate production. (di Prampero, P. E. (1981).</span>
+                </div>
+            </div>
                   
                   <div class="checkbox-container">
                       <label class="fancy-checkbox">
@@ -1975,10 +2007,10 @@ Hinzufügen:
                     <!-- START: Added PCr Abort Checkbox -->
                   <div class="checkbox-container">
                       <label class="fancy-checkbox">
-                          <input type="checkbox" id="use_pcr_abort" name="use_pcr_abort" checked="checked">
+                          <input type="checkbox" id="use_pcr_abort" name="use_pcr_abort">
                           <span class="checkmark"></span>
                           Abort simulation if PCr ≤ 2.0 mmol·kg<sup>-1</sup>
-                          <div class="tooltip info-icon" style="margin-left: 5px;">ⓘ
+                          <div class="tooltip info-icon" style="margin-left: 102px;">ⓘ
                               <span class="tooltiptext">When checked, the simulation will terminate if muscle PCr concentration falls to or below 2.0 mmol·kg<sup>-1</sup> wet weight.</span>
                           </div>
                       </label>
@@ -2073,11 +2105,11 @@ Hinzufügen:
                                 <span class="tooltiptext" style="width: 270px; left: auto; right: 0;">
                                 <p><strong>Maximal Lactic Power Calculation (Theoretical Maximum):</strong></p>
                                 <p><strong>Metabolic:</strong><br>
-                                `vLa_max (mmol/L/s) * ActiveMuscleWater (L) * 1.5 (ATP/La) * ATP_Yield_fixed (kJ/mol) / 1000 (mmol/mol) * 1000 (W/kW)`</p>
+                                `vLa_max (mmol/L/s) * ActiveMuscleWater (L) * 2.0 (ATP/La) * ATP_Yield_fixed (kJ/mol) / 1000 (mmol/mol) * 1000 (W/kW)`</p>
                                 <p><strong>Mechanical (@25% eff.):</strong><br>
                                 `Metabolic Lactic Power * 0.25`</p>
                                 <p>This calculation uses a <strong>fixed high ATP yield (e.g., 65.0 kJ/mol at pH 7.0)</strong> to estimate theoretical maximum power. The main exercise simulation uses a <em>dynamic ATP yield</em> dependent on current intramuscular pH and PCr levels.</p>
-                                <p>Assumes glycogen as primary substrate (1.5 ATP per lactate). Active muscle water is estimated as 75% of active muscle mass (calculated from body mass and gender in Tab 1).</p>
+                                <p>Assumes glycogen as primary substrate (2.0 ATP per lactate). Active muscle water is estimated as 75% of active muscle mass (calculated from body mass and gender in Tab 1).</p>
                             </span>
                             </div>
                     </div>
@@ -2095,9 +2127,9 @@ Hinzufügen:
                     <div class="slider-container">
                         <div class="slider-label">
                             <label for="HR_max_step">HR<sub>max</sub> (bpm):</label>
-                            <span id="HR_max_step-value" class="slider-value">186</span>
+                            <span id="HR_max_step-value" class="slider-value">190</span>
                         </div>
-                        <input type="range" id="HR_max_step" class="range-slider" min="120" max="230" value="186" step="1">
+                        <input type="range" id="HR_max_step" class="range-slider" min="120" max="230" value="190" step="1">
                     </div>
 
                     <div class="slider-container">
@@ -2249,7 +2281,7 @@ Hinzufügen:
     const ATP_YIELD_MAX_pH60 = 68.0; // High PCr/Rest
     const ATP_YIELD_MIN_pH60 = 53.0; // Low PCr/Fatigue
 
-    const ATP_PER_LACTATE_FROM_GLYCOGEN = 1.5;
+    const ATP_PER_LACTATE_FROM_GLYCOGEN = 2.0;
 
     const appState = {
         // Tab 1 Parameters
@@ -2260,7 +2292,7 @@ Hinzufügen:
         VO2max_kg: 67.588,       
         VO2Base: 394,
         vLamax: 0.58,   
-        HR_max: 186,
+        HR_max: 190,
         HR_Base: 45, // Default value from your HTML
         CE_HR: 0.31,  // Default value from your HTML        
         body_mass: 90.0,        
@@ -2272,7 +2304,7 @@ Hinzufügen:
         lock_y_axis: true,
         lock_x_axis: true,
         calculated_vo2base: null,
-        w_prime_balance_min: -20.0,
+        w_prime_balance_min: -5.0,
         use_w_prime_balance_abort: false,
         use_lactate_abort: false, 
         // View window state
@@ -2315,7 +2347,7 @@ Hinzufügen:
         cap_vlass_by_o2_deficit: true, // NEW: Default to off
         boost_vlass_by_deficit: true,
         vlass_boost_factor: 0.35, // Default boost factor (e.g., 10% of deficit energy converted to vLass target)
-        la_max: 20,
+        la_max: 25,
         la_base: 0.8,
         smooth_power: false,
         has_header: true,
@@ -2328,7 +2360,7 @@ Hinzufügen:
         VO2max_step: 6083,      
         VO2Base_step: 394,
         vLamax_step: 0.58, 
-        HR_max_step: 186,
+        HR_max_step: 190,
         HR_Base_step: 45,
         CE_HR_step: 0.31,     
         body_mass_step:90.0,   
@@ -2340,8 +2372,9 @@ Hinzufügen:
         pcr_init: 24.0,
         p_o_ratio: 4.80,
         active_muscle_mass: 25.0,
+        auto_calc_muscle_mass: true, // NEW: for auto-calculation
         show_vo2_demand: false,
-        use_pcr_abort: true,
+        use_pcr_abort: false,
         
         // New auto-calculate glycogen values
         auto_glycogen: false,
@@ -2543,6 +2576,7 @@ Hinzufügen:
             p_o_ratioValue: document.getElementById('p_o_ratio-value'),
             active_muscle_mass: document.getElementById('active_muscle_mass'),
             active_muscle_massValue: document.getElementById('active_muscle_mass-value'),
+            auto_calc_muscle_mass: document.getElementById('auto_calc_muscle_mass'), // NEW
             show_vo2_demand: document.getElementById('show_vo2_demand'),
             use_pcr_abort: document.getElementById('use_pcr_abort'), 
 
@@ -2871,7 +2905,7 @@ Hinzufügen:
         return adjustedValues;
     }
     
-   // New function to calculate glycogen storage values based on active muscle mass
+    // New function to calculate glycogen storage values based on active muscle mass
     // incorporating insights from Areta et al. (2018), Sports Med,
     // and including VO2max-based adjustments.
     function calculateGlycogenValues() {
@@ -2884,7 +2918,6 @@ Hinzufügen:
         const ADJUSTMENT_LOW_CHO_G_PER_KG_WW = -10.48; // Areta: -253 mmol/kg DM
 
         // Adjustments based on Fitness (VO2max, per 10 ml/kg/min deviation from a reference)
-        // Areta's reference VO2max for baseline was 53 ± 8 ml/kg/min. Let's use 53 as the reference.
         const REFERENCE_VO2MAX_ML_KG_MIN = 53.0;
         const ADJUSTMENT_FITNESS_NORMAL_CHO_G_PER_KG_WW_PER_10_VO2MAX = 2.78; // Areta: +67 mmol/kg DM
         const ADJUSTMENT_FITNESS_HIGH_CHO_G_PER_KG_WW_PER_10_VO2MAX = 3.31;   // Areta: +80 mmol/kg DM
@@ -2895,81 +2928,78 @@ Hinzufügen:
             low:    BASE_GLYCOGEN_NORMAL_CHO_G_PER_KG_WW + ADJUSTMENT_LOW_CHO_G_PER_KG_WW,    // ~8.65 g/kg WW
             normal: BASE_GLYCOGEN_NORMAL_CHO_G_PER_KG_WW,                                    // ~19.13 g/kg WW
             loaded: BASE_GLYCOGEN_NORMAL_CHO_G_PER_KG_WW + ADJUSTMENT_HIGH_CHO_G_PER_KG_WW, // ~23.36 g/kg WW
-            // Max physiological supercompensation (plausible upper limit, can be fine-tuned)
-            // This is distinct from just "loaded" from a few days of high CHO.
-            max_supercompensated: 28.0 // g/kg WW (example, can be 25-30)
+            max_supercompensated: 28.0 
         };
 
         // --- Determine Muscle Mass ---
-        let muscleMass;
-        // Use active_muscle_mass if available and sensible, otherwise estimate.
-        // The active_muscle_mass is typically set by the user in Tab 2 for PCr calculations.
-        if (appState.active_muscle_mass && appState.active_muscle_mass > 5) {
-            muscleMass = appState.active_muscle_mass;
-        } else {
-            // Fallback: Estimate active cycling muscle mass from body weight and gender.
-            // These percentages (27% Male, 22% Female) are for active mass in cycling.
-            const musclePercentage = appState.gender === 'Male' ? 0.27 : 0.22;
-            muscleMass = appState.body_mass * musclePercentage;
-        }
+        let muscleMass = appState.active_muscle_mass;
 
-        // --- Determine Athlete's VO2max (from Tab 1 or Tab 2 settings) ---
+        // --- Determine Athlete's VO2max ---
         let athleteVO2max_ml_kg_min;
         const bodyMassForRelVo2max = appState.use_tab1_params ? appState.body_mass : appState.body_mass_step;
 
         if (appState.use_tab1_params) {
-            // If weight_based is checked in Tab 1, VO2max_kg is primary.
-            // Otherwise, VO2max (absolute) is primary and needs conversion.
             if (appState.weight_based && appState.VO2max_kg) {
                 athleteVO2max_ml_kg_min = appState.VO2max_kg;
             } else if (appState.VO2max && bodyMassForRelVo2max > 0) {
                 athleteVO2max_ml_kg_min = appState.VO2max / bodyMassForRelVo2max;
             } else {
-                athleteVO2max_ml_kg_min = REFERENCE_VO2MAX_ML_KG_MIN; // Fallback if data missing
+                athleteVO2max_ml_kg_min = REFERENCE_VO2MAX_ML_KG_MIN;
             }
-        } else { // Using Tab 2's independent parameters
-            // Tab 2 does not have a "weight_based" VO2max_kg input like Tab 1.
-            // It has VO2max_step (absolute) and body_mass_step.
+        } else {
             if (appState.VO2max_step && bodyMassForRelVo2max > 0) {
                 athleteVO2max_ml_kg_min = appState.VO2max_step / bodyMassForRelVo2max;
             } else {
-                athleteVO2max_ml_kg_min = REFERENCE_VO2MAX_ML_KG_MIN; // Fallback
+                athleteVO2max_ml_kg_min = REFERENCE_VO2MAX_ML_KG_MIN;
             }
         }
         
-        // Calculate VO2max deviation from reference (in units of 10 ml/kg/min)
         const vo2maxDeviationUnits = (athleteVO2max_ml_kg_min - REFERENCE_VO2MAX_ML_KG_MIN) / 10.0;
 
+        // --- *** START OF CORRECTION *** ---
+        // Dynamically select the base concentration and fitness factor for the *initial* glycogen
+        // calculation based on the user's selection in the dropdown.
+        const choStatus = appState.cho_availability_status; // Read the current selection
+
+        let baseGramsPerKgForInitial;
+        let fitnessAdjustmentFactorForInitial;
+
+        switch (choStatus) {
+            case 'low':
+                baseGramsPerKgForInitial = glycogenGramsPerKgWw.low;
+                fitnessAdjustmentFactorForInitial = ADJUSTMENT_FITNESS_LOW_CHO_G_PER_KG_WW_PER_10_VO2MAX;
+                break;
+            case 'loaded':
+                baseGramsPerKgForInitial = glycogenGramsPerKgWw.loaded;
+                fitnessAdjustmentFactorForInitial = ADJUSTMENT_FITNESS_HIGH_CHO_G_PER_KG_WW_PER_10_VO2MAX;
+                break;
+            case 'normal':
+            default: // Default to 'normal' if the value is unexpected
+                baseGramsPerKgForInitial = glycogenGramsPerKgWw.normal;
+                fitnessAdjustmentFactorForInitial = ADJUSTMENT_FITNESS_NORMAL_CHO_G_PER_KG_WW_PER_10_VO2MAX;
+                break;
+        }
+        // --- *** END OF CORRECTION *** ---
+
         // --- Calculate Fitness-Adjusted Glycogen Concentrations ---
-        // For now, "auto-calculate" will assume "normal" CHO for initial and "loaded" for max.
-        // A CHO status dropdown would make this more flexible.
 
-        // Initial Glycogen (assuming "normal" CHO availability)
-        let adjustedNormalGramsPerKg = glycogenGramsPerKgWw.normal +
-            (vo2maxDeviationUnits * ADJUSTMENT_FITNESS_NORMAL_CHO_G_PER_KG_WW_PER_10_VO2MAX);
-        adjustedNormalGramsPerKg = Math.max(glycogenGramsPerKgWw.low * 0.8, adjustedNormalGramsPerKg); // Don't let it go too low
+        // 1. Calculate the INITIAL glycogen based on the selected CHO status
+        let adjustedInitialGramsPerKg = baseGramsPerKgForInitial + (vo2maxDeviationUnits * fitnessAdjustmentFactorForInitial);
+        // Apply a floor to prevent unrealistically low values
+        adjustedInitialGramsPerKg = Math.max(glycogenGramsPerKgWw.low * 0.8, adjustedInitialGramsPerKg);
 
-        // Max Glycogen (assuming "loaded" CHO availability)
-        let adjustedLoadedGramsPerKg = glycogenGramsPerKgWw.loaded +
-            (vo2maxDeviationUnits * ADJUSTMENT_FITNESS_HIGH_CHO_G_PER_KG_WW_PER_10_VO2MAX);
-        // Ensure "loaded" is not less than "normal" after adjustments
-        adjustedLoadedGramsPerKg = Math.max(adjustedNormalGramsPerKg, adjustedLoadedGramsPerKg);
+        // 2. Calculate the MAXIMUM possible glycogen storage (always based on the 'loaded' state, representing the upper limit)
+        let adjustedMaxGramsPerKg = glycogenGramsPerKgWw.loaded + (vo2maxDeviationUnits * ADJUSTMENT_FITNESS_HIGH_CHO_G_PER_KG_WW_PER_10_VO2MAX);
+        // Ensure "max" is not less than "initial" after adjustments
+        adjustedMaxGramsPerKg = Math.max(adjustedInitialGramsPerKg, adjustedMaxGramsPerKg);
 
-
-        const initialGlycogen = Math.round(muscleMass * adjustedNormalGramsPerKg);
-        const maxGlycogen = Math.round(muscleMass * adjustedLoadedGramsPerKg);
-
-        // The slider for glycogen_max in the UI can allow setting up to 'max_supercompensated'
-        // This function primarily sets the defaults for 'initial' and 'max' glycogen sliders
-        // when 'auto_glycogen' is checked.
-        // The absolute max for the slider could be:
-        // const theoreticalMaxSliderValue = Math.round(muscleMass * glycogenGramsPerKgWw.max_supercompensated);
+        // Calculate the final values in grams based on muscle mass
+        const initialGlycogen = Math.round(muscleMass * adjustedInitialGramsPerKg);
+        const maxGlycogen = Math.round(muscleMass * adjustedMaxGramsPerKg);
 
         return {
             initialGlycogen,
             maxGlycogen
-            // If you want to update the glycogen_max slider's upper limit dynamically:
-            // theoreticalMaxGlycogen: theoreticalMaxSliderValue
         };
     }
     
@@ -4392,12 +4422,18 @@ Hinzufügen:
             net_pcr_change_mmol_kg_array[0] = 0;
             o2_equiv_gross_lactate_ml_array[0] = 0;
 
-            // Abort tracking variables
+            // Abort and Limit Event tracking variables
             let endIdx = timePoints.length;
             let abortIdx = null;
             let abortPower = null;
             let abortTime = null;
             let abortReason = null;
+
+            const limitReachedEvents = []; // Array to store all "limit reached" events
+            let lactateLimitReached = false;
+            let pcrLimitReached = false;
+            let wprimeLimitReached = false;
+            let glycogenLimitReached = false;
 
             // Initialize W' Balance related calculations
             const cp = appState.critical_power;
@@ -5271,7 +5307,7 @@ Hinzufügen:
                 fatGramMin.push(fatGramMin_current);
 
 
-                // --- W' Balance, MPA, Strain Score ---
+                 // --- W' Balance, MPA, Strain Score ---
                 const powerPrev = powerValues[i-1];
                 const wPrimePrev = wprimeBalance[i-1];
                 let wPrimeNext = wPrimePrev;
@@ -5324,20 +5360,67 @@ Hinzufügen:
                 cumulativeStrainScore.push(cumulativeStrainScore[i-1] + intervalSS);
 
 
-                // --- Check Abort Conditions ---
-                // Check only if simulation hasn't already been marked for abortion
-                if (abortIdx === null) {
-                    if (appState.use_lactate_abort && LaConc[i] >= laMax) {
-                        abortIdx = i; abortPower = powerValues[i]; abortTime = timePoints[i]; abortReason = "lactate";
-                    } else if (appState.use_pcr_abort && pcrStore[i] <= 2.0) { // MODIFIED: Check PCr depletion if enabled
-                        abortIdx = i; abortPower = powerValues[i]; abortTime = timePoints[i]; abortReason = "pcr";
-                    } else if (appState.use_w_prime_balance_abort && wprimeBalance[i] <= (appState.w_prime_balance_min * 1000)) { // Compare W' in Joules
-                        abortIdx = i; abortPower = powerValues[i]; abortTime = timePoints[i]; abortReason = "wbalance";
-                    } else if (glycogenStore[i] <= 0) {
-                        abortIdx = i; abortPower = powerValues[i]; abortTime = timePoints[i]; abortReason = "glycogen";
-                    }
-                }
+            // --- Check Limit & Abort Conditions ---
 
+            // Check for Lactate Limit
+            if (!lactateLimitReached && LaConc[i] >= laMax) {
+                lactateLimitReached = true;
+                limitReachedEvents.push({
+                    time: timePoints[i],
+                    reason: 'lactate',
+                    value: laMax,
+                    yref: 'y2' // This value is plotted on the secondary y-axis
+                });
+                // If abort option is active, set abort variables
+                if (appState.use_lactate_abort && abortIdx === null) {
+                    abortIdx = i; abortPower = powerValues[i]; abortTime = timePoints[i]; abortReason = "lactate";
+                }
+            }
+
+            // Check for PCr Depletion Limit
+            if (!pcrLimitReached && pcrStore[i] <= 2.0) {
+                pcrLimitReached = true;
+                limitReachedEvents.push({
+                    time: timePoints[i],
+                    reason: 'pcr',
+                    value: 2.0,
+                    yref: 'y2' // Plotted on secondary y-axis
+                });
+                // If abort option is active, set abort variables
+                if (appState.use_pcr_abort && abortIdx === null) {
+                    abortIdx = i; abortPower = powerValues[i]; abortTime = timePoints[i]; abortReason = "pcr";
+                }
+            }
+
+            // Check for W' Balance Limit
+            if (!wprimeLimitReached && wprimeBalance[i] <= (appState.w_prime_balance_min * 1000)) {
+                wprimeLimitReached = true;
+                limitReachedEvents.push({
+                    time: timePoints[i],
+                    reason: 'wbalance',
+                    value: appState.w_prime_balance_min, // Value in kJ for plotting
+                    yref: 'y2' // Plotted on secondary y-axis
+                });
+                // If abort option is active, set abort variables
+                if (appState.use_w_prime_balance_abort && abortIdx === null) {
+                    abortIdx = i; abortPower = powerValues[i]; abortTime = timePoints[i]; abortReason = "wbalance";
+                }
+            }
+
+            // Check for Glycogen Depletion
+            if (!glycogenLimitReached && glycogenStore[i] <= 0) {
+                glycogenLimitReached = true;
+                limitReachedEvents.push({
+                    time: timePoints[i],
+                    reason: 'glycogen',
+                    value: 0,
+                    yref: 'y' // Glycogen is plotted on the primary y-axis
+                });
+                // Glycogen depletion always causes an abort in this model, so we check for it.
+                if (abortIdx === null) {
+                    abortIdx = i; abortPower = powerValues[i]; abortTime = timePoints[i]; abortReason = "glycogen";
+                }
+            }
             } // End of main simulation loop
 
             // --- Prepare Results ---
@@ -5377,6 +5460,7 @@ Hinzufügen:
                 carb_gram_min: trim(carbGramMin),
                 fat_gram_min: trim(fatGramMin),
                 abort_power: abortPower, 
+                limitReachedEvents: limitReachedEvents,
                 abort_time: abortTime,   
                 abort_reason: abortReason,
                 cadence: trimmedCadence,
@@ -5408,10 +5492,10 @@ Hinzufügen:
                 vLass_uninhibited_by_pH_max_cap_s: trim(vLass_uninhibited_by_pH_max_cap_s), // NEW
                 vLass_reduction_due_to_pH_s: trim(vLass_reduction_due_to_pH_s),
                 net_lactic_energy_kj_intervals: trim(net_lactic_energy_kj_interval_array), // NEW for summary
-                }; 
-            } 
+                };
+            }
             
-            // If not aborted, return full arrays
+             // If not aborted, return full arrays
             // Create final cadence array based on settings
             let finalCadence = null;
             if (cadenceValues && appState.cadence_dependent_step && appState.use_file_cadence) {
@@ -5438,6 +5522,7 @@ Hinzufügen:
             carb_gram_min: carbGramMin,
             fat_gram_min: fatGramMin,
             abort_power: abortPower, 
+            limitReachedEvents: limitReachedEvents, // <<< THIS IS THE CRITICAL FIX
             abort_time: abortTime,   
             abort_reason: abortReason,
             cadence: finalCadence,
@@ -6557,87 +6642,71 @@ Hinzufügen:
             });
         }
 
-        // Annotations for abort criteria if reached
+        // --- Annotations for Limit Events and Abort Criteria ---
         const annotations = [];
-        if (stepData.abort_power !== null) {
-            let reasonText = ""; // Variable für den spezifischen Grund
-            let yValueForReasonAnnotation = stepData.abort_power; // Standard Y-Wert für die Haupt-Annotation
-            let yRefForReasonAnnotation = "y"; // Standard Y-Achsenreferenz
 
-            // Detaillierteren Grund basierend auf stepData.abort_reason hinzufügen
+         // 1. Create annotations for each limit that was reached
+        if (stepData.limitReachedEvents) {
+            stepData.limitReachedEvents.forEach(event => {
+                let text = '';
+                let color = '#333'; // Default color
+                let yValue = event.value;
+
+                switch(event.reason) {
+                    case 'lactate':
+                        text = `Limit: La ≥ ${event.value.toFixed(1)} mM`;
+                        color = '#C8133B';
+                        break;
+                    case 'pcr':
+                        text = `Limit: PCr ≤ ${event.value.toFixed(1)} mM/kg`;
+                        color = '#FFB300'; // A yellow/orange for PCr
+                        break;
+                    case 'wbalance':
+                        text = `Limit: W'Bal ≤ ${event.value.toFixed(1)} kJ`;
+                        color = '#42BA97';
+                        break;
+                    case 'glycogen':
+                        text = `Limit: Glycogen ≤ 0g`;
+                        color = '#AD1457';
+                        break;
+                }
+
+                // Add a small, informative annotation for the limit crossing point
+                annotations.push({
+                    x: event.time,
+                    y: yValue,
+                    yref: event.yref,
+                    text: text,
+                    showarrow: true, arrowhead: 7, arrowsize: 1, arrowwidth: 1.5, arrowcolor: color,
+                    ax: 40, ay: -25,
+                    bgcolor: 'rgba(255,255,255,0.7)',
+                    bordercolor: color,
+                    borderwidth: 1,
+                    font: { size: 9 }
+                });
+            });
+        }
+
+        // 2. If the simulation was ACTUALLY aborted, add the main "ABORT" banner
+        if (stepData.abort_power !== null) {
+            let reasonText = "";
             switch(stepData.abort_reason) {
-                case "lactate":
-                    reasonText = ": Lactate too high";
-                    // Annotation für Laktat-Grenze (bleibt wie gehabt oder leicht angepasst)
-                    annotations.push({
-                        x: stepData.abort_time,
-                        y: appState.la_max, // Der tatsächliche Grenzwert
-                        yref: "y2",
-                        text: `Limit: La ${appState.la_max.toFixed(1)} mM`,
-                        showarrow: true, arrowhead: 7, arrowsize: 1, arrowwidth: 1.5, arrowcolor: '#C8133B',
-                        ax: 40, ay: -15, bgcolor: 'rgba(255,255,255,0.7)', bordercolor: '#C8133B', borderwidth:1, font: {size: 9}
-                    });
-                    break;
-                case "wbalance":
-                    reasonText = ": W' Balance too low";
-                    // Annotation für W'Balance-Grenze
-                    annotations.push({
-                        x: stepData.abort_time,
-                        y: appState.w_prime_balance_min, // Der tatsächliche Grenzwert
-                        yref: "y2",
-                        text: `Limit: W'Bal ${appState.w_prime_balance_min.toFixed(1)} kJ`,
-                        showarrow: true, arrowhead: 7, arrowsize: 1, arrowwidth: 1.5, arrowcolor: '#42BA97',
-                        ax: 40, ay: 15, bgcolor: 'rgba(255,255,255,0.7)', bordercolor: '#42BA97', borderwidth:1, font: {size: 9}
-                    });
-                    break;
-                case "glycogen":
-                    reasonText = ": Glycogen depleted";
-                    // Annotation für Glykogen-Grenze
-                    annotations.push({
-                        x: stepData.abort_time,
-                        y: 0, // Glykogen ist auf der primären y-Achse
-                        yref: "y",
-                        text: `Limit: Glycogen 0g`,
-                        showarrow: true, arrowhead: 7, arrowsize: 1, arrowwidth: 1.5, arrowcolor: '#AD1457',
-                        ax: 40, ay: -30, bgcolor: 'rgba(255,255,255,0.7)', bordercolor: '#AD1457', borderwidth:1, font: {size: 9}
-                    });
-                    break;
-                case "pcr": // Neuer Fall für PCr
-                    reasonText = ": PCr depleted";
-                    // Annotation für PCr-Grenze (PCr ist auf y2-Achse)
-                    annotations.push({
-                        x: stepData.abort_time,
-                        y: 2.0, // Der Abbruchwert für PCr
-                        yref: "y2",
-                        text: `Limit: PCr ≤ 2.0 mM/kg`,
-                        showarrow: true, arrowhead: 7, arrowsize: 1, arrowwidth: 1.5, arrowcolor: '#FFEB3B', // Farbe anpassen, falls gewünscht
-                        ax: 40, ay: 0, bgcolor: 'rgba(255,255,255,0.7)', bordercolor: '#FFEB3B', borderwidth:1, font: {size: 9}
-                    });
-                    break;
-                default:
-                    reasonText = ""; // Falls kein spezifischer Grund bekannt
+                case "lactate": reasonText = ": Lactate limit"; break;
+                case "wbalance": reasonText = ": W' Balance limit"; break;
+                case "glycogen": reasonText = ": Glycogen depleted (Carbohydrate Intake Rate)"; break;
+                case "pcr": reasonText = ": PCr depleted"; break;
             }
 
-            // Haupt-Abbruchnachricht erstellen, die den Grund beinhaltet
-            let abortText = `<b>Abort</b> at ${Math.round(stepData.abort_power)} W, ${Math.floor(stepData.abort_time/60)}:${(stepData.abort_time % 60).toString().padStart(2, '0')} min:s${reasonText}`;
+            let abortText = `<b>ABORT</b> at ${Math.round(stepData.abort_power)} W<br>${Math.floor(stepData.abort_time/60)}:${(stepData.abort_time % 60).toString().padStart(2, '0')} min${reasonText}`;
 
             annotations.push({
                 x: stepData.abort_time,
-                y: stepData.abort_power, // Y-Position bezogen auf die Power-Achse
+                y: stepData.abort_power,
                 yref: "y",
                 text: abortText,
-                showarrow: true,
-                arrowhead: 2,
-                arrowsize: 1.2,
-                arrowwidth: 2,
-                arrowcolor: '#EF5350', // Accent color für Haupt-Abbruchnachricht
-                ax: 0,
-                ay: -40, // Leicht weiter oben positionieren, um Platz für spezifische Annotationen zu lassen
-                font: {
-                    color: '#EF5350',
-                    size: 11,
-                    family: 'Roboto, sans-serif'
-                },
+                showarrow: true, arrowhead: 2, arrowsize: 1.2, arrowwidth: 2, arrowcolor: '#EF5350',
+                ax: 0, ay: -40,
+                font: { color: '#EF5350', size: 11, family: 'Roboto, sans-serif' },
                 bgcolor: 'rgba(255,255,255,0.8)',
                 bordercolor: '#EF5350',
                 borderwidth: 1,
@@ -6962,6 +7031,49 @@ function calculateEfficiency(power, vo2, rq, vo2base) {
         delta: 1 / ((vo2L_min / (power / 60)) * kalorischesEquivalent.kJ_lO2 / 60) * 100
     };
 }
+
+    // --- START: New Helper Functions for Muscle Mass Calculation ---
+
+    /**
+     * Calculates active muscle mass based on body mass and gender for seated cycling.
+     * Formula derived from info box:
+     * - Men: 0.42 (total muscle) * 0.65 (active in seated cycling) = 0.273
+     * - Women: 0.34 (total muscle) * 0.65 (active in seated cycling) = 0.221
+     * @returns {number} The calculated active muscle mass in kg.
+     */
+    function calculateActiveMuscleMass() {
+        const useTab1Params = appState.use_tab1_params;
+        const bodyMass = useTab1Params ? appState.body_mass : appState.body_mass_step;
+        // Gender is sourced from Tab 1 as it's not a Tab 2-specific parameter
+        const gender = appState.gender; 
+        const seatedFactor = 0.65; // For seated cycling
+        const maleMuscleMassFraction = 0.42;
+        const femaleMuscleMassFraction = 0.34;
+
+        let calculatedMass;
+        if (gender === 'Male') {
+            calculatedMass = bodyMass * maleMuscleMassFraction * seatedFactor;
+        } else { // Female
+            calculatedMass = bodyMass * femaleMuscleMassFraction * seatedFactor;
+        }
+        return calculatedMass;
+    }
+
+    /**
+     * Updates the active muscle mass in the app state and UI if auto-calculation is enabled.
+     * This function is called when dependencies (like body mass or gender) change.
+     */
+    function updateAutoMuscleMass() {
+        if (appState.auto_calc_muscle_mass) {
+            const newMass = calculateActiveMuscleMass();
+            appState.active_muscle_mass = newMass;
+            elements.active_muscle_mass.value = newMass;
+            elements.active_muscle_massValue.textContent = newMass.toFixed(1);
+            // The simulation update is handled by the function that calls this helper.
+            calculateAndUpdateMaxLacticPower();
+        }
+    }
+    // --- END: New Helper Functions ---
 
     // Event handlers for Tab 1
 
@@ -7647,7 +7759,9 @@ function calculateEfficiency(power, vo2, rq, vo2base) {
     elements.body_mass.addEventListener('input', function() {
         appState.body_mass = parseFloat(this.value);
         elements.body_massValue.textContent = appState.body_mass.toFixed(1);
-        calculateAndUpdateMaxLacticPower();
+        
+        // NEW: Trigger auto muscle mass update if enabled
+        updateAutoMuscleMass();
         
         // Update relative VO2max if weight changes
         appState.VO2max_kg = appState.VO2max / appState.body_mass;
@@ -7678,12 +7792,18 @@ function calculateEfficiency(power, vo2, rq, vo2base) {
     elements.male.addEventListener('change', function() {
         if (this.checked) {
             appState.gender = 'Male';
+            // NEW: Trigger auto muscle mass update if enabled
+            updateAutoMuscleMass();
+            updateStepTestPlot(); // Update plot as gender can affect AMM -> Glycogen -> Simulation
         }
     });
-    
+
     elements.female.addEventListener('change', function() {
         if (this.checked) {
             appState.gender = 'Female';
+            // NEW: Trigger auto muscle mass update if enabled
+            updateAutoMuscleMass();
+            updateStepTestPlot(); // Update plot as gender can affect AMM -> Glycogen -> Simulation
         }
     });
     
@@ -8082,48 +8202,63 @@ function calculateEfficiency(power, vo2, rq, vo2base) {
     elements.pcr_init.addEventListener('input', function() {
         appState.pcr_init = parseFloat(this.value);
         elements.pcr_initValue.textContent = appState.pcr_init.toFixed(1);
-        if (appState.show_pcr_model) {
-            updateStepTestPlot();
-        }
+        // FIX: Removed the conditional check. The plot should always update.
+        updateStepTestPlot();
     });
-    
+
     elements.p_o_ratio.addEventListener('input', function() {
         appState.p_o_ratio = parseFloat(this.value);
         elements.p_o_ratioValue.textContent = appState.p_o_ratio.toFixed(2);
-        if (appState.show_pcr_model) {
-            updateStepTestPlot();
-        }
+        // FIX: Removed the conditional check. The plot should always update.
+        updateStepTestPlot();
     });
-    
+
     elements.active_muscle_mass.addEventListener('input', function() {
-        appState.active_muscle_mass = parseFloat(this.value);
-        elements.active_muscle_massValue.textContent = appState.active_muscle_mass.toFixed(1);
-        
-        // If auto-calculate glycogen is enabled, update glycogen values
-        if (appState.auto_glycogen) {
-            const glycogenValues = calculateGlycogenValues();
-            appState.glycogen_init = glycogenValues.initialGlycogen;
-            appState.glycogen_max = glycogenValues.maxGlycogen;
-            elements.glycogen_init.value = appState.glycogen_init;
-            elements.glycogen_initValue.textContent = appState.glycogen_init;
-            elements.glycogen_max.value = appState.glycogen_max;
-            elements.glycogen_maxValue.textContent = appState.glycogen_max;
-        }
-        
-        if (appState.show_pcr_model) { // Bezieht sich auf show_pcr_model, sollte aber generell bei Änderung der AMM updaten
+        // This handler is for MANUAL changes to the slider.
+        // It should only work if auto-calculation is OFF.
+        if (!appState.auto_calc_muscle_mass) {
+            appState.active_muscle_mass = parseFloat(this.value);
+            elements.active_muscle_massValue.textContent = appState.active_muscle_mass.toFixed(1);
+            
+            // If auto-calculate glycogen is enabled, update glycogen values based on manual muscle mass
+            if (appState.auto_glycogen) {
+                const glycogenValues = calculateGlycogenValues();
+                appState.glycogen_init = glycogenValues.initialGlycogen;
+                appState.glycogen_max = glycogenValues.maxGlycogen;
+                elements.glycogen_init.value = appState.glycogen_init;
+                elements.glycogen_initValue.textContent = appState.glycogen_init;
+                elements.glycogen_max.value = appState.glycogen_max;
+                elements.glycogen_maxValue.textContent = appState.glycogen_max;
+            }
+            
+            // FIX: Removed the conditional check. The plot should always update on change.
             updateStepTestPlot();
+            calculateAndUpdateMaxLacticPower();
         }
-        calculateAndUpdateMaxLacticPower(); // NEU
     });
-    
+
+    // NEW: Event listener for the auto-calculate muscle mass checkbox
+    elements.auto_calc_muscle_mass.addEventListener('change', function() {
+        appState.auto_calc_muscle_mass = this.checked;
+        if (this.checked) {
+            // If checked, disable the slider and perform calculation
+            elements.active_muscle_mass.disabled = true;
+            updateAutoMuscleMass(); // This calculates and updates the state/UI
+            showNotification("Active muscle mass is now auto-calculated.", 'info');
+        } else {
+            // If unchecked, enable the slider for manual input
+            elements.active_muscle_mass.disabled = false;
+            showNotification("Active muscle mass can now be set manually.", 'info');
+        }
+        // Always update the plot after changing the mode
+        updateStepTestPlot();
+    });
+
     // Event listener for the "Show VO2 Demand" checkbox.
     elements.show_vo2_demand.addEventListener('change', function() {
         appState.show_vo2_demand = this.checked;
-        // The conditional 'if (appState.show_pcr_model)' was incorrect and has been removed.
-        // Now, the plot will always update when the checkbox state changes.
         updateStepTestPlot();
     }); 
-
     // START: Event Listener for PCr Abort Checkbox
     elements.use_pcr_abort.addEventListener('change', function() {
         appState.use_pcr_abort = this.checked;
@@ -8320,6 +8455,9 @@ function calculateEfficiency(power, vo2, rq, vo2base) {
             showNotification("Tab 2 parameters are now independent. Controls are enabled.", 'info');
         }
         
+        // NEW: Always update auto muscle mass when toggling this
+        updateAutoMuscleMass();
+
         initializeVo2StartSlider(); // Recalculate VO2 start slider limits
         updateStepTestPlot();       // Update plot with new settings
         calculateAndUpdateMaxLacticPower(); // Update max lactic power display
@@ -9361,5 +9499,12 @@ function processFileData(rows, delimiter, fileName) {
     // Update plot once more to ensure everything is correct
     initializeVo2StartSlider(); // This might have been called earlier, ensure it's called after profiles might change VO2Base/Max
     updateStepTestPlot(); // Ensure Tab 2 plot is also up-to-date if linked
+    elements.auto_calc_muscle_mass.checked = appState.auto_calc_muscle_mass;
+        if (appState.auto_calc_muscle_mass) {
+            elements.active_muscle_mass.disabled = true;
+            updateAutoMuscleMass(); // Perform initial calculation on page load
+        } else {
+            elements.active_muscle_mass.disabled = false;
+        }
     calculateAndUpdateMaxLacticPower();
 </script>

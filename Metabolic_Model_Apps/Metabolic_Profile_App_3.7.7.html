@@ -1385,7 +1385,7 @@
                     </div>
                     <!-- END: New VO2max calculation method controls -->
                     <!-- vLa_max Section -->
-                    <div class="advanced-setting-section" style="margin-top: 20px; border-top: 1px dashed #ccc; padding-top: 10px;">
+                    <div style="margin-top: 20px; border-top: 1px dashed #ccc; padding-top: 10px;">
                         <div class="slider-container">
                             <div class="slider-label">
                                 <label for="vLamax">vLa<sub>max</sub> (mmol·l⁻¹·s⁻¹):</label>
@@ -1444,9 +1444,9 @@
                         <div class="slider-container">
                             <div class="slider-label">
                                 <label for="hr_max">Max Heart Rate (bpm):</label>
-                                <span id="hr_max-value" class="slider-value">186</span>
+                                <span id="hr_max-value" class="slider-value">190</span>
                             </div>
-                            <input type="range" id="hr_max" class="range-slider" min="150" max="220" value="186" step="1">
+                            <input type="range" id="hr_max" class="range-slider" min="150" max="220" value="190" step="1">
                         </div>
                         <div class="slider-container">
                             <div class="slider-label">
@@ -1825,7 +1825,7 @@ const appState = {
     pdPlotXRange: { min: 0, max: 1200 },
     P5minForVO2maxCalc: null,
     radarChartUnit: 'wkg',
-    hr_max: 186,
+    hr_max: 190,
     hr_min: 40,
     vlamaxEstimationMethod: 'average',
     p20s_avg_power: 1000,
@@ -1891,6 +1891,7 @@ const PREDEFINED_ATHLETE_PROFILES = {
         VO2max: 6165, VO2Base: 311, vLamax: 0.54,
         gender: "Male", body_mass: 64.5, age: 26, height: 176,
         defaultPmaxAbs: 1253,
+        hr_max: 200,
         p20sPower: 897, // oder 912
         // Power data points (stored as W/kg relative to profile.body_mass). This format is kept for backward compatibility.
 powerData: [
@@ -2987,7 +2988,7 @@ function populateAthleteProfileDropdown() {
     }
 }
 
-function loadProfile(profileName) {
+function loadProfile(profileName, suppressNotification = false) {
     const profile = PREDEFINED_ATHLETE_PROFILES[profileName];
     if (!profile) {
         showNotification(`Profile "${profileName}" not found.`, 'warning');
@@ -3050,7 +3051,7 @@ function loadProfile(profileName) {
     appState.age = profile.age !== undefined ? profile.age : 28;
     appState.height = profile.height !== undefined ? profile.height : 193;
     appState.p20s_avg_power = profile.p20sPower !== undefined ? profile.p20sPower : 1200;
-    appState.hr_max = profile.hr_max !== undefined ? profile.hr_max : 186;
+    appState.hr_max = profile.hr_max !== undefined ? profile.hr_max : 190;
 
     const bodyMassForPmaxCalc = appState.body_mass > 0 ? appState.body_mass : 70;
     if (profile.defaultPmaxAbs !== undefined) {
@@ -3090,7 +3091,9 @@ function loadProfile(profileName) {
     renderPowerDataPointsUI();
     setFittingTimeRangeDefaults();
 
-    showNotification(`Profile "${profileName}" loaded.`, 'info');
+    if (!suppressNotification) {
+        showNotification(`Profile "${profileName}" loaded.`, 'info');
+    }
     updateAllPlotsAndCalculations();
 }
 
@@ -7028,6 +7031,7 @@ function exportCurrentProfile() {
     // 1. Gather all base parameters from the current app state
     const exportData = {
         profileName: appState.currentProfileName,
+        presetType: PREDEFINED_ATHLETE_PROFILES[appState.currentProfileName]?.presetType || 'Well-Trained',
         gender: appState.gender,
         body_mass: appState.body_mass,
         age: appState.age,
@@ -7130,6 +7134,7 @@ function loadImportedProfile(data) {
     // Define default values for all importable fields
     const defaults = {
         profileName: "Custom Profile",
+        presetType: "Well-Trained",
         gender: "Male",
         body_mass: 75.0,
         age: 30,
@@ -7232,32 +7237,13 @@ function loadImportedProfile(data) {
 
     // --- END OF MODIFICATION ---
 
-    // Set the app state to the fully validated & defaulted profile
-    appState.currentProfileName = loadedProfile.profileName;
-    appState.gender = loadedProfile.gender;
-    appState.body_mass = loadedProfile.body_mass;
-    appState.age = loadedProfile.age;
-    appState.height = loadedProfile.height;
-    appState.hr_max = loadedProfile.hr_max;
-    appState.hr_min = loadedProfile.hr_min;
-    appState.vLamax = loadedProfile.vLamax;
-    appState.VO2max = loadedProfile.VO2max;
-    appState.VO2Base = loadedProfile.VO2Base;
-    appState.curvilinear_ce = loadedProfile.curvilinear_ce;
-    appState.CEVO2 = loadedProfile.CEVO2;
-    appState.CE_range = loadedProfile.CE_range;
-    appState.p20s_avg_power = loadedProfile.p20sPower;
-    appState.powerDataPoints = loadedProfile.powerData;
-    appState.powerDataPoints.sort((a, b) => a.duration - b.duration);
-
     // Set the dropdown to the newly loaded profile name.
     domElements.athleteProfileSelect.value = loadedProfile.profileName;
 
-    // Refresh the entire UI
-    updateMaderUIFromState();
-    renderPowerDataPointsUI();
-    setFittingTimeRangeDefaults();
-    updateAllPlotsAndCalculations();
+    // Call the main loadProfile function to handle setting the state and refreshing the UI.
+    // This ensures the exact same, robust logic path is used as a manual selection.
+    // We suppress the generic notification from loadProfile to show a more detailed one below.
+    loadProfile(loadedProfile.profileName, true); // true = suppress notification
 
     // Show notifications to the user
     let notificationMessage = `Profile '${loadedProfile.profileName}' imported and temporarily added to the list.`;

@@ -2988,7 +2988,7 @@ function populateAthleteProfileDropdown() {
     }
 }
 
-function loadProfile(profileName) {
+function loadProfile(profileName, suppressNotification = false) {
     const profile = PREDEFINED_ATHLETE_PROFILES[profileName];
     if (!profile) {
         showNotification(`Profile "${profileName}" not found.`, 'warning');
@@ -3091,7 +3091,9 @@ function loadProfile(profileName) {
     renderPowerDataPointsUI();
     setFittingTimeRangeDefaults();
 
-    showNotification(`Profile "${profileName}" loaded.`, 'info');
+    if (!suppressNotification) {
+        showNotification(`Profile "${profileName}" loaded.`, 'info');
+    }
     updateAllPlotsAndCalculations();
 }
 
@@ -7029,6 +7031,7 @@ function exportCurrentProfile() {
     // 1. Gather all base parameters from the current app state
     const exportData = {
         profileName: appState.currentProfileName,
+        presetType: PREDEFINED_ATHLETE_PROFILES[appState.currentProfileName]?.presetType || 'Well-Trained',
         gender: appState.gender,
         body_mass: appState.body_mass,
         age: appState.age,
@@ -7131,6 +7134,7 @@ function loadImportedProfile(data) {
     // Define default values for all importable fields
     const defaults = {
         profileName: "Custom Profile",
+        presetType: "Well-Trained",
         gender: "Male",
         body_mass: 75.0,
         age: 30,
@@ -7233,32 +7237,13 @@ function loadImportedProfile(data) {
 
     // --- END OF MODIFICATION ---
 
-    // Set the app state to the fully validated & defaulted profile
-    appState.currentProfileName = loadedProfile.profileName;
-    appState.gender = loadedProfile.gender;
-    appState.body_mass = loadedProfile.body_mass;
-    appState.age = loadedProfile.age;
-    appState.height = loadedProfile.height;
-    appState.hr_max = loadedProfile.hr_max;
-    appState.hr_min = loadedProfile.hr_min;
-    appState.vLamax = loadedProfile.vLamax;
-    appState.VO2max = loadedProfile.VO2max;
-    appState.VO2Base = loadedProfile.VO2Base;
-    appState.curvilinear_ce = loadedProfile.curvilinear_ce;
-    appState.CEVO2 = loadedProfile.CEVO2;
-    appState.CE_range = loadedProfile.CE_range;
-    appState.p20s_avg_power = loadedProfile.p20sPower;
-    appState.powerDataPoints = loadedProfile.powerData;
-    appState.powerDataPoints.sort((a, b) => a.duration - b.duration);
-
     // Set the dropdown to the newly loaded profile name.
     domElements.athleteProfileSelect.value = loadedProfile.profileName;
 
-    // Refresh the entire UI
-    updateMaderUIFromState();
-    renderPowerDataPointsUI();
-    setFittingTimeRangeDefaults();
-    updateAllPlotsAndCalculations();
+    // Call the main loadProfile function to handle setting the state and refreshing the UI.
+    // This ensures the exact same, robust logic path is used as a manual selection.
+    // We suppress the generic notification from loadProfile to show a more detailed one below.
+    loadProfile(loadedProfile.profileName, true); // true = suppress notification
 
     // Show notifications to the user
     let notificationMessage = `Profile '${loadedProfile.profileName}' imported and temporarily added to the list.`;

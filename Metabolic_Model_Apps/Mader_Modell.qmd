@@ -50,29 +50,26 @@ Fit-files must first be converted to .csv format using **[GOTOES File Converter]
 
 
 <div style="position: relative; width: 100%; height: 800px;">
-  <iframe src="Mader_App_9.3.8.3.html" style="position: absolute; width: 100%; height: 100%; border: none;"></iframe>
+  <iframe src="Mader_App_9.3.8.8.html" style="position: absolute; width: 100%; height: 100%; border: none;"></iframe>
 </div>
 
 <br>  
 
-[Fullscreen-Link: Mader App](/Mader_App_9.3.8.3.html)
+[Fullscreen-Link: Mader App](/Mader_App_9.3.8.8.html)
 
-<a href="Example_Race_Data.csv" download class="btn btn-primary">
-  <i class="bi bi-download"></i> Download Example_Race_Data.csv
+<a href="Gee_Giro_2025_Example_Profile.json" download class="btn btn-primary">
+  <i class="bi bi-download"></i> Download Derek Gee's Giro 2025 Profile and upload it directly into the app for analysis
 </a>
 
 
 <a href="Giro_d’Italia_Stage_20.csv" download class="btn btn-primary">
-  <i class="bi bi-download"></i> Download Giro_d’Italia_Stage_20.csv
+  <i class="bi bi-download"></i> Download Giro d’Italia Stage 20 Race Data
 </a>
 
-<a href="Gee_Giro_2025_Example_Profile.json" download class="btn btn-primary">
-  <i class="bi bi-download"></i> Download Gee_Giro_2025_Example_Profile.json
-</a>
 
 # Mader's Metabolic Simulation App: A Feature Guide
 
-The Mader's Metabolic Simulation App is an interactive, web-based tool designed to model, simulate, and visualize multifaceted aspects of human exercise metabolism. The application's core framework is rooted in the established metabolic principles and sophisticated mathematical models developed by Dr. Alois Mader and his collaborators (e.g., @Mader1984; @Mader1986; @Mader1996; @Mader2003). This tool can be used to explore complex physiological interactions in two primary modes:
+The Mader's Metabolic Simulation App is an interactive, web-based tool designed to model, simulate, and visualize human exercise metabolism. The application's core framework is rooted in the established metabolic principles and sophisticated mathematical models developed by Dr. Alois Mader and his collaborators (e.g., @Mader1984; @Mader1986; @Mader1996; @Mader2003). This tool can be used to explore complex physiological interactions in two primary modes:
 
 1.  **Steady-state metabolic responses** to a spectrum of power outputs. This mode allows for detailed examination of the intricate relationships between mechanical power, oxygen uptake ($\dot{V}O_2$), the kinetics of lactate production ($vLa_{SS}$) and lactate oxidation ($vLa_{ox}$), the resulting pyruvate deficit (PD), and the theoretical lactate accumulation. This is accessible via the "P-V̇O₂-La Dynamics" tab.
 2.  **Dynamic metabolic changes** as they unfold during exercise. This mode facilitates the simulation of physiological responses to predefined exercise protocols, such as incremental step tests, or to custom-loaded power data from actual training sessions or laboratory tests. This is found in the "Exercise Simulation" tab.
@@ -105,7 +102,7 @@ This section defines the fundamental relationship between mechanical power outpu
         $CE_{Start}$ represents the initial slope (and thus initial efficiency) at very low power outputs. The coefficient $a$ determines the degree of curvature of the P-$\dot{V}O_2$ relationship. Within the app, this coefficient $a$ is automatically calculated. This calculation is designed such that the slope of this curvilinear P-$\dot{V}O_2$ relationship, specifically at the power output where $\dot{V}O_{2,SS}$ would theoretically intersect $\dot{V}O_{2,max}$, matches the user-defined $CE_{Target}$ value. This sophisticated approach allows for a more nuanced representation of how efficiency changes across the intensity spectrum.
 
 *   **CE (ml·min⁻¹·W⁻¹):**
-    *   This slider sets the constant Cost of Exercise ($CE$). While the app's slider offers a broad range (8 to 15 ml·min⁻¹·W⁻¹), typical physiological values for well-trained cyclists often fall within a narrower band, generally between 10.0 and 12.0 ml·min⁻¹·W⁻¹ [@Astrand2003; @Rassouli2015]. Values outside this range can certainly occur, depending on factors like training status (untrained individuals may have higher CEs), muscle fiber type composition, pedaling technique, and even equipment (e.g., aerodynamic drag at higher speeds, though this model primarily focuses on ergometer cycling). Lower CE values inherently indicate higher gross mechanical efficiency for the external work performed.
+    *   This slider sets the constant Cost of Exercise ($CE$). While the app's slider offers a broad range (8 to 15 ml·min⁻¹·W⁻¹), typical physiological values for well-trained cyclists often fall within a narrower band, generally between 10.0 and 12.0 ml·min⁻¹·W⁻¹ [@Astrand2003; @Rassouli2015]. Values outside this range can certainly occur, depending on factors like training status (untrained individuals may have higher CEs), muscle fiber type composition, pedaling technique, and even equipment. Lower CE values inherently indicate higher gross mechanical efficiency for the external work performed.
     *   **Delta Efficiency (Δη):** This derived metric quantifies the efficiency of converting metabolic energy into additional mechanical work, specifically the efficiency of the work performed *above* the $\dot{V}O_{2,Base}$ level. It is calculated from the $CE$ value and the caloric equivalent of oxygen (energy yield per liter of O₂ consumed). A critical point is that the caloric equivalent of oxygen is not constant; it varies depending on the substrate mixture being oxidized, which is reflected by the Respiratory Quotient (RQ). RQ values typically range from approximately 0.70 (pure fat oxidation) to 1.00 (pure carbohydrate oxidation), corresponding to caloric equivalents from approximately 19.6 kJ·L O₂⁻¹ to 21.1 kJ·L O₂⁻¹ [@Stegemann1991]. Because the app dynamically calculates a predicted RQ based on the modeled substrate utilization, Δη is presented as a range (e.g., 24.7-26.5%) to account for this RQ variability across intensities. Conceptually, Δη can be thought of as:
         $$ \Delta\eta = \frac{\text{Change in Work Rate}}{\text{Change in Energy Expenditure Rate above } \dot{V}O_{2,Base}} $$
         A more direct calculation based on CE is:
@@ -515,7 +512,7 @@ Located below the simulation plot, this section provides a detailed quantitative
 *   **Training Stress Score (TSS):** An estimation of the overall training load or stress imposed by the simulated workout. It is typically calculated using Normalized Power, the duration of the exercise, and the individual's Functional Threshold Power (FTP), for which the app uses the set Critical Power (CP) as a proxy. A common formula is:
     $$ TSS = (\text{Duration in seconds} \cdot \text{Normalized Power} \cdot \text{Intensity Factor}) / (\text{FTP} \cdot 3600) \cdot 100 $$
     Where Intensity Factor (IF) = Normalized Power / FTP.
-*   **Strain Score (SS):** The total cumulative Strain Score accumulated during the simulation, based on the model by @Hauser2014 and Kontro et al. (as per HTML formulas), which considers P<sub>max</sub>, CP, and W' dynamics.
+*   **Strain Score (SS):** The total cumulative Strain Score accumulated during the simulation, based on the model by  @Kontro2025, which considers P<sub>max</sub>, CP, and W' dynamics.
     *   **SS<sub>CP</sub>:** The component of the total Strain Score attributed to work performed at or below CP.
     *   **SS<sub>W'</sub>:** The component of the total Strain Score attributed to the utilization of W' (work above CP).
     *   **SS<sub>Pmax</sub>:** The component of the total Strain Score attributed to very high power outputs that draw upon the P<sub>max</sub> capacity.
