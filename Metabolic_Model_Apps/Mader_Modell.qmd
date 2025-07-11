@@ -55,7 +55,7 @@ Fit-files must first be converted to .csv format using **[GOTOES File Converter]
 
 <br>  
 
-[Fullscreen-Link: Mader App](/Mader_App_9.3.8.8.html)
+[Fullscreen-Link: Mader App](Mader_App_9.3.8.8.html)
 
 <a href="Gee_Giro_2025_Example_Profile.json" download class="btn btn-primary">
   <i class="bi bi-download"></i> Download Derek Gee's Giro 2025 Profile and upload it directly into the app for analysis

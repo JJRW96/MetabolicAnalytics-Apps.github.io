@@ -48,7 +48,7 @@ figure figcaption {
 
 <br>
 
-[Fullscreen-Link: Metabolic Profile App](/Metabolic_Profile_App_3.7.7.html)
+[Fullscreen-Link: Metabolic Profile App](Metabolic_Profile_App_3.7.7.html)
 
 <a href="Gee_Giro_2025_Example_Full_Profile.json" download class="btn btn-primary">
   <i class="bi bi-download"></i> Download Derek Gee's Full Giro 2025 Power Profile and upload it directly into the app for analysis
