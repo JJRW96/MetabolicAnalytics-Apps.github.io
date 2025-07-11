@@ -1385,7 +1385,7 @@
                     </div>
                     <!-- END: New VO2max calculation method controls -->
                     <!-- vLa_max Section -->
-                    <div class="advanced-setting-section" style="margin-top: 20px; border-top: 1px dashed #ccc; padding-top: 10px;">
+                    <div style="margin-top: 20px; border-top: 1px dashed #ccc; padding-top: 10px;">
                         <div class="slider-container">
                             <div class="slider-label">
                                 <label for="vLamax">vLa<sub>max</sub> (mmol·l⁻¹·s⁻¹):</label>
@@ -1444,9 +1444,9 @@
                         <div class="slider-container">
                             <div class="slider-label">
                                 <label for="hr_max">Max Heart Rate (bpm):</label>
-                                <span id="hr_max-value" class="slider-value">186</span>
+                                <span id="hr_max-value" class="slider-value">190</span>
                             </div>
-                            <input type="range" id="hr_max" class="range-slider" min="150" max="220" value="186" step="1">
+                            <input type="range" id="hr_max" class="range-slider" min="150" max="220" value="190" step="1">
                         </div>
                         <div class="slider-container">
                             <div class="slider-label">
@@ -1825,7 +1825,7 @@ const appState = {
     pdPlotXRange: { min: 0, max: 1200 },
     P5minForVO2maxCalc: null,
     radarChartUnit: 'wkg',
-    hr_max: 186,
+    hr_max: 190,
     hr_min: 40,
     vlamaxEstimationMethod: 'average',
     p20s_avg_power: 1000,
@@ -1891,6 +1891,7 @@ const PREDEFINED_ATHLETE_PROFILES = {
         VO2max: 6165, VO2Base: 311, vLamax: 0.54,
         gender: "Male", body_mass: 64.5, age: 26, height: 176,
         defaultPmaxAbs: 1253,
+        hr_max: 200,
         p20sPower: 897, // oder 912
         // Power data points (stored as W/kg relative to profile.body_mass). This format is kept for backward compatibility.
 powerData: [
@@ -3050,7 +3051,7 @@ function loadProfile(profileName) {
     appState.age = profile.age !== undefined ? profile.age : 28;
     appState.height = profile.height !== undefined ? profile.height : 193;
     appState.p20s_avg_power = profile.p20sPower !== undefined ? profile.p20sPower : 1200;
-    appState.hr_max = profile.hr_max !== undefined ? profile.hr_max : 186;
+    appState.hr_max = profile.hr_max !== undefined ? profile.hr_max : 190;
 
     const bodyMassForPmaxCalc = appState.body_mass > 0 ? appState.body_mass : 70;
     if (profile.defaultPmaxAbs !== undefined) {
